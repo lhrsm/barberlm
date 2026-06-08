@@ -116,7 +116,7 @@ serve(async (req) => {
 
     for (const item of itemsToProcess) {
       try {
-        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type } = item;
+        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type, id: queueId } = item;
         
         const currentWorkflowKey = workflow_key || automation?.key || automation_type;
         const isBirthday = currentWorkflowKey === 'customer_birthday';
@@ -126,170 +126,170 @@ serve(async (req) => {
         if (!currentWorkflowKey) throw new Error("Workflow key or automation type missing");
         if (!appointment && !isBirthday && !isAnniversary) throw new Error("Data incomplete: appointment missing");
 
-        if (!force_resend && appointment?.confirmation_sent) {
-          const { data: activeSess } = await supabase
-            .from("automation_v2_sessions")
+        // 7. Prevent duplicates
+        if (!force_resend && appointment?.id) {
+          const { data: alreadySent } = await supabase
+            .from("automation_logs")
             .select("id")
             .eq("appointment_id", appointment.id)
-            .eq("status", "active")
+            .eq("automation_type", currentWorkflowKey)
+            .eq("status", "sent")
             .maybeSingle();
 
-          if (activeSess) {
-            console.log(`[ProcessQueue] Skipping item ${item.id} - Active session already exists for appointment ${appointment.id}`);
-            await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", item.id);
-            results.push({ id: item.id, success: true, skipped: true, reason: "active_session_exists" });
+          if (alreadySent) {
+            console.log(`[ProcessQueue] Already sent ${currentWorkflowKey} for appointment ${appointment.id}`);
+            await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", queueId);
+            results.push({ id: queueId, success: true, skipped: true, reason: "already_sent" });
             continue;
           }
-
-          await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", item.id);
-          results.push({ id: item.id, success: true, skipped: true, reason: "confirmation_already_sent" });
-          continue;
         }
+
+        console.log(`[ProcessQueue] Loading data for ${currentWorkflowKey}`, { appointment_id: appointment?.id });
 
         let barbershopName = "Barbearia";
         const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", itemTenantId).maybeSingle();
-        if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) barbershopName = tenantData.name;
-        else {
-          const { data: profileData } = await supabase.from("profiles").select("business_name").eq("id", itemTenantId).maybeSingle();
-          if (profileData?.business_name) barbershopName = profileData.business_name;
+        if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) {
+          barbershopName = tenantData.name;
+        } else {
+          const { data: profileData } = await supabase.from("profiles").select("business_name, full_name").eq("id", itemTenantId).maybeSingle();
+          barbershopName = profileData?.business_name || profileData?.full_name || "Barbearia";
         }
 
         const profId = appointment?.barber_id || appointment?.professional_id;
         let profName = "Profissional";
-        let resolvedTable = "none";
-
         if (profId) {
-            const { data: barbData } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
-            if (barbData?.name) { profName = barbData.name; resolvedTable = "barbers"; }
-            else {
-              const { data: pData } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
-              if (pData?.full_name) { profName = pData.full_name; resolvedTable = "profiles"; }
-            }
+          const { data: barbData } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
+          if (barbData?.name) { 
+            profName = barbData.name; 
+          } else {
+            const { data: pData } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
+            if (pData?.full_name) profName = pData.full_name;
+          }
         }
 
-        const diagInfo = { 
-          resolved_table: resolvedTable, 
-          prof_id_used: profId,
-          prof_name_found: profName !== "Profissional",
-          origin: force_resend ? 'test_manual' : 'automatic'
-        };
+        const customerName = appointment?.customer?.name || item.payload?.customer_name || item.customer?.name || "Cliente";
+        const appointmentDate = appointment?.start_time ? formatBrazilDate(appointment.start_time) : "";
+        const appointmentTime = appointment?.start_time ? formatBrazilTime(appointment.start_time) : "";
+        const serviceName = appointment?.service?.name || item.payload?.service_name || "Serviço";
+        
+        // 2. Montar management_link
+        let managementUrl = "";
+        if (appointment) {
+          if (appointment.appointment_group_id || appointment.group_id) {
+            const groupToken = appointment.group_token || appointment.appointment_group_id || appointment.group_id;
+            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}`;
+          } else {
+            const token = appointment.management_token || appointment.id;
+            managementUrl = `https://barbex.shop/agendamento/${token}`;
+          }
+        }
 
-        const testData = {
-          customer_name: appointment?.customer?.name || item.payload?.customer_name || "Cliente",
+        const templateData = {
+          customer_name: customerName,
           barbershop_name: barbershopName,
-          service_name: appointment?.service?.name || "Serviço",
+          service_name: serviceName,
           professional_name: profName,
-          appointment_date: appointment?.start_time ? formatBrazilDate(appointment.start_time) : "",
-          appointment_time: appointment?.start_time ? formatBrazilTime(appointment.start_time) : "",
+          appointment_date: appointmentDate,
+          appointment_time: appointmentTime,
+          management_link: managementUrl,
+          management_token: appointment?.management_token || appointment?.id,
           service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
           birth_date: item.payload?.birth_date || "",
         };
 
-        const sendOptions: any = {};
-        let renderedTemplate = "";
+        console.log(`[ProcessQueue] Data loaded for ${currentWorkflowKey}`, { templateData });
+
         let baseTemplate = automation?.template || "";
+        
+        // 4. Default template for new appointment if none exists
+        if (isNewAppointment && !baseTemplate) {
+          baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nPara reagendar ou cancelar, acesse o link abaixo:\n{management_link}\n\nObrigado!`;
+        }
 
-        const managementUrl = `https://barbex.shop/agendamento/${appointment?.management_token || appointment?.id}?tenant=${itemTenantId}`;
-        const templateData = {
-          ...testData,
-          management_link: managementUrl,
-          management_token: appointment?.management_token || appointment?.id
-        };
+        // 3. Substituir variáveis
+        let renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
 
-        if (currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment') {
-          // Rule: No buttons on initial confirmation. Direct confirmation flow with management link.
-          if (!baseTemplate) {
-            baseTemplate = `Olá {customer_name}! 👋\n\nSeu agendamento foi realizado com sucesso.\n\nServiço: {service_name}\nProfissional: {professional_name}\nData: {appointment_date}\nHorário: {appointment_time}\n\nPara reagendar ou cancelar, acesse:\n{management_link}\n\nObrigado!`;
-          }
-          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (currentWorkflowKey === 'cancellation') {
-          if (!baseTemplate) {
-            baseTemplate = `Olá {customer_name} 👋\n\nInformamos que seu agendamento na {barbershop_name} para o dia {appointment_date} às {appointment_time} foi CANCELADO.\n\n🔗 Você pode visualizar os detalhes aqui:\n{management_link}\n\nEsperamos te ver em breve! 💈`;
-          }
-          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (currentWorkflowKey === 'appointment_reminder') {
-          const type = item.payload?.reminder_type || "6h";
+        // 5. Evitar envio de template cru
+        const missing = [
+          '{customer_name}', '{barbershop_name}', '{service_name}', 
+          '{professional_name}', '{appointment_date}', '{appointment_time}', '{management_link}'
+        ].filter(p => renderedTemplate.includes(p) || renderedTemplate.includes(p.replace('{', '{{').replace('}', '}}')));
+
+        if (missing.length > 0) {
+          const errorMsg = `Template possui variáveis não substituídas: ${missing.join(', ')}`;
+          console.error(`[ProcessQueue] ${errorMsg}`);
           
-          if (type === "6h") {
-            baseTemplate = `Olá {customer_name} 👋\n\nPassando para lembrar do seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nEstamos te esperando!`;
-          } else if (type === "1h") {
-            baseTemplate = `Olá {customer_name} 👋\n\nSeu atendimento na {barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
-          } else if (type === "30m") {
-            baseTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
-          }
-          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (currentWorkflowKey === 'customer_birthday') {
-           if (!baseTemplate) {
-             baseTemplate = `Olá {customer_name} 🎉\n\nA {barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
-           }
-           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (currentWorkflowKey === 'barbershop_anniversary') {
-           const type = item.payload?.anniversary_message_type || "anniversary_day";
-           if (type === "reminder_7_days") {
-              baseTemplate = automation?.additional_templates?.reminder_7_days || `Olá {customer_name} 👋\n\nO aniversário da {barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
-           }
-           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else {
-          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
+          await supabase.from("automation_queue").update({ 
+            status: "failed", 
+            error_message: errorMsg,
+            updated_at: new Date().toISOString()
+          }).eq("id", queueId);
+
+          await supabase.from("automation_logs").insert({
+            tenant_id: itemTenantId,
+            appointment_id: appointment?.id,
+            automation_type: currentWorkflowKey,
+            status: 'failed',
+            error_message: errorMsg,
+            payload: { missing_variables: missing, template: baseTemplate, data: templateData }
+          });
+
+          results.push({ id: queueId, success: false, error: errorMsg });
+          continue;
         }
 
         if (dry_run) {
-          results.push({ id: item.id, success: true, dry_run: true, payload: { phone: appointment.customer?.phone, message: renderedTemplate, buttons: sendOptions.buttons, testData, diagnostic: diagInfo } });
+          results.push({ id: queueId, success: true, dry_run: true, payload: { phone: appointment?.customer?.phone, message: renderedTemplate, templateData } });
           continue;
         }
 
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
         if (!instance) throw new Error("WhatsApp not configured");
 
-        const phone = appointment?.customer?.phone || item.customer?.phone;
+        const phone = appointment?.customer?.phone || item.customer?.phone || item.payload?.phone;
         if (!phone) throw new Error("Phone missing");
+
+        // 6. Logs obrigatórios & Send
+        const logPayload = {
+          appointment_id: appointment?.id,
+          customer_name: customerName,
+          service_name: serviceName,
+          professional_name: profName,
+          appointment_date: appointmentDate,
+          appointment_time: appointmentTime,
+          management_link: managementUrl,
+          final_message: renderedTemplate
+        };
+
+        console.log(`[ProcessQueue] Sending message`, logPayload);
 
         const sendResult = await sendAutomationMessageV2(supabase, {
           tenant_id: itemTenantId,
           workflow_key: currentWorkflowKey,
           appointment_id: appointment?.id,
-          appointment_group_id: appointment?.group_id || appointment?.appointment_group_id,
           customer_id: appointment?.customer_id || item.customer_id,
           customer_phone: phone,
-          customer_name: testData.customer_name,
+          customer_name: customerName,
           message: renderedTemplate,
-          buttons: sendOptions.buttons,
-          payload: { 
-            ...testData, 
-            diagnostic: diagInfo, 
-            reference_year: item.reference_year,
-            anniversary_year: item.payload?.anniversary_year,
-            anniversary_message_type: item.payload?.anniversary_message_type,
-            reminder_type: item.payload?.reminder_type,
-            test_mode: force_resend ? true : false
-          },
+          payload: { ...templateData, log: logPayload },
           instance: instance
         });
 
         if (sendResult.success) {
-          if (sendResult.warning === "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED") {
-             throw new Error("WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED");
-          }
-
           const now = new Date().toISOString();
           await supabase.from("automation_queue").update({ 
             status: "success", 
             attempts: (item.attempts || 0) + 1, 
-            retry_count: (item.retry_count || 0) + 1,
-            last_retry_at: now,
             processed_at: now,
             updated_at: now 
-          }).eq("id", item.id);
+          }).eq("id", queueId);
 
-          // Registrar log de sucesso
-          await supabase.from("whatsapp_delivery_logs").insert({
+          await supabase.from("automation_logs").insert({
             tenant_id: itemTenantId,
-            queue_id: item.id,
             appointment_id: appointment?.id,
-            status: 'success',
-            attempt_number: (item.attempts || 0) + 1,
-            provider_response: sendResult.response,
-            sent_at: now
+            automation_type: currentWorkflowKey,
+            status: 'sent',
+            payload: logPayload
           });
 
           if (appointment?.id) {
@@ -299,7 +299,7 @@ serve(async (req) => {
             }).eq("id", appointment.id);
           }
 
-          results.push({ id: item.id, success: true });
+          results.push({ id: queueId, success: true });
         } else {
           throw new Error(sendResult.error || "Failed to send automation message");
         }
@@ -308,39 +308,23 @@ serve(async (req) => {
         const now = new Date().toISOString();
         const nextAttempts = (item.attempts || 0) + 1;
         
-        // Calcular próximo horário de retentativa com backoff exponencial e jitter
-        let delayMinutes = 5;
-        if (nextAttempts === 2) delayMinutes = 15;
-        else if (nextAttempts === 3) delayMinutes = 60;
-        else if (nextAttempts === 4) delayMinutes = 240;
-        else if (nextAttempts >= 5) delayMinutes = 1440;
-
-        // Adicionar jitter (variância de 10%)
-        const jitter = Math.floor(Math.random() * (delayMinutes * 0.1 * 60)); // jitter em segundos
-        const nextRetryAt = new Date(Date.now() + (delayMinutes * 60 * 1000) + (jitter * 1000)).toISOString();
-
         await supabase.from("automation_queue").update({ 
           status: nextAttempts >= 5 ? "failed" : "pending", 
           error_message: err.message, 
           attempts: nextAttempts,
-          retry_count: (item.retry_count || 0) + 1,
-          last_retry_at: now,
-          next_retry_at: nextRetryAt,
           updated_at: now 
         }).eq("id", item.id);
 
-        // Registrar log de falha
-        await supabase.from("whatsapp_delivery_logs").insert({
-          tenant_id: itemTenantId,
-          queue_id: item.id,
-          appointment_id: appointment?.id,
+        await supabase.from("automation_logs").insert({
+          tenant_id: item.tenant_id,
+          appointment_id: item.appointment_id,
+          automation_type: item.workflow_key || item.automation_type,
           status: 'failed',
           error_message: err.message,
-          attempt_number: nextAttempts,
-          sent_at: now
+          payload: { attempt: nextAttempts }
         });
 
-        results.push({ id: item.id, success: false, error: err.message, next_retry_at: nextRetryAt });
+        results.push({ id: item.id, success: false, error: err.message });
       }
     }
 

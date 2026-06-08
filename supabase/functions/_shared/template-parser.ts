@@ -5,12 +5,10 @@ export function processAutomationTemplate(template: string, data: Record<string,
   
   let result = template;
 
-  // 1. Handle Conditional Blocks: {{#if variable}}...{{/if}}
-  // More flexible regex to handle spaces and various formats
-  const ifRegex = /{{\s*#if\s+([a-zA-Z0-9_]+)\s*}}(.*?){{\s*\/if\s*}}/gs;
+  // 1. Handle Conditional Blocks: {{#if variable}}...{{/if}} or {#if variable}...{/if}
+  const ifRegex = /{{?\s*#if\s+([a-zA-Z0-9_]+)\s*}}?(.*?){{?\s*\/if\s*}}?/gs;
   result = result.replace(ifRegex, (match, variable, content) => {
     const value = data[variable];
-    // If value is truthy (exists and not empty string/zero), keep content, else remove
     const isTruthy = value && 
                      value !== "R$ 0,00" && 
                      value !== "0,00" && 
@@ -47,25 +45,35 @@ export function processAutomationTemplate(template: string, data: Record<string,
     service_price: data.service_price || data.valor || "",
     valor: data.service_price || data.valor || "",
     
+    management_link: data.management_link || data.link_agendamento || "",
+    link_agendamento: data.management_link || data.link_agendamento || "",
+    
     appointments_list: data.appointments_list || "",
-    link_agendamento: data.link_agendamento || "",
     appointment_id: data.appointment_id || "",
+    management_token: data.management_token || "",
   };
 
-  // 3. Replace simple placeholders: {{variable}}
+  // 3. Replace placeholders: {{variable}} or {variable}
   for (const [key, value] of Object.entries(variables)) {
-    // Regex to match {{key}} with optional spaces: {{ key }}
-    const placeholderRegex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+    // Match {{ key }} or { key }
+    const placeholderRegex = new RegExp(`{{?\\s*${key}\\s*}}?`, 'g');
     const stringValue = String(value || "");
     result = result.replace(placeholderRegex, stringValue);
   }
 
   // 4. Final Cleanup: Remove any remaining Handlebars tags
-  result = result.replace(/{{\s*[#\/]?[a-zA-Z0-9_ ]+\s*}}/g, "");
+  result = result.replace(/{{?\s*[#\/]?[a-zA-Z0-9_ ]+\s*}}?/g, "");
 
   return result.trim();
 }
 
 export function containsPlaceholders(text: string): boolean {
-  return /{{[#\/]?[a-zA-Z0-9_ ]+}}/.test(text);
+  // Checks for both {variable} and {{variable}}
+  return /{[#\/]?[a-zA-Z0-9_ ]+}/.test(text) || /{{[#\/]?[a-zA-Z0-9_ ]+}}/.test(text);
+}
+
+export function getMissingPlaceholders(text: string): string[] {
+  const matches = text.match(/{[a-zA-Z0-9_]+}/g) || [];
+  const doubleMatches = text.match(/{{[a-zA-Z0-9_]+}}/g) || [];
+  return [...new Set([...matches, ...doubleMatches])];
 }
