@@ -1576,13 +1576,26 @@ function AutomationsComponent() {
           <TabsContent value="logs" className="pt-6 space-y-6">
             {/* Cards de Estatísticas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <SendHorizontal size={40} className="text-white" />
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative group hover:border-amber-500/30 transition-all cursor-pointer" onClick={() => setIsProcessingQueue(true)}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Zap size={40} className="text-amber-500" />
                 </div>
                 <CardHeader className="pb-2">
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Total Enviados</CardDescription>
-                  <CardTitle className="text-2xl font-bold text-white">{logStats.sent}</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Fila de Automações</CardDescription>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <CardTitle className="text-2xl font-bold text-white">{queueStats.pending}</CardTitle>
+                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">Pendentes</span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 border-t border-white/5 pt-2">
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Sucesso</span>
+                      <span className="text-xs font-bold text-emerald-500">{queueStats.sent}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Falha</span>
+                      <span className="text-xs font-bold text-rose-500">{queueStats.failed}</span>
+                    </div>
+                  </div>
                 </CardHeader>
               </Card>
 
@@ -1591,7 +1604,7 @@ function AutomationsComponent() {
                   <CheckCircle2 size={40} className="text-[#10B981]" />
                 </div>
                 <CardHeader className="pb-2">
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sucessos</CardDescription>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sucessos (Envios)</CardDescription>
                   <CardTitle className="text-2xl font-bold text-[#10B981]">{logStats.success}</CardTitle>
                 </CardHeader>
               </Card>
@@ -1601,37 +1614,23 @@ function AutomationsComponent() {
                   <XCircle size={40} className="text-[#EF4444]" />
                 </div>
                 <CardHeader className="pb-2">
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Falhas</CardDescription>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Falhas (Envios)</CardDescription>
                   <CardTitle className="text-2xl font-bold text-[#EF4444]">{logStats.failed}</CardTitle>
                 </CardHeader>
               </Card>
               
-              <Card className="bg-[#0F172A] border-amber-500/20 rounded-xl">
-                <CardHeader className="p-3">
-                  <CardDescription className="text-[9px] font-bold uppercase tracking-widest text-amber-500/60">Bloqueios (Duplicidade)</CardDescription>
-                  <CardTitle className="text-xl font-bold text-amber-500">{logStats.duplicateBlocked}</CardTitle>
-                </CardHeader>
-              </Card>
-
-              <Card className="bg-[#0F172A] border-sky-500/20 rounded-xl">
-                <CardHeader className="p-3">
-                  <CardDescription className="text-[9px] font-bold uppercase tracking-widest text-sky-500/60">Não Encontrados</CardDescription>
-                  <CardTitle className="text-xl font-bold text-sky-500">{logStats.notFound}</CardTitle>
-                </CardHeader>
-              </Card>
-
-
               <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <Clock size={40} className="text-amber-500" />
+                  <Clock size={40} className="text-slate-500" />
                 </div>
                 <CardHeader className="pb-2">
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Último Envio</CardDescription>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Última Execução</CardDescription>
                   <CardTitle className="text-sm font-bold text-white mt-2">
-                    {logStats.lastSent ? new Date(logStats.lastSent).toLocaleString('pt-BR') : 'Sem registros'}
+                    {queueStats.lastRun ? new Date(queueStats.lastRun).toLocaleString('pt-BR') : 'Sem registros'}
                   </CardTitle>
                 </CardHeader>
               </Card>
+            </div>
 
               <Card className={`bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative ${logStats.pendingCallbacks > (reconciliationSettings?.pending_callback_alert_threshold || 10) ? 'border-rose-500/50 animate-pulse' : ''}`}>
                 <div className="absolute top-0 right-0 p-4 opacity-10">
