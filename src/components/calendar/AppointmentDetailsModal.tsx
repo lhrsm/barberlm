@@ -191,8 +191,8 @@ export function AppointmentDetailsModal({
 
   if (!appointment) return null;
 
-  const showConfirm = ["awaiting_confirmation", "scheduled", "awaiting_payment", "pending"].includes(appointment.status);
-  const showComplete = ["confirmed", "scheduled"].includes(appointment.status);
+  const showConfirm = ["awaiting_confirmation", "scheduled", "awaiting_payment", "pending", "confirmed"].includes(appointment.status);
+  const showComplete = ["confirmed", "scheduled", "pending", "awaiting_payment"].includes(appointment.status);
   const showCancel = ["scheduled", "pending", "awaiting_payment", "confirmed", "awaiting_confirmation"].includes(appointment.status);
   const showReschedule = ["scheduled", "pending", "awaiting_payment", "confirmed", "awaiting_confirmation"].includes(appointment.status);
 

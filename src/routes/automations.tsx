@@ -460,6 +460,77 @@ function AutomationsComponent() {
     }
   };
 
+  const handleDiagnoseLastAppointment = async () => {
+    if (!tenantId) return;
+    setIsLoadingLastAppDiag(true);
+    setIsLastAppDiagOpen(true);
+    try {
+      // 1. Buscar último agendamento
+      const { data: lastApp, error: appError } = await supabase
+        .from("appointments")
+        .select("id, status, payment_status")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (appError) throw appError;
+      if (!lastApp) {
+        setLastAppDiagnostic({ error: "Nenhum agendamento encontrado para esta barbearia." });
+        return;
+      }
+
+      setLastAppointmentId(lastApp.id);
+
+      // 2. Verificar fila V2
+      const { count: queueCount } = await anySupabase
+        .from("automation_queue")
+        .select("*", { count: 'exact', head: true })
+        .eq("appointment_id", lastApp.id);
+
+      const { data: queueItem } = await anySupabase
+        .from("automation_queue")
+        .select("status, error_message, attempts")
+        .eq("appointment_id", lastApp.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // 3. Verificar Dispatches
+      const { data: dispatch } = await anySupabase
+        .from("automation_v2_dispatches")
+        .select("id, status, provider_response")
+        .eq("appointment_id", lastApp.id)
+        .maybeSingle();
+
+      // 4. Verificar Sessões
+      const { data: session } = await anySupabase
+        .from("automation_v2_sessions")
+        .select("id, status")
+        .eq("appointment_id", lastApp.id)
+        .maybeSingle();
+
+      setLastAppDiagnostic({
+        appointment_id: lastApp.id,
+        status: lastApp.status,
+        payment_status: lastApp.payment_status,
+        queue_created: (queueCount || 0) > 0,
+        queue_status: queueItem?.status || 'N/A',
+        queue_error: queueItem?.error_message || null,
+        attempts: queueItem?.attempts || 0,
+        dispatch_created: !!dispatch,
+        dispatch_status: dispatch?.status || 'N/A',
+        session_created: !!session,
+        session_status: session?.status || 'N/A'
+      });
+    } catch (err: any) {
+      console.error("Error diagnosing last appointment:", err);
+      setLastAppDiagnostic({ error: err.message });
+    } finally {
+      setIsLoadingLastAppDiag(false);
+    }
+  };
+
   const handleDiagnoseCallback = async (dispatch: any) => {
     setIsDiagnosing(true);
     setIsDiagnosticOpen(true);
