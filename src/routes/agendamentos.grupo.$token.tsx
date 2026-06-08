@@ -155,6 +155,7 @@ function AppointmentGroupPage() {
         .maybeSingle();
 
       // 4. Fetch customer data
+      let customerName = "Cliente";
       if (groupData.customer_id) {
         console.log("[GroupPage] 🔍 Fetching customer data", groupData.customer_id);
         const { data: customerData } = await supabase
@@ -163,14 +164,16 @@ function AppointmentGroupPage() {
           .eq('id', groupData.customer_id)
           .maybeSingle();
         
-        customerInfo = customerData;
+        if (customerData?.name) {
+          customerName = customerData.name;
+        }
       }
 
       setGroup({
         id: groupData.id,
         tenant_id: groupData.tenant_id,
         customer_id: groupData.customer_id,
-        customer_name: (customerData as any)?.name || "Cliente",
+        customer_name: customerName,
         business_name: (profileData as any)?.business_name || "Barbearia",
         business_phone: (profileData as any)?.whatsapp_number || "",
         total_amount: groupData.total_amount,
