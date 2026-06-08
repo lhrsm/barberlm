@@ -1587,7 +1587,7 @@ function ClientPortalComponent() {
                   placeholder="Nome completo"
                   className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none"
                   value={refundData.holderName}
-                  onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRefundData({...refundData, holderName: e.target.value})}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -1595,7 +1595,7 @@ function ClientPortalComponent() {
                   <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Tipo de Chave</Label>
                   <Select 
                     value={refundData.pixType}
-                    onValueChange={(val) => setRefundData({...refundData, pixType: val})}
+                    onValueChange={(val: string) => setRefundData({...refundData, pixType: val})}
                   >
                     <SelectTrigger className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm outline-none">
                       <SelectValue placeholder="Tipo" />
@@ -1615,7 +1615,7 @@ function ClientPortalComponent() {
                     placeholder="Chave Pix"
                     className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none"
                     value={refundData.pixKey}
-                    onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRefundData({...refundData, pixKey: e.target.value})}
                   />
                 </div>
               </div>
@@ -1625,7 +1625,7 @@ function ClientPortalComponent() {
                   placeholder="Informações adicionais..."
                   className="bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none min-h-[80px]"
                   value={refundData.notes}
-                  onChange={(e) => setRefundData({...refundData, notes: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRefundData({...refundData, notes: e.target.value})}
                 />
               </div>
               <Button 
