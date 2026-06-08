@@ -112,26 +112,32 @@ serve(async (req) => {
     for (const item of itemsToProcess) {
       try {
         console.log(`[ProcessQueue] Processing item ${item.id}`);
-        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type, id: queueId } = item;
+        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type, id: queueId, appointment_group_id } = item;
         
         const currentWorkflowKey = workflow_key || automation?.key || automation_type || 'new_appointment';
         const isBirthday = currentWorkflowKey === 'customer_birthday';
         const isAnniversary = currentWorkflowKey === 'barbershop_anniversary';
         const isNewAppointment = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
 
-        if (!appointment && !isBirthday && !isAnniversary) {
-          throw new Error("Data incomplete: appointment missing");
+        if (!appointment && !isBirthday && !isAnniversary && !appointment_group_id) {
+          throw new Error("Data incomplete: appointment or group missing");
         }
 
         // Deduplication check
-        if (!force_resend && appointment?.id) {
-          const { data: alreadySent } = await supabase
+        if (!force_resend) {
+          const dupQuery = supabase
             .from("automation_logs")
             .select("id")
-            .eq("appointment_id", appointment.id)
             .eq("automation_id", automation?.id || item.automation_id)
-            .eq("status", "sent")
-            .maybeSingle();
+            .eq("status", "sent");
+          
+          if (appointment_group_id) {
+            dupQuery.eq("appointment_group_id", appointment_group_id);
+          } else if (appointment?.id) {
+            dupQuery.eq("appointment_id", appointment.id);
+          }
+
+          const { data: alreadySent } = await dupQuery.maybeSingle();
 
           if (alreadySent) {
             console.log(`[ProcessQueue] Already sent for appointment ${appointment.id}`);
