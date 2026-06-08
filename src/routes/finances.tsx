@@ -1523,27 +1523,28 @@ function FinancesComponent() {
                                 
                                 const { error } = await supabase
                                   .from("appointments")
-                                  .update({ status: 'cancelled' })
+                                  .update({ status: 'cancelled' as any })
                                   .eq("id", app.id);
                                 
                                 if (error) {
                                   toast.error("Erro ao cancelar agendamento");
                                 } else {
-                                  // Se o usuário quiser registrar como saída, poderia haver um campo de custo, 
-                                  // mas conforme solicitado "se for cancelado vai para saida" 
-                                  // (assumindo o valor total como perda/saída se aplicável, ou apenas movendo lógica)
-                                  await supabase.from("transactions").insert({
-                                    amount: app.total_price,
-                                    type: "expense",
-                                    description: `Cancelamento: ${app.services?.name} - ${app.customers?.name}`,
-                                    category: "Cancelamento",
-                                    barber_id: app.barber_id,
-                                    appointment_id: app.id,
-                                    user_id: user.id,
-                                    date: new Date().toISOString().split('T')[0]
-                                  });
-
-                                  toast.success("Agendamento cancelado e registrado como saída!");
+                                  // Se o agendamento foi pago, registramos a saída
+                                  if (app.payment_status === 'paid') {
+                                    await supabase.from("transactions").insert({
+                                      amount: app.total_price,
+                                      type: "expense",
+                                      description: `Cancelamento (Estorno): ${app.services?.name} - ${app.customers?.name}`,
+                                      category: "Cancelamento",
+                                      barber_id: app.barber_id,
+                                      appointment_id: app.id,
+                                      user_id: user.id,
+                                      date: new Date().toISOString().split('T')[0]
+                                    });
+                                    toast.success("Agendamento cancelado e estorno registrado como saída!");
+                                  } else {
+                                    toast.success("Agendamento cancelado com sucesso!");
+                                  }
                                   fetchAppointments();
                                   fetchTransactions();
                                 }

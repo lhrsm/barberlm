@@ -410,6 +410,39 @@ export function AppointmentDetailsModal({
               Concluir
             </Button>
           )}
+
+          {appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
+            <Button 
+              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(37,99,235,0.2)] transition-all active:scale-95"
+              onClick={async () => {
+                setActionLoading(true);
+                const { error } = await supabase
+                  .from("appointments")
+                  .update({ 
+                    // @ts-ignore
+                    payment_status: 'paid',
+                    // @ts-ignore
+                    paid_at: new Date().toISOString()
+                  })
+                  .eq("id", appointment.id);
+                
+                if (error) {
+                  toast.error("Erro ao marcar como pago");
+                } else {
+                  toast.success("Pagamento marcado como pago");
+                  fetchAppointment();
+                  queryClient.invalidateQueries({ queryKey: ['appointments'] });
+                  queryClient.invalidateQueries({ queryKey: ['calendar'] });
+                  queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+                  if (onSuccess) onSuccess();
+                }
+                setActionLoading(false);
+              }}
+              disabled={actionLoading}
+            >
+              Marcar Pago
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
