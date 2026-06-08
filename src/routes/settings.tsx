@@ -983,21 +983,88 @@ function SettingsComponent() {
 
                   {formData.cashback_enabled && (
                     <div className="grid gap-6 animate-in fade-in slide-in-from-top-4">
-                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                        <Label htmlFor="cashback_percentage" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Porcentagem de Retorno (%)</Label>
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo de Retorno</Label>
+                          <Select 
+                            value={formData.cashback_type} 
+                            onValueChange={(value) => setFormData({ ...formData, cashback_type: value })}
+                          >
+                            <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                              <SelectItem value="percentage">Percentual (%)</SelectItem>
+                              <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {formData.cashback_type === 'percentage' ? (
+                          <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                            <Label htmlFor="cashback_percentage" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Porcentagem de Retorno (%)</Label>
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                              <Input 
+                                id="cashback_percentage" 
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={formData.cashback_percentage} 
+                                onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
+                                className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
+                              />
+                              <span className="text-xs text-slate-500 font-medium italic">
+                                Ex: A cada R$ 100,00 gastos, o cliente recebe R$ <span className="text-[#ea580c] font-black">{formData.cashback_percentage.toFixed(2)}</span>.
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                            <Label htmlFor="cashback_fixed_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor Fixo de Retorno (R$)</Label>
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                              <Input 
+                                id="cashback_fixed_value" 
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={formData.cashback_fixed_value} 
+                                onChange={(e) => setFormData({ ...formData, cashback_fixed_value: parseFloat(e.target.value) || 0 })}
+                                className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
+                              />
+                              <span className="text-xs text-slate-500 font-medium italic">
+                                O cliente recebe sempre R$ <span className="text-[#ea580c] font-black">{formData.cashback_fixed_value.toFixed(2)}</span> por serviço.
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label htmlFor="cashback_minimum_amount" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor Mínimo do Serviço (R$)</Label>
                           <Input 
-                            id="cashback_percentage" 
+                            id="cashback_minimum_amount" 
                             type="number"
                             min="0"
-                            max="100"
-                            value={formData.cashback_percentage} 
-                            onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
-                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
+                            step="0.01"
+                            value={formData.cashback_minimum_amount} 
+                            onChange={(e) => setFormData({ ...formData, cashback_minimum_amount: parseFloat(e.target.value) || 0 })}
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black italic"
                           />
-                          <span className="text-xs text-slate-500 font-medium italic">
-                            Ex: A cada R$ 100,00 gastos, o cliente receberá R$ <span className="text-[#ea580c] font-black">{formData.cashback_percentage.toFixed(2)}</span> de crédito.
-                          </span>
+                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">O cashback só será gerado para serviços acima deste valor.</p>
+                        </div>
+
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label htmlFor="cashback_expiration_days" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Validade do Crédito (Dias)</Label>
+                          <Input 
+                            id="cashback_expiration_days" 
+                            type="number"
+                            min="0"
+                            value={formData.cashback_expiration_days} 
+                            onChange={(e) => setFormData({ ...formData, cashback_expiration_days: parseInt(e.target.value) || 0 })}
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black italic"
+                          />
+                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">Use 0 para validade ilimitada.</p>
                         </div>
                       </div>
 
@@ -1007,7 +1074,7 @@ function SettingsComponent() {
                           <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Logística do Cashback</p>
                           <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
                             O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
-                            Os clientes podem usar esse saldo para obter descontos premium.
+                            Os clientes podem usar esse saldo para obter descontos premium em agendamentos futuros.
                           </p>
                         </div>
                       </div>
