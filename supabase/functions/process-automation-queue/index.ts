@@ -194,18 +194,18 @@ serve(async (req) => {
           management_token: appointment?.management_token || appointment?.id
         };
 
-        if (automation.key === 'appointment_confirmation') {
+        if (currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment') {
           // Rule: No buttons on initial confirmation. Direct confirmation flow with management link.
           if (!baseTemplate) {
             baseTemplate = `Olá {customer_name}! 👋\n\nSeu agendamento foi realizado com sucesso.\n\nServiço: {service_name}\nProfissional: {professional_name}\nData: {appointment_date}\nHorário: {appointment_time}\n\nPara reagendar ou cancelar, acesse:\n{management_link}\n\nObrigado!`;
           }
           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (automation.key === 'cancellation') {
+        } else if (currentWorkflowKey === 'cancellation') {
           if (!baseTemplate) {
             baseTemplate = `Olá {customer_name} 👋\n\nInformamos que seu agendamento na {barbershop_name} para o dia {appointment_date} às {appointment_time} foi CANCELADO.\n\n🔗 Você pode visualizar os detalhes aqui:\n{management_link}\n\nEsperamos te ver em breve! 💈`;
           }
           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (automation.key === 'appointment_reminder') {
+        } else if (currentWorkflowKey === 'appointment_reminder') {
           const type = item.payload?.reminder_type || "6h";
           
           if (type === "6h") {
@@ -216,15 +216,15 @@ serve(async (req) => {
             baseTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
           }
           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (automation.key === 'customer_birthday') {
+        } else if (currentWorkflowKey === 'customer_birthday') {
            if (!baseTemplate) {
              baseTemplate = `Olá {customer_name} 🎉\n\nA {barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
            }
            renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
-        } else if (automation.key === 'barbershop_anniversary') {
+        } else if (currentWorkflowKey === 'barbershop_anniversary') {
            const type = item.payload?.anniversary_message_type || "anniversary_day";
            if (type === "reminder_7_days") {
-              baseTemplate = automation.additional_templates?.reminder_7_days || `Olá {customer_name} 👋\n\nO aniversário da {barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
+              baseTemplate = automation?.additional_templates?.reminder_7_days || `Olá {customer_name} 👋\n\nO aniversário da {barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
            }
            renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         } else {
