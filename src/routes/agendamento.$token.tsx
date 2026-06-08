@@ -300,6 +300,20 @@ function AppointmentManagementPage() {
     }
   };
 
+  const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
+
+  const handleInitialCancelClick = () => {
+    // Verificar se existe pagamento Pix confirmado
+    // appointment.payment_method === 'pix' e appointment.payment_status in ['paid', 'confirmed', 'completed']
+    const isPixPaid = appointment.payment_method === 'pix' && ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
+    
+    if (isPixPaid) {
+      setIsPixCancelModalOpen(true);
+    } else {
+      setIsCancelModalOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
