@@ -1285,7 +1285,11 @@ function FinancesComponent() {
                               variant="ghost" 
                               size="icon" 
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleDeleteTransaction(t.id)}
+                              onClick={() => {
+                                if (confirm("Tem certeza que deseja excluir esta transação?")) {
+                                  handleDeleteTransaction(t.id);
+                                }
+                              }}
                             >
                               <Trash2 size={14} />
                             </Button>
