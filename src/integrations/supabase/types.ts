@@ -856,7 +856,7 @@ export type Database = {
             foreignKeyName: "automation_logs_automation_id_fkey"
             columns: ["automation_id"]
             isOneToOne: false
-            referencedRelation: "automations"
+            referencedRelation: "automation_templates"
             referencedColumns: ["id"]
           },
           {

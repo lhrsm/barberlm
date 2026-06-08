@@ -32,7 +32,8 @@ serve(async (req) => {
         appointment:appointments(
           *,
           customer:customers(name, phone),
-          service:services(name, price)
+          service:services(name, price),
+          barber:barbers(name)
         ),
         customer:customers(name, phone)
       `);
@@ -44,11 +45,7 @@ serve(async (req) => {
       query = query.filter("attempts", "lt", 5); 
       
       const now = new Date().toISOString();
-      // Simplificado: Se scheduled_for for nulo ou no passado, processa.
-      // E não filtra por next_retry_at por enquanto para garantir que nada fique preso.
       query = query.or(`scheduled_for.is.null,scheduled_for.lte.${now}`);
-
-
       
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
@@ -60,7 +57,7 @@ serve(async (req) => {
     
     let itemsToProcess = queueItems || [];
 
-    // 2. If no queue items found but it's a forced resend with appointment_id, create a virtual item
+    // 2. Virtual item creation for forced resend
     if (itemsToProcess.length === 0 && force_resend && appointment_id) {
       console.log("[ProcessQueue] No queue item found for forced resend, attempting virtual item creation");
       
@@ -69,7 +66,8 @@ serve(async (req) => {
         .select(`
           *,
           customer:customers(name, phone),
-          service:services(name, price)
+          service:services(name, price),
+          barber:barbers(name)
         `)
         .eq("id", appointment_id)
         .single();
@@ -87,17 +85,13 @@ serve(async (req) => {
         automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", tenant_id || appointment.tenant_id);
       }
 
-      const { data: automation, error: autoError } = await automationQuery.single();
-
-      if (autoError || !automation) {
-        throw new Error("Automation template not found for virtual resend");
-      }
+      const { data: automation, error: autoError } = await automationQuery.maybeSingle();
 
       itemsToProcess = [{
         id: "virtual-" + crypto.randomUUID(),
         tenant_id: tenant_id || appointment.tenant_id,
         appointment_id: appointment.id,
-        automation_id: automation.id,
+        automation_id: automation?.id,
         status: "pending",
         attempts: 0,
         appointment,
@@ -116,36 +110,37 @@ serve(async (req) => {
 
     for (const item of itemsToProcess) {
       try {
+        console.log(`[ProcessQueue] Processing item ${item.id}`);
         const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type, id: queueId } = item;
         
-        const currentWorkflowKey = workflow_key || automation?.key || automation_type;
+        const currentWorkflowKey = workflow_key || automation?.key || automation_type || 'new_appointment';
         const isBirthday = currentWorkflowKey === 'customer_birthday';
         const isAnniversary = currentWorkflowKey === 'barbershop_anniversary';
         const isNewAppointment = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
 
-        if (!currentWorkflowKey) throw new Error("Workflow key or automation type missing");
-        if (!appointment && !isBirthday && !isAnniversary) throw new Error("Data incomplete: appointment missing");
+        if (!appointment && !isBirthday && !isAnniversary) {
+          throw new Error("Data incomplete: appointment missing");
+        }
 
-        // 7. Prevent duplicates
+        // Deduplication check
         if (!force_resend && appointment?.id) {
           const { data: alreadySent } = await supabase
             .from("automation_logs")
             .select("id")
             .eq("appointment_id", appointment.id)
-            .eq("automation_type", currentWorkflowKey)
+            .eq("automation_id", automation?.id || item.automation_id)
             .eq("status", "sent")
             .maybeSingle();
 
           if (alreadySent) {
-            console.log(`[ProcessQueue] Already sent ${currentWorkflowKey} for appointment ${appointment.id}`);
+            console.log(`[ProcessQueue] Already sent for appointment ${appointment.id}`);
             await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", queueId);
             results.push({ id: queueId, success: true, skipped: true, reason: "already_sent" });
             continue;
           }
         }
 
-        console.log(`[ProcessQueue] Loading data for ${currentWorkflowKey}`, { appointment_id: appointment?.id });
-
+        // Data Loading
         let barbershopName = "Barbearia";
         const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", itemTenantId).maybeSingle();
         if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) {
@@ -156,8 +151,8 @@ serve(async (req) => {
         }
 
         const profId = appointment?.barber_id || appointment?.professional_id;
-        let profName = "Profissional";
-        if (profId) {
+        let profName = appointment?.barber?.name || "Profissional";
+        if (!appointment?.barber?.name && profId) {
           const { data: barbData } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
           if (barbData?.name) { 
             profName = barbData.name; 
@@ -172,11 +167,10 @@ serve(async (req) => {
         const appointmentTime = appointment?.start_time ? formatBrazilTime(appointment.start_time) : "";
         const serviceName = appointment?.service?.name || item.payload?.service_name || "Serviço";
         
-        // 2. Montar management_link
         let managementUrl = "";
         if (appointment) {
-          if (appointment.appointment_group_id || appointment.group_id) {
-            const groupToken = appointment.group_token || appointment.appointment_group_id || appointment.group_id;
+          const groupToken = appointment.group_token || appointment.appointment_group_id || appointment.group_id;
+          if (groupToken) {
             managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}`;
           } else {
             const token = appointment.management_token || appointment.id;
@@ -194,30 +188,24 @@ serve(async (req) => {
           management_link: managementUrl,
           management_token: appointment?.management_token || appointment?.id,
           service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
-          birth_date: item.payload?.birth_date || "",
         };
 
-        console.log(`[ProcessQueue] Data loaded for ${currentWorkflowKey}`, { templateData });
+        console.log(`[ProcessQueue] Variables resolved for ${currentWorkflowKey}`, templateData);
 
         let baseTemplate = automation?.template || "";
-        
-        // 4. Default template for new appointment if none exists
         if (isNewAppointment && !baseTemplate) {
           baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nPara reagendar ou cancelar, acesse o link abaixo:\n{management_link}\n\nObrigado!`;
         }
 
-        // 3. Substituir variáveis
-        let renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
+        let renderedMessage = processAutomationTemplate(baseTemplate, templateData);
 
-        // 5. Evitar envio de template cru
-        const missing = [
-          '{customer_name}', '{barbershop_name}', '{service_name}', 
-          '{professional_name}', '{appointment_date}', '{appointment_time}', '{management_link}'
-        ].filter(p => renderedTemplate.includes(p) || renderedTemplate.includes(p.replace('{', '{{').replace('}', '}}')));
+        // Validation - Don't block everything, just this item
+        const placeholders = ['{customer_name}', '{barbershop_name}', '{service_name}', '{professional_name}', '{appointment_date}', '{appointment_time}', '{management_link}'];
+        const missing = placeholders.filter(p => renderedMessage.includes(p) || renderedMessage.includes(p.replace('{', '{{').replace('}', '}}')));
 
         if (missing.length > 0) {
           const errorMsg = `Template possui variáveis não substituídas: ${missing.join(', ')}`;
-          console.error(`[ProcessQueue] ${errorMsg}`);
+          console.error(`[ProcessQueue] Item ${item.id} failed: ${errorMsg}`);
           
           await supabase.from("automation_queue").update({ 
             status: "failed", 
@@ -227,8 +215,8 @@ serve(async (req) => {
 
           await supabase.from("automation_logs").insert({
             tenant_id: itemTenantId,
+            automation_id: automation?.id || item.automation_id,
             appointment_id: appointment?.id,
-            automation_type: currentWorkflowKey,
             status: 'failed',
             error_message: errorMsg,
             payload: { missing_variables: missing, template: baseTemplate, data: templateData }
@@ -239,29 +227,17 @@ serve(async (req) => {
         }
 
         if (dry_run) {
-          results.push({ id: queueId, success: true, dry_run: true, payload: { phone: appointment?.customer?.phone, message: renderedTemplate, templateData } });
+          results.push({ id: queueId, success: true, dry_run: true, payload: { message: renderedMessage, templateData } });
           continue;
         }
 
-        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
-        if (!instance) throw new Error("WhatsApp not configured");
+        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).maybeSingle();
+        if (!instance) throw new Error("WhatsApp not configured (instance not found)");
 
         const phone = appointment?.customer?.phone || item.customer?.phone || item.payload?.phone;
-        if (!phone) throw new Error("Phone missing");
+        if (!phone) throw new Error("Customer phone missing");
 
-        // 6. Logs obrigatórios & Send
-        const logPayload = {
-          appointment_id: appointment?.id,
-          customer_name: customerName,
-          service_name: serviceName,
-          professional_name: profName,
-          appointment_date: appointmentDate,
-          appointment_time: appointmentTime,
-          management_link: managementUrl,
-          final_message: renderedTemplate
-        };
-
-        console.log(`[ProcessQueue] Sending message`, logPayload);
+        console.log(`[ProcessQueue] Sending message to ${phone}`);
 
         const sendResult = await sendAutomationMessageV2(supabase, {
           tenant_id: itemTenantId,
@@ -270,8 +246,8 @@ serve(async (req) => {
           customer_id: appointment?.customer_id || item.customer_id,
           customer_phone: phone,
           customer_name: customerName,
-          message: renderedTemplate,
-          payload: { ...templateData, log: logPayload },
+          message: renderedMessage,
+          payload: { ...templateData },
           instance: instance
         });
 
@@ -286,10 +262,10 @@ serve(async (req) => {
 
           await supabase.from("automation_logs").insert({
             tenant_id: itemTenantId,
+            automation_id: automation?.id || item.automation_id,
             appointment_id: appointment?.id,
-            automation_type: currentWorkflowKey,
             status: 'sent',
-            payload: logPayload
+            payload: { message: renderedMessage, ...templateData }
           });
 
           if (appointment?.id) {
@@ -300,11 +276,12 @@ serve(async (req) => {
           }
 
           results.push({ id: queueId, success: true });
+          console.log(`[ProcessQueue] Item ${item.id} processed successfully`);
         } else {
           throw new Error(sendResult.error || "Failed to send automation message");
         }
       } catch (err: any) {
-        console.error(`[ProcessQueue] Fail:`, err.message);
+        console.error(`[ProcessQueue] Fail on item ${item.id}:`, err.message);
         const now = new Date().toISOString();
         const nextAttempts = (item.attempts || 0) + 1;
         
@@ -317,11 +294,11 @@ serve(async (req) => {
 
         await supabase.from("automation_logs").insert({
           tenant_id: item.tenant_id,
+          automation_id: item.automation_id,
           appointment_id: item.appointment_id,
-          automation_type: item.workflow_key || item.automation_type,
           status: 'failed',
           error_message: err.message,
-          payload: { attempt: nextAttempts }
+          payload: { attempt: nextAttempts, error: err.message }
         });
 
         results.push({ id: item.id, success: false, error: err.message });
@@ -332,7 +309,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
-    console.error("[ProcessQueue] Fatal:", error);
+    console.error("[ProcessQueue] Fatal Error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
