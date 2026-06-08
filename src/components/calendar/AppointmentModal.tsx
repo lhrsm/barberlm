@@ -449,14 +449,37 @@ export function AppointmentModal({
           attempts: 0,
           scheduled_for: new Date().toISOString()
         };
-        await supabase.from("automation_queue").insert([queuePayload]);
+        
+        const { data: queueData, error: queueErr } = await supabase
+          .from("automation_queue")
+          .insert([queuePayload])
+          .select()
+          .single();
 
-        console.log("Triggering process-automation-queue edge function...");
-        triggerAutomation({
-          tenant_id: tenantId,
-          event_name: 'appointment.created',
-          appointment_id: appointmentData.id
-        });
+        if (queueErr) {
+          console.error("Failed to create automation_queue item:", queueErr);
+          console.log('AUTOMATION_NOT_DISPATCHED_REASON', {
+            appointment_id: appointmentData.id,
+            error: queueErr.message,
+            queue_created: false
+          });
+        } else {
+          console.log("Triggering process-automation-queue edge function...");
+          const triggerResult = await triggerAutomation({
+            tenant_id: tenantId,
+            event_name: 'appointment.created',
+            appointment_id: appointmentData.id
+          });
+
+          if (!triggerResult.success) {
+            console.log('AUTOMATION_NOT_DISPATCHED_REASON', {
+              appointment_id: appointmentData.id,
+              error: triggerResult.error?.message || 'Edge function call failed',
+              queue_created: true,
+              queue_id: queueData.id
+            });
+          }
+        }
       }
 
 
