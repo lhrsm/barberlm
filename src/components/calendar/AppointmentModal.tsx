@@ -330,7 +330,7 @@ export function AppointmentModal({
         end_time: endTime.toISOString(),
         total_price: totalPrice,
         original_total: totalPrice,
-        status: "confirmed",
+        status: "pending",
         payment_status: paymentStatus === 'paid' ? 'paid' : (finalAmount === 0 && totalPrice > 0 ? 'paid' : 'pending'),
         payment_method: usedCredits > 0 ? (finalAmount === 0 ? 'wallet' : 'mixed') : (paymentMethod || 'cash'),
         credit_used: usedCredits,
@@ -439,7 +439,19 @@ export function AppointmentModal({
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled) {
-        console.log("Triggering automatic WhatsApp confirmation via frontend trigger...");
+        console.log("Creating item in automation_queue for V2 trigger...");
+        const queuePayload: any = {
+          tenant_id: tenantId,
+          appointment_id: appointmentData.id,
+          workflow_key: 'appointment_confirmation',
+          event_name: 'appointment.created',
+          status: 'pending',
+          attempts: 0,
+          scheduled_for: new Date().toISOString()
+        };
+        await supabase.from("automation_queue").insert([queuePayload]);
+
+        console.log("Triggering process-automation-queue edge function...");
         triggerAutomation({
           tenant_id: tenantId,
           event_name: 'appointment.created',

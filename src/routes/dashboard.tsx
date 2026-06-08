@@ -1354,7 +1354,7 @@ function DashboardComponent() {
                                   </Badge>
                                 )
                               )}
-                            {app.status === 'scheduled' && (
+                            {['scheduled', 'confirmed', 'pending', 'awaiting_payment'].includes(app.status) && (
                               <Button 
                                 variant="default"
                                 size="sm" 
@@ -1368,7 +1368,7 @@ function DashboardComponent() {
                                 Concluir
                               </Button>
                             )}
-                            {app.status === 'scheduled' && (
+                            {['scheduled', 'confirmed', 'pending', 'awaiting_payment'].includes(app.status) && (
                               <Button 
                                 variant="outline"
                                 size="sm" 
