@@ -1,5 +1,5 @@
 
-import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +44,7 @@ export const Route = createFileRoute("/agendamento/$token")({
 
 function AppointmentManagementPage() {
   const { token } = Route.useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const expectedTenantId = searchParams.get('tenant');
@@ -85,6 +86,15 @@ function AppointmentManagementPage() {
       console.log('AUDIT [ManagementLink]: Fetching appointment with token:', token);
       console.log('AUDIT [ManagementLink]: Tenant Context:', expectedTenantId);
 
+      // First try to fetch by management_token directly to see if it exists
+      const { data: rawData, error: rawError } = await (supabase as any)
+        .from('appointments')
+        .select('*')
+        .eq('manage_token', token)
+        .maybeSingle();
+      
+      console.log('AUDIT [ManagementLink]: Direct lookup result:', { rawData, rawError });
+
       const { data, error: rpcError } = await supabase.rpc('get_appointment_by_management_token', {
         p_token: token
       });
@@ -108,7 +118,8 @@ function AppointmentManagementPage() {
         tenant_id: appt.tenant_id,
         customer_id: appt.customer_id,
         status: appt.status,
-        payment_status: appt.payment_status
+        payment_status: appt.payment_status,
+        group_token: appt.group_token
       });
 
       if (expectedTenantId && appt.tenant_id !== expectedTenantId) {
@@ -136,6 +147,14 @@ function AppointmentManagementPage() {
     } catch (err: any) {
       console.error("AUDIT [ManagementLink]: Critical Error:", err);
       setError("Erro ao carregar agendamento.");
+      // Se der erro crítico, tentar redirecionar para o portal se houver slug/tenant
+      if (expectedTenantId) {
+        const { data: profile } = await supabase.from('profiles').select('slug').eq('id', expectedTenantId).maybeSingle();
+        if (profile?.slug) {
+          console.log('AUDIT [ManagementLink]: Redirecting to portal due to error');
+          setTimeout(() => navigate({ to: `/${profile.slug}/portal`, replace: true }), 3000);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -242,7 +261,7 @@ function AppointmentManagementPage() {
         type: 'appointment_rescheduled',
         title: "Agendamento Reagendado",
         message: `${appointment.customer_name} reagendou para ${format(startTime, "dd/MM 'às' HH:mm")}`,
-        barberId: appointment.professional_id,
+        barberId: appointment.professional_id || appointment.barber_id,
         metadata: { appointmentId: appointment.id }
       });
 
@@ -324,7 +343,7 @@ function AppointmentManagementPage() {
         type: 'appointment_cancelled',
         title: isPaid ? (preference === 'refund' ? "Solicitação de Estorno" : "Cancelamento com Crédito") : "Agendamento Cancelado",
         message: `${appointment.customer_name} cancelou o agendamento e ${isPaid ? (preference === 'refund' ? 'solicitou estorno via Pix' : 'converteu em crédito') : 'não solicitou estorno'}.`,
-        barberId: appointment.professional_id,
+        barberId: appointment.professional_id || appointment.barber_id,
         metadata: { appointmentId: appointment.id }
       });
 
@@ -411,7 +430,7 @@ function AppointmentManagementPage() {
                 className="text-primary font-black uppercase tracking-widest text-[10px] p-0 h-auto"
                 asChild
               >
-                <a href={`/agendamentos/grupo/${appointment.group_token}?tenant=${appointment.tenant_id}`}>
+                <a href={`/agendamentos/grupo/${appointment.group_token || appointment.token}?tenant=${appointment.tenant_id}`}>
                   <ArrowLeft className="mr-1 h-3 w-3" /> Ver Todos os Meus Agendamentos
                 </a>
               </Button>

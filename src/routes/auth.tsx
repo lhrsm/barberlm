@@ -30,8 +30,7 @@ function AuthPageComponent() {
 
       const destination = 
         role === 'super_admin' ? "/admin/dashboard" :
-        role === 'barber' ? "/calendar" :
-        role === 'client' ? "/portal" : "/dashboard";
+        role === 'barber' ? "/calendar" : "/dashboard" as any;
 
       console.log("Redirecting to:", destination);
       navigate({ to: destination, replace: true });

@@ -924,17 +924,16 @@ function ShopPageComponent() {
         if (updateError) console.error('SUPABASE ERROR (update customer name):', updateError);
       }
 
-      // Generate Group ID for multiple appointments
-      const isMultiple = finalCart.length > 1;
+      const isMultipleAppt = finalCart.length > 1;
       let appointmentGroupId = null;
-      let groupToken = null;
+      let groupTokenValLocal: string | null = null;
 
-      if (isMultiple) {
-        groupToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        const { data: groupData, error: groupError } = await supabase.from("appointment_groups").insert([{
+      if (isMultipleAppt) {
+        groupTokenValLocal = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const { data: groupData, error: groupError } = await (supabase as any).from("appointment_groups").insert([{
           tenant_id: shop.id,
           customer_id: finalCustId,
-          group_token: groupToken,
+          token: groupTokenValLocal,
           total_amount: calculateTotal(),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           status: 'active'
@@ -1128,14 +1127,17 @@ function ShopPageComponent() {
       setUseCredits(false);
       setPaymentMethod(null);
       
+      const isMultipleFinal = createdAppointments.length > 1;
+      const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
+
       setTimeout(() => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
-        if (isMultiple && groupToken) {
-          navigate({ to: `/agendamentos/grupo/${groupToken}`, search: { tenant: shop.id }, replace: true });
-        } else if (createdAppointments.length === 1 && createdAppointments[0].management_token) {
-          navigate({ to: `/agendamento/${createdAppointments[0].management_token}`, search: { tenant: shop.id }, replace: true });
+        if (isMultipleFinal && groupTokenFinal) {
+          navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
+        } else if (createdAppointments.length === 1 && (createdAppointments[0] as any).management_token) {
+          navigate({ to: `/agendamento/${(createdAppointments[0] as any).management_token}` as any, search: { tenant: shop.id } as any, replace: true });
         } else {
-          navigate({ to: `/${slug}/portal`, replace: true });
+          navigate({ to: `/${slug}/portal` as any, replace: true });
         }
       }, 1500);
 

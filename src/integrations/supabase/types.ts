@@ -4413,6 +4413,7 @@ export type Database = {
           appointment_group_id: string
           business_name: string
           business_phone: string
+          cancel_token: string
           cancellation_window_hours: number
           customer_id: string
           customer_name: string
@@ -4420,6 +4421,7 @@ export type Database = {
           final_amount: number
           group_token: string
           id: string
+          manage_token: string
           payment_status: string
           professional_id: string
           professional_name: string
