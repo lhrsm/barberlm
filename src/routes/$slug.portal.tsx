@@ -1096,12 +1096,14 @@ function ClientPortalComponent() {
                                {app.notes && app.notes.includes('Pagamento:') && (
                                  <span className="text-[10px] text-[#D4AF37] font-medium">{app.notes}</span>
                                )}
-                               {app.status === 'cancelled' && app.refund_requested_at && (
-                                 <Badge variant="outline" className={cn(
-                                   "text-[10px] ml-2",
-                                   app.refund_status === 'completed' ? 'text-green-600 border-green-200 bg-green-50' : 'text-amber-600 border-amber-200 bg-amber-50'
-                                 )}>
-                                   {app.refund_type === 'credits' ? 'Créditos' : 'Estorno'}: {app.refund_status === 'completed' ? 'Concluído' : 'Pendente'}
+                               {app.status === 'cancelled' && (
+                                 <Badge variant="outline" className="text-[10px] ml-2 text-red-600 border-red-200 bg-red-50">
+                                   Cancelado
+                                 </Badge>
+                               )}
+                               {app.status !== 'cancelled' && app.payment_status === 'paid' && (
+                                 <Badge variant="outline" className="text-[10px] ml-2 text-green-600 border-green-200 bg-green-50">
+                                   Pago
                                  </Badge>
                                )}
                              </div>
