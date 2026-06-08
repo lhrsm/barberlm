@@ -96,7 +96,8 @@ function DashboardComponent() {
       customers: 0,
       services: 0,
       customerCredits: 0,
-      customerCashback: 0
+      customerCashback: 0,
+      customersWithCashback: 0
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
