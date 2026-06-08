@@ -338,7 +338,7 @@ function FinancesComponent() {
       if (newStatus === 'completed') {
         const { data: refund } = await supabase
           .from("refund_requests")
-          .select("amount, appointment_id, tenant_id")
+          .select("amount, appointment_id, tenant_id, payment_id")
           .eq("id", refundId)
           .single();
 
@@ -349,16 +349,25 @@ function FinancesComponent() {
             .eq("id", refund.appointment_id)
             .single();
 
+          // Create the financial transaction for the payout
           await supabase.from("transactions").insert({
             amount: refund.amount,
             type: "expense",
-            description: `Estorno Pago: ${appt?.services?.name || "Serviço"} - ${appt?.customers?.name || "Cliente"}`,
+            description: `Estorno Pago (Pix): ${appt?.services?.name || "Serviço"} - ${appt?.customers?.name || "Cliente"}`,
             category: "Estorno",
             barber_id: appt?.barber_id,
             appointment_id: refund.appointment_id,
             user_id: refund.tenant_id,
-            date: new Date().toISOString().split('T')[0]
+            tenant_id: refund.tenant_id,
+            date: new Date().toISOString().split('T')[0],
+            payment_method: 'pix',
+            pix_amount: refund.amount
           });
+          
+          // Update appointment refund status
+          await supabase.from("appointments").update({
+            refund_status: 'completed'
+          }).eq("id", refund.appointment_id);
         }
       }
 
@@ -403,7 +412,7 @@ function FinancesComponent() {
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
     const totalRefundsPaid = (refundRequests || [])
-      .filter(r => r && r.status === 'completed')
+      .filter(r => r && (r.status === 'completed' || r.status === 'paid'))
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
     // 3. Créditos Utilizados
@@ -436,16 +445,18 @@ function FinancesComponent() {
 
     // 5. Créditos Devolvidos (Cancelamentos)
     const creditsReversed = effectiveTransactions
-      .filter((t) => t.type === "adjustment" && t.description?.includes("Créditos"))
+      .filter((t) => t.type === "credit_reversed")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
     // 6. Cashback Devolvido (Cancelamentos)
     const cashbackReversed = effectiveTransactions
-      .filter((t) => t.type === "adjustment" && t.description?.includes("Cashback"))
+      .filter((t) => t.type === "cashback_reversed")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
-    // 7. Créditos Concedidos
-    const creditsGranted = totalCredits;
+    // 7. Créditos Concedidos (Novos créditos de Pix ou outros)
+    const creditsGranted = effectiveTransactions
+      .filter((t) => t.type === "credit_granted")
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
     // 8. Estornos Solicitados
     const totalRefundsRequested = (refundRequests || [])
