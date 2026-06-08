@@ -232,7 +232,29 @@ serve(async (req) => {
 
         let baseTemplate = automation?.template || "";
         if (isNewAppointment && !baseTemplate) {
-          baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nPara reagendar ou cancelar, acesse o link abaixo:\n{management_link}\n\nObrigado!`;
+          if (groupAppointments.length > 1) {
+            console.log("[ProcessQueue] 🛠️ Building consolidated group message");
+            let summary = "";
+            let totalAmount = 0;
+            
+            groupAppointments.forEach((ga: any, index: number) => {
+              const dateStr = formatBrazilDate(ga.start_time);
+              const timeStr = formatBrazilTime(ga.start_time);
+              const amount = Number(ga.service_amount) || 0;
+              totalAmount += amount;
+              
+              summary += `${index + 1}. ${ga.service?.name || "Serviço"}\n`;
+              summary += `💈 Profissional: ${ga.barber?.name || "Profissional"}\n`;
+              summary += `📅 Data: ${dateStr}\n`;
+              summary += `⏰ Horário: ${timeStr}\n`;
+              summary += `💰 Valor: R$ ${amount.toFixed(2)}\n\n`;
+            });
+
+            baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo dos agendamentos:\n\n${summary}Total: R$ ${totalAmount.toFixed(2)}\n\nPara reagendar ou cancelar, acesse:\n{management_link}\n\nObrigado!`;
+            console.log("[ProcessQueue] ✅ group_message_built");
+          } else {
+            baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nPara reagendar ou cancelar, acesse o link abaixo:\n{management_link}\n\nObrigado!`;
+          }
         }
 
         let renderedMessage = processAutomationTemplate(baseTemplate, templateData);
