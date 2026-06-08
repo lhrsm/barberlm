@@ -45,7 +45,32 @@ export const triggerAutomation = async ({
     if (event_name === 'appointment.cancelled') workflowKey = "cancellation";
     else if (event_name === 'appointment.rescheduled') workflowKey = "appointment_confirmation";
 
-    // 3. Find the relevant automation template
+    // 3. Find the relevant automation in the main automations table (required for logging)
+    let automationId = null;
+    try {
+      const { data: autoId, error: rpcError } = await anySupabase.rpc('get_or_create_automation', {
+        p_tenant_id: tenant_id,
+        p_type: workflowKey === 'appointment_confirmation' ? 'new_appointment' : workflowKey
+      });
+      
+      if (!rpcError && autoId) {
+        automationId = autoId;
+      } else {
+        console.warn("[Automation] ⚠️ Failed to get/create automation record:", rpcError);
+        // Fallback: try to find any automation for this tenant
+        const { data: existingAuto } = await anySupabase
+          .from("automations")
+          .select("id")
+          .eq("tenant_id", tenant_id)
+          .limit(1)
+          .maybeSingle();
+        automationId = existingAuto?.id;
+      }
+    } catch (err) {
+      console.error("[Automation] ❌ Error resolving automation_id:", err);
+    }
+
+    // 4. Find the relevant automation template for enqueuing
     const { data: template } = await anySupabase
       .from("automation_templates")
       .select("id, active")
@@ -53,12 +78,12 @@ export const triggerAutomation = async ({
       .eq("key", workflowKey)
       .maybeSingle();
 
-    const automationId = template?.id;
+    const templateId = template?.id;
 
-    // 4. Initial Audit Log: appointment_created / automation_trigger_started
+    // 5. Initial Audit Log: appointment_created / automation_trigger_started
     await anySupabase.from("automation_logs").insert({
       tenant_id,
-      automation_id: automationId || null,
+      automation_id: automationId, // Now guaranteed to be a valid ID from 'automations' table or null
       appointment_id,
       customer_id: customerId,
       phone: customerPhone,
@@ -73,7 +98,8 @@ export const triggerAutomation = async ({
         management_token_exists: !!managementToken,
         customer_phone_exists: !!customerPhone,
         template_active: template?.active,
-        has_automation_id: !!automationId
+        has_automation_id: !!automationId,
+        template_id: templateId
       }
     });
 
