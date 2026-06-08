@@ -470,10 +470,6 @@ function FinancesComponent() {
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => {
-        // We already subtract totalRefundsPaid in netRevenue and balance, 
-        // but expense card should show all exits. 
-        // If refund transactions are already in effectiveTransactions as 'expense', they will be counted twice if we add totalRefundsPaid manually.
-        // Let's ensure we count them correctly.
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
     
@@ -494,6 +490,8 @@ function FinancesComponent() {
       realCashIncome,
       creditsConsumed,
       creditsGranted,
+      creditsReversed,
+      cashbackReversed,
       totalRefundsRequested,
       totalRefundsPaid,
       netRevenue,
@@ -502,7 +500,7 @@ function FinancesComponent() {
       balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
       barbershopPart: operationalRevenue - freelancersPart,
-      cashbackConsumed: 0
+      cashbackConsumed
     };
   }, [transactions, refundRequests, barbers, appointments, totalCredits]);
 
