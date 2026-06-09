@@ -387,6 +387,21 @@ function FinancesComponent() {
     }
   }
 
+  async function fetchCashbackTransactions() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("cashback_transactions")
+        .select("*")
+        .eq("tenant_id", user.id);
+      
+      if (error) throw error;
+      setCashbackTransactions(data || []);
+    } catch (err) {
+      console.error("Error fetching cashback transactions:", err);
+    }
+  }
+
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
 
