@@ -329,8 +329,12 @@ function DashboardComponent() {
       {
         payment_status: 'paid',
         credit_used: usedCredits,
+        credits_used: usedCredits,
         cashback_used: usedCashback,
-        final_amount: remainingToPay
+        final_amount: remainingToPay,
+        pix_amount: appointment.payment_method === 'pix' ? remainingToPay : 0,
+        cash_amount: appointment.payment_method === 'cash' ? remainingToPay : 0,
+        payment_method: appointment.payment_method || 'pix'
       },
       'dashboard'
     );
@@ -565,8 +569,8 @@ function DashboardComponent() {
       supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       // Buscar todas as transações para filtrar em memória
-      supabase.from("transactions").select("amount, type, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount, type, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("transactions").select("amount, type, payment_method, pix_amount, cash_amount, credit_card_amount, debit_card_amount, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount, type, payment_method, pix_amount, cash_amount, credit_card_amount, debit_card_amount, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
@@ -601,9 +605,13 @@ function DashboardComponent() {
             return acc;
           }
           
+          // Verificar se tem detalhamento proporcional (misto)
+          if (curr.payment_method === 'misto' || curr.payment_method === 'mixed') {
+             return acc + (Number(curr.pix_amount || 0) + Number(curr.cash_amount || 0) + Number(curr.credit_card_amount || 0) + Number(curr.debit_card_amount || 0));
+          }
+
           // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
-          // Se o método de pagamento for explicitamente cashback ou créditos, ignoramos o amount no caixa real
-          if (curr.appointment && (curr.appointment.payment_method === 'cashback' || curr.appointment.payment_method === 'credits')) {
+          if (curr.appointment && (curr.appointment.payment_method === 'cashback' || curr.appointment.payment_method === 'credits' || curr.appointment.payment_method === 'wallet')) {
             return acc;
           }
           
