@@ -26,12 +26,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
@@ -41,15 +45,19 @@ interface AppointmentDetailsModalProps {
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
   onReschedule?: (appointment: any) => void;
+  mode?: 'admin' | 'customer';
 }
+
 
 export function AppointmentDetailsModal({ 
   appointmentId, 
   open, 
   onOpenChange,
   onSuccess,
-  onReschedule
+  onReschedule,
+  mode = 'admin'
 }: AppointmentDetailsModalProps) {
+
   const [appointment, setAppointment] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
@@ -102,9 +110,22 @@ export function AppointmentDetailsModal({
   }
 
   const [isPixCancelModalOpen, setIsPixCancelModalOpen] = React.useState(false);
+  const [showRefundForm, setShowRefundForm] = React.useState(false);
+  const [refundData, setRefundData] = React.useState({
+    holderName: '',
+    pixKey: '',
+    pixType: 'cpf',
+    notes: ''
+  });
 
-  const handleCancelClick = () => {
+  const handleCancelClick = async () => {
     if (!appointment) return;
+    
+    // Buscar dados atualizados antes de decidir
+    setLoading(true);
+    await fetchAppointment();
+    setLoading(false);
+
     const isPixPaid = (['pix', 'PIX', 'Pix', 'mixed', 'misto'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
                       ['paid', 'confirmed', 'completed', 'pago', 'aprovado'].includes(appointment.payment_status);
     
@@ -112,7 +133,6 @@ export function AppointmentDetailsModal({
                                  (appointment.cashback_used && Number(appointment.cashback_used) > 0);
 
     if (isPixPaid) {
-      if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
       setIsPixCancelModalOpen(true);
     } else if (hasCreditsOrCashback) {
       if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao saldo do cliente para uso futuro. Confirmar cancelamento?")) return;
@@ -123,6 +143,7 @@ export function AppointmentDetailsModal({
     }
   };
 
+
   const updateStatus = async (newStatus: string, metadata: any = {}) => {
     if (!appointment) return;
     setActionLoading(true);
@@ -131,15 +152,31 @@ export function AppointmentDetailsModal({
       appointment.id, 
       newStatus, 
       metadata, 
-      'admin_panel'
+      mode === 'customer' ? 'customer_portal' : 'admin_panel'
     );
 
     if (result.success) {
+      // Se for reembolso PIX, atualizar a solicitação de estorno com os dados fornecidos
+      if (metadata.refund_preference === 'refund' && refundData.pixKey) {
+        await supabase
+          .from('refund_requests')
+          .update({
+            holder_name: refundData.holderName,
+            pix_key: refundData.pixKey,
+            pix_type: refundData.pixType,
+            notes: refundData.notes
+          })
+          .eq('appointment_id', appointment.id)
+          .eq('status', 'requested');
+      }
+
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['customer-appointments'] });
       if (onSuccess) onSuccess();
       onOpenChange(false);
+
     }
     
     setActionLoading(false);
@@ -391,7 +428,7 @@ export function AppointmentDetailsModal({
             className="rounded-xl bg-transparent text-gray-400 border-white/10 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest px-6 h-12"
             onClick={() => onOpenChange(false)}
           >
-            Fechar
+            {mode === 'customer' ? "Voltar" : "Fechar"}
           </Button>
 
           {showCancel && (
@@ -413,41 +450,98 @@ export function AppointmentDetailsModal({
                 </div>
                 <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
                 <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
-                  Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar em outro atendimento ou solicitar estorno.
+                  Identificamos que este agendamento já foi pago via Pix. Valor pago: R$ {(appointment.pix_amount || appointment.total_price || 0).toFixed(2)}. Escolha se deseja solicitar estorno ou transformar o valor em créditos.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-3 mt-6">
-                <Button 
-                  className="w-full h-14 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
-                  onClick={() => {
-                    setIsPixCancelModalOpen(false);
-                    updateStatus('cancelled', { refund_preference: 'credits' });
-                  }}
-                  disabled={actionLoading}
-                >
-                  Transformar em Crédito
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
-                  onClick={() => {
-                    setIsPixCancelModalOpen(false);
-                    updateStatus('cancelled', { refund_preference: 'refund' });
-                  }}
-                  disabled={actionLoading}
-                >
-                  Solicitar Estorno
-                </Button>
-                <Button 
-                  variant="ghost"
-                  className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
-                  onClick={() => setIsPixCancelModalOpen(false)}
-                >
-                  Voltar
-                </Button>
-              </div>
+
+              {!showRefundForm ? (
+                <div className="grid gap-3 mt-6">
+                  <Button 
+                    className="w-full h-14 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
+                    onClick={() => {
+                      setIsPixCancelModalOpen(false);
+                      updateStatus('cancelled', { refund_preference: 'credits' });
+                    }}
+                    disabled={actionLoading}
+                  >
+                    Transformar em Crédito
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+                    onClick={() => {
+                      setShowRefundForm(true);
+                    }}
+                    disabled={actionLoading}
+                  >
+                    Solicitar Estorno
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+                    onClick={() => setIsPixCancelModalOpen(false)}
+                  >
+                    Voltar
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4 mt-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nome do Titular</Label>
+                    <Input 
+                      placeholder="Nome completo"
+                      className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-[#D4AF37] outline-none"
+                      value={refundData.holderName}
+                      onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Tipo de Chave</Label>
+                      <select 
+                        className="w-full h-12 bg-[#05070d] border border-white/10 rounded-xl px-4 text-white text-sm outline-none"
+                        value={refundData.pixType}
+                        onChange={(e) => setRefundData({...refundData, pixType: e.target.value})}
+                      >
+                        <option value="cpf">CPF</option>
+                        <option value="cnpj">CNPJ</option>
+                        <option value="email">E-mail</option>
+                        <option value="phone">Celular</option>
+                        <option value="random">Aleatória</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Chave Pix</Label>
+                      <Input 
+                        placeholder="Chave Pix"
+                        className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-[#D4AF37] outline-none"
+                        value={refundData.pixKey}
+                        onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setIsPixCancelModalOpen(false);
+                      updateStatus('cancelled', { refund_preference: 'refund' });
+                    }}
+                    disabled={actionLoading || !refundData.pixKey || !refundData.holderName}
+                    className="w-full h-14 bg-[#D4AF37] text-black font-black uppercase italic tracking-tighter rounded-2xl shadow-lg mt-2"
+                  >
+                    Confirmar Solicitação
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    onClick={() => setShowRefundForm(false)}
+                    className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+                  >
+                    Voltar
+                  </Button>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
+
 
           {showReschedule && (
             <Button 
@@ -463,7 +557,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          {showConfirm && (
+          {mode === 'admin' && showConfirm && (
             <Button 
               className="rounded-xl bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all active:scale-95"
               onClick={() => updateStatus('confirmed')}
@@ -473,7 +567,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          {showComplete && (
+          {mode === 'admin' && showComplete && (
             <Button 
               className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95"
               onClick={() => updateStatus('completed')}
@@ -483,7 +577,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          {appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
+          {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
             <Button 
               className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(37,99,235,0.2)] transition-all active:scale-95"
               onClick={async () => {
@@ -556,6 +650,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
         </div>
+
       </DialogContent>
     </Dialog>
   );

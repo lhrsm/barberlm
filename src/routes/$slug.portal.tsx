@@ -680,91 +680,14 @@ function ClientPortalComponent() {
   };
 
   const handleCancelAppointment = async (app: any) => {
-    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
-    
-    // Check if it's a confirmed PIX payment
-    const isPixPaid = (['pix', 'PIX', 'Pix'].includes(app.payment_method) || (app.pix_amount && Number(app.pix_amount) > 0)) && 
-                      ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(app.payment_status);
-
-    const hasCreditsOrCashback = (app.credits_used && Number(app.credits_used) > 0) || 
-                                 (app.cashback_used && Number(app.cashback_used) > 0);
-
-    if (isPixPaid) {
-      setCancellingAppointment(app);
-      setIsRefundModalOpen(true);
-      setShowRefundForm(false);
-      return;
-    }
-
-    if (hasCreditsOrCashback) {
-      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao seu saldo para uso futuro. Confirmar cancelamento?")) return;
-    }
-
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.rpc('cancel_appointment', {
-        p_appointment_id: app.id,
-        p_cancelled_by: 'customer',
-        p_source: 'user_panel',
-        p_refund_preference: 'none'
-      });
-      
-      if (error) throw error;
-      
-      toast.success("Agendamento cancelado com sucesso");
-      fetchClientData(client.customer_id);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao cancelar agendamento");
-    } finally {
-      setSubmitting(false);
-    }
+    // Abrir a modal de detalhes em modo customer para que o fluxo seja unificado
+    setSelectedAppointmentId(app.id);
+    setIsDetailsModalOpen(true);
   };
 
-  const handleProcessRefundChoice = async (type: 'credits' | 'refund') => {
-    if (!cancellingAppointment) return;
-    
-    if (type === 'refund' && !showRefundForm) {
-      setShowRefundForm(true);
-      return;
-    }
 
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.rpc('cancel_appointment', {
-        p_appointment_id: cancellingAppointment.id,
-        p_cancelled_by: 'customer',
-        p_source: 'user_panel',
-        p_refund_preference: type
-      });
-      
-      if (error) throw error;
+  // Logic removed as it is now handled by AppointmentDetailsModal
 
-      if (type === 'refund') {
-        // Update refund request with PIX data
-        await supabase
-          .from('refund_requests')
-          .update({
-            holder_name: refundData.holderName,
-            pix_key: refundData.pixKey,
-            pix_type: refundData.pixType,
-            notes: refundData.notes
-          })
-          .eq('appointment_id', cancellingAppointment.id)
-          .eq('status', 'requested');
-      }
-
-      toast.success(type === 'credits' ? "Valor convertido em créditos!" : "Solicitação de estorno enviada!");
-      setIsRefundModalOpen(false);
-      setShowRefundForm(false);
-      setCancellingAppointment(null);
-      fetchClientData(client.customer_id);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Erro ao processar cancelamento");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const checkAutoCancellation = async (appts: any[]) => {
     const now = new Date();
@@ -1547,116 +1470,13 @@ function ClientPortalComponent() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isRefundModalOpen} onOpenChange={setIsRefundModalOpen}>
-        <DialogContent className="bg-white rounded-[2rem] border-none shadow-2xl p-8 sm:max-w-md">
-          <DialogHeader className="text-center">
-            <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <DollarSign className="text-[#D4AF37] w-8 h-8" />
-            </div>
-            <DialogTitle className="text-2xl font-black text-black uppercase italic tracking-tighter">O que deseja fazer com o valor pago?</DialogTitle>
-            <DialogDescription className="text-gray-500 font-medium">
-              Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar em outro atendimento ou solicitar estorno.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Refund dialog logic moved to AppointmentDetailsModal for consistency */}
 
-          {!showRefundForm ? (
-            <div className="flex flex-col gap-4 py-4">
-              <Button 
-                onClick={() => handleProcessRefundChoice('credits')}
-                disabled={submitting}
-                className="w-full h-16 rounded-2xl bg-black text-white hover:bg-zinc-900 font-black uppercase tracking-widest text-lg shadow-xl"
-              >
-                Transformar em crédito
-              </Button>
-              <Button 
-                onClick={() => setShowRefundForm(true)}
-                disabled={submitting}
-                className="w-full h-16 rounded-2xl bg-white border-2 border-black text-black hover:bg-zinc-50 font-black uppercase tracking-widest text-lg shadow-sm"
-              >
-                Solicitar estorno
-              </Button>
-              <Button 
-                variant="ghost"
-                onClick={() => {
-                  setIsRefundModalOpen(false);
-                  setCancellingAppointment(null);
-                }}
-                className="w-full h-12 text-gray-400 font-bold uppercase text-xs tracking-widest"
-              >
-                Voltar
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nome do Titular</Label>
-                <Input 
-                  placeholder="Nome completo"
-                  className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none"
-                  value={refundData.holderName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRefundData({...refundData, holderName: e.target.value})}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Tipo de Chave</Label>
-                  <Select 
-                    value={refundData.pixType}
-                    onValueChange={(val: string) => setRefundData({...refundData, pixType: val})}
-                  >
-                    <SelectTrigger className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm outline-none">
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-100">
-                      <SelectItem value="cpf">CPF</SelectItem>
-                      <SelectItem value="cnpj">CNPJ</SelectItem>
-                      <SelectItem value="email">E-mail</SelectItem>
-                      <SelectItem value="phone">Celular</SelectItem>
-                      <SelectItem value="random">Chave Aleatória</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Chave Pix</Label>
-                  <Input 
-                    placeholder="Chave Pix"
-                    className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none"
-                    value={refundData.pixKey}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRefundData({...refundData, pixKey: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Observação (Opcional)</Label>
-                <Textarea 
-                  placeholder="Informações adicionais..."
-                  className="bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none min-h-[80px]"
-                  value={refundData.notes}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRefundData({...refundData, notes: e.target.value})}
-                />
-              </div>
-              <Button 
-                onClick={() => handleProcessRefundChoice('refund')}
-                disabled={submitting || !refundData.pixKey || !refundData.holderName}
-                className="w-full h-16 rounded-2xl bg-black text-white hover:bg-zinc-900 font-black uppercase tracking-widest text-lg shadow-xl mt-4"
-              >
-                {submitting ? "Processando..." : "Confirmar Solicitação"}
-              </Button>
-              <Button 
-                variant="ghost"
-                onClick={() => setShowRefundForm(false)}
-                className="w-full h-12 text-gray-400 font-bold uppercase text-xs tracking-widest"
-              >
-                Voltar
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
       <AppointmentDetailsModal 
         appointmentId={selectedAppointmentId || undefined}
         open={isDetailsModalOpen}
         onOpenChange={setIsDetailsModalOpen}
+        mode="customer"
         onReschedule={(app) => {
           handleEditAppointment(app);
         }}
@@ -1664,6 +1484,7 @@ function ClientPortalComponent() {
           if (client?.customer_id) fetchClientData(client.customer_id);
         }}
       />
+
     </div>
   );
 }
