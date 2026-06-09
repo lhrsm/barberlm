@@ -532,6 +532,15 @@ function AppointmentManagementPage() {
                         <span>Cancelar Agendamento</span>
                       </Button>
                     )}
+
+                    <Button 
+                      onClick={handleGoToPortal}
+                      variant="outline"
+                      className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl border-zinc-800 text-zinc-400 font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4"
+                    >
+                      <LayoutDashboard className="mr-3 h-6 w-6 shrink-0" />
+                      <span>Painel do Cliente</span>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
