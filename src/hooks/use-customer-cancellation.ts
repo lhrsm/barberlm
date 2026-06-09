@@ -26,7 +26,7 @@ export function useCustomerCancellation() {
       });
 
       if (error) throw error;
-      return data as FinancialStatus;
+      return data as unknown as FinancialStatus;
     } catch (err: any) {
       console.error("Error checking financial status:", err);
       throw new Error("Erro ao verificar status financeiro");
