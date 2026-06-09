@@ -122,6 +122,13 @@ function AppointmentManagementPage() {
           .eq("id", profId)
           .single();
         setBarber(barbData);
+      }
+    } catch (err: any) {
+      console.error("AUDIT [ManagementLink]: Critical Error:", err);
+      setError(`Erro ao carregar agendamento: ${err.message || 'Erro desconhecido'}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -138,7 +145,6 @@ function AppointmentManagementPage() {
 
   const handleGoToPortal = async () => {
     if (!appointment?.tenant_slug) {
-      // Se não temos o slug, tentamos buscar pelo tenant_id
       const { data: tenant } = await supabase
         .from('profiles')
         .select('slug')
@@ -154,13 +160,6 @@ function AppointmentManagementPage() {
     }
     navigate({ to: `/${appointment.tenant_slug}/portal` as any });
   };
-    } catch (err: any) {
-      console.error("AUDIT [ManagementLink]: Critical Error:", err);
-      setError(`Erro ao carregar agendamento: ${err.message || 'Erro desconhecido'}`);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
     if (isRescheduling && selectedDate && appointment) {
