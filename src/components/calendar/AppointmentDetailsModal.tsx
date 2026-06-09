@@ -41,15 +41,19 @@ interface AppointmentDetailsModalProps {
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
   onReschedule?: (appointment: any) => void;
+  mode?: 'admin' | 'customer';
 }
+
 
 export function AppointmentDetailsModal({ 
   appointmentId, 
   open, 
   onOpenChange,
   onSuccess,
-  onReschedule
+  onReschedule,
+  mode = 'admin'
 }: AppointmentDetailsModalProps) {
+
   const [appointment, setAppointment] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
@@ -391,7 +395,7 @@ export function AppointmentDetailsModal({
             className="rounded-xl bg-transparent text-gray-400 border-white/10 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest px-6 h-12"
             onClick={() => onOpenChange(false)}
           >
-            Fechar
+            {mode === 'customer' ? "Voltar" : "Fechar"}
           </Button>
 
           {showCancel && (
@@ -463,7 +467,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          {showConfirm && (
+          {mode === 'admin' && showConfirm && (
             <Button 
               className="rounded-xl bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all active:scale-95"
               onClick={() => updateStatus('confirmed')}
@@ -473,7 +477,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          {showComplete && (
+          {mode === 'admin' && showComplete && (
             <Button 
               className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95"
               onClick={() => updateStatus('completed')}
@@ -483,7 +487,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          {appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
+          {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
             <Button 
               className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(37,99,235,0.2)] transition-all active:scale-95"
               onClick={async () => {
@@ -556,6 +560,7 @@ export function AppointmentDetailsModal({
             </Button>
           )}
         </div>
+
       </DialogContent>
     </Dialog>
   );

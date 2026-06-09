@@ -340,26 +340,31 @@ function AppointmentManagementPage() {
   };
 
   const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   const handleInitialCancelClick = () => {
-    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+    // Buscar appointment atualizado antes de qualquer decisão
+    fetchAppointment().then(() => {
+      if (!appointment) return;
 
-    // Verificar se existe pagamento Pix confirmado
-    const isPixPaid = (['pix', 'PIX', 'Pix'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
-                      ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(appointment.payment_status);
-    
-    const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
-                                 (appointment.cashback_used && Number(appointment.cashback_used) > 0);
+      const isPixPaid = (['pix', 'PIX', 'Pix'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
+                        ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(appointment.payment_status);
+      
+      const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
+                                   (appointment.cashback_used && Number(appointment.cashback_used) > 0);
 
-    if (isPixPaid) {
-      setIsPixCancelModalOpen(true);
-    } else if (hasCreditsOrCashback) {
-      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao seu saldo para uso futuro. Confirmar cancelamento?")) return;
-      handleCancel('none');
-    } else {
-      setIsCancelModalOpen(true);
-    }
+      if (isPixPaid) {
+        setIsPixCancelModalOpen(true);
+      } else if (hasCreditsOrCashback) {
+        if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao seu saldo para uso futuro. Confirmar cancelamento?")) return;
+        handleCancel('none');
+      } else {
+        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+        handleCancel('none');
+      }
+    });
   };
+
 
   if (loading) {
     return (
@@ -611,121 +616,35 @@ function AppointmentManagementPage() {
 
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-red-500">Cancelar Agendamento</DialogTitle>
+          <DialogHeader className="mb-4 text-center">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="text-red-500 w-8 h-8" />
+            </div>
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-red-500">Cancelar Agendamento?</DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium">
-              {(appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed')
-                ? "Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar na barbearia ou solicitar estorno."
-                : "Tem certeza que deseja cancelar seu horário? Esta ação não poderá ser desfeita."}
+              Tem certeza que deseja cancelar seu horário? Esta ação não poderá ser desfeita.
             </DialogDescription>
           </DialogHeader>
 
-          {(appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed') && !showRefundForm ? (
-            <div className="flex flex-col gap-4 py-4">
-              <Button 
-                onClick={() => handleCancel('credits')}
-                disabled={cancelling}
-                className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
-              >
-                Transformar em crédito
-              </Button>
-              <Button 
-                onClick={() => setShowRefundForm(true)}
-                disabled={cancelling}
-                className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
-              >
-                Solicitar estorno
-              </Button>
-              <Button 
-                variant="ghost"
-                onClick={() => setIsCancelModalOpen(false)}
-                className="w-full h-[64px] rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-sm"
-              >
-                Voltar
-              </Button>
-            </div>
-          ) : showRefundForm ? (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Nome do Titular</label>
-                <input 
-                  type="text"
-                  placeholder="Nome completo"
-                  className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-sm focus:border-primary outline-none"
-                  value={refundData.holderName}
-                  onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Tipo de Chave</label>
-                  <select 
-                    className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-sm outline-none"
-                    value={refundData.pixType}
-                    onChange={(e) => setRefundData({...refundData, pixType: e.target.value})}
-                  >
-                    <option value="cpf">CPF</option>
-                    <option value="cnpj">CNPJ</option>
-                    <option value="email">E-mail</option>
-                    <option value="phone">Celular</option>
-                    <option value="random">Chave Aleatória</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Chave Pix</label>
-                  <input 
-                    type="text"
-                    placeholder="Chave Pix"
-                    className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-sm focus:border-primary outline-none"
-                    value={refundData.pixKey}
-                    onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Observação (Opcional)</label>
-                <textarea 
-                  placeholder="Informações adicionais..."
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:border-primary outline-none min-h-[80px]"
-                  value={refundData.notes}
-                  onChange={(e) => setRefundData({...refundData, notes: e.target.value})}
-                />
-              </div>
-              <Button 
-                onClick={() => handleCancel('refund', refundData)}
-                disabled={cancelling || !refundData.pixKey || !refundData.holderName}
-                className="w-full h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg shadow-lg mt-4"
-              >
-                {cancelling ? "Processando..." : "Confirmar Solicitação"}
-              </Button>
-              <Button 
-                variant="ghost"
-                onClick={() => setShowRefundForm(false)}
-                className="w-full h-[64px] rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-sm"
-              >
-                Voltar
-              </Button>
-            </div>
-          ) : (
-            <DialogFooter className="flex flex-col gap-4 mt-6">
-              <Button 
-                onClick={() => handleCancel('none')} 
-                disabled={cancelling}
-                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white uppercase font-black text-lg tracking-widest shadow-lg shadow-red-900/20"
-              >
-                {cancelling ? "Processando..." : "Confirmar Cancelamento"}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsCancelModalOpen(false)} 
-                className="w-full h-[64px] rounded-2xl uppercase font-black text-sm tracking-widest border-zinc-800 text-zinc-400"
-              >
-                Manter Agendamento
-              </Button>
-            </DialogFooter>
-          )}
+          <DialogFooter className="flex flex-col gap-4 mt-6">
+            <Button 
+              onClick={() => handleCancel('none')} 
+              disabled={cancelling}
+              className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white uppercase font-black text-lg tracking-widest shadow-lg shadow-red-900/20"
+            >
+              {cancelling ? "Processando..." : "Confirmar Cancelamento"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCancelModalOpen(false)} 
+              className="w-full h-14 rounded-2xl uppercase font-black text-sm tracking-widest border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+            >
+              Manter Agendamento
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* Pix Cancellation Modal */}
       <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>

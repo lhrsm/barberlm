@@ -1657,6 +1657,7 @@ function ClientPortalComponent() {
         appointmentId={selectedAppointmentId || undefined}
         open={isDetailsModalOpen}
         onOpenChange={setIsDetailsModalOpen}
+        mode="customer"
         onReschedule={(app) => {
           handleEditAppointment(app);
         }}
@@ -1664,6 +1665,7 @@ function ClientPortalComponent() {
           if (client?.customer_id) fetchClientData(client.customer_id);
         }}
       />
+
     </div>
   );
 }
