@@ -810,6 +810,14 @@ function AppointmentGroupPage() {
               </Button>
             )}
             <Button 
+              onClick={handleGoToPortal}
+              variant="outline"
+              className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Painel do Cliente
+            </Button>
+            <Button 
               variant="outline" 
               onClick={() => setIsCancelModalOpen(false)}
               className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
