@@ -279,7 +279,34 @@ function AppointmentGroupPage() {
     }
   };
 
-  const { confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
+  const { getFinancialStatus, confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
+  const [financialStatus, setFinancialStatus] = useState<FinancialStatus | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugItem, setDebugItem] = useState<any>(null);
+
+  const handleCancelClick = async () => {
+    if (selectedIds.length === 0) return;
+    
+    // Para simplificar o diagnóstico no link de grupo, pegamos o primeiro selecionado
+    const firstId = selectedIds[0];
+    setLoading(true);
+    try {
+      const finStatus = await getFinancialStatus(firstId);
+      setFinancialStatus(finStatus);
+      setDebugItem(appointments.find(a => a.id === firstId));
+      setShowDebug(true);
+    } catch (err) {
+      toast.error("Erro ao verificar status financeiro");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const proceedAfterDebug = () => {
+    setShowDebug(false);
+    setIsCancelModalOpen(true);
+  };
+
 
   const handleCancelSelected = async (preference: 'credit' | 'refund' = 'credit') => {
     if (selectedIds.length === 0) return;
