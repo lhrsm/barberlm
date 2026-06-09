@@ -605,17 +605,28 @@ function DashboardComponent() {
             return acc;
           }
           
-          // Verificar se tem detalhamento proporcional (misto)
-          if (curr.payment_method === 'misto' || curr.payment_method === 'mixed') {
-             return acc + (Number(curr.pix_amount || 0) + Number(curr.cash_amount || 0) + Number(curr.credit_card_amount || 0) + Number(curr.debit_card_amount || 0));
+          // Verificar se tem detalhamento proporcional (misto) ou transação real Pix/Dinheiro
+          if (curr.pix_amount > 0 || curr.cash_amount > 0 || curr.credit_card_amount > 0 || curr.debit_card_amount > 0) {
+            return acc + (
+              Number(curr.pix_amount || 0) + 
+              Number(curr.cash_amount || 0) + 
+              Number(curr.credit_card_amount || 0) + 
+              Number(curr.debit_card_amount || 0)
+            );
           }
 
-          // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
-          if (curr.appointment && (curr.appointment.payment_method === 'cashback' || curr.appointment.payment_method === 'credits' || curr.appointment.payment_method === 'wallet')) {
-            return acc;
+          // Se for transação simples sem breakdown, mas for Pix/Dinheiro/Cartão
+          if (curr.payment_method && !['credits', 'wallet', 'cashback'].includes(curr.payment_method)) {
+             return acc + (parseFloat(String(curr.amount)) || 0);
           }
           
-          return acc + Number(curr.amount || 0);
+          // Para transações de agendamento, se o método for Pix/Dinheiro/Cartão (fallback)
+          const method = curr.payment_method || curr.appointment?.payment_method;
+          if (method && !['credits', 'wallet', 'cashback'].includes(method)) {
+            return acc + Number(curr.amount || 0);
+          }
+
+          return acc;
         } else if (curr.type === 'expense') {
             return acc - Number(curr.amount || 0);
         }
