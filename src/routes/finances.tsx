@@ -1890,9 +1890,12 @@ function FinancesComponent() {
                           t.type === 'income' &&
                           (!barberDateFilter || t.date === barberDateFilter)
                         );
+                        const bApptIds = new Set();
                         const bTotal = bTransactions.reduce((tAcc, t) => {
-                          if (t.appointment) {
-                            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+                          if (t.appointment_id) {
+                            if (bApptIds.has(t.appointment_id)) return tAcc;
+                            bApptIds.add(t.appointment_id);
+                            return tAcc + (Number(t.appointment?.original_total || t.appointment?.total_price || (Number(t.amount) + Number(t.appointment?.credit_used || 0))) || 0);
                           }
                           const val = parseFloat(String(t.amount)) || 0;
                           if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
@@ -1915,8 +1918,8 @@ function FinancesComponent() {
                       return (
                         <>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">Lançamentos Gerais</span>
-                            <span className="text-foreground">R$ {totalGeneralOnly.toFixed(2)}</span>
+                            <span className="text-muted-foreground italic font-medium uppercase tracking-tight">Resultado da Barbearia</span>
+                            <span className="text-2xl font-black text-emerald-500 italic tracking-tight">R$ {finalTotal.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Vindo dos Barbeiros</span>
