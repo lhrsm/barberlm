@@ -433,9 +433,9 @@ function FinancesComponent() {
     
     // Total de Cashback Concedido (Gerado no período)
     // Buscamos diretamente das transações de cashback para precisão total
-    const totalCashbackEarned = transactions
-      .filter(t => t.type === 'cashback_earned' || (t.appointment?.cashback_earned > 0 && t.appointment.status === 'completed'))
-      .reduce((acc, t) => acc + (Number(t.appointment?.cashback_earned || t.amount || 0)), 0);
+    const totalCashbackEarned = cashbackTransactions
+      .filter(t => t.type === 'earned' || t.type === 'cashback_earned')
+      .reduce((acc, t) => acc + (Number(t.amount || 0)), 0);
 
     // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
     // Agora baseamos a receita no realCashIncome para não inflar com créditos
