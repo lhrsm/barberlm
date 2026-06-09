@@ -1,5 +1,3 @@
-                                                                                                              pg_get_functiondef                                                                                                               
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  CREATE OR REPLACE FUNCTION public.request_appointment_refund(p_appointment_id uuid, p_customer_id uuid, p_tenant_id uuid, p_amount numeric, p_pix_key text, p_pix_key_type text, p_account_holder_name text, p_notes text DEFAULT NULL::text)+
   RETURNS jsonb                                                                                                                                                                                                                               +
   LANGUAGE plpgsql                                                                                                                                                                                                                            +
@@ -69,5 +67,4 @@
   END;                                                                                                                                                                                                                                        +
  $function$                                                                                                                                                                                                                                   +
  
-(1 row)
 

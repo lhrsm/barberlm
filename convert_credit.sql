@@ -1,5 +1,3 @@
-                                                               pg_get_functiondef                                                               
-------------------------------------------------------------------------------------------------------------------------------------------------
  CREATE OR REPLACE FUNCTION public.convert_appointment_to_credit(p_appointment_id uuid, p_customer_id uuid, p_tenant_id uuid, p_amount numeric)+
   RETURNS jsonb                                                                                                                                +
   LANGUAGE plpgsql                                                                                                                             +
@@ -93,5 +91,4 @@
  END;                                                                                                                                          +
  $function$                                                                                                                                    +
  
-(1 row)
 

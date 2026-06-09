@@ -1,5 +1,3 @@
-                                                                                                      pg_get_functiondef                                                                                                       
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  CREATE OR REPLACE FUNCTION public.cancel_appointment(p_appointment_id uuid, p_cancelled_by text, p_source text DEFAULT 'admin'::text, p_refund_preference text DEFAULT 'none'::text, p_changed_by_id uuid DEFAULT NULL::uuid)+
   RETURNS jsonb                                                                                                                                                                                                               +
   LANGUAGE plpgsql                                                                                                                                                                                                            +
@@ -172,5 +170,4 @@
  END;                                                                                                                                                                                                                         +
  $function$                                                                                                                                                                                                                   +
  
-(1 row)
 
