@@ -229,7 +229,37 @@ function AppointmentGroupPage() {
       console.error("Error fetching history:", err);
     } finally {
       setLoadingHistory(false);
+  }
+
+  useEffect(() => {
+    let timer: any;
+    if (successRedirect && redirectCountdown > 0) {
+      timer = setInterval(() => {
+        setRedirectCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (successRedirect && redirectCountdown === 0) {
+      handleGoToPortal();
     }
+    return () => clearInterval(timer);
+  }, [successRedirect, redirectCountdown]);
+
+  const handleGoToPortal = async () => {
+    if (!group?.tenant_slug) {
+      const { data: tenant } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('id', group.tenant_id)
+        .single();
+      
+      if (tenant?.slug) {
+        navigate({ to: `/${tenant.slug}/portal` as any });
+      } else {
+        navigate({ to: '/' });
+      }
+      return;
+    }
+    navigate({ to: `/${group.tenant_slug}/portal` as any });
+  };
   }
 
 
