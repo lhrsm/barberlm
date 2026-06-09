@@ -1241,7 +1241,12 @@ function FinancesComponent() {
                           <div className="flex flex-col gap-1">
                             {/* Prioritize manual/transaction payment method */}
                             {t.payment_method === 'misto' || t.payment_method === 'mixed' ? (
-                              <Badge variant="outline" className="w-fit bg-orange-500/10 text-orange-500 border-orange-500/20 font-bold">MISTO</Badge>
+                              <div className="flex flex-col gap-0.5">
+                                <Badge variant="outline" className="w-fit bg-orange-500/10 text-orange-500 border-orange-500/20 font-bold">MISTO</Badge>
+                                <span className="text-[9px] text-muted-foreground uppercase leading-none font-medium mt-1">
+                                  {formatMixedPaymentLabel(t)}
+                                </span>
+                              </div>
                             ) : (
                               <>
                                 {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix' || t.pix_amount > 0) && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
@@ -1249,23 +1254,10 @@ function FinancesComponent() {
                                 {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card' || t.credit_card_amount > 0) && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
                                 {(t.payment_method === 'debit_card' || t.debit_card_amount > 0) && <Badge variant="outline" className="w-fit bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
                                 {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits' || t.payment_method === 'wallet' || t.type === 'credit_reversed' || t.type === 'credit_granted' || t.credits_amount > 0) && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="w-fit bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/20">Cashback</Badge>}
+                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                                {!t.appointment && !t.payment_method && <span className="text-xs uppercase font-medium text-muted-foreground">-</span>}
                               </>
                             )}
-                            
-                            {/* Detailed parts for Misto or Manual adjustments */}
-                            {(t.pix_amount > 0) && <span className="text-[9px] text-emerald-400 font-medium">PIX: R$ {Number(t.pix_amount).toFixed(2)}</span>}
-                            {(t.cash_amount > 0) && <span className="text-[9px] text-blue-400 font-medium">Din: R$ {Number(t.cash_amount).toFixed(2)}</span>}
-                            {(t.credit_card_amount > 0) && <span className="text-[9px] text-purple-400 font-medium">CC: R$ {Number(t.credit_card_amount).toFixed(2)}</span>}
-                            {(t.debit_card_amount > 0) && <span className="text-[9px] text-indigo-400 font-medium">Deb: R$ {Number(t.debit_card_amount).toFixed(2)}</span>}
-
-                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0 || t.credits_amount > 0) && (
-                              <span className="text-[10px] text-purple-400 font-bold uppercase">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0) + Number(t.credits_amount || 0)).toFixed(2)}</span>
-                            )}
-                            {(t.appointment?.cashback_used > 0 || t.cashback_amount > 0) && (
-                              <span className="text-[10px] text-orange-400 font-bold uppercase">Cashback: R$ {(Number(t.appointment?.cashback_used || 0) + Number(t.cashback_amount || 0)).toFixed(2)}</span>
-                            )}
-                            {!t.appointment && !t.payment_method && <span className="text-xs uppercase font-medium text-muted-foreground">-</span>}
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">{t.category || "-"}</TableCell>
@@ -1656,7 +1648,12 @@ function FinancesComponent() {
                              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Pagamento</p>
                              <div className="flex flex-wrap gap-1">
                                {t.payment_method === 'misto' || t.payment_method === 'mixed' ? (
-                                 <Badge variant="outline" className="text-[10px] font-bold bg-orange-500/10 text-orange-500 border-orange-500/20">MISTO</Badge>
+                                 <div className="flex flex-col gap-1">
+                                   <Badge variant="outline" className="text-[10px] font-bold bg-orange-500/10 text-orange-500 border-orange-500/20">MISTO</Badge>
+                                   <span className="text-[9px] text-muted-foreground uppercase leading-tight font-medium">
+                                     {formatMixedPaymentLabel(t)}
+                                   </span>
+                                 </div>
                                ) : (
                                  <>
                                    {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix' || t.pix_amount > 0) && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
@@ -1667,13 +1664,6 @@ function FinancesComponent() {
                                    {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
                                  </>
                                )}
-                             </div>
-                             <div className="mt-1 flex flex-col gap-0.5">
-                               {(t.pix_amount > 0) && <span className="text-[9px] text-emerald-400 font-medium">PIX: R$ {Number(t.pix_amount).toFixed(2)}</span>}
-                               {(t.cash_amount > 0) && <span className="text-[9px] text-blue-400 font-medium">Din: R$ {Number(t.cash_amount).toFixed(2)}</span>}
-                               {(t.appointment?.credits_used > 0 || t.credits_amount > 0 || t.type === 'credit_reversed' || t.type === 'credit_granted') && <span className="text-[9px] text-purple-400 font-medium">Cred: R$ {(Number(t.appointment?.credits_used || 0) + Number(t.credits_amount || 0) + (t.type === 'credit_reversed' || t.type === 'credit_granted' ? Number(t.amount) : 0)).toFixed(2)}</span>}
-                               {(t.appointment?.cashback_used > 0 || t.cashback_amount > 0 || t.type === 'cashback_reversed') && <span className="text-[9px] text-orange-400 font-medium">Cash: R$ {(Number(t.appointment?.cashback_used || 0) + Number(t.cashback_amount || 0) + (t.type === 'cashback_reversed' ? Number(t.amount) : 0)).toFixed(2)}</span>}
-                             </div>
                            </div>
                         </div>
                       </div>
