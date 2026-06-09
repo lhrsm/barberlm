@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useCallback } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { 
   Calendar, 
@@ -145,13 +145,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const businessName = String(tenantProfile?.business_name || "Barbex");
 
-  const handleLogout = async () => {
-    if (session) {
-      profLogout();
+  const handleLogout = useCallback(async () => {
+    try {
+      if (session) {
+        profLogout();
+      }
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate({ to: "/auth", search: { redirect: pathname } });
     }
-    await supabase.auth.signOut();
-    navigate({ to: "/auth" });
-  };
+  }, [session, profLogout, navigate, pathname]);
+
 
   const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
