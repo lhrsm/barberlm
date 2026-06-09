@@ -519,7 +519,7 @@ function FinancesComponent() {
       barbershopPart: (realCashIncome + creditsConsumed + cashbackConsumed) - freelancersPart,
       cashbackConsumed
     };
-  }, [transactions, refundRequests, barbers, appointments, totalCredits]);
+  }, [transactions, refundRequests, barbers, appointments, totalCredits, appointments]);
 
   useEffect(() => {
     async function fetchBalances() {
@@ -560,7 +560,21 @@ function FinancesComponent() {
     } else {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
-      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00", payment_method: "cash" });
+      setNewTransaction({ 
+        amount: "", 
+        type: "income", 
+        description: "", 
+        category: "Serviço", 
+        barber_id: "none", 
+        date: new Date().toISOString().split('T')[0], 
+        time: "12:00", 
+        payment_method: "pix",
+        pix_amount: "0",
+        cash_amount: "0",
+        credit_card_amount: "0",
+        credits_amount: "0",
+        cashback_amount: "0"
+      });
       fetchTransactions();
     }
   }
