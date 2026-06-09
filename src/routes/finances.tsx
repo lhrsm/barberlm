@@ -1663,9 +1663,10 @@ function FinancesComponent() {
                                    {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
                                  </>
                                )}
+                             </div>
                            </div>
-                        </div>
-                      </div>
+                         </div>
+                       </div>
 
                       <div className="flex justify-end gap-2 pt-2">
                         {t.appointment && (
