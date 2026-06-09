@@ -45,7 +45,7 @@ interface AppointmentDetailsModalProps {
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
   onReschedule?: (appointment: any) => void;
-  mode?: 'admin' | 'customer';
+  mode?: 'admin' | 'customer' | 'admin_read_only';
 }
 
 
