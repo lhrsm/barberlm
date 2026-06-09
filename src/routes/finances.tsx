@@ -1801,10 +1801,13 @@ function FinancesComponent() {
                   t.type === 'income' &&
                   (!barberDateFilter || t.date === barberDateFilter)
                 );
+                const bApptIds = new Set();
                 const totalReceived = barberTransactions.reduce((acc, t) => {
                   // Se houver agendamento vinculado, usamos o valor total para receita operacional do barbeiro
-                  if (t.appointment) {
-                    return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+                  if (t.appointment_id) {
+                    if (bApptIds.has(t.appointment_id)) return acc;
+                    bApptIds.add(t.appointment_id);
+                    return acc + (Number(t.appointment?.original_total || t.appointment?.total_price || (Number(t.amount) + Number(t.appointment?.credit_used || 0))) || 0);
                   }
                   
                   const val = parseFloat(String(t.amount)) || 0;
