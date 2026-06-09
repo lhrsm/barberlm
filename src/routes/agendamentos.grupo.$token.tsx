@@ -287,14 +287,18 @@ function AppointmentGroupPage() {
   const handleCancelClick = async () => {
     if (selectedIds.length === 0) return;
     
-    // Para simplificar o diagnóstico no link de grupo, pegamos o primeiro selecionado
+    // Check first selected for diagnostic and generic decision
     const firstId = selectedIds[0];
     setLoading(true);
     try {
       const finStatus = await getFinancialStatus(firstId);
       setFinancialStatus(finStatus);
-      setDebugItem(appointments.find(a => a.id === firstId));
-      setShowDebug(true);
+      
+      if (finStatus.requires_financial_decision) {
+        setIsCancelModalOpen(true); // Open financial decision modal (aliased as cancel modal here)
+      } else {
+        setIsCancelModalOpen(true); // Simple cancel confirmation
+      }
     } catch (err) {
       toast.error("Erro ao verificar status financeiro");
     } finally {
@@ -306,6 +310,7 @@ function AppointmentGroupPage() {
     setShowDebug(false);
     setIsCancelModalOpen(true);
   };
+
 
 
   const handleCancelSelected = async (preference: 'credit' | 'refund' = 'credit') => {
