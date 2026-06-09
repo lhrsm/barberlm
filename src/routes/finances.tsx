@@ -82,6 +82,7 @@ function FinancesComponent() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
+  const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
