@@ -154,6 +154,77 @@ function AutomationsComponent() {
     }
   };
 
+  const runDiagnosis = async () => {
+    setDiagLoading(true);
+    setIsDiagOpen(true);
+    try {
+      // 1. Get last appointment
+      const { data: appointment } = await anySupabase
+        .from("appointments")
+        .select(`
+          *,
+          customer:customers(name, phone),
+          service:services(name),
+          barber:barbers(name)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (!appointment) throw new Error("Nenhum agendamento encontrado.");
+
+      // 2. Check queue
+      const { data: queue } = await anySupabase
+        .from("automation_queue")
+        .select("*")
+        .eq("appointment_id", appointment.id)
+        .maybeSingle();
+
+      // 3. Check logs
+      const { data: logs } = await anySupabase
+        .from("automation_logs")
+        .select("*")
+        .eq("appointment_id", appointment.id)
+        .order("created_at", { ascending: false });
+
+      // 4. Check profile
+      const { data: profile } = await anySupabase
+        .from("profiles")
+        .select("whatsapp_enabled, whatsapp_instance_id")
+        .eq("id", tenantId)
+        .single();
+
+      setDiagData({
+        appointment,
+        queue,
+        logs: logs || [],
+        whatsapp: {
+          enabled: profile?.whatsapp_enabled,
+          instance: profile?.whatsapp_instance_id
+        }
+      });
+    } catch (e: any) {
+      toast.error("Erro no diagnóstico: " + e.message);
+    } finally {
+      setDiagLoading(false);
+    }
+  };
+
+  const reprocessQueueItem = async (appointmentId: string) => {
+    toast.info("Reprocessando...");
+    try {
+      const { error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { appointment_id: appointmentId, force_resend: true }
+      });
+      if (error) throw error;
+      toast.success("Comando enviado!");
+      fetchData();
+      if (isDiagOpen) runDiagnosis();
+    } catch (e: any) {
+      toast.error("Erro: " + e.message);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
