@@ -389,7 +389,11 @@ function FinancesComponent() {
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
       const matchStatus = statusFilter === "all" || 
-        (statusFilter === "manual" && !t.appointment) ||
+        (statusFilter === "manual" && !t.appointment && t.type !== 'credit_reversed' && t.type !== 'credit_granted' && t.type !== 'cashback_reversed') ||
+        (statusFilter === "pix" && (t.payment_method === 'pix' || t.appointment?.payment_method === 'pix' || t.pix_amount > 0)) ||
+        (statusFilter === "credits" && (t.payment_method === 'credits' || t.payment_method === 'wallet' || t.type === 'credit_reversed' || t.type === 'credit_granted' || t.credits_amount > 0)) ||
+        (statusFilter === "cashback" && (t.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0)) ||
+        (statusFilter === "expense" && t.type === 'expense') ||
         (t.appointment?.status === statusFilter);
       
       const matchDate = !dateFilter || t.date === dateFilter;
