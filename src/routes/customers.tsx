@@ -288,12 +288,12 @@ function CustomersComponent() {
             <CardContent><p className="text-2xl font-black text-white">{customers.filter(c => c.id).length}</p></CardContent>
           </Card>
           <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
-            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Créditos</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-black text-green-500">R$ {customers.reduce((acc, c) => acc + (Number(c.credits || 0) + Number(c.credits_used || 0)), 0).toFixed(2)}</p></CardContent>
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Saldo de Créditos</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-green-500">R$ {customers.reduce((acc, c) => acc + (Number(c.credits || 0)), 0).toFixed(2)}</p></CardContent>
           </Card>
           <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
-            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Cashback Conc.</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-black text-[#D4AF37]">R$ {customers.reduce((acc, c) => acc + (Number(c.cashback_balance || 0) + Number(c.cashback_used || 0)), 0).toFixed(2)}</p></CardContent>
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Saldo de Cashback</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-[#D4AF37]">R$ {customers.reduce((acc, c) => acc + (Number(c.cashback_balance || 0)), 0).toFixed(2)}</p></CardContent>
           </Card>
           <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
             <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Aniversários</CardTitle></CardHeader>
@@ -605,14 +605,16 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
 
               <div className="mt-6 pt-4 border-t border-[#1f2937] grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Crédito Total</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Saldo de Créditos</p>
                   <p className="text-lg font-black text-green-500">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</p>
-                  <p className="text-[9px] text-slate-500 uppercase mt-1">Utilizado: R$ {(Number(selectedCustomer?.credits_used) || 0).toFixed(2)}</p>
+                  <p className="text-[9px] text-slate-500 uppercase mt-1">Total: R$ {(Number(selectedCustomer?.credits || 0) + Number(selectedCustomer?.credits_used || 0)).toFixed(2)}</p>
+                  <p className="text-[9px] text-slate-500 uppercase">Consumido: R$ {(Number(selectedCustomer?.credits_used) || 0).toFixed(2)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Cashback Total</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Saldo de Cashback</p>
                   <p className="text-lg font-black text-[#D4AF37]">R$ {(Number(selectedCustomer?.cashback_balance) || 0).toFixed(2)}</p>
-                  <p className="text-[9px] text-slate-500 uppercase mt-1">Utilizado: R$ {(Number(selectedCustomer?.cashback_used) || 0).toFixed(2)}</p>
+                  <p className="text-[9px] text-slate-500 uppercase mt-1">Total: R$ {(Number(selectedCustomer?.cashback_balance || 0) + Number(selectedCustomer?.cashback_used || 0)).toFixed(2)}</p>
+                  <p className="text-[9px] text-slate-500 uppercase">Consumido: R$ {(Number(selectedCustomer?.cashback_used) || 0).toFixed(2)}</p>
                 </div>
               </div>
             </div>
