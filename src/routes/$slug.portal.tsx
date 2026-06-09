@@ -732,16 +732,12 @@ function ClientPortalComponent() {
               date: new Date().toISOString().split('T')[0]
             });
 
-          await supabase
-            .from("appointments")
-            .update({ 
-              status: 'cancelled',
-              refund_requested_at: new Date().toISOString(),
-              refund_type: 'credits',
-              refund_status: 'completed',
-              payment_status: 'refunded'
-            })
-            .eq("id", app.id);
+          await supabase.rpc('convert_appointment_to_credit', {
+            p_appointment_id: app.id,
+            p_customer_id: app.customer_id,
+            p_tenant_id: app.user_id,
+            p_amount: amount
+          });
 
           toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
         }
