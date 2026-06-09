@@ -452,15 +452,18 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>
+          <Dialog open={isFinancialModalOpen} onOpenChange={setIsFinancialModalOpen}>
             <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
               <DialogHeader className="text-center">
                 <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <DollarSign className="text-[#D4AF37] w-8 h-8" />
                 </div>
-                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">O que deseja fazer com o valor?</DialogTitle>
                 <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
-                  Identificamos que este agendamento já foi pago via Pix. Valor pago: R$ {(appointment.pix_amount || appointment.total_price || 0).toFixed(2)}. Escolha se deseja solicitar estorno ou transformar o valor em créditos.
+                  Este agendamento possui valor financeiro vinculado. Escolha como deseja tratar esse valor antes de cancelar.
+                  {financialStatus?.paid_pix_amount > 0 && <p className="mt-2 text-white">Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
+                  {financialStatus?.used_credit_amount > 0 && <p className="text-white">Créditos Usados: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+                  {financialStatus?.used_cashback_amount > 0 && <p className="text-white">Cashback Usado: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>}
                 </DialogDescription>
               </DialogHeader>
 
@@ -469,27 +472,29 @@ export function AppointmentDetailsModal({
                   <Button 
                     className="w-full h-14 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
                     onClick={() => {
-                      setIsPixCancelModalOpen(false);
+                      setIsFinancialModalOpen(false);
                       updateStatus('cancelled', { refund_preference: 'credits' });
                     }}
                     disabled={actionLoading}
                   >
                     Transformar em Crédito
                   </Button>
-                  <Button 
-                    variant="outline"
-                    className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
-                    onClick={() => {
-                      setShowRefundForm(true);
-                    }}
-                    disabled={actionLoading}
-                  >
-                    Solicitar Estorno
-                  </Button>
+                  {financialStatus?.has_paid_pix && (
+                    <Button 
+                      variant="outline"
+                      className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+                      onClick={() => {
+                        setShowRefundForm(true);
+                      }}
+                      disabled={actionLoading}
+                    >
+                      Solicitar Estorno
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost"
                     className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
-                    onClick={() => setIsPixCancelModalOpen(false)}
+                    onClick={() => setIsFinancialModalOpen(false)}
                   >
                     Voltar
                   </Button>
@@ -532,7 +537,7 @@ export function AppointmentDetailsModal({
                   </div>
                   <Button 
                     onClick={() => {
-                      setIsPixCancelModalOpen(false);
+                      setIsFinancialModalOpen(false);
                       updateStatus('cancelled', { refund_preference: 'refund' });
                     }}
                     disabled={actionLoading || !refundData.pixKey || !refundData.holderName}
@@ -551,6 +556,7 @@ export function AppointmentDetailsModal({
               )}
             </DialogContent>
           </Dialog>
+
 
 
           {showReschedule && (
