@@ -1137,12 +1137,12 @@ function FinancesComponent() {
                               <Badge variant="outline" className="w-fit bg-orange-500/10 text-orange-500 border-orange-500/20 font-bold">MISTO</Badge>
                             ) : (
                               <>
-                                {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix') && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
-                                {(t.payment_method === 'dinheiro' || t.appointment?.payment_method === 'cash') && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
-                                {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card') && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
-                                {(t.payment_method === 'debit_card') && <Badge variant="outline" className="w-fit bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
-                                {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits') && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback') && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                                {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix' || t.pix_amount > 0) && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                                {(t.payment_method === 'dinheiro' || t.appointment?.payment_method === 'cash' || t.cash_amount > 0) && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                                {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card' || t.credit_card_amount > 0) && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                                {(t.payment_method === 'debit_card' || t.debit_card_amount > 0) && <Badge variant="outline" className="w-fit bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
+                                {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits' || t.payment_method === 'wallet' || t.type === 'credit_reversed' || t.type === 'credit_granted' || t.credits_amount > 0) && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
                               </>
                             )}
                             
@@ -1572,6 +1572,20 @@ function FinancesComponent() {
                       </div>
 
                       <div className="flex justify-end gap-2 pt-2">
+                        {t.appointment && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-border bg-background hover:bg-accent"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedAppointmentId(t.appointment_id);
+                              setIsDetailsModalOpen(true);
+                            }}
+                          >
+                            <Eye size={12} /> Detalhes
+                          </Button>
+                        )}
                         <Button 
                           variant="outline" 
                           size="sm" 
@@ -1586,12 +1600,12 @@ function FinancesComponent() {
                               time: formatTransactionTimeForEdit(t),
                               payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
                               category: t.category || "Serviço",
-                              pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
-                              cash_amount: t.cash_amount || 0,
-                              credit_card_amount: t.credit_card_amount || 0,
-                              debit_card_amount: t.debit_card_amount || 0,
-                              credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
-                              cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
+                              pix_amount: String(t.pix_amount || t.appointment?.pix_amount || 0),
+                              cash_amount: String(t.cash_amount || 0),
+                              credit_card_amount: String(t.credit_card_amount || 0),
+                              debit_card_amount: String(t.debit_card_amount || 0),
+                              credits_amount: String(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0),
+                              cashback_amount: String(t.cashback_amount || t.appointment?.cashback_used || 0),
                               adjustment_reason: ""
                             });
                             setIsEditDialogOpen(true);
