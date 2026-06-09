@@ -893,6 +893,9 @@ function FinancesComponent() {
                         <Label className="text-[9px] uppercase font-bold">Cartão</Label>
                         <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-8 text-xs" />
                       </div>
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold">Créditos</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-8 text-xs" />
                       </div>
                     </div>
                   </div>
