@@ -495,10 +495,6 @@ function FinancesComponent() {
     // 10. Receita Líquida Real (Entradas Reais - Estornos Pagos)
     const netRevenue = realCashIncome - totalRefundsPaid;
 
-    // 11. Cashback Total Concedido (Gerado no período)
-    const totalCashbackEarned = effectiveTransactions
-      .reduce((acc, t) => acc + (Number(t.appointment?.cashback_earned || 0)), 0);
-
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => {
