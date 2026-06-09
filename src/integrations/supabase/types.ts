@@ -4600,6 +4600,10 @@ export type Database = {
         Returns: string
       }
       reconcile_automation_logs: { Args: never; Returns: undefined }
+      register_pix_payment_transaction: {
+        Args: { p_appointment_id: string }
+        Returns: undefined
+      }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
