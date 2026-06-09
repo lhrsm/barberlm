@@ -229,6 +229,7 @@ function AppointmentGroupPage() {
       console.error("Error fetching history:", err);
     } finally {
       setLoadingHistory(false);
+    }
   }
 
   useEffect(() => {
@@ -260,7 +261,6 @@ function AppointmentGroupPage() {
     }
     navigate({ to: `/${group.tenant_slug}/portal` as any });
   };
-  }
 
 
   const toggleSelect = (id: string) => {
