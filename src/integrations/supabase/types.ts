@@ -379,6 +379,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "appointments_appointment_group_id_fkey"
+            columns: ["appointment_group_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_groups"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "appointments_barber_id_fkey"
             columns: ["barber_id"]
             isOneToOne: false
