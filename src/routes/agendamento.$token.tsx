@@ -339,9 +339,19 @@ function AppointmentManagementPage() {
 
 
   const handleConfirmSimpleCancel = async () => {
-    // Trava de segurança no frontend
-    if (financialStatus?.requires_financial_decision) {
-      console.warn("Bloqueio de segurança: Cancelamento simples tentado em agendamento pago.");
+    // Trava de segurança robusta no frontend
+    const finStatus = financialStatus || await getFinancialStatus(appointment.id);
+    const hasFinancialValues = 
+      finStatus.has_paid_pix || 
+      finStatus.has_used_credits || 
+      finStatus.has_used_cashback || 
+      finStatus.requires_financial_decision ||
+      (finStatus.paid_pix_amount > 0) ||
+      (finStatus.used_credit_amount > 0);
+
+    if (hasFinancialValues) {
+      console.warn("Bloqueio de segurança: Cancelamento simples impedido em agendamento com valores.");
+      setFinancialStatus(finStatus);
       setCancellationStep('financial_decision');
       return;
     }
