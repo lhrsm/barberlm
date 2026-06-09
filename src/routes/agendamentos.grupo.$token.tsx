@@ -1,5 +1,5 @@
 
-import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,7 +20,8 @@ import {
   CalendarDays,
   Trash2,
   Check,
-  CircleDollarSign
+  CircleDollarSign,
+  LayoutDashboard
 } from "lucide-react";
 
 import { format, parseISO, addMinutes, isSameDay } from "date-fns";
@@ -41,6 +42,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/agendamentos/grupo/$token")({
   component: AppointmentGroupPage,
