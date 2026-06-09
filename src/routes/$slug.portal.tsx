@@ -990,16 +990,22 @@ function ClientPortalComponent() {
           </Card>
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-green-500/30 transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors">Crédito Total</CardDescription>
+              <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors">SALDO DE CRÉDITOS</CardDescription>
               <CardTitle className="text-2xl font-bold text-green-500">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
-              <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Utilizado: R$ {customerData?.credits_used ? Number(customerData.credits_used).toFixed(2) : "0,00"}</p>
+              <div className="flex flex-col gap-0.5 mt-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Crédito Total: R$ {(Number(customerData?.credits || 0) + Number(customerData?.credits_used || 0)).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Créditos Consumidos: R$ {customerData?.credits_used ? Number(customerData.credits_used).toFixed(2) : "0,00"}</p>
+              </div>
             </CardHeader>
           </Card>
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-[#D4AF37]/30 transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors">Cashback Total</CardDescription>
+              <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors">SALDO DE CASHBACK</CardDescription>
               <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
-              <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Utilizado: R$ {customerData?.cashback_used ? Number(customerData.cashback_used).toFixed(2) : "0,00"}</p>
+              <div className="flex flex-col gap-0.5 mt-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Total: R$ {(Number(customerData?.cashback_balance || 0) + Number(customerData?.cashback_used || 0)).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Consumido: R$ {customerData?.cashback_used ? Number(customerData.cashback_used).toFixed(2) : "0,00"}</p>
+              </div>
             </CardHeader>
           </Card>
         </div>
