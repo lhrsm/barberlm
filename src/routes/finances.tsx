@@ -418,7 +418,7 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         // Se for transação com breakdown (misto ou ajuste manual)
-        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
+        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment || t.payment_breakdown) {
           return acc + (
             Number(t.pix_amount || 0) + 
             Number(t.cash_amount || 0) + 
@@ -1150,11 +1150,11 @@ function FinancesComponent() {
                         <TableCell className="font-medium">
                           {t.appointment?.customers?.name ? (
                             <div className="flex flex-col">
-                              <span className="text-xs text-muted-foreground">Cliente: {t.appointment.customers.name}</span>
-                              <span>{t.description || "-"}</span>
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Cliente: {t.appointment.customers.name}</span>
+                              <span className="text-sm">{t.description || "-"}</span>
                             </div>
                           ) : (
-                            t.description || "-"
+                            <span className="text-sm">{t.description || "-"}</span>
                           )}
                         </TableCell>
                         {role !== 'barber' && <TableCell>{t.barber?.name || "Geral"}</TableCell>}
