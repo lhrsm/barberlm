@@ -279,6 +279,8 @@ function AppointmentGroupPage() {
     }
   };
 
+  const { confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
+
   const handleCancelSelected = async (preference: 'credit' | 'refund' = 'credit') => {
     if (selectedIds.length === 0) return;
     setCancelling(true);
@@ -289,46 +291,29 @@ function AppointmentGroupPage() {
 
         const isPaid = group.payment_status === 'paid' && Number(appt.service_amount) > 0;
         
-        let rpcName = 'cancel_appointment';
-        let rpcParams: any = {
-            p_appointment_id: id,
-            p_cancelled_by: 'customer',
-            p_source: 'public_link',
-            p_refund_preference: 'none'
-        };
-
+        let result;
         if (isPaid) {
-            if (preference === 'refund') {
-              rpcName = 'request_appointment_refund';
-              rpcParams = {
-                p_appointment_id: id,
-                p_customer_id: group.customer_id,
-                p_tenant_id: group.tenant_id,
-                p_amount: Number(appt.service_amount),
-                p_pix_key: 'Solicitado via Link de Grupo',
-                p_pix_key_type: 'bulk_request',
-                p_account_holder_name: group.customer_name,
-                p_notes: 'Cancelamento parcial de grupo'
-              };
-            } else {
-              rpcName = 'convert_appointment_to_credit';
-              rpcParams = {
-                  p_appointment_id: id,
-                  p_customer_id: group.customer_id,
-                  p_tenant_id: group.tenant_id,
-                  p_amount: Number(appt.service_amount)
-              };
-            }
+          if (preference === 'refund') {
+            result = await confirmCancellationWithRefundRequest(id, {
+              pixKey: 'Solicitado via Link de Grupo',
+              pixType: 'bulk_request',
+              holderName: group.customer_name,
+              notes: 'Cancelamento parcial de grupo'
+            }, 'group_link');
+          } else {
+            result = await confirmCancellationWithCredit(id, 'group_link');
+          }
+        } else {
+          result = await confirmSimpleCancellation(id, 'group_link');
         }
 
-        const { error: rpcError } = await supabase.rpc(rpcName as any, rpcParams);
-        if (rpcError) throw rpcError;
-        
-        triggerAutomation({
-          tenant_id: group.tenant_id,
-          event_name: 'appointment.cancelled',
-          appointment_id: id
-        }).catch(console.error);
+        if (result && result.success) {
+          triggerAutomation({
+            tenant_id: group.tenant_id,
+            event_name: 'appointment.cancelled',
+            appointment_id: id
+          }).catch(console.error);
+        }
       }
 
       toast.success(`${selectedIds.length} agendamento(s) cancelado(s) com sucesso.`);
