@@ -893,12 +893,9 @@ function FinancesComponent() {
                         <Label className="text-[9px] uppercase font-bold">Cartão</Label>
                         <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-8 text-xs" />
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Créditos</Label>
-                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-8 text-xs" />
                       </div>
-        </div>
-
+                    </div>
+                  </div>
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="category">Categoria</Label>
@@ -1117,9 +1114,6 @@ function FinancesComponent() {
             </Card>
           )}
         </div>
-      </div>
-
-
 
         <Tabs defaultValue="transactions" className="w-full">
           <TabsList className={cn("grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-4 max-w-[800px]" : "grid-cols-3 max-w-[600px]")}>
