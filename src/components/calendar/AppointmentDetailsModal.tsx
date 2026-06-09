@@ -110,46 +110,65 @@ export function AppointmentDetailsModal({
     }
   }
 
-  const [isFinancialModalOpen, setIsFinancialModalOpen] = React.useState(false);
-  const [financialStatus, setFinancialStatus] = React.useState<any>(null);
-  const [showRefundForm, setShowRefundForm] = React.useState(false);
-  const [refundData, setRefundData] = React.useState({
-    holderName: '',
-    pixKey: '',
-    pixType: 'cpf',
-    notes: ''
-  });
+  const [cancellationStep, setCancellationStep] = React.useState<CancellationStep>('none');
+  const [financialStatus, setFinancialStatus] = React.useState<FinancialStatus | null>(null);
+  const { getFinancialStatus, confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
 
   const handleCancelClick = async () => {
     if (!appointment) return;
     
     setLoading(true);
     try {
-      // Usar a nova função RPC para verificar o status financeiro real
-      const { data, error: finError } = await supabase.rpc('check_appointment_financial_status', {
-        p_appointment_id: appointment.id
-      });
-
-      if (finError) throw finError;
-      
-      const finStatus = data as any;
+      const finStatus = await getFinancialStatus(appointment.id);
       setFinancialStatus(finStatus);
 
-      if (finStatus && finStatus.requires_financial_decision) {
-        setIsFinancialModalOpen(true);
+      if (finStatus.requires_financial_decision) {
+        setCancellationStep('financial_decision');
       } else {
-        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
-          setLoading(false);
-          return;
-        }
-        updateStatus('cancelled');
+        setCancellationStep('simple_confirmation');
       }
     } catch (err: any) {
-      console.error("Error checking financial status:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmSimpleCancel = async () => {
+    if (!appointment) return;
+    setActionLoading(true);
+    const result = await confirmSimpleCancellation(appointment.id, mode === 'customer' ? 'customer_portal' : 'admin_panel');
+    if (result.success) {
+      onSuccess?.();
+      onOpenChange(false);
+    }
+    setActionLoading(false);
+  };
+
+  const handleConfirmCreditCancel = async () => {
+    if (!appointment) return;
+    setActionLoading(true);
+    const result = await confirmCancellationWithCredit(appointment.id, mode === 'customer' ? 'customer_portal' : 'admin_panel');
+    if (result.success) {
+      onSuccess?.();
+      onOpenChange(false);
+    }
+    setActionLoading(false);
+  };
+
+  const handleConfirmRefundCancel = async () => {
+    if (!appointment) return;
+    if (!refundData.pixKey || !refundData.holderName) {
+      toast.error("Por favor, preencha os dados do Pix");
+      return;
+    }
+    setActionLoading(true);
+    const result = await confirmCancellationWithRefundRequest(appointment.id, refundData, mode === 'customer' ? 'customer_portal' : 'admin_panel');
+    if (result.success) {
+      onSuccess?.();
+      onOpenChange(false);
+    }
+    setActionLoading(false);
   };
 
 
