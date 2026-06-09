@@ -340,31 +340,40 @@ function AppointmentManagementPage() {
     }
   };
 
-  const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
+  const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false);
+  const [financialStatus, setFinancialStatus] = useState<any>(null);
 
 
-  const handleInitialCancelClick = () => {
-    // Buscar appointment atualizado antes de qualquer decisão
-    fetchAppointment().then(() => {
-      if (!appointment) return;
+  const handleInitialCancelClick = async () => {
+    setLoading(true);
+    try {
+      // Usar a nova função RPC para verificar o status financeiro real
+      const { data, error: finError } = await supabase.rpc('check_appointment_financial_status', {
+        p_appointment_id: appointment.id
+      });
 
-      const isPixPaid = (['pix', 'PIX', 'Pix'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
-                        ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(appointment.payment_status);
+      if (finError) throw finError;
       
-      const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
-                                   (appointment.cashback_used && Number(appointment.cashback_used) > 0);
+      const finStatus = data as any;
+      setFinancialStatus(finStatus);
 
-      if (isPixPaid) {
-        setIsPixCancelModalOpen(true);
-      } else if (hasCreditsOrCashback) {
-        if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao seu saldo para uso futuro. Confirmar cancelamento?")) return;
-        handleCancel('none');
+      if (finStatus && finStatus.requires_financial_decision) {
+        setIsFinancialModalOpen(true);
       } else {
-        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
+          setLoading(false);
+          return;
+        }
         handleCancel('none');
       }
-    });
+    } catch (err: any) {
+      console.error("Error checking financial status:", err);
+      toast.error("Erro ao verificar status financeiro do agendamento");
+    } finally {
+      setLoading(false);
+    }
   };
+
 
 
   if (loading) {
