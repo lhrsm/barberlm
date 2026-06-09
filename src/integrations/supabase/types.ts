@@ -4462,6 +4462,25 @@ export type Database = {
         }
         Returns: string
       }
+      customer_cancel_request_refund: {
+        Args: {
+          p_appointment_id: string
+          p_holder_name: string
+          p_notes?: string
+          p_pix_key: string
+          p_pix_type: string
+          p_source?: string
+        }
+        Returns: Json
+      }
+      customer_cancel_return_credit: {
+        Args: { p_appointment_id: string; p_source?: string }
+        Returns: Json
+      }
+      customer_cancel_simple: {
+        Args: { p_appointment_id: string; p_source?: string }
+        Returns: Json
+      }
       decrement_product_stock: {
         Args: { amount: number; prod_id: string }
         Returns: undefined
