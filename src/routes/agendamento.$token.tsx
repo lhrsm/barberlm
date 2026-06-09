@@ -39,7 +39,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
+import { useCustomerCancellation, type CancellationStep, type FinancialStatus } from "@/hooks/use-customer-cancellation";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
@@ -340,38 +343,60 @@ function AppointmentManagementPage() {
     }
   };
 
-  const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false);
-  const [financialStatus, setFinancialStatus] = useState<any>(null);
-
+  const [cancellationStep, setCancellationStep] = useState<CancellationStep>('none');
+  const [financialStatus, setFinancialStatus] = useState<FinancialStatus | null>(null);
+  const { getFinancialStatus, confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
 
   const handleInitialCancelClick = async () => {
     setLoading(true);
     try {
-      // Usar a nova função RPC para verificar o status financeiro real
-      const { data, error: finError } = await supabase.rpc('check_appointment_financial_status', {
-        p_appointment_id: appointment.id
-      });
-
-      if (finError) throw finError;
-      
-      const finStatus = data as any;
+      const finStatus = await getFinancialStatus(appointment.id);
       setFinancialStatus(finStatus);
 
-      if (finStatus && finStatus.requires_financial_decision) {
-        setIsFinancialModalOpen(true);
+      if (finStatus.requires_financial_decision) {
+        setCancellationStep('financial_decision');
       } else {
-        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
-          setLoading(false);
-          return;
-        }
-        handleCancel('none');
+        setCancellationStep('simple_confirmation');
       }
     } catch (err: any) {
-      console.error("Error checking financial status:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmSimpleCancel = async () => {
+    setCancelling(true);
+    const result = await confirmSimpleCancellation(appointment.id, 'public_link');
+    if (result.success) {
+      setSuccessRedirect(true);
+      fetchAppointment();
+    }
+    setCancelling(false);
+  };
+
+  const handleConfirmCreditCancel = async () => {
+    setCancelling(true);
+    const result = await confirmCancellationWithCredit(appointment.id, 'public_link');
+    if (result.success) {
+      setSuccessRedirect(true);
+      fetchAppointment();
+    }
+    setCancelling(false);
+  };
+
+  const handleConfirmRefundCancel = async () => {
+    if (!refundData.pixKey || !refundData.holderName) {
+      toast.error("Por favor, preencha os dados do Pix");
+      return;
+    }
+    setCancelling(true);
+    const result = await confirmCancellationWithRefundRequest(appointment.id, refundData, 'public_link');
+    if (result.success) {
+      setSuccessRedirect(true);
+      fetchAppointment();
+    }
+    setCancelling(false);
   };
 
 
@@ -624,7 +649,8 @@ function AppointmentManagementPage() {
         </div>
       </motion.div>
 
-      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+      {/* Simple Confirmation Dialog */}
+      <Dialog open={cancellationStep === 'simple_confirmation'} onOpenChange={(open) => !open && setCancellationStep('none')}>
         <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
           <DialogHeader className="mb-4 text-center">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -638,7 +664,7 @@ function AppointmentManagementPage() {
 
           <DialogFooter className="flex flex-col gap-4 mt-6">
             <Button 
-              onClick={() => handleCancel('none')} 
+              onClick={handleConfirmSimpleCancel} 
               disabled={cancelling}
               className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white uppercase font-black text-lg tracking-widest shadow-lg shadow-red-900/20"
             >
@@ -646,7 +672,7 @@ function AppointmentManagementPage() {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => setIsCancelModalOpen(false)} 
+              onClick={() => setCancellationStep('none')} 
               className="w-full h-14 rounded-2xl uppercase font-black text-sm tracking-widest border-zinc-800 text-zinc-400 hover:bg-zinc-800"
             >
               Manter Agendamento
@@ -655,9 +681,8 @@ function AppointmentManagementPage() {
         </DialogContent>
       </Dialog>
 
-
-      {/* Financial Cancellation Modal */}
-      <Dialog open={isFinancialModalOpen} onOpenChange={setIsFinancialModalOpen}>
+      {/* Financial Decision Modal */}
+      <Dialog open={cancellationStep === 'financial_decision'} onOpenChange={(open) => !open && setCancellationStep('none')}>
         <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
           <DialogHeader className="text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -666,18 +691,14 @@ function AppointmentManagementPage() {
             <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">O que deseja fazer com o valor?</DialogTitle>
             <DialogDescription className="text-zinc-400 text-sm font-medium leading-relaxed">
               Este agendamento possui valor financeiro vinculado. Escolha como deseja tratar esse valor antes de cancelar.
-              {financialStatus?.paid_pix_amount > 0 && <p className="mt-2 text-white">Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
-              {financialStatus?.used_credit_amount > 0 && <p className="text-white">Créditos Usados: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
-              {financialStatus?.used_cashback_amount > 0 && <p className="text-white">Cashback Usado: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>}
+              {financialStatus && financialStatus.paid_pix_amount > 0 && <p className="mt-2 text-white">Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
+              {financialStatus && financialStatus.used_credit_amount > 0 && <p className="text-white">Créditos Usados: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 mt-6">
             <Button 
               className="w-full h-14 bg-primary hover:bg-primary/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
-              onClick={() => {
-                setIsFinancialModalOpen(false);
-                handleCancel('credits');
-              }}
+              onClick={handleConfirmCreditCancel}
               disabled={cancelling}
             >
               Transformar em Crédito
@@ -686,11 +707,7 @@ function AppointmentManagementPage() {
               <Button 
                 variant="outline"
                 className="w-full h-14 border-zinc-800 hover:bg-zinc-800/50 text-white font-black uppercase italic tracking-tighter rounded-2xl"
-                onClick={() => {
-                  setIsFinancialModalOpen(false);
-                  setShowRefundForm(true);
-                  setIsCancelModalOpen(true);
-                }}
+                onClick={() => setCancellationStep('pix_refund_form')}
                 disabled={cancelling}
               >
                 Solicitar Estorno
@@ -699,7 +716,7 @@ function AppointmentManagementPage() {
             <Button 
               variant="ghost"
               className="w-full h-12 text-zinc-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
-              onClick={() => setIsFinancialModalOpen(false)}
+              onClick={() => setCancellationStep('none')}
             >
               Voltar
             </Button>
@@ -707,6 +724,71 @@ function AppointmentManagementPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Pix Refund Form Dialog */}
+      <Dialog open={cancellationStep === 'pix_refund_form'} onOpenChange={(open) => !open && setCancellationStep('financial_decision')}>
+        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <DollarSign className="text-primary w-8 h-8" />
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Dados para Estorno Pix</DialogTitle>
+            <DialogDescription className="text-zinc-400 text-sm font-medium">
+              Informe os dados da conta onde deseja receber o estorno do valor pago via Pix (R$ {financialStatus && Number(financialStatus.paid_pix_amount).toFixed(2)}).
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nome do Titular</Label>
+              <Input 
+                placeholder="Nome completo"
+                className="h-12 bg-[#05070d] border-zinc-800 rounded-xl px-4 text-white text-sm focus:border-primary outline-none"
+                value={refundData.holderName}
+                onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Tipo de Chave</Label>
+                <select 
+                  className="w-full h-12 bg-[#05070d] border border-zinc-800 rounded-xl px-4 text-white text-sm outline-none"
+                  value={refundData.pixType}
+                  onChange={(e) => setRefundData({...refundData, pixType: e.target.value})}
+                >
+                  <option value="cpf">CPF</option>
+                  <option value="cnpj">CNPJ</option>
+                  <option value="email">E-mail</option>
+                  <option value="phone">Celular</option>
+                  <option value="random">Aleatória</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Chave Pix</Label>
+                <Input 
+                  placeholder="Chave Pix"
+                  className="h-12 bg-[#05070d] border-zinc-800 rounded-xl px-4 text-white text-sm focus:border-primary outline-none"
+                  value={refundData.pixKey}
+                  onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handleConfirmRefundCancel}
+              disabled={cancelling || !refundData.pixKey || !refundData.holderName}
+              className="w-full h-14 bg-primary text-black font-black uppercase italic tracking-tighter rounded-2xl shadow-lg mt-2"
+            >
+              {cancelling ? "Processando..." : "Confirmar Solicitação"}
+            </Button>
+            <Button 
+              variant="ghost"
+              onClick={() => setCancellationStep('financial_decision')}
+              className="w-full h-12 text-zinc-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+            >
+              Voltar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
