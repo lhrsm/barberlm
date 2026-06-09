@@ -849,22 +849,25 @@ function AppointmentGroupPage() {
               <CircleDollarSign className="text-primary w-8 h-8" />
             </div>
             <DialogTitle className="text-xl font-black uppercase italic tracking-tight">
-              {financialStatus?.requires_financial_decision ? "Opções de Reembolso" : "Confirmar Cancelamento"}
+              {financialStatus?.has_paid_pix || financialStatus?.has_used_credits || financialStatus?.has_used_cashback || financialStatus?.requires_financial_decision || (financialStatus?.paid_pix_amount && financialStatus.paid_pix_amount > 0)
+                ? "Opções de Reembolso" 
+                : "Confirmar Cancelamento"}
             </DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium pt-2">
               Deseja realmente cancelar os {selectedIds.length} agendamentos selecionados?
-              {financialStatus?.requires_financial_decision && (
+              {(financialStatus?.has_paid_pix || financialStatus?.has_used_credits || financialStatus?.has_used_cashback || financialStatus?.requires_financial_decision || (financialStatus?.paid_pix_amount && financialStatus.paid_pix_amount > 0)) && (
                 <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-2">
-                  <p className="text-white text-xs">Agendamentos com valor financeiro detectado. Escolha como deseja tratar os reembolsos:</p>
-                  {financialStatus.paid_pix_amount > 0 && <p className="text-primary text-[10px] font-bold">PIX: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
-                  {financialStatus.used_credit_amount > 0 && <p className="text-emerald-500 text-[10px] font-bold">CRÉDITOS: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+                  <p className="text-white text-xs text-left">Agendamentos com valor financeiro detectado. Escolha como deseja tratar os reembolsos:</p>
+                  {financialStatus.paid_pix_amount > 0 && <p className="text-primary text-[10px] font-bold text-left">PIX: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
+                  {financialStatus.used_credit_amount > 0 && <p className="text-emerald-500 text-[10px] font-bold text-left">CRÉDITOS: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+                  {financialStatus.used_cashback_amount > 0 && <p className="text-emerald-500 text-[10px] font-bold text-left">CASHBACK: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>}
                 </div>
               )}
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="flex flex-col gap-3 pt-4">
-            {financialStatus?.requires_financial_decision ? (
+            {(financialStatus?.has_paid_pix || financialStatus?.has_used_credits || financialStatus?.has_used_cashback || financialStatus?.requires_financial_decision || (financialStatus?.paid_pix_amount && financialStatus.paid_pix_amount > 0)) ? (
               <>
                 <Button 
                   onClick={() => handleCancelSelected('credit')}
