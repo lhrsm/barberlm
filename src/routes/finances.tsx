@@ -897,8 +897,8 @@ function FinancesComponent() {
                         <Label className="text-[9px] uppercase font-bold">Créditos</Label>
                         <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-8 text-xs" />
                       </div>
-        </div>
-
+                    </div>
+                  </div>
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="category">Categoria</Label>
@@ -939,9 +939,12 @@ function FinancesComponent() {
             </DialogContent>
             </Dialog>
         </div>
+          </div>
+
 
 
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Serviços Vendidos</CardTitle>
@@ -1666,8 +1669,10 @@ function FinancesComponent() {
                              </div>
                            </div>
                          </div>
+                       </div>
 
-                      <div className="flex justify-end gap-2 pt-2">
+                       <div className="flex justify-end gap-2 pt-2">
+
                         {t.appointment && (
                           <Button 
                             variant="outline" 
