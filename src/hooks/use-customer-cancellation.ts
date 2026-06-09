@@ -1,7 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export type CancellationStep = 'none' | 'simple_confirmation' | 'financial_decision' | 'pix_refund_form';
 
@@ -38,27 +37,30 @@ export function useCustomerCancellation() {
   };
 
   const confirmSimpleCancellation = async (appointmentId: string, source: string = 'customer_portal') => {
-    return await executeCancellation(appointmentId, 'none', source);
+    try {
+      const { data, error } = await supabase.rpc('customer_cancel_simple', {
+        p_appointment_id: appointmentId,
+        p_source: source
+      });
+
+      if (error) throw error;
+      const response = data as any;
+      if (response && response.success === false) throw new Error(response.error || "Erro ao cancelar");
+
+      await finalizeCancellation(appointmentId);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Simple cancellation failed:", error);
+      toast.error(error.message || "Erro ao cancelar agendamento");
+      return { success: false, error };
+    }
   };
 
   const confirmCancellationWithCredit = async (appointmentId: string, source: string = 'customer_portal') => {
     try {
-      // Fetch appointment details first to get tenant_id, customer_id and amount
-      const { data: appt, error: apptError } = await supabase
-        .from("appointments")
-        .select("tenant_id, customer_id, total_price, pix_amount, credits_used, cashback_used")
-        .eq("id", appointmentId)
-        .single();
-
-      if (apptError) throw apptError;
-      if (!appt.customer_id || !appt.tenant_id) throw new Error("Dados do agendamento incompletos");
-
-      // Use the specialized credit conversion RPC
-      const { data, error } = await supabase.rpc('convert_appointment_to_credit', {
+      const { data, error } = await supabase.rpc('customer_cancel_return_credit', {
         p_appointment_id: appointmentId,
-        p_customer_id: appt.customer_id,
-        p_tenant_id: appt.tenant_id,
-        p_amount: Number(appt.total_price || 0)
+        p_source: source
       });
 
       if (error) throw error;
@@ -80,25 +82,13 @@ export function useCustomerCancellation() {
     source: string = 'customer_portal'
   ) => {
     try {
-      const { data: appt, error: apptError } = await supabase
-        .from("appointments")
-        .select("tenant_id, customer_id, total_price, pix_amount")
-        .eq("id", appointmentId)
-        .single();
-
-      if (apptError) throw apptError;
-      if (!appt.customer_id || !appt.tenant_id) throw new Error("Dados do agendamento incompletos");
-
-      // Use the specialized refund request RPC
-      const { data, error } = await supabase.rpc('request_appointment_refund', {
+      const { data, error } = await supabase.rpc('customer_cancel_request_refund', {
         p_appointment_id: appointmentId,
-        p_customer_id: appt.customer_id,
-        p_tenant_id: appt.tenant_id,
-        p_amount: Number(appt.pix_amount || appt.total_price || 0),
+        p_holder_name: refundData.holderName,
         p_pix_key: refundData.pixKey,
-        p_pix_key_type: refundData.pixType,
-        p_account_holder_name: refundData.holderName,
-        p_notes: refundData.notes || 'Cancelamento solicitado pelo cliente'
+        p_pix_type: refundData.pixType,
+        p_notes: refundData.notes || 'Cancelamento solicitado pelo cliente via portal',
+        p_source: source
       });
 
       if (error) throw error;
@@ -114,48 +104,23 @@ export function useCustomerCancellation() {
     }
   };
 
-  const executeCancellation = async (
-    appointmentId: string, 
-    preference: 'credits' | 'refund' | 'none',
-    source: string
-  ) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase.rpc('cancel_appointment', {
-        p_appointment_id: appointmentId,
-        p_cancelled_by: 'customer',
-        p_source: source,
-        p_refund_preference: preference,
-        p_changed_by_id: user?.id || undefined
-      });
-
-      if (error) throw error;
-      const response = data as any;
-      
-      if (response && response.success === false) {
-        throw new Error(response.error || "Erro ao processar cancelamento");
-      }
-
-      await finalizeCancellation(appointmentId);
-      return { success: true };
-    } catch (error: any) {
-      console.error("Cancellation execution failed:", error);
-      toast.error(error.message || "Erro ao cancelar agendamento");
-      return { success: false, error };
-    }
-  };
-
   const finalizeCancellation = async (appointmentId: string) => {
-    queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    queryClient.invalidateQueries({ queryKey: ['calendar'] });
-    queryClient.invalidateQueries({ queryKey: ['customer-appointments'] });
-    queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
-    queryClient.invalidateQueries({ queryKey: ['credits'] });
-    queryClient.invalidateQueries({ queryKey: ['finances'] });
+    // Invalidação agressiva de cache
+    const queryKeys = [
+      ['appointments'], 
+      ['calendar'], 
+      ['customer-appointments'], 
+      ['customerAppointments'], 
+      ['credits'], 
+      ['finances'],
+      ['calendar-appointments'],
+      ['dashboard-appointments'],
+      ['customer-portal']
+    ];
     
-    // Optional: trigger automation here if not handled by DB trigger
-    // but the existing handleCancel functions triggered it manually.
+    queryKeys.forEach(key => {
+      queryClient.invalidateQueries({ queryKey: key });
+    });
   };
 
   return {
