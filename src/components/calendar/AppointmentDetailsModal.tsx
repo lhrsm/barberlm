@@ -125,15 +125,16 @@ export function AppointmentDetailsModal({
     setLoading(true);
     try {
       // Usar a nova função RPC para verificar o status financeiro real
-      const { data: finStatus, error: finError } = await supabase.rpc('check_appointment_financial_status', {
+      const { data, error: finError } = await supabase.rpc('check_appointment_financial_status', {
         p_appointment_id: appointment.id
       });
 
       if (finError) throw finError;
       
+      const finStatus = data as any;
       setFinancialStatus(finStatus);
 
-      if (finStatus.requires_financial_decision) {
+      if (finStatus && finStatus.requires_financial_decision) {
         setIsFinancialModalOpen(true);
       } else {
         if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
@@ -149,6 +150,7 @@ export function AppointmentDetailsModal({
       setLoading(false);
     }
   };
+
 
 
 
