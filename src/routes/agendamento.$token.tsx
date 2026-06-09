@@ -656,51 +656,57 @@ function AppointmentManagementPage() {
       </Dialog>
 
 
-      {/* Pix Cancellation Modal */}
-      <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>
+      {/* Financial Cancellation Modal */}
+      <Dialog open={isFinancialModalOpen} onOpenChange={setIsFinancialModalOpen}>
         <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
           <DialogHeader className="text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <DollarSign className="text-primary w-8 h-8" />
             </div>
-            <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
+            <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">O que deseja fazer com o valor?</DialogTitle>
             <DialogDescription className="text-zinc-400 text-sm font-medium leading-relaxed">
-              Detectamos um pagamento via Pix para este agendamento. O que deseja fazer com o valor pago?
+              Este agendamento possui valor financeiro vinculado. Escolha como deseja tratar esse valor antes de cancelar.
+              {financialStatus?.paid_pix_amount > 0 && <p className="mt-2 text-white">Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
+              {financialStatus?.used_credit_amount > 0 && <p className="text-white">Créditos Usados: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+              {financialStatus?.used_cashback_amount > 0 && <p className="text-white">Cashback Usado: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 mt-6">
             <Button 
               className="w-full h-14 bg-primary hover:bg-primary/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
               onClick={() => {
-                setIsPixCancelModalOpen(false);
+                setIsFinancialModalOpen(false);
                 handleCancel('credits');
               }}
               disabled={cancelling}
             >
               Transformar em Crédito
             </Button>
-            <Button 
-              variant="outline"
-              className="w-full h-14 border-zinc-800 hover:bg-zinc-800/50 text-white font-black uppercase italic tracking-tighter rounded-2xl"
-              onClick={() => {
-                setIsPixCancelModalOpen(false);
-                setShowRefundForm(true);
-                setIsCancelModalOpen(true);
-              }}
-              disabled={cancelling}
-            >
-              Solicitar Estorno
-            </Button>
+            {financialStatus?.has_paid_pix && (
+              <Button 
+                variant="outline"
+                className="w-full h-14 border-zinc-800 hover:bg-zinc-800/50 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+                onClick={() => {
+                  setIsFinancialModalOpen(false);
+                  setShowRefundForm(true);
+                  setIsCancelModalOpen(true);
+                }}
+                disabled={cancelling}
+              >
+                Solicitar Estorno
+              </Button>
+            )}
             <Button 
               variant="ghost"
               className="w-full h-12 text-zinc-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
-              onClick={() => setIsPixCancelModalOpen(false)}
+              onClick={() => setIsFinancialModalOpen(false)}
             >
               Voltar
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
