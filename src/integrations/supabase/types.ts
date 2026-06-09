@@ -4409,7 +4409,7 @@ export type Database = {
           p_cancelled_by: string
           p_changed_by_id?: string
           p_refund_preference?: string
-          p_source?: string
+          p_source: string
         }
         Returns: Json
       }
