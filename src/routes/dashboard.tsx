@@ -1010,14 +1010,15 @@ function DashboardComponent() {
                   </div>
                 </div>
                 <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
-                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback</span>
-                  <div className="flex items-center gap-1">
+                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback Total</span>
+                  <div className="flex flex-col gap-1">
                     <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
-                  </div>
-                  <div className="p-1 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
-                    <Gift size={12} />
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-orange-600/70 uppercase">Concedido</p>
+                      <p className="text-[11px] font-black text-orange-700/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                   </div>
                 </div>
               </div>
