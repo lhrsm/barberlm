@@ -482,6 +482,7 @@ function AppointmentGroupPage() {
       setRescheduleData(null);
       fetchGroup(); 
       fetchHistory();
+      setSuccessRedirect(true);
 
       // Enviar notificação de reagendamento
       await supabase.functions.invoke('appointment-notifications', {
