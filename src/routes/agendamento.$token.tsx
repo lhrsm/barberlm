@@ -269,7 +269,9 @@ function AppointmentManagementPage() {
 
       toast.success("Seu agendamento foi reagendado com sucesso!");
       setIsRescheduling(false);
+      setSuccessRedirect(true);
       fetchAppointment(); 
+
     } catch (err: any) {
       toast.error(err.message || "Erro ao reagendar");
     } finally {
