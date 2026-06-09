@@ -339,6 +339,13 @@ function AppointmentManagementPage() {
 
 
   const handleConfirmSimpleCancel = async () => {
+    // Trava de segurança no frontend
+    if (financialStatus?.requires_financial_decision) {
+      console.warn("Bloqueio de segurança: Cancelamento simples tentado em agendamento pago.");
+      setCancellationStep('financial_decision');
+      return;
+    }
+
     setCancelling(true);
     const result = await confirmSimpleCancellation(appointment.id, 'public_link');
     if (result.success) {
