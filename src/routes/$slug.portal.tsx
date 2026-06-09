@@ -968,7 +968,7 @@ function ClientPortalComponent() {
 
         </div>
 
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400">Total de Serviços</CardDescription>
@@ -988,16 +988,18 @@ function ClientPortalComponent() {
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white/5 border-white/10 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md group hover:border-green-500/30 transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-400">Créditos</CardDescription>
+              <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors">Crédito Total</CardDescription>
               <CardTitle className="text-2xl font-bold text-green-500">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
+              <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Utilizado: R$ {customerData?.credits_used ? Number(customerData.credits_used).toFixed(2) : "0,00"}</p>
             </CardHeader>
           </Card>
-          <Card className="bg-white/5 border-white/10 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md group hover:border-[#D4AF37]/30 transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-400">Cashback</CardDescription>
+              <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors">Cashback Total</CardDescription>
               <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
+              <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Utilizado: R$ {customerData?.cashback_used ? Number(customerData.cashback_used).toFixed(2) : "0,00"}</p>
             </CardHeader>
           </Card>
         </div>

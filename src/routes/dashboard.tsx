@@ -100,7 +100,9 @@ function DashboardComponent() {
       customers: 0,
       services: 0,
       customerCredits: 0,
+      customerCreditsConceded: 0,
       customerCashback: 0,
+      customerCashbackConceded: 0,
       customersWithCashback: 0
     }
   });
@@ -597,11 +599,13 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credits, cashback_balance").eq("tenant_id", tenantId)
+      supabase.from("customers").select("credits, credits_used, cashback_balance, cashback_used").eq("tenant_id", tenantId)
     ]);
 
     const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits || 0), 0) || 0;
+    const totalCreditsConceded = customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.credits || 0) + Number(curr.credits_used || 0)), 0) || 0;
     const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
+    const totalCashbackConceded = customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.cashback_balance || 0) + Number(curr.cashback_used || 0)), 0) || 0;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
@@ -710,7 +714,9 @@ function DashboardComponent() {
         customers: totalCust.count || 0,
         services: totalServ.count || 0,
         customerCredits: totalCredits,
+        customerCreditsConceded: totalCreditsConceded,
         customerCashback: totalCashback,
+        customerCashbackConceded: totalCashbackConceded,
         customersWithCashback: customersWithBalances.data?.filter(c => Number(c.cashback_balance || 0) > 0).length || 0
       }
     });
@@ -992,25 +998,27 @@ function DashboardComponent() {
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1 bg-sky-100" />
                 </div>
                 <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
-                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos</span>
-                  <div className="flex items-center gap-1">
+                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos Totais</span>
+                  <div className="flex flex-col gap-1">
                     <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
-                  </div>
-                  <div className="p-1 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
-                    <Wallet size={12} />
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-purple-600/70 uppercase">Concedidos</p>
+                      <p className="text-[11px] font-black text-purple-700/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
-                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback</span>
-                  <div className="flex items-center gap-1">
+                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback Total</span>
+                  <div className="flex flex-col gap-1">
                     <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
-                  </div>
-                  <div className="p-1 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
-                    <Gift size={12} />
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-bold text-orange-600/70 uppercase">Concedido</p>
+                      <p className="text-[11px] font-black text-orange-700/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1087,25 +1095,37 @@ function DashboardComponent() {
               {/* Financial Tenant Stats */}
               <div className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Créditos Clientes</h4>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg shrink-0">
-                      <Wallet className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
+                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Créditos Totais</h4>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg shrink-0">
+                        <Wallet className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
+                      </div>
+                      <span className="text-base font-black text-purple-900 dark:text-purple-100 truncate">
+                        R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
-                    <span className="text-base font-black text-purple-900 dark:text-purple-100 truncate">
-                      R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
+                    <div className="pl-1 space-y-0.5">
+                      <p className="text-[8px] font-bold text-purple-600/70 uppercase leading-none">Concedidos</p>
+                      <p className="text-[10px] font-black text-purple-800/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
                   <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Cashback Total</h4>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg shrink-0">
-                      <Gift className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg shrink-0">
+                        <Gift className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
+                      </div>
+                      <span className="text-base font-black text-orange-900 dark:text-orange-100 truncate">
+                        R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
-                    <span className="text-base font-black text-orange-900 dark:text-orange-100 truncate">
-                      R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
+                    <div className="pl-1 space-y-0.5">
+                      <p className="text-[8px] font-bold text-orange-600/70 uppercase leading-none">Concedido</p>
+                      <p className="text-[10px] font-black text-orange-800/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                   </div>
                 </div>
               </div>

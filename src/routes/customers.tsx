@@ -289,11 +289,11 @@ function CustomersComponent() {
           </Card>
           <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
             <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Créditos</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-black text-green-500">R$ {customers.reduce((acc, c) => acc + (Number(c.credits) || 0), 0).toFixed(2)}</p></CardContent>
+            <CardContent><p className="text-2xl font-black text-green-500">R$ {customers.reduce((acc, c) => acc + (Number(c.credits || 0) + Number(c.credits_used || 0)), 0).toFixed(2)}</p></CardContent>
           </Card>
           <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
-            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Cashback</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-black text-[#D4AF37]">R$ {customers.reduce((acc, c) => acc + (Number(c.cashback_balance) || 0), 0).toFixed(2)}</p></CardContent>
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Cashback Conc.</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-[#D4AF37]">R$ {customers.reduce((acc, c) => acc + (Number(c.cashback_balance || 0) + Number(c.cashback_used || 0)), 0).toFixed(2)}</p></CardContent>
           </Card>
           <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
             <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Aniversários</CardTitle></CardHeader>
@@ -319,8 +319,10 @@ function CustomersComponent() {
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cliente</TableHead>
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Telefone</TableHead>
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Fidelidade</TableHead>
-                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Créditos</TableHead>
-                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Crédito Total</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Crédito Utilizado</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback Total</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback Utilizado</TableHead>
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -347,7 +349,9 @@ function CustomersComponent() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-green-500 font-bold">R$ {(Number(customer.credits) || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-slate-400 font-medium text-xs">R$ {(Number(customer.credits_used) || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-[#D4AF37] font-bold">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-slate-400 font-medium text-xs">R$ {(Number(customer.cashback_used) || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold h-8 text-xs" onClick={() => handleViewHistory(customer)}>Ver</Button>
@@ -601,12 +605,14 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
 
               <div className="mt-6 pt-4 border-t border-[#1f2937] grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Créditos</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Crédito Total</p>
                   <p className="text-lg font-black text-green-500">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</p>
+                  <p className="text-[9px] text-slate-500 uppercase mt-1">Utilizado: R$ {(Number(selectedCustomer?.credits_used) || 0).toFixed(2)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Cashback</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Cashback Total</p>
                   <p className="text-lg font-black text-[#D4AF37]">R$ {(Number(selectedCustomer?.cashback_balance) || 0).toFixed(2)}</p>
+                  <p className="text-[9px] text-slate-500 uppercase mt-1">Utilizado: R$ {(Number(selectedCustomer?.cashback_used) || 0).toFixed(2)}</p>
                 </div>
               </div>
             </div>

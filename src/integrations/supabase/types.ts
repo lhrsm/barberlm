@@ -2269,9 +2269,11 @@ export type Database = {
           birth_date: string | null
           birthday_sent: boolean | null
           cashback_balance: number
+          cashback_used: number | null
           created_at: string
           credit_balance: number | null
           credits: number | null
+          credits_used: number | null
           email: string | null
           id: string
           last_visit: string | null
@@ -2291,9 +2293,11 @@ export type Database = {
           birth_date?: string | null
           birthday_sent?: boolean | null
           cashback_balance?: number
+          cashback_used?: number | null
           created_at?: string
           credit_balance?: number | null
           credits?: number | null
+          credits_used?: number | null
           email?: string | null
           id?: string
           last_visit?: string | null
@@ -2313,9 +2317,11 @@ export type Database = {
           birth_date?: string | null
           birthday_sent?: boolean | null
           cashback_balance?: number
+          cashback_used?: number | null
           created_at?: string
           credit_balance?: number | null
           credits?: number | null
+          credits_used?: number | null
           email?: string | null
           id?: string
           last_visit?: string | null
@@ -4437,7 +4443,7 @@ export type Database = {
           p_changed_by_id: string
           p_changed_by_type: string
           p_metadata?: Json
-          p_source: string
+          p_source?: string
         }
         Returns: Json
       }
