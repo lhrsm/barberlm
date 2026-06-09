@@ -51,6 +51,7 @@ function AppointmentManagementPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const expectedTenantId = searchParams.get('tenant');
+  const { user: authUser } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [appointment, setAppointment] = useState<any>(null);
@@ -59,6 +60,8 @@ function AppointmentManagementPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [successRedirect, setSuccessRedirect] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
   
   const [refundData, setRefundData] = useState({
     holderName: '',
