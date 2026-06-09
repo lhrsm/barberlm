@@ -42,7 +42,7 @@ import {
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow, isSameDay } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek, format, formatDistanceToNow, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { 
