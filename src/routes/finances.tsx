@@ -1117,7 +1117,7 @@ function FinancesComponent() {
             </Card>
           )}
         </div>
-      </div>
+
 
 
 
