@@ -82,6 +82,7 @@ function FinancesComponent() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
+  const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
@@ -131,6 +132,7 @@ function FinancesComponent() {
       fetchBarbers();
       fetchAppointments(barberIdFilter);
       fetchRefundRequests();
+      fetchCashbackTransactions();
 
       // Realtime subscription
       const channel = supabase
@@ -159,6 +161,7 @@ function FinancesComponent() {
           filter: `tenant_id=eq.${user.id}`
         }, () => {
           fetchRefundRequests();
+          fetchCashbackTransactions();
         })
         .subscribe();
 
@@ -384,6 +387,21 @@ function FinancesComponent() {
     }
   }
 
+  async function fetchCashbackTransactions() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("cashback_transactions")
+        .select("*")
+        .eq("tenant_id", user.id);
+      
+      if (error) throw error;
+      setCashbackTransactions(data || []);
+    } catch (err) {
+      console.error("Error fetching cashback transactions:", err);
+    }
+  }
+
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
 
@@ -415,9 +433,9 @@ function FinancesComponent() {
     
     // Total de Cashback Concedido (Gerado no período)
     // Buscamos diretamente das transações de cashback para precisão total
-    const totalCashbackEarned = transactions
-      .filter(t => t.type === 'cashback_earned' || (t.appointment?.cashback_earned > 0 && t.appointment.status === 'completed'))
-      .reduce((acc, t) => acc + (Number(t.appointment?.cashback_earned || t.amount || 0)), 0);
+    const totalCashbackEarned = cashbackTransactions
+      .filter(t => t.type === 'earned' || t.type === 'cashback_earned')
+      .reduce((acc, t) => acc + (Number(t.amount || 0)), 0);
 
     // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
     // Agora baseamos a receita no realCashIncome para não inflar com créditos
