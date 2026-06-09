@@ -83,6 +83,9 @@ function DashboardComponent() {
       cashbackEarned: 0,
       newCustomers: 0
     },
+    weekly: {
+      cashbackEarned: 0
+    },
     monthly: {
       appointments: 0,
       totalServicesValue: 0,
