@@ -552,6 +552,32 @@ function AppointmentGroupPage() {
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Gerenciamento de Grupo de Agendamentos</p>
         </div>
 
+        {successRedirect && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8"
+          >
+            <Card className="bg-emerald-500/10 border-emerald-500/20 rounded-[2rem] overflow-hidden">
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="text-emerald-500 w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-emerald-500 font-black uppercase text-sm tracking-widest italic">Procedimento realizado com sucesso!</h3>
+                  <p className="text-zinc-400 text-xs font-medium">Você será redirecionado para o painel do cliente em {redirectCountdown} segundos...</p>
+                </div>
+                <Button 
+                  onClick={handleGoToPortal}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase italic tracking-tighter rounded-xl h-12"
+                >
+                  Ir agora para o Painel
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Finance Summary Card */}
         <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
           <CardHeader className="p-6 border-b border-zinc-800/50">
