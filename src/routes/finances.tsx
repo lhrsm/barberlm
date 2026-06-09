@@ -1020,7 +1020,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-400">R$ {summary.creditsGranted.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de créditos em posse dos clientes</p>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Acumulado histórico</p>
             </CardContent>
           </Card>
 
@@ -1033,7 +1033,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-indigo-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Utilizados em agendamentos</p>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatidos em pagamentos</p>
             </CardContent>
           </Card>
 
@@ -1051,7 +1051,6 @@ function FinancesComponent() {
           </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
-
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
               <div className="p-2 bg-orange-500/10 rounded-lg">
@@ -1060,7 +1059,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-400">R$ {summary.cashbackConsumed.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Utilizados em agendamentos</p>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatidos em pagamentos</p>
             </CardContent>
           </Card>
 
