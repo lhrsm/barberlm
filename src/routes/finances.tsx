@@ -1117,6 +1117,8 @@ function FinancesComponent() {
             </Card>
           )}
         </div>
+      </div>
+
 
 
         <Tabs defaultValue="transactions" className="w-full">
