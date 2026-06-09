@@ -227,13 +227,14 @@ export const triggerAutomation = async ({
     console.log(`[Automation] 🚀 Invoking process-automation-queue for ${workflowKey}`);
     
     // Non-blocking trigger of the edge function
+    // force_resend: false (default) to ensure deduplication check runs in the edge function
     supabase.functions.invoke('process-automation-queue', {
       body: { 
         tenant_id, 
         workflow_key: workflowKey,
         appointment_id,
         appointment_group_id: appointmentGroupId,
-        force_resend: true,
+        force_resend: false,
         source: 'real_appointment_flow_immediate'
       }
     }).then(({ data, error: invokeError }) => {
