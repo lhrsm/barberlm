@@ -227,15 +227,18 @@ function AutomationsComponent() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">Automações</h1>
-          <div className="flex gap-2 w-full md:w-auto">
-            <Button onClick={runDiagnosis} variant="outline" className="flex-1 md:flex-none border-white/10 text-white hover:bg-white/5">
-              <Search className="mr-2 h-4 w-4" /> Diagnosticar Último
+      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none">Automações</h1>
+            <p className="text-slate-500 font-medium text-sm">Gerencie disparos automáticos e auditoria de mensagens.</p>
+          </div>
+          <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+            <Button onClick={runDiagnosis} variant="outline" className="flex-1 lg:flex-none border-white/10 text-white hover:bg-white/5 font-bold uppercase text-xs h-12">
+              <Search className="mr-2 h-4 w-4 text-amber-500" /> Diagnosticar Último
             </Button>
-            <Button onClick={runQueueNow} disabled={isProcessingQueue} className="flex-1 md:flex-none bg-amber-500 hover:bg-amber-600 text-black font-bold">
-              {isProcessingQueue ? <Loader2 className="animate-spin mr-2" /> : <Play className="mr-2" />} Processar Fila Agora
+            <Button onClick={runQueueNow} disabled={isProcessingQueue} className="flex-1 lg:flex-none bg-amber-500 hover:bg-amber-600 text-black font-black uppercase text-xs h-12 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+              {isProcessingQueue ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4 fill-current" />} Processar Fila Agora
             </Button>
           </div>
         </div>
