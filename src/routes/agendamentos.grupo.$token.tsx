@@ -604,14 +604,24 @@ function AppointmentGroupPage() {
               </div>
             )}
 
-            <div className="pt-4 border-t border-zinc-800/50 flex justify-between items-center">
-              <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Valor Ativo</span>
-              <span className="text-primary text-xl font-black">
-                R$ {appointments
-                  .filter(a => a.status !== 'cancelled')
-                  .reduce((acc, a) => acc + Number(a.service_amount), 0)
-                  .toFixed(2)}
-              </span>
+            <div className="pt-4 border-t border-zinc-800/50 flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Valor Ativo</span>
+                <span className="text-primary text-xl font-black">
+                  R$ {appointments
+                    .filter(a => a.status !== 'cancelled')
+                    .reduce((acc, a) => acc + Number(a.service_amount), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+              <Button 
+                onClick={handleGoToPortal}
+                variant="outline"
+                className="w-full h-12 rounded-xl border-zinc-800 text-zinc-400 font-bold uppercase tracking-widest text-[10px]"
+              >
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Painel do Cliente
+              </Button>
             </div>
 
             {group.payment_status === 'paid' && appointments.some(a => a.status === 'cancelled') && (
