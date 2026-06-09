@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   CalendarDays,
   Trash2,
-  DollarSign
+  DollarSign,
+  LayoutDashboard
 } from "lucide-react";
 import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -38,6 +39,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
