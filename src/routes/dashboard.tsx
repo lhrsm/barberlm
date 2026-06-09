@@ -567,6 +567,7 @@ function DashboardComponent() {
       profileData,
       walletData,
       dailyAppointmentsData,
+      weeklyAppointmentsData,
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
@@ -587,6 +588,10 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("cashback_earned")
+        .eq("tenant_id", tenantId)
+        .eq("status", "completed")
+        .gte("start_time", weekStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
