@@ -998,6 +998,20 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Concedido</CardTitle>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <TicketPercent className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">R$ {summary.totalCashbackEarned.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Gerado em atendimentos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
               <div className="p-2 bg-orange-500/10 rounded-lg">
                 <History className="h-4 w-4 text-orange-500" />
