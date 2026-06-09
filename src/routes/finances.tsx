@@ -195,6 +195,7 @@ function FinancesComponent() {
           total_price, 
           start_time, 
           customers(name),
+          services(name),
           pix_amount,
           cashback_used
         )
@@ -1116,7 +1117,8 @@ function FinancesComponent() {
                     <TableRow className="hover:bg-transparent border-border">
                       <TableHead className="w-[100px] text-muted-foreground">Data</TableHead>
                       <TableHead className="w-[100px] text-muted-foreground">Hora</TableHead>
-                      <TableHead className="text-muted-foreground">Descrição</TableHead>
+                      <TableHead className="text-muted-foreground">Cliente</TableHead>
+                      <TableHead className="text-muted-foreground">Serviço</TableHead>
                       {role !== 'barber' && <TableHead className="text-muted-foreground">Barbeiro</TableHead>}
                       <TableHead className="text-muted-foreground">Status</TableHead>
                       <TableHead className="text-muted-foreground">Pagamento</TableHead>
@@ -1128,7 +1130,7 @@ function FinancesComponent() {
                   <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação encontrada com os filtros selecionados.
                       </TableCell>
                     </TableRow>
@@ -1148,14 +1150,10 @@ function FinancesComponent() {
                           </span>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {t.appointment?.customers?.name ? (
-                            <div className="flex flex-col">
-                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Cliente: {t.appointment.customers.name}</span>
-                              <span className="text-sm">{t.description || "-"}</span>
-                            </div>
-                          ) : (
-                            <span className="text-sm">{t.description || "-"}</span>
-                          )}
+                          {t.appointment?.customers?.name || (t.description?.includes("Cliente:") ? t.description.split("Cliente:")[1].split("-")[0].trim() : "-")}
+                        </TableCell>
+                        <TableCell>
+                          {t.appointment?.services?.name || (t.description?.includes("Serviço:") ? t.description.split("Serviço:")[1].split("-")[0].trim() : (t.category === 'Serviço' ? t.description : "-"))}
                         </TableCell>
                         {role !== 'barber' && <TableCell>{t.barber?.name || "Geral"}</TableCell>}
                         <TableCell>
