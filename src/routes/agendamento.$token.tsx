@@ -122,7 +122,38 @@ function AppointmentManagementPage() {
           .eq("id", profId)
           .single();
         setBarber(barbData);
+  }
+
+  useEffect(() => {
+    let timer: any;
+    if (successRedirect && redirectCountdown > 0) {
+      timer = setInterval(() => {
+        setRedirectCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (successRedirect && redirectCountdown === 0) {
+      handleGoToPortal();
+    }
+    return () => clearInterval(timer);
+  }, [successRedirect, redirectCountdown]);
+
+  const handleGoToPortal = async () => {
+    if (!appointment?.tenant_slug) {
+      // Se não temos o slug, tentamos buscar pelo tenant_id
+      const { data: tenant } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('id', appointment.tenant_id)
+        .single();
+      
+      if (tenant?.slug) {
+        navigate({ to: `/${tenant.slug}/portal` as any });
+      } else {
+        navigate({ to: '/' });
       }
+      return;
+    }
+    navigate({ to: `/${appointment.tenant_slug}/portal` as any });
+  };
     } catch (err: any) {
       console.error("AUDIT [ManagementLink]: Critical Error:", err);
       setError(`Erro ao carregar agendamento: ${err.message || 'Erro desconhecido'}`);
