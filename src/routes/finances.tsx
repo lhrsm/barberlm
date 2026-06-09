@@ -161,6 +161,7 @@ function FinancesComponent() {
           filter: `tenant_id=eq.${user.id}`
         }, () => {
           fetchRefundRequests();
+          fetchCashbackTransactions();
         })
         .subscribe();
 
