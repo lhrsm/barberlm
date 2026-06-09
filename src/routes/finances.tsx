@@ -412,6 +412,12 @@ function FinancesComponent() {
       t.appointment.status === 'scheduled' ||
       (t.appointment.payment_status === 'paid' && (t.payment_method === 'pix' || t.pix_amount > 0))
     );
+    
+    // Total de Cashback Concedido (Gerado no período)
+    // Buscamos diretamente das transações de cashback para precisão total
+    const totalCashbackEarned = transactions
+      .filter(t => t.type === 'cashback_earned' || (t.appointment?.cashback_earned > 0 && t.appointment.status === 'completed'))
+      .reduce((acc, t) => acc + (Number(t.appointment?.cashback_earned || t.amount || 0)), 0);
 
     // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
     // Agora baseamos a receita no realCashIncome para não inflar com créditos
@@ -1208,7 +1214,7 @@ function FinancesComponent() {
                                 {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card' || t.credit_card_amount > 0) && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
                                 {(t.payment_method === 'debit_card' || t.debit_card_amount > 0) && <Badge variant="outline" className="w-fit bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
                                 {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits' || t.payment_method === 'wallet' || t.type === 'credit_reversed' || t.type === 'credit_granted' || t.credits_amount > 0) && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback' || t.type === 'cashback_reversed' || t.cashback_amount > 0) && <Badge variant="outline" className="w-fit bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/20">Cashback</Badge>}
                               </>
                             )}
                             
