@@ -94,19 +94,25 @@ function initializeAuth() {
   setState({ loading: true });
 
   // 1. Subscribe FIRST so we don't miss events during getSession().
-  supabase.auth.onAuthStateChange((event, session) => {
-    setState({
-      session,
-      user: session?.user ?? null,
-    });
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+      // Clear data if signed out
+      if (!session) {
+        setState({ session: null, user: null, profile: null });
+      }
+    }
 
     if (session?.user) {
-      // Fire & forget — don't await inside the callback.
+      setState({
+        session,
+        user: session.user,
+      });
       fetchProfileData(session.user.id);
-    } else {
-      setState({ profile: null });
+    } else if (event !== 'INITIAL_SESSION') {
+      setState({ session: null, user: null, profile: null });
     }
   });
+
 
   // 2. Then hydrate the existing session from storage.
   supabase.auth
