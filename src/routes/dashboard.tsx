@@ -1537,14 +1537,26 @@ function DashboardComponent() {
               </Card>
               <Card className="bg-white border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/5 hover:border-yellow-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Gerado Hoje</CardTitle>
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Concedido</CardTitle>
                   <div className="p-2 bg-yellow-500/10 rounded-lg">
-                    <ArrowDownRight className="h-4 w-4 text-yellow-400" />
+                    <TicketPercent className="h-4 w-4 text-yellow-500" />
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Novos saldos de cashback</p>
+                <CardContent className="space-y-2">
+                  <div>
+                    <div className="text-2xl font-black tracking-tighter text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
+                    <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Hoje</p>
+                  </div>
+                  <div className="flex justify-between border-t border-yellow-500/10 pt-2">
+                    <div>
+                      <p className="text-[9px] font-bold text-yellow-600/60 uppercase">Semana</p>
+                      <p className="text-sm font-black text-yellow-700">R$ {stats.weekly.cashbackEarned.toFixed(2)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-bold text-yellow-600/60 uppercase">Mês</p>
+                      <p className="text-sm font-black text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="bg-white border-2 border-indigo-500/30 shadow-lg shadow-indigo-500/5 hover:border-indigo-500/60 transition-all duration-300">
