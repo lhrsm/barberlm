@@ -100,7 +100,9 @@ function DashboardComponent() {
       customers: 0,
       services: 0,
       customerCredits: 0,
+      customerCreditsConceded: 0,
       customerCashback: 0,
+      customerCashbackConceded: 0,
       customersWithCashback: 0
     }
   });
@@ -597,11 +599,13 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credits, cashback_balance").eq("tenant_id", tenantId)
+      supabase.from("customers").select("credits, credits_used, cashback_balance, cashback_used").eq("tenant_id", tenantId)
     ]);
 
     const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits || 0), 0) || 0;
+    const totalCreditsConceded = customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.credits || 0) + Number(curr.credits_used || 0)), 0) || 0;
     const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
+    const totalCashbackConceded = customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.cashback_balance || 0) + Number(curr.cashback_used || 0)), 0) || 0;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
@@ -710,7 +714,9 @@ function DashboardComponent() {
         customers: totalCust.count || 0,
         services: totalServ.count || 0,
         customerCredits: totalCredits,
+        customerCreditsConceded: totalCreditsConceded,
         customerCashback: totalCashback,
+        customerCashbackConceded: totalCashbackConceded,
         customersWithCashback: customersWithBalances.data?.filter(c => Number(c.cashback_balance || 0) > 0).length || 0
       }
     });
