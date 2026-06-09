@@ -332,6 +332,7 @@ function AppointmentManagementPage() {
       setSuccessRedirect(true);
       fetchAppointment();
     } catch (err: any) {
+
       console.error("AUDIT [Cancel Error]:", err);
       toast.error(err.message || "Erro ao cancelar agendamento");
     } finally {
@@ -340,7 +341,7 @@ function AppointmentManagementPage() {
   };
 
   const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+
 
   const handleInitialCancelClick = () => {
     // Buscar appointment atualizado antes de qualquer decisão
