@@ -109,7 +109,8 @@ export function AppointmentDetailsModal({
     }
   }
 
-  const [isPixCancelModalOpen, setIsPixCancelModalOpen] = React.useState(false);
+  const [isFinancialModalOpen, setIsFinancialModalOpen] = React.useState(false);
+  const [financialStatus, setFinancialStatus] = React.useState<any>(null);
   const [showRefundForm, setShowRefundForm] = React.useState(false);
   const [refundData, setRefundData] = React.useState({
     holderName: '',
@@ -121,27 +122,34 @@ export function AppointmentDetailsModal({
   const handleCancelClick = async () => {
     if (!appointment) return;
     
-    // Buscar dados atualizados antes de decidir
     setLoading(true);
-    await fetchAppointment();
-    setLoading(false);
+    try {
+      // Usar a nova função RPC para verificar o status financeiro real
+      const { data: finStatus, error: finError } = await supabase.rpc('check_appointment_financial_status', {
+        p_appointment_id: appointment.id
+      });
 
-    const isPixPaid = (['pix', 'PIX', 'Pix', 'mixed', 'misto'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
-                      ['paid', 'confirmed', 'completed', 'pago', 'aprovado'].includes(appointment.payment_status);
-    
-    const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
-                                 (appointment.cashback_used && Number(appointment.cashback_used) > 0);
+      if (finError) throw finError;
+      
+      setFinancialStatus(finStatus);
 
-    if (isPixPaid) {
-      setIsPixCancelModalOpen(true);
-    } else if (hasCreditsOrCashback) {
-      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao saldo do cliente para uso futuro. Confirmar cancelamento?")) return;
-      updateStatus('cancelled');
-    } else {
-      if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
-      updateStatus('cancelled');
+      if (finStatus.requires_financial_decision) {
+        setIsFinancialModalOpen(true);
+      } else {
+        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
+          setLoading(false);
+          return;
+        }
+        updateStatus('cancelled');
+      }
+    } catch (err: any) {
+      console.error("Error checking financial status:", err);
+      toast.error("Erro ao verificar status financeiro do agendamento");
+    } finally {
+      setLoading(false);
     }
   };
+
 
 
   const updateStatus = async (newStatus: string, metadata: any = {}) => {
