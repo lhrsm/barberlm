@@ -550,6 +550,7 @@ function DashboardComponent() {
     if (!user || !tenantId) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString();
     const monthStart = startOfMonth(new Date()).toISOString();
     const monthEnd = endOfMonth(new Date()).toISOString();
 
