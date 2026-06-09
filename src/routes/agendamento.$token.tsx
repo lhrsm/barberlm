@@ -345,23 +345,33 @@ function AppointmentManagementPage() {
 
   const [cancellationStep, setCancellationStep] = useState<CancellationStep>('none');
   const [financialStatus, setFinancialStatus] = useState<FinancialStatus | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
   const { getFinancialStatus, confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
 
   const handleInitialCancelClick = async () => {
     setLoading(true);
+    console.log("DEBUG [Cancel]: Initial click for appointment", appointment?.id);
     try {
       const finStatus = await getFinancialStatus(appointment.id);
+      console.log("DEBUG [Cancel]: Financial Status received:", finStatus);
       setFinancialStatus(finStatus);
-
-      if (finStatus.requires_financial_decision) {
-        setCancellationStep('financial_decision');
-      } else {
-        setCancellationStep('simple_confirmation');
-      }
+      setShowDebug(true); // Sempre mostrar diagnóstico temporário antes de prosseguir
     } catch (err: any) {
+      console.error("DEBUG [Cancel Error]:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const proceedAfterDebug = () => {
+    setShowDebug(false);
+    if (!financialStatus) return;
+
+    if (financialStatus.requires_financial_decision) {
+      setCancellationStep('financial_decision');
+    } else {
+      setCancellationStep('simple_confirmation');
     }
   };
 
