@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
+import { useCustomerCancellation } from "@/hooks/use-customer-cancellation";
 
 export const Route = createFileRoute("/agendamentos/grupo/$token")({
   component: AppointmentGroupPage,
