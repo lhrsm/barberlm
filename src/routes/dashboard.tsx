@@ -681,6 +681,8 @@ function DashboardComponent() {
     const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 
+    const weeklyCashbackEarned = weeklyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
+
     setStats({
       daily: {
         appointments: dailyApp.count || 0,
@@ -690,6 +692,9 @@ function DashboardComponent() {
         cashbackUsed: dailyCashbackUsed,
         cashbackEarned: dailyCashbackEarned,
         newCustomers: dailyCust.count || 0
+      },
+      weekly: {
+        cashbackEarned: weeklyCashbackEarned
       },
       monthly: {
         appointments: monthlyApp.count || 0,
