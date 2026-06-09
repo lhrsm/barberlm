@@ -119,14 +119,18 @@ export function AppointmentDetailsModal({
     if (!appointment) return;
     
     setLoading(true);
-    console.log("DEBUG [DetailsModal]: Cancel click for", appointment.id);
     try {
       const finStatus = await getFinancialStatus(appointment.id);
-      console.log("DEBUG [DetailsModal]: Financial Status:", finStatus);
       setFinancialStatus(finStatus);
-      setShowDebug(true); // Diagnostic first
+      
+      // Removed automatic debug show. Only show if needed or for admins if explicitly requested.
+      if (finStatus.requires_financial_decision) {
+        setCancellationStep('financial_decision');
+      } else {
+        setCancellationStep('simple_confirmation');
+      }
     } catch (err: any) {
-      console.error("DEBUG [DetailsModal Error]:", err);
+      console.error("Error checking financial status:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
@@ -143,6 +147,7 @@ export function AppointmentDetailsModal({
       setCancellationStep('simple_confirmation');
     }
   };
+
 
   const handleConfirmSimpleCancel = async () => {
     if (!appointment) return;
