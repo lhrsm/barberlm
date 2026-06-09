@@ -83,6 +83,7 @@ export function useCustomerCancellation() {
         .single();
 
       if (apptError) throw apptError;
+      if (!appt.customer_id || !appt.tenant_id) throw new Error("Dados do agendamento incompletos");
 
       // Use the specialized refund request RPC
       const { data, error } = await supabase.rpc('request_appointment_refund', {
