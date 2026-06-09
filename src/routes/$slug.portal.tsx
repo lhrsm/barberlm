@@ -1190,15 +1190,21 @@ function ClientPortalComponent() {
                       ) : (
                         creditTransactions.map((tx: any) => (
                           <div key={tx.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
-                             <div>
-                                <p className="text-sm font-bold text-white">{tx.description}</p>
+                             <div className="flex-1 mr-3">
+                                <p className="text-sm font-bold text-white">{tx.description || (tx.type === 'reversion' ? 'Crédito Devolvido' : 'Crédito Adicionado')}</p>
                                 <p className="text-[10px] text-gray-500 uppercase">{format(parseISO(tx.created_at), "dd/MM/yyyy HH:mm")}</p>
                              </div>
-                             <span className={cn("font-black", tx.type.includes('credit') ? "text-emerald-500" : "text-red-500")}>
-                                {tx.type.includes('credit') || tx.type.includes('refund') ? "+" : "-"} R$ {Number(tx.amount).toFixed(2)}
+                             <span className={cn(
+                               "font-black text-sm shrink-0", 
+                               (tx.type === 'reversion' || tx.type === 'credit_granted' || tx.type === 'refund_credit' || tx.type === 'adjustment_add' || tx.amount > 0) 
+                                 ? "text-emerald-500" 
+                                 : "text-red-500"
+                             )}>
+                                {(tx.type === 'reversion' || tx.type === 'credit_granted' || tx.type === 'refund_credit' || tx.type === 'adjustment_add' || tx.amount > 0) ? "+" : "-"} R$ {Math.abs(Number(tx.amount)).toFixed(2)}
                              </span>
                           </div>
                         ))
+
                       )}
                    </div>
                 </CardContent>
