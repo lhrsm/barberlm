@@ -132,6 +132,7 @@ function FinancesComponent() {
       fetchBarbers();
       fetchAppointments(barberIdFilter);
       fetchRefundRequests();
+      fetchCashbackTransactions();
 
       // Realtime subscription
       const channel = supabase
