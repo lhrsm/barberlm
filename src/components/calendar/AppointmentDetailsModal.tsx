@@ -454,6 +454,44 @@ export function AppointmentDetailsModal({
         </div>
 
         <div className="p-8 pt-4 border-t border-[#D4AF37]/10 flex flex-wrap gap-3 items-center justify-end bg-[#05070d]/50">
+          {/* Diagnostic Modal */}
+          <Dialog open={showDebug} onOpenChange={setShowDebug}>
+            <DialogContent className="bg-[#0b0f17] border-[#D4AF37]/20 text-white rounded-[2rem] sm:max-w-md p-8">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-xl font-black uppercase italic text-[#D4AF37]">Diagnóstico de Cancelamento</DialogTitle>
+                <DialogDescription className="text-gray-400 text-xs">
+                  Evidência técnica da lógica financeira (Temporário)
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-2 text-[11px] font-mono bg-black/50 p-4 rounded-xl border border-white/5">
+                <p><span className="text-gray-500">appointment_id:</span> {appointment.id}</p>
+                <p><span className="text-gray-500">customer_id:</span> {appointment.customer_id}</p>
+                <p><span className="text-gray-500">tenant_id:</span> {appointment.tenant_id}</p>
+                <p><span className="text-gray-500">status:</span> {financialStatus?.status}</p>
+                <p><span className="text-gray-500">payment_status:</span> {financialStatus?.payment_status}</p>
+                <p><span className="text-gray-500">has_paid_pix:</span> <span className={financialStatus?.has_paid_pix ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_paid_pix)}</span></p>
+                <p><span className="text-gray-500">paid_pix_amount:</span> R$ {financialStatus?.paid_pix_amount}</p>
+                <p><span className="text-gray-500">has_used_credits:</span> <span className={financialStatus?.has_used_credits ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_used_credits)}</span></p>
+                <p><span className="text-gray-500">used_credit_amount:</span> R$ {financialStatus?.used_credit_amount}</p>
+                <p><span className="text-gray-500">has_used_cashback:</span> <span className={financialStatus?.has_used_cashback ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_used_cashback)}</span></p>
+                <p><span className="text-gray-500">requires_financial_decision:</span> <span className={financialStatus?.requires_financial_decision ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.requires_financial_decision)}</span></p>
+                <p><span className="text-gray-500">origem:</span> {mode === 'customer' ? 'customer_portal' : 'admin_panel'}</p>
+              </div>
+
+              <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                 <p className="text-amber-500 text-xs font-bold mb-2">Bloqueio Temporário de Segurança:</p>
+                 <p className="text-zinc-300 text-[10px]">Este agendamento possui pagamento ou crédito vinculado?</p>
+              </div>
+
+              <DialogFooter className="flex flex-col gap-2 mt-6">
+                <Button onClick={() => { setCancellationStep('financial_decision'); setShowDebug(false); }} className="w-full bg-[#D4AF37] text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
+                <Button onClick={proceedAfterDebug} variant="outline" className="w-full border-white/10 text-gray-400 font-black uppercase text-xs">Prosseguir com lógica automática</Button>
+                <Button onClick={() => setShowDebug(false)} variant="ghost" className="w-full text-gray-500 uppercase text-[10px]">Voltar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Button 
             variant="outline" 
             className="rounded-xl bg-transparent text-gray-400 border-white/10 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest px-6 h-12"
