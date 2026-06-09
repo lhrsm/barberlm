@@ -500,11 +500,10 @@ export function AppointmentDetailsModal({
                  <p className="text-zinc-300 text-[10px]">Este agendamento possui pagamento ou crédito vinculado?</p>
               </div>
 
-              <DialogFooter className="flex flex-col gap-2 mt-6">
-                <Button onClick={() => { setCancellationStep('financial_decision'); setShowDebug(false); }} className="w-full bg-[#D4AF37] text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
-                <Button onClick={proceedAfterDebug} variant="outline" className="w-full border-white/10 text-gray-400 font-black uppercase text-xs">Prosseguir com lógica automática</Button>
-                <Button onClick={() => setShowDebug(false)} variant="ghost" className="w-full text-gray-500 uppercase text-[10px]">Voltar</Button>
-              </DialogFooter>
+                <DialogFooter className="flex flex-col gap-2 mt-6">
+                  <Button onClick={() => { setCancellationStep('financial_decision'); setShowDebug(false); }} className="w-full bg-[#D4AF37] text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
+                  <Button onClick={() => setShowDebug(false)} variant="ghost" className="w-full text-gray-500 uppercase text-[10px]">Voltar</Button>
+                </DialogFooter>
             </DialogContent>
           </Dialog>
 
