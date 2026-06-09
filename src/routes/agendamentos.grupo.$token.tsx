@@ -335,6 +335,7 @@ function AppointmentGroupPage() {
       setSelectedIds([]);
       fetchGroup();
       fetchHistory();
+      setSuccessRedirect(true);
       
       // Enviar notificação individual para cada item cancelado
       for (const id of selectedIds) {
