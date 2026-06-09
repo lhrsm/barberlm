@@ -486,8 +486,12 @@ function FinancesComponent() {
       .filter((t) => t.type === "credit_granted")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
-    // 10. Receita Líquida Real
+    // 10. Receita Líquida Real (Entradas Reais - Estornos Pagos)
     const netRevenue = realCashIncome - totalRefundsPaid;
+
+    // 11. Cashback Total Concedido (Gerado no período)
+    const totalCashbackEarned = effectiveTransactions
+      .reduce((acc, t) => acc + (Number(t.appointment?.cashback_earned || 0)), 0);
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
@@ -499,12 +503,18 @@ function FinancesComponent() {
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
     const freelancersPart = barbers.reduce((acc, barber) => {
-      const bTransactions = effectiveTransactions.filter(t => t.barber_id === barber.id && t.type === 'income');
-      const bTotal = bTransactions.reduce((tAcc, t) => {
-        // Comissão incide sobre o valor total do serviço, independente da forma de pagamento
-        if (t.appointment) return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
-        return tAcc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
+      // Filtrar transações únicas por agendamento para evitar duplicidade no cálculo da comissão
+      const bApptIds = new Set();
+      const bTotal = effectiveTransactions
+        .filter(t => t.barber_id === barber.id && t.type === 'income')
+        .reduce((tAcc, t) => {
+          if (t.appointment_id) {
+            if (bApptIds.has(t.appointment_id)) return tAcc;
+            bApptIds.add(t.appointment_id);
+            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
+          }
+          return tAcc + (parseFloat(String(t.amount)) || 0);
+        }, 0);
       return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
     }, 0);
 
@@ -523,9 +533,10 @@ function FinancesComponent() {
       balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
       barbershopPart: (realCashIncome + creditsConsumed + cashbackConsumed) - freelancersPart,
-      cashbackConsumed
+      cashbackConsumed,
+      totalCashbackEarned
     };
-  }, [transactions, refundRequests, barbers, appointments, totalCredits, appointments]);
+  }, [transactions, refundRequests, barbers, appointments, totalCredits]);
 
   useEffect(() => {
     async function fetchBalances() {
