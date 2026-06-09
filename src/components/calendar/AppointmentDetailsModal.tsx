@@ -173,6 +173,12 @@ export function AppointmentDetailsModal({
 
 
 
+  const [refundData, setRefundData] = React.useState({
+    holderName: '',
+    pixKey: '',
+    pixType: 'cpf',
+    notes: ''
+  });
 
   const updateStatus = async (newStatus: string, metadata: any = {}) => {
     if (!appointment) return;
@@ -186,27 +192,12 @@ export function AppointmentDetailsModal({
     );
 
     if (result.success) {
-      // Se for reembolso PIX, atualizar a solicitação de estorno com os dados fornecidos
-      if (metadata.refund_preference === 'refund' && refundData.pixKey) {
-        await supabase
-          .from('refund_requests')
-          .update({
-            holder_name: refundData.holderName,
-            pix_key: refundData.pixKey,
-            pix_type: refundData.pixType,
-            notes: refundData.notes
-          })
-          .eq('appointment_id', appointment.id)
-          .eq('status', 'requested');
-      }
-
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['customer-appointments'] });
       if (onSuccess) onSuccess();
       onOpenChange(false);
-
     }
     
     setActionLoading(false);
