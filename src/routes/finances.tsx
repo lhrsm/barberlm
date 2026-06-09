@@ -1330,11 +1330,11 @@ function FinancesComponent() {
                                           </div>
                                         </div>
 
-                                        {(editingTransaction.payment_method === 'misto' || editingTransaction.payment_method === 'mixed') && (
+                                        {(editingTransaction.payment_method === 'misto' || editingTransaction.payment_method === 'mixed' || editingTransaction.manual_adjustment) && (
                                           <div className="bg-amber-500/5 p-6 rounded-2xl border border-amber-500/20 shadow-inner space-y-6">
                                             <div className="flex items-center gap-2">
                                               <div className="h-1.5 w-1.5 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
-                                              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Detalhamento do Pagamento Misto</h4>
+                                              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Detalhamento do Pagamento</h4>
                                             </div>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                                               <div className="space-y-2">
