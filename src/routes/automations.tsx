@@ -360,6 +360,134 @@ function AutomationsComponent() {
             automation={selectedAutomation} 
           />
         )}
+
+        <Dialog open={isDiagOpen} onOpenChange={setIsDiagOpen}>
+          <DialogContent className="max-w-2xl bg-[#0F172A] border-white/10 text-white max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black uppercase tracking-tighter">Diagnóstico de Automação</DialogTitle>
+            </DialogHeader>
+
+            {diagLoading ? (
+              <div className="flex flex-col items-center justify-center p-12 space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-amber-500" />
+                <p className="text-slate-400 font-bold animate-pulse">Analisando agendamento real...</p>
+              </div>
+            ) : diagData ? (
+              <div className="space-y-6">
+                {/* 1. Appointment Info */}
+                <div className="bg-white/5 p-4 rounded-lg border border-white/5">
+                  <h4 className="text-[10px] font-black uppercase text-slate-500 mb-3 flex items-center">
+                    <CalendarIcon className="h-3 w-3 mr-1" /> Último Agendamento
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">Status</p>
+                      <Badge className={diagData.appointment.status === 'confirmed' ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-500/10 text-slate-500"}>
+                        {diagData.appointment.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">Horário</p>
+                      <p className="text-sm font-bold">{new Date(diagData.appointment.start_time).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">Cliente</p>
+                      <p className="text-sm font-bold">{diagData.appointment.customer?.name || 'N/A'}</p>
+                      <p className="text-[10px] text-slate-500">{diagData.appointment.customer?.phone || 'Sem telefone'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">Token Gerenciamento</p>
+                      <p className="text-[10px] font-mono break-all text-amber-500">{diagData.appointment.management_token || 'NÃO GERADO'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Queue Status */}
+                <div className="bg-white/5 p-4 rounded-lg border border-white/5">
+                  <h4 className="text-[10px] font-black uppercase text-slate-500 mb-3 flex items-center">
+                    <Activity className="h-3 w-3 mr-1" /> Status da Fila
+                  </h4>
+                  {diagData.queue ? (
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <Badge className={cn(
+                          "uppercase text-[10px]",
+                          diagData.queue.status === 'success' ? "bg-emerald-500/10 text-emerald-500" :
+                          diagData.queue.status === 'failed' ? "bg-rose-500/10 text-rose-500" :
+                          "bg-amber-500/10 text-amber-500"
+                        )}>
+                          {diagData.queue.status}
+                        </Badge>
+                        <p className="text-[10px] text-slate-500 mt-1">Tentativas: {diagData.queue.attempts}</p>
+                      </div>
+                      <Button size="sm" onClick={() => reprocessQueueItem(diagData.appointment.id)} className="bg-amber-500 text-black hover:bg-amber-600 font-bold">
+                        <RotateCcw className="h-3 w-3 mr-1" /> Forçar Disparo
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center p-4 text-center">
+                      <AlertTriangle className="h-8 w-8 text-rose-500 mb-2" />
+                      <p className="text-sm font-bold text-rose-500">Agendamento não entrou na fila!</p>
+                      <p className="text-[10px] text-slate-500">A trigger não disparou ou os critérios não foram atendidos.</p>
+                      <Button size="sm" onClick={() => reprocessQueueItem(diagData.appointment.id)} className="mt-4 bg-white/10 hover:bg-white/20 text-white font-bold">
+                        Criar e Enviar Agora
+                      </Button>
+                    </div>
+                  )}
+                  {diagData.queue?.error_message && (
+                    <div className="mt-3 p-2 bg-rose-500/10 border border-rose-500/20 rounded text-[10px] text-rose-500 font-mono">
+                      ERRO: {diagData.queue.error_message}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Integration Status */}
+                <div className="bg-white/5 p-4 rounded-lg border border-white/5">
+                  <h4 className="text-[10px] font-black uppercase text-slate-500 mb-3 flex items-center">
+                    <Smartphone className="h-3 w-3 mr-1" /> Integração WhatsApp
+                  </h4>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("h-2 w-2 rounded-full", diagData.whatsapp.enabled ? "bg-emerald-500" : "bg-rose-500")} />
+                      <span className="text-xs font-bold">{diagData.whatsapp.enabled ? "Ativada" : "Desativada"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={cn("h-2 w-2 rounded-full", diagData.whatsapp.instance ? "bg-emerald-500" : "bg-rose-500")} />
+                      <span className="text-xs font-bold">{diagData.whatsapp.instance ? "Instância OK" : "Sem Instância"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Logs */}
+                <div className="bg-white/5 p-4 rounded-lg border border-white/5">
+                  <h4 className="text-[10px] font-black uppercase text-slate-500 mb-3 flex items-center">
+                    <History className="h-3 w-3 mr-1" /> Logs de Auditoria
+                  </h4>
+                  <div className="space-y-2">
+                    {diagData.logs.length > 0 ? (
+                      diagData.logs.map((log: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center text-[10px] border-b border-white/5 pb-2 last:border-0">
+                          <span className="text-slate-500">{new Date(log.created_at).toLocaleTimeString()}</span>
+                          <Badge className={cn(
+                            "text-[8px] uppercase",
+                            log.status === 'success' || log.status === 'sent' ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                          )}>
+                            {log.status}
+                          </Badge>
+                          <span className="text-slate-400 truncate max-w-[200px]">{log.error_message || log.payload?.diagnostic || 'Log gerado'}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-[10px] text-slate-500 italic">Nenhum log de auditoria encontrado.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center p-8 text-slate-500">Ocorreu um erro ao carregar os dados.</p>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
