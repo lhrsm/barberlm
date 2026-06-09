@@ -50,9 +50,11 @@ export const Route = createFileRoute("/agendamentos/grupo/$token")({
 
 function AppointmentGroupPage() {
   const { token } = Route.useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const expectedTenantId = searchParams.get('tenant');
+  const { user: authUser } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [group, setGroup] = useState<any>(null);
@@ -73,6 +75,8 @@ function AppointmentGroupPage() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<any>(null);
+  const [successRedirect, setSuccessRedirect] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   
   useEffect(() => {
