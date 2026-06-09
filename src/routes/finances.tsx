@@ -1635,18 +1635,22 @@ function FinancesComponent() {
                             >
                               <Check size={14} /> Confirmar / Detalhes
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => {
-                                setSelectedAppointmentId(app.id);
-                                setIsDetailsModalOpen(true);
-                                // A modal de detalhes já tem a lógica de verificação de Pix
-                              }}
-                            >
-                              <X size={14} /> Cancelar
-                            </Button>
+                             <Button 
+                               variant="ghost" 
+                               size="sm" 
+                               className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                               onClick={() => {
+                                 // Navegar para a página pública de gerenciamento de agendamento usando o token
+                                 if (app.management_token) {
+                                   window.open(`/agendamento/${app.management_token}`, '_blank');
+                                 } else {
+                                   setSelectedAppointmentId(app.id);
+                                   setIsDetailsModalOpen(true);
+                                 }
+                               }}
+                             >
+                               <X size={14} /> Cancelar (Via Link Público)
+                             </Button>
                           </div>
                         </TableCell>
                       </TableRow>
