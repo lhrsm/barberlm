@@ -648,11 +648,6 @@ export function AppointmentDetailsModal({
                 const paymentStatusBefore = appointment.payment_status;
                 
                 try {
-                  console.log('Marking appointment as paid:', { 
-                    appointment_id: appointment.id,
-                    payment_status_before: paymentStatusBefore
-                  });
-
                   const { data, error, count } = await supabase
                     .from("appointments")
                     .update({ 
@@ -663,28 +658,10 @@ export function AppointmentDetailsModal({
                     .select('payment_status, paid_at');
                   
                   if (error) {
-                    console.error('Error marking as paid:', error);
                     toast.error(`Erro ao marcar como pago: ${error.message || 'Erro desconhecido'}`);
-                    
-                    // Log mandatory details on error
-                    console.log('PAYMENT_UPDATE_ERROR_LOG', {
-                      appointment_id: appointment.id,
-                      payment_status_before: paymentStatusBefore,
-                      error: error.message,
-                      schema_columns_checked: ['payment_status', 'paid_at']
-                    });
                   } else {
-                    console.log('PAYMENT_UPDATE_SUCCESS_LOG', {
-                      appointment_id: appointment.id,
-                      payment_status_before: paymentStatusBefore,
-                      payment_status_after: data?.[0]?.payment_status,
-                      rows_updated: count,
-                      schema_columns_checked: ['payment_status', 'paid_at']
-                    });
-
                     toast.success("Pagamento marcado como pago");
                     
-                    // Invalidar caches centralizados
                     const queryKeys = [
                       ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
                       ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
@@ -701,7 +678,6 @@ export function AppointmentDetailsModal({
                     if (onSuccess) onSuccess();
                   }
                 } catch (err: any) {
-                  console.error('Fatal error in markAsPaid:', err);
                   toast.error(`Erro crítico: ${err.message || 'Erro inesperado'}`);
                 } finally {
                   setActionLoading(false);
@@ -710,6 +686,18 @@ export function AppointmentDetailsModal({
               disabled={actionLoading}
             >
               Marcar Pago
+            </Button>
+          )}
+
+          {mode === 'admin' && appointment.refund_status === 'refund_requested' && (
+            <Button 
+              className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(147,51,234,0.2)] transition-all active:scale-95"
+              onClick={async () => {
+                toast.info("Redirecionando para processar estorno no financeiro...");
+                // Note: Em um ambiente real, poderíamos navegar para a aba de estornos
+              }}
+            >
+              Processar Estorno
             </Button>
           )}
         </div>
