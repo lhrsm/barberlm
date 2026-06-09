@@ -17,6 +17,7 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
+  TicketPercent,
   Target,
   Crown,
   Zap,
