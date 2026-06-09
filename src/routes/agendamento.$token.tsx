@@ -340,38 +340,60 @@ function AppointmentManagementPage() {
     }
   };
 
-  const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false);
-  const [financialStatus, setFinancialStatus] = useState<any>(null);
-
+  const [cancellationStep, setCancellationStep] = useState<CancellationStep>('none');
+  const [financialStatus, setFinancialStatus] = useState<FinancialStatus | null>(null);
+  const { getFinancialStatus, confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
 
   const handleInitialCancelClick = async () => {
     setLoading(true);
     try {
-      // Usar a nova função RPC para verificar o status financeiro real
-      const { data, error: finError } = await supabase.rpc('check_appointment_financial_status', {
-        p_appointment_id: appointment.id
-      });
-
-      if (finError) throw finError;
-      
-      const finStatus = data as any;
+      const finStatus = await getFinancialStatus(appointment.id);
       setFinancialStatus(finStatus);
 
-      if (finStatus && finStatus.requires_financial_decision) {
-        setIsFinancialModalOpen(true);
+      if (finStatus.requires_financial_decision) {
+        setCancellationStep('financial_decision');
       } else {
-        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
-          setLoading(false);
-          return;
-        }
-        handleCancel('none');
+        setCancellationStep('simple_confirmation');
       }
     } catch (err: any) {
-      console.error("Error checking financial status:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmSimpleCancel = async () => {
+    setCancelling(true);
+    const result = await confirmSimpleCancellation(appointment.id, 'public_link');
+    if (result.success) {
+      setSuccessRedirect(true);
+      fetchAppointment();
+    }
+    setCancelling(false);
+  };
+
+  const handleConfirmCreditCancel = async () => {
+    setCancelling(true);
+    const result = await confirmCancellationWithCredit(appointment.id, 'public_link');
+    if (result.success) {
+      setSuccessRedirect(true);
+      fetchAppointment();
+    }
+    setCancelling(false);
+  };
+
+  const handleConfirmRefundCancel = async () => {
+    if (!refundData.pixKey || !refundData.holderName) {
+      toast.error("Por favor, preencha os dados do Pix");
+      return;
+    }
+    setCancelling(true);
+    const result = await confirmCancellationWithRefundRequest(appointment.id, refundData, 'public_link');
+    if (result.success) {
+      setSuccessRedirect(true);
+      fetchAppointment();
+    }
+    setCancelling(false);
   };
 
 
