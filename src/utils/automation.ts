@@ -197,9 +197,11 @@ export const triggerAutomation = async ({
             status: "pending",
             attempts: 0,
             scheduled_for: new Date().toISOString()
-          }).select().single();
+          }, { 
+            onConflict: 'appointment_id,workflow_key' 
+          }).select().maybeSingle();
           
-          if (queueError) {
+          if (queueError && !queueError.message.includes('unique constraint')) {
             console.error("[Automation] ❌ Error creating queue item:", queueError);
           } else {
             queueItem = qItem;
