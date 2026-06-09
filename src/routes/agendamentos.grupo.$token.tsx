@@ -793,6 +793,39 @@ function AppointmentGroupPage() {
         </p>
       </motion.div>
 
+      {/* Diagnostic Modal */}
+      <Dialog open={showDebug} onOpenChange={setShowDebug}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-black uppercase italic text-primary">Diagnóstico de Cancelamento (Grupo)</DialogTitle>
+            <DialogDescription className="text-zinc-400 text-xs">
+              Evidência técnica para o item selecionado (Temporário)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 text-[11px] font-mono bg-black/50 p-4 rounded-xl border border-white/5">
+            <p><span className="text-zinc-500">appointment_id:</span> {debugItem?.id}</p>
+            <p><span className="text-zinc-500">service:</span> {debugItem?.service_name}</p>
+            <p><span className="text-zinc-500">status:</span> {financialStatus?.status}</p>
+            <p><span className="text-zinc-500">payment_status (Group):</span> {group.payment_status}</p>
+            <p><span className="text-zinc-500">has_paid_pix:</span> <span className={financialStatus?.has_paid_pix ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_paid_pix)}</span></p>
+            <p><span className="text-zinc-500">requires_financial_decision:</span> <span className={financialStatus?.requires_financial_decision ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.requires_financial_decision)}</span></p>
+            <p><span className="text-zinc-500">origem:</span> group_link</p>
+          </div>
+
+          <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+             <p className="text-amber-500 text-xs font-bold mb-2">Bloqueio Temporário de Segurança:</p>
+             <p className="text-zinc-300 text-[10px]">Este agendamento possui pagamento ou crédito vinculado?</p>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-2 mt-6">
+            <Button onClick={() => { setIsCancelModalOpen(true); setShowDebug(false); }} className="w-full bg-primary text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
+            <Button onClick={proceedAfterDebug} variant="outline" className="w-full border-zinc-800 text-zinc-400 font-black uppercase text-xs">Prosseguir com lógica automática</Button>
+            <Button onClick={() => setShowDebug(false)} variant="ghost" className="w-full text-zinc-500 uppercase text-[10px]">Voltar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
           <DialogHeader>
