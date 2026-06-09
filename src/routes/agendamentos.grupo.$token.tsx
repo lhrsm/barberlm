@@ -287,14 +287,18 @@ function AppointmentGroupPage() {
   const handleCancelClick = async () => {
     if (selectedIds.length === 0) return;
     
-    // Para simplificar o diagnóstico no link de grupo, pegamos o primeiro selecionado
+    // Check first selected for diagnostic and generic decision
     const firstId = selectedIds[0];
     setLoading(true);
     try {
       const finStatus = await getFinancialStatus(firstId);
       setFinancialStatus(finStatus);
-      setDebugItem(appointments.find(a => a.id === firstId));
-      setShowDebug(true);
+      
+      if (finStatus.requires_financial_decision) {
+        setIsCancelModalOpen(true); // Open financial decision modal (aliased as cancel modal here)
+      } else {
+        setIsCancelModalOpen(true); // Simple cancel confirmation
+      }
     } catch (err) {
       toast.error("Erro ao verificar status financeiro");
     } finally {
@@ -306,6 +310,7 @@ function AppointmentGroupPage() {
     setShowDebug(false);
     setIsCancelModalOpen(true);
   };
+
 
 
   const handleCancelSelected = async (preference: 'credit' | 'refund' = 'credit') => {
@@ -828,61 +833,67 @@ function AppointmentGroupPage() {
 
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase italic tracking-tight flex items-center gap-2">
-              <AlertCircle className="text-red-500 h-6 w-6" /> Cancelar Selecionados
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CircleDollarSign className="text-primary w-8 h-8" />
+            </div>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tight">
+              {financialStatus?.requires_financial_decision ? "Opções de Reembolso" : "Confirmar Cancelamento"}
             </DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium pt-2">
               Deseja realmente cancelar os {selectedIds.length} agendamentos selecionados?
-              {group.payment_status === 'paid' && " Escolha como deseja receber o valor pago."}
+              {financialStatus?.requires_financial_decision && (
+                <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-2">
+                  <p className="text-white text-xs">Agendamentos com valor financeiro detectado. Escolha como deseja tratar os reembolsos:</p>
+                  {financialStatus.paid_pix_amount > 0 && <p className="text-primary text-[10px] font-bold">PIX: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
+                  {financialStatus.used_credit_amount > 0 && <p className="text-emerald-500 text-[10px] font-bold">CRÉDITOS: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+                </div>
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="flex flex-col gap-3 pt-4">
-            {group.payment_status === 'paid' ? (
+            {financialStatus?.requires_financial_decision ? (
               <>
                 <Button 
                   onClick={() => handleCancelSelected('credit')}
                   disabled={cancelling}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-600/20"
+                  className="bg-primary hover:bg-primary/90 text-black rounded-xl h-14 w-full font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
                 >
-                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Converter em Crédito"}
+                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Tudo em Crédito"}
                 </Button>
-                <Button 
-                  onClick={() => handleCancelSelected('refund')}
-                  disabled={cancelling}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
-                >
-                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Solicitar Estorno (Pix)"}
-                </Button>
+                {financialStatus.has_paid_pix && (
+                  <Button 
+                    onClick={() => handleCancelSelected('refund')}
+                    disabled={cancelling}
+                    variant="outline"
+                    className="border-zinc-800 hover:bg-zinc-800 text-white rounded-xl h-14 w-full font-black uppercase tracking-widest text-[10px]"
+                  >
+                    {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Solicitar Estorno (Pix)"}
+                  </Button>
+                )}
               </>
             ) : (
               <Button 
                 onClick={() => handleCancelSelected('credit')}
                 disabled={cancelling}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-14 w-full font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
               >
                 {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
               </Button>
             )}
+            
             <Button 
-              onClick={handleGoToPortal}
-              variant="outline"
-              className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
-            >
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              Painel do Cliente
-            </Button>
-            <Button 
-              variant="outline" 
+              variant="ghost" 
               onClick={() => setIsCancelModalOpen(false)}
-              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
+              className="text-zinc-500 font-bold uppercase text-[10px] h-12"
             >
               Manter Agendamentos
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <Dialog open={isRescheduling} onOpenChange={setIsRescheduling}>
         <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
           <DialogHeader>

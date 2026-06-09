@@ -119,14 +119,18 @@ export function AppointmentDetailsModal({
     if (!appointment) return;
     
     setLoading(true);
-    console.log("DEBUG [DetailsModal]: Cancel click for", appointment.id);
     try {
       const finStatus = await getFinancialStatus(appointment.id);
-      console.log("DEBUG [DetailsModal]: Financial Status:", finStatus);
       setFinancialStatus(finStatus);
-      setShowDebug(true); // Diagnostic first
+      
+      // Removed automatic debug show. Only show if needed or for admins if explicitly requested.
+      if (finStatus.requires_financial_decision) {
+        setCancellationStep('financial_decision');
+      } else {
+        setCancellationStep('simple_confirmation');
+      }
     } catch (err: any) {
-      console.error("DEBUG [DetailsModal Error]:", err);
+      console.error("Error checking financial status:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
@@ -143,6 +147,7 @@ export function AppointmentDetailsModal({
       setCancellationStep('simple_confirmation');
     }
   };
+
 
   const handleConfirmSimpleCancel = async () => {
     if (!appointment) return;
@@ -549,11 +554,27 @@ export function AppointmentDetailsModal({
                 <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <DollarSign className="text-[#D4AF37] w-8 h-8" />
                 </div>
-                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">O que deseja fazer com o valor?</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">
+                  {financialStatus?.has_used_credits || financialStatus?.has_used_cashback 
+                    ? "Devolver créditos utilizados?" 
+                    : "O que deseja fazer com o valor?"}
+                </DialogTitle>
                 <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
-                  Este agendamento possui valor financeiro vinculado. Escolha como deseja tratar esse valor antes de cancelar.
-                  {financialStatus && financialStatus.paid_pix_amount > 0 && <p className="mt-2 text-white">Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
-                  {financialStatus && financialStatus.used_credit_amount > 0 && <p className="text-white">Créditos Usados: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+                  {financialStatus?.has_used_credits || financialStatus?.has_used_cashback 
+                    ? "Este agendamento utilizou créditos ou cashback. Ao cancelar, o valor utilizado será devolvido automaticamente ao seu saldo."
+                    : "Este agendamento possui pagamento vinculado. Escolha como deseja tratar esse valor antes de cancelar."}
+                  
+                  <div className="mt-4 space-y-1">
+                    {financialStatus && financialStatus.paid_pix_amount > 0 && (
+                      <p className="text-white font-bold">Valor Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>
+                    )}
+                    {financialStatus && financialStatus.used_credit_amount > 0 && (
+                      <p className="text-emerald-500 font-bold">Créditos a devolver: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>
+                    )}
+                    {financialStatus && financialStatus.used_cashback_amount > 0 && (
+                      <p className="text-emerald-500 font-bold">Cashback a devolver: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>
+                    )}
+                  </div>
                 </DialogDescription>
               </DialogHeader>
 
@@ -563,8 +584,11 @@ export function AppointmentDetailsModal({
                   onClick={handleConfirmCreditCancel}
                   disabled={actionLoading}
                 >
-                  Transformar em Crédito
+                  {financialStatus?.has_paid_pix 
+                    ? "Transformar tudo em Crédito" 
+                    : "Confirmar e devolver créditos"}
                 </Button>
+                
                 {financialStatus?.has_paid_pix && (
                   <Button 
                     variant="outline"
@@ -572,9 +596,10 @@ export function AppointmentDetailsModal({
                     onClick={() => setCancellationStep('pix_refund_form')}
                     disabled={actionLoading}
                   >
-                    Solicitar Estorno
+                    Solicitar Estorno Pix
                   </Button>
                 )}
+                
                 <Button 
                   variant="ghost"
                   className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
@@ -585,6 +610,7 @@ export function AppointmentDetailsModal({
               </div>
             </DialogContent>
           </Dialog>
+
 
           {/* Pix Refund Form Dialog */}
           <Dialog open={cancellationStep === 'pix_refund_form'} onOpenChange={(open) => !open && setCancellationStep('financial_decision')}>
