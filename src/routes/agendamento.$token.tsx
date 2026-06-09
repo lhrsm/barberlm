@@ -330,6 +330,7 @@ function AppointmentManagementPage() {
       toast.success("Agendamento cancelado com sucesso.");
       setIsCancelModalOpen(false);
       setShowRefundForm(false);
+      setSuccessRedirect(true);
       fetchAppointment();
     } catch (err: any) {
       console.error("AUDIT [Cancel Error]:", err);
