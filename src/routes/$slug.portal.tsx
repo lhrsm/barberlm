@@ -1146,9 +1146,14 @@ function ClientPortalComponent() {
                        </div>
                     </div>
                     {customerData?.loyalty_points >= 10 ? (
-                      <Button onClick={handleClaimLoyaltyReward} disabled={submitting} className="mt-8 bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:scale-105 transition-all">
-                        Resgatar R$ 50,00 Agora
-                      </Button>
+                      <div className="mt-8 flex flex-col items-center gap-2">
+                        <Badge className="bg-emerald-500 text-white font-bold px-4 py-1 animate-bounce">
+                          BÔNUS DISPONÍVEL!
+                        </Badge>
+                        <p className="text-xs text-emerald-400 font-medium text-center px-4">
+                          Você atingiu 10 atendimentos! Um crédito de fidelidade foi adicionado automaticamente ao seu saldo.
+                        </p>
+                      </div>
                     ) : (
                       <p className="mt-8 text-sm text-gray-400 font-medium italic text-center px-4">Faltam {10 - (customerData?.loyalty_points || 0)} pontos para você ganhar seu próximo bônus!</p>
                     )}
@@ -1164,10 +1169,10 @@ function ClientPortalComponent() {
                        <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">1</div>
                        <p className="text-sm text-gray-400">Cada agendamento concluído gera 1 ponto no seu cartão fidelidade.</p>
                     </div>
-                    <div className="flex gap-4">
-                       <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">2</div>
-                       <p className="text-sm text-gray-400">Ao completar 10 pontos, você pode resgatar um bônus de R$ 50,00 em créditos.</p>
-                    </div>
+                     <div className="flex gap-4">
+                        <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">2</div>
+                        <p className="text-sm text-gray-400">Ao completar 10 pontos, você ganha automaticamente um bônus em créditos.</p>
+                     </div>
                     <div className="flex gap-4">
                        <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">3</div>
                        <p className="text-sm text-gray-400">Os créditos podem ser usados para pagar qualquer serviço futuro na barbearia.</p>
