@@ -149,11 +149,13 @@ export const triggerAutomation = async ({
     }
 
     // 8. Create entry in automation_queue to ensure it's processed (Reliability layer)
+    // IMPORTANT: DB Trigger also enqueues for 'appointment.created/confirmed'.
+    // We only manually enqueue here for non-confirmation events or if it's forced.
     let queueItem = null;
     const appointmentGroupId = appointment.appointment_group_id || appointment.appointment_group?.id;
     
     try {
-      // Check for group deduplication if it's a new appointment
+      // 8a. Check for group deduplication if it's a new appointment
       if (appointmentGroupId && workflowKey === 'appointment_confirmation') {
         console.log(`[Automation] 👥 Group appointment detected (${appointmentGroupId}), checking for existing queue item`);
         
@@ -171,25 +173,53 @@ export const triggerAutomation = async ({
         }
       }
 
-      const { data: qItem, error: queueError } = await anySupabase.from("automation_queue").insert({
-        tenant_id,
-        automation_id: templateId, 
-        appointment_id,
-        appointment_group_id: appointmentGroupId,
-        event_name,
-        workflow_key: workflowKey,
-        status: "pending",
-        attempts: 0,
-        scheduled_for: new Date().toISOString()
-      }).select().single();
-      
-      if (queueError) {
-        console.error("[Automation] ❌ Error creating queue item:", queueError);
-      } else {
-        queueItem = qItem;
-        if (appointmentGroupId) {
-          console.log("[Automation] ✅ group_queue_created");
+      // 8b. Check for individual deduplication for confirmations (to not duplicate DB trigger)
+      if (workflowKey === 'appointment_confirmation') {
+        const { data: existingIndividual } = await anySupabase
+          .from("automation_queue")
+          .select("id")
+          .eq("appointment_id", appointment_id)
+          .eq("workflow_key", workflowKey)
+          .in("status", ["pending", "processing", "success"])
+          .maybeSingle();
+
+        if (existingIndividual) {
+          console.log("[Automation] ⏭️ Confirmation already enqueued by DB trigger, skipping frontend insert");
+        } else {
+          // Only insert if not already enqueued (unlikely for new appointments as trigger is faster)
+          const { data: qItem, error: queueError } = await anySupabase.from("automation_queue").insert({
+            tenant_id,
+            automation_id: templateId, 
+            appointment_id,
+            appointment_group_id: appointmentGroupId,
+            event_name,
+            workflow_key: workflowKey,
+            status: "pending",
+            attempts: 0,
+            scheduled_for: new Date().toISOString()
+          }, { 
+            onConflict: 'appointment_id,workflow_key' 
+          }).select().maybeSingle();
+          
+          if (queueError && !queueError.message.includes('unique constraint')) {
+            console.error("[Automation] ❌ Error creating queue item:", queueError);
+          } else {
+            queueItem = qItem;
+          }
         }
+      } else {
+        // For other events (cancellation, etc), always ensure it's enqueued
+        await anySupabase.from("automation_queue").insert({
+          tenant_id,
+          automation_id: templateId, 
+          appointment_id,
+          appointment_group_id: appointmentGroupId,
+          event_name,
+          workflow_key: workflowKey,
+          status: "pending",
+          attempts: 0,
+          scheduled_for: new Date().toISOString()
+        }).select().maybeSingle();
       }
     } catch (qErr) {
       console.error("[Automation] ❌ Exception creating queue item:", qErr);
@@ -199,13 +229,14 @@ export const triggerAutomation = async ({
     console.log(`[Automation] 🚀 Invoking process-automation-queue for ${workflowKey}`);
     
     // Non-blocking trigger of the edge function
+    // force_resend: false (default) to ensure deduplication check runs in the edge function
     supabase.functions.invoke('process-automation-queue', {
       body: { 
         tenant_id, 
         workflow_key: workflowKey,
         appointment_id,
         appointment_group_id: appointmentGroupId,
-        force_resend: true,
+        force_resend: false,
         source: 'real_appointment_flow_immediate'
       }
     }).then(({ data, error: invokeError }) => {
