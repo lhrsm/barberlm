@@ -4426,6 +4426,10 @@ export type Database = {
               error: true
             } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
+      check_appointment_financial_status: {
+        Args: { p_appointment_id: string }
+        Returns: Json
+      }
       check_expired_trials: { Args: never; Returns: undefined }
       complete_appointment: {
         Args: {

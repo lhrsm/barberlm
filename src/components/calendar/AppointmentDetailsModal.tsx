@@ -109,7 +109,8 @@ export function AppointmentDetailsModal({
     }
   }
 
-  const [isPixCancelModalOpen, setIsPixCancelModalOpen] = React.useState(false);
+  const [isFinancialModalOpen, setIsFinancialModalOpen] = React.useState(false);
+  const [financialStatus, setFinancialStatus] = React.useState<any>(null);
   const [showRefundForm, setShowRefundForm] = React.useState(false);
   const [refundData, setRefundData] = React.useState({
     holderName: '',
@@ -121,27 +122,36 @@ export function AppointmentDetailsModal({
   const handleCancelClick = async () => {
     if (!appointment) return;
     
-    // Buscar dados atualizados antes de decidir
     setLoading(true);
-    await fetchAppointment();
-    setLoading(false);
+    try {
+      // Usar a nova função RPC para verificar o status financeiro real
+      const { data, error: finError } = await supabase.rpc('check_appointment_financial_status', {
+        p_appointment_id: appointment.id
+      });
 
-    const isPixPaid = (['pix', 'PIX', 'Pix', 'mixed', 'misto'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
-                      ['paid', 'confirmed', 'completed', 'pago', 'aprovado'].includes(appointment.payment_status);
-    
-    const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
-                                 (appointment.cashback_used && Number(appointment.cashback_used) > 0);
+      if (finError) throw finError;
+      
+      const finStatus = data as any;
+      setFinancialStatus(finStatus);
 
-    if (isPixPaid) {
-      setIsPixCancelModalOpen(true);
-    } else if (hasCreditsOrCashback) {
-      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao saldo do cliente para uso futuro. Confirmar cancelamento?")) return;
-      updateStatus('cancelled');
-    } else {
-      if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
-      updateStatus('cancelled');
+      if (finStatus && finStatus.requires_financial_decision) {
+        setIsFinancialModalOpen(true);
+      } else {
+        if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
+          setLoading(false);
+          return;
+        }
+        updateStatus('cancelled');
+      }
+    } catch (err: any) {
+      console.error("Error checking financial status:", err);
+      toast.error("Erro ao verificar status financeiro do agendamento");
+    } finally {
+      setLoading(false);
     }
   };
+
+
 
 
   const updateStatus = async (newStatus: string, metadata: any = {}) => {
@@ -442,15 +452,18 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>
+          <Dialog open={isFinancialModalOpen} onOpenChange={setIsFinancialModalOpen}>
             <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
               <DialogHeader className="text-center">
                 <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <DollarSign className="text-[#D4AF37] w-8 h-8" />
                 </div>
-                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">O que deseja fazer com o valor?</DialogTitle>
                 <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
-                  Identificamos que este agendamento já foi pago via Pix. Valor pago: R$ {(appointment.pix_amount || appointment.total_price || 0).toFixed(2)}. Escolha se deseja solicitar estorno ou transformar o valor em créditos.
+                  Este agendamento possui valor financeiro vinculado. Escolha como deseja tratar esse valor antes de cancelar.
+                  {financialStatus?.paid_pix_amount > 0 && <p className="mt-2 text-white">Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>}
+                  {financialStatus?.used_credit_amount > 0 && <p className="text-white">Créditos Usados: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>}
+                  {financialStatus?.used_cashback_amount > 0 && <p className="text-white">Cashback Usado: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>}
                 </DialogDescription>
               </DialogHeader>
 
@@ -459,27 +472,29 @@ export function AppointmentDetailsModal({
                   <Button 
                     className="w-full h-14 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
                     onClick={() => {
-                      setIsPixCancelModalOpen(false);
+                      setIsFinancialModalOpen(false);
                       updateStatus('cancelled', { refund_preference: 'credits' });
                     }}
                     disabled={actionLoading}
                   >
                     Transformar em Crédito
                   </Button>
-                  <Button 
-                    variant="outline"
-                    className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
-                    onClick={() => {
-                      setShowRefundForm(true);
-                    }}
-                    disabled={actionLoading}
-                  >
-                    Solicitar Estorno
-                  </Button>
+                  {financialStatus?.has_paid_pix && (
+                    <Button 
+                      variant="outline"
+                      className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+                      onClick={() => {
+                        setShowRefundForm(true);
+                      }}
+                      disabled={actionLoading}
+                    >
+                      Solicitar Estorno
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost"
                     className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
-                    onClick={() => setIsPixCancelModalOpen(false)}
+                    onClick={() => setIsFinancialModalOpen(false)}
                   >
                     Voltar
                   </Button>
@@ -522,7 +537,7 @@ export function AppointmentDetailsModal({
                   </div>
                   <Button 
                     onClick={() => {
-                      setIsPixCancelModalOpen(false);
+                      setIsFinancialModalOpen(false);
                       updateStatus('cancelled', { refund_preference: 'refund' });
                     }}
                     disabled={actionLoading || !refundData.pixKey || !refundData.holderName}
@@ -541,6 +556,7 @@ export function AppointmentDetailsModal({
               )}
             </DialogContent>
           </Dialog>
+
 
 
           {showReschedule && (
