@@ -1117,8 +1117,6 @@ function FinancesComponent() {
             </Card>
           )}
         </div>
-      </div>
-
 
         <Tabs defaultValue="transactions" className="w-full">
           <TabsList className={cn("grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-4 max-w-[800px]" : "grid-cols-3 max-w-[600px]")}>
