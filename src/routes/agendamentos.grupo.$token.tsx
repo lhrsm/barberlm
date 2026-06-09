@@ -294,10 +294,20 @@ function AppointmentGroupPage() {
       const finStatus = await getFinancialStatus(firstId);
       setFinancialStatus(finStatus);
       
-      if (finStatus.requires_financial_decision) {
-        setIsCancelModalOpen(true); // Open financial decision modal (aliased as cancel modal here)
+      const hasFinancialValues = 
+        finStatus.has_paid_pix || 
+        finStatus.has_used_credits || 
+        finStatus.has_used_cashback || 
+        finStatus.requires_financial_decision ||
+        (finStatus.paid_pix_amount > 0) ||
+        (finStatus.used_credit_amount > 0);
+
+      if (hasFinancialValues) {
+        // Here we should ideally have a group financial decision modal, 
+        // but for now we'll use the flag to ensure safety.
+        setIsCancelModalOpen(true);
       } else {
-        setIsCancelModalOpen(true); // Simple cancel confirmation
+        setIsCancelModalOpen(true);
       }
     } catch (err) {
       toast.error("Erro ao verificar status financeiro");
@@ -321,7 +331,8 @@ function AppointmentGroupPage() {
         const appt = appointments.find(a => a.id === id);
         if (!appt) continue;
 
-        const isPaid = group.payment_status === 'paid' && Number(appt.service_amount) > 0;
+        const finStatus = await getFinancialStatus(id);
+        const isPaid = finStatus.has_paid_pix || finStatus.has_used_credits || finStatus.has_used_cashback || finStatus.requires_financial_decision || (finStatus.paid_pix_amount > 0);
         
         let result;
         if (isPaid) {
