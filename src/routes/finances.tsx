@@ -403,12 +403,13 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
-    // FILTRAR APENAS TRANSAÇÕES DE AGENDAMENTOS CONCLUÍDOS OU MANUAIS
+    // FILTRAR TRANSAÇÕES DE AGENDAMENTOS (Independente do status do agendamento, se o pagamento foi Pix e está pago)
     const effectiveTransactions = transactions.filter(t => 
       !t.appointment || 
       t.appointment.status === 'completed' || 
       t.appointment.status === 'confirmed' || 
-      t.appointment.status === 'scheduled'
+      t.appointment.status === 'scheduled' ||
+      (t.appointment.payment_status === 'paid' && (t.payment_method === 'pix' || t.pix_amount > 0))
     );
 
     // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
