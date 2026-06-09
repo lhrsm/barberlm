@@ -805,6 +805,48 @@ function FinancesComponent() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="payment_method">Forma de Pagamento</Label>
+                  <Select 
+                    value={newTransaction.payment_method} 
+                    onValueChange={(val) => setNewTransaction({...newTransaction, payment_method: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="cash">Dinheiro</SelectItem>
+                      <SelectItem value="card">Cartão</SelectItem>
+                      <SelectItem value="wallet">Créditos</SelectItem>
+                      <SelectItem value="misto">Misto (Pix+Crédito+...)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {(newTransaction.payment_method === 'misto' || newTransaction.payment_method === 'mixed') && (
+                  <div className="bg-muted/50 p-4 rounded-xl border border-border space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Detalhamento Misto</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold">PIX</Label>
+                        <Input type="number" step="0.01" value={newTransaction.pix_amount} onChange={(e) => setNewTransaction({...newTransaction, pix_amount: e.target.value})} className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold">Dinheiro</Label>
+                        <Input type="number" step="0.01" value={newTransaction.cash_amount} onChange={(e) => setNewTransaction({...newTransaction, cash_amount: e.target.value})} className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold">Cartão</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold">Créditos</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-8 text-xs" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
                   <Label htmlFor="category">Categoria</Label>
                   <Input 
                     id="category" 
