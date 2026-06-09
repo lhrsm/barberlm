@@ -480,6 +480,44 @@ export function AppointmentDetailsModal({
         </div>
 
         <div className="p-8 pt-4 border-t border-[#D4AF37]/10 flex flex-wrap gap-3 items-center justify-end bg-[#05070d]/50">
+          {(mode === 'admin' || mode === 'admin_read_only') && (
+            <div className="w-full mb-4 p-4 rounded-2xl bg-zinc-900/50 border border-white/5 space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">Diagnóstico Financeiro</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-[10px]">
+                <div className="space-y-1">
+                  <p className="text-gray-500 uppercase font-bold">Método Detectado:</p>
+                  <p className="text-white font-black">{appointment.payment_method?.toUpperCase() || 'NÃO DEFINIDO'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-500 uppercase font-bold">Status Pagamento:</p>
+                  <p className={cn("font-black", appointment.payment_status === 'paid' ? "text-emerald-500" : "text-amber-500")}>
+                    {appointment.payment_status?.toUpperCase() || 'PENDENTE'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-500 uppercase font-bold">Valor Pix:</p>
+                  <p className="text-white font-black">R$ {Number(appointment.pix_amount || 0).toFixed(2)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-500 uppercase font-bold">Créditos Usados:</p>
+                  <p className="text-white font-black">R$ {Number(appointment.credit_used || appointment.credits_used || 0).toFixed(2)}</p>
+                </div>
+              </div>
+              {appointment.payment_breakdown && (
+                <div className="mt-2 pt-2 border-t border-white/5">
+                  <p className="text-gray-500 uppercase font-bold text-[9px] mb-1">Composição:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {appointment.payment_breakdown.pix_amount > 0 && <Badge variant="outline" className="text-[8px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Pix: R$ {appointment.payment_breakdown.pix_amount}</Badge>}
+                    {appointment.payment_breakdown.credits_used > 0 && <Badge variant="outline" className="text-[8px] bg-violet-500/10 text-violet-500 border-violet-500/20">Crédito: R$ {appointment.payment_breakdown.credits_used}</Badge>}
+                    {appointment.payment_breakdown.cashback_used > 0 && <Badge variant="outline" className="text-[8px] bg-primary/10 text-primary border-primary/20">Cashback: R$ {appointment.payment_breakdown.cashback_used}</Badge>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {/* Diagnostic Modal */}
           <Dialog open={showDebug} onOpenChange={setShowDebug}>
             <DialogContent className="bg-[#0b0f17] border-[#D4AF37]/20 text-white rounded-[2rem] sm:max-w-md p-8">

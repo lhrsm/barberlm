@@ -329,8 +329,12 @@ function DashboardComponent() {
       {
         payment_status: 'paid',
         credit_used: usedCredits,
+        credits_used: usedCredits,
         cashback_used: usedCashback,
-        final_amount: remainingToPay
+        final_amount: remainingToPay,
+        pix_amount: appointment.payment_method === 'pix' ? remainingToPay : 0,
+        cash_amount: appointment.payment_method === 'cash' ? remainingToPay : 0,
+        payment_method: appointment.payment_method || 'pix'
       },
       'dashboard'
     );
