@@ -13,7 +13,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye } from "lucide-react";
+import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Handshake } from "lucide-react";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History } from "lucide-react";
@@ -486,8 +486,12 @@ function FinancesComponent() {
       .filter((t) => t.type === "credit_granted")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
-    // 10. Receita Líquida Real
+    // 10. Receita Líquida Real (Entradas Reais - Estornos Pagos)
     const netRevenue = realCashIncome - totalRefundsPaid;
+
+    // 11. Cashback Total Concedido (Gerado no período)
+    const totalCashbackEarned = effectiveTransactions
+      .reduce((acc, t) => acc + (Number(t.appointment?.cashback_earned || 0)), 0);
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
@@ -499,12 +503,18 @@ function FinancesComponent() {
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
     const freelancersPart = barbers.reduce((acc, barber) => {
-      const bTransactions = effectiveTransactions.filter(t => t.barber_id === barber.id && t.type === 'income');
-      const bTotal = bTransactions.reduce((tAcc, t) => {
-        // Comissão incide sobre o valor total do serviço, independente da forma de pagamento
-        if (t.appointment) return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
-        return tAcc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
+      // Filtrar transações únicas por agendamento para evitar duplicidade no cálculo da comissão
+      const bApptIds = new Set();
+      const bTotal = effectiveTransactions
+        .filter(t => t.barber_id === barber.id && t.type === 'income')
+        .reduce((tAcc, t) => {
+          if (t.appointment_id) {
+            if (bApptIds.has(t.appointment_id)) return tAcc;
+            bApptIds.add(t.appointment_id);
+            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
+          }
+          return tAcc + (parseFloat(String(t.amount)) || 0);
+        }, 0);
       return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
     }, 0);
 
@@ -523,9 +533,10 @@ function FinancesComponent() {
       balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
       barbershopPart: (realCashIncome + creditsConsumed + cashbackConsumed) - freelancersPart,
-      cashbackConsumed
+      cashbackConsumed,
+      totalCashbackEarned
     };
-  }, [transactions, refundRequests, barbers, appointments, totalCredits, appointments]);
+  }, [transactions, refundRequests, barbers, appointments, totalCredits]);
 
   useEffect(() => {
     async function fetchBalances() {
@@ -986,6 +997,20 @@ function FinancesComponent() {
           </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Concedido</CardTitle>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <TicketPercent className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">R$ {summary.totalCashbackEarned.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Gerado em atendimentos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
               <div className="p-2 bg-orange-500/10 rounded-lg">
@@ -1776,10 +1801,13 @@ function FinancesComponent() {
                   t.type === 'income' &&
                   (!barberDateFilter || t.date === barberDateFilter)
                 );
+                const bApptIds = new Set();
                 const totalReceived = barberTransactions.reduce((acc, t) => {
                   // Se houver agendamento vinculado, usamos o valor total para receita operacional do barbeiro
-                  if (t.appointment) {
-                    return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+                  if (t.appointment_id) {
+                    if (bApptIds.has(t.appointment_id)) return acc;
+                    bApptIds.add(t.appointment_id);
+                    return acc + (Number(t.appointment?.original_total || t.appointment?.total_price || (Number(t.amount) + Number(t.appointment?.credit_used || 0))) || 0);
                   }
                   
                   const val = parseFloat(String(t.amount)) || 0;
@@ -1862,9 +1890,12 @@ function FinancesComponent() {
                           t.type === 'income' &&
                           (!barberDateFilter || t.date === barberDateFilter)
                         );
+                        const bApptIds = new Set();
                         const bTotal = bTransactions.reduce((tAcc, t) => {
-                          if (t.appointment) {
-                            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+                          if (t.appointment_id) {
+                            if (bApptIds.has(t.appointment_id)) return tAcc;
+                            bApptIds.add(t.appointment_id);
+                            return tAcc + (Number(t.appointment?.original_total || t.appointment?.total_price || (Number(t.amount) + Number(t.appointment?.credit_used || 0))) || 0);
                           }
                           const val = parseFloat(String(t.amount)) || 0;
                           if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
@@ -1887,8 +1918,8 @@ function FinancesComponent() {
                       return (
                         <>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">Lançamentos Gerais</span>
-                            <span className="text-foreground">R$ {totalGeneralOnly.toFixed(2)}</span>
+                            <span className="text-muted-foreground italic font-medium uppercase tracking-tight">Resultado da Barbearia</span>
+                            <span className="text-2xl font-black text-emerald-500 italic tracking-tight">R$ {finalTotal.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Vindo dos Barbeiros</span>

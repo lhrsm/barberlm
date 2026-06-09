@@ -17,6 +17,7 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
+  TicketPercent,
   Target,
   Crown,
   Zap,
@@ -42,7 +43,7 @@ import {
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow, isSameDay } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek, format, formatDistanceToNow, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { 
@@ -82,6 +83,9 @@ function DashboardComponent() {
       cashbackUsed: 0,
       cashbackEarned: 0,
       newCustomers: 0
+    },
+    weekly: {
+      cashbackEarned: 0
     },
     monthly: {
       appointments: 0,
@@ -547,6 +551,7 @@ function DashboardComponent() {
     if (!user || !tenantId) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString();
     const monthStart = startOfMonth(new Date()).toISOString();
     const monthEnd = endOfMonth(new Date()).toISOString();
 
@@ -563,6 +568,7 @@ function DashboardComponent() {
       profileData,
       walletData,
       dailyAppointmentsData,
+      weeklyAppointmentsData,
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
@@ -583,6 +589,10 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("cashback_earned")
+        .eq("tenant_id", tenantId)
+        .eq("status", "completed")
+        .gte("start_time", weekStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
@@ -672,6 +682,8 @@ function DashboardComponent() {
     const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 
+    const weeklyCashbackEarned = weeklyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
+
     setStats({
       daily: {
         appointments: dailyApp.count || 0,
@@ -681,6 +693,9 @@ function DashboardComponent() {
         cashbackUsed: dailyCashbackUsed,
         cashbackEarned: dailyCashbackEarned,
         newCustomers: dailyCust.count || 0
+      },
+      weekly: {
+        cashbackEarned: weeklyCashbackEarned
       },
       monthly: {
         appointments: monthlyApp.count || 0,
@@ -1523,14 +1538,26 @@ function DashboardComponent() {
               </Card>
               <Card className="bg-white border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/5 hover:border-yellow-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Gerado Hoje</CardTitle>
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Concedido</CardTitle>
                   <div className="p-2 bg-yellow-500/10 rounded-lg">
-                    <ArrowDownRight className="h-4 w-4 text-yellow-400" />
+                    <TicketPercent className="h-4 w-4 text-yellow-500" />
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Novos saldos de cashback</p>
+                <CardContent className="space-y-2">
+                  <div>
+                    <div className="text-2xl font-black tracking-tighter text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
+                    <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Hoje</p>
+                  </div>
+                  <div className="flex justify-between border-t border-yellow-500/10 pt-2">
+                    <div>
+                      <p className="text-[9px] font-bold text-yellow-600/60 uppercase">Semana</p>
+                      <p className="text-sm font-black text-yellow-700">R$ {stats.weekly.cashbackEarned.toFixed(2)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-bold text-yellow-600/60 uppercase">Mês</p>
+                      <p className="text-sm font-black text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="bg-white border-2 border-indigo-500/30 shadow-lg shadow-indigo-500/5 hover:border-indigo-500/60 transition-all duration-300">
