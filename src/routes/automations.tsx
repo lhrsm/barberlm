@@ -228,11 +228,16 @@ function AutomationsComponent() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">Automações</h1>
-          <Button onClick={runQueueNow} disabled={isProcessingQueue} className="bg-amber-500 hover:bg-amber-600 text-black font-bold">
-            {isProcessingQueue ? <Loader2 className="animate-spin mr-2" /> : <Play className="mr-2" />} Processar Fila Agora
-          </Button>
+          <div className="flex gap-2 w-full md:w-auto">
+            <Button onClick={runDiagnosis} variant="outline" className="flex-1 md:flex-none border-white/10 text-white hover:bg-white/5">
+              <Search className="mr-2 h-4 w-4" /> Diagnosticar Último
+            </Button>
+            <Button onClick={runQueueNow} disabled={isProcessingQueue} className="flex-1 md:flex-none bg-amber-500 hover:bg-amber-600 text-black font-bold">
+              {isProcessingQueue ? <Loader2 className="animate-spin mr-2" /> : <Play className="mr-2" />} Processar Fila Agora
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
