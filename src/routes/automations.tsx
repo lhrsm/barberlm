@@ -91,6 +91,9 @@ function AutomationsComponent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
+  const [isDiagOpen, setIsDiagOpen] = useState(false);
+  const [diagData, setDiagData] = useState<any>(null);
+  const [diagLoading, setDiagLoading] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
