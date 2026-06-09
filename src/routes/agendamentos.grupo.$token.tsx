@@ -1,5 +1,5 @@
 
-import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,7 +20,8 @@ import {
   CalendarDays,
   Trash2,
   Check,
-  CircleDollarSign
+  CircleDollarSign,
+  LayoutDashboard
 } from "lucide-react";
 
 import { format, parseISO, addMinutes, isSameDay } from "date-fns";
@@ -41,6 +42,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/agendamentos/grupo/$token")({
   component: AppointmentGroupPage,
@@ -48,9 +50,11 @@ export const Route = createFileRoute("/agendamentos/grupo/$token")({
 
 function AppointmentGroupPage() {
   const { token } = Route.useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const expectedTenantId = searchParams.get('tenant');
+  const { user: authUser } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [group, setGroup] = useState<any>(null);
@@ -71,6 +75,8 @@ function AppointmentGroupPage() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<any>(null);
+  const [successRedirect, setSuccessRedirect] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   
   useEffect(() => {
@@ -226,6 +232,36 @@ function AppointmentGroupPage() {
     }
   }
 
+  useEffect(() => {
+    let timer: any;
+    if (successRedirect && redirectCountdown > 0) {
+      timer = setInterval(() => {
+        setRedirectCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (successRedirect && redirectCountdown === 0) {
+      handleGoToPortal();
+    }
+    return () => clearInterval(timer);
+  }, [successRedirect, redirectCountdown]);
+
+  const handleGoToPortal = async () => {
+    if (!group?.tenant_slug) {
+      const { data: tenant } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('id', group.tenant_id)
+        .single();
+      
+      if (tenant?.slug) {
+        navigate({ to: `/${tenant.slug}/portal` as any });
+      } else {
+        navigate({ to: '/' });
+      }
+      return;
+    }
+    navigate({ to: `/${group.tenant_slug}/portal` as any });
+  };
+
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -299,6 +335,7 @@ function AppointmentGroupPage() {
       setSelectedIds([]);
       fetchGroup();
       fetchHistory();
+      setSuccessRedirect(true);
       
       // Enviar notificação individual para cada item cancelado
       for (const id of selectedIds) {
@@ -445,6 +482,7 @@ function AppointmentGroupPage() {
       setRescheduleData(null);
       fetchGroup(); 
       fetchHistory();
+      setSuccessRedirect(true);
 
       // Enviar notificação de reagendamento
       await supabase.functions.invoke('appointment-notifications', {
@@ -514,6 +552,32 @@ function AppointmentGroupPage() {
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Gerenciamento de Grupo de Agendamentos</p>
         </div>
 
+        {successRedirect && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8"
+          >
+            <Card className="bg-emerald-500/10 border-emerald-500/20 rounded-[2rem] overflow-hidden">
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="text-emerald-500 w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-emerald-500 font-black uppercase text-sm tracking-widest italic">Procedimento realizado com sucesso!</h3>
+                  <p className="text-zinc-400 text-xs font-medium">Você será redirecionado para o painel do cliente em {redirectCountdown} segundos...</p>
+                </div>
+                <Button 
+                  onClick={handleGoToPortal}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase italic tracking-tighter rounded-xl h-12"
+                >
+                  Ir agora para o Painel
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Finance Summary Card */}
         <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
           <CardHeader className="p-6 border-b border-zinc-800/50">
@@ -540,14 +604,24 @@ function AppointmentGroupPage() {
               </div>
             )}
 
-            <div className="pt-4 border-t border-zinc-800/50 flex justify-between items-center">
-              <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Valor Ativo</span>
-              <span className="text-primary text-xl font-black">
-                R$ {appointments
-                  .filter(a => a.status !== 'cancelled')
-                  .reduce((acc, a) => acc + Number(a.service_amount), 0)
-                  .toFixed(2)}
-              </span>
+            <div className="pt-4 border-t border-zinc-800/50 flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Valor Ativo</span>
+                <span className="text-primary text-xl font-black">
+                  R$ {appointments
+                    .filter(a => a.status !== 'cancelled')
+                    .reduce((acc, a) => acc + Number(a.service_amount), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+              <Button 
+                onClick={handleGoToPortal}
+                variant="outline"
+                className="w-full h-12 rounded-xl border-zinc-800 text-zinc-400 font-bold uppercase tracking-widest text-[10px]"
+              >
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Painel do Cliente
+              </Button>
             </div>
 
             {group.payment_status === 'paid' && appointments.some(a => a.status === 'cancelled') && (
@@ -745,6 +819,14 @@ function AppointmentGroupPage() {
                 {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
               </Button>
             )}
+            <Button 
+              onClick={handleGoToPortal}
+              variant="outline"
+              className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Painel do Cliente
+            </Button>
             <Button 
               variant="outline" 
               onClick={() => setIsCancelModalOpen(false)}

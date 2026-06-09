@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   CalendarDays,
   Trash2,
-  DollarSign
+  DollarSign,
+  LayoutDashboard
 } from "lucide-react";
 import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -38,6 +39,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
@@ -49,6 +51,7 @@ function AppointmentManagementPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const expectedTenantId = searchParams.get('tenant');
+  const { user: authUser } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [appointment, setAppointment] = useState<any>(null);
@@ -57,6 +60,8 @@ function AppointmentManagementPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [successRedirect, setSuccessRedirect] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
   
   const [refundData, setRefundData] = useState({
     holderName: '',
@@ -125,6 +130,36 @@ function AppointmentManagementPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    let timer: any;
+    if (successRedirect && redirectCountdown > 0) {
+      timer = setInterval(() => {
+        setRedirectCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (successRedirect && redirectCountdown === 0) {
+      handleGoToPortal();
+    }
+    return () => clearInterval(timer);
+  }, [successRedirect, redirectCountdown]);
+
+  const handleGoToPortal = async () => {
+    if (!appointment?.tenant_slug) {
+      const { data: tenant } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('id', appointment.tenant_id)
+        .single();
+      
+      if (tenant?.slug) {
+        navigate({ to: `/${tenant.slug}/portal` as any });
+      } else {
+        navigate({ to: '/' });
+      }
+      return;
+    }
+    navigate({ to: `/${appointment.tenant_slug}/portal` as any });
+  };
 
   useEffect(() => {
     if (isRescheduling && selectedDate && appointment) {
@@ -233,7 +268,9 @@ function AppointmentManagementPage() {
 
       toast.success("Seu agendamento foi reagendado com sucesso!");
       setIsRescheduling(false);
+      setSuccessRedirect(true);
       fetchAppointment(); 
+
     } catch (err: any) {
       toast.error(err.message || "Erro ao reagendar");
     } finally {
@@ -292,6 +329,7 @@ function AppointmentManagementPage() {
       toast.success("Agendamento cancelado com sucesso.");
       setIsCancelModalOpen(false);
       setShowRefundForm(false);
+      setSuccessRedirect(true);
       fetchAppointment();
     } catch (err: any) {
       console.error("AUDIT [Cancel Error]:", err);
@@ -368,6 +406,32 @@ function AppointmentManagementPage() {
           </h1>
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Gerenciamento de Agendamento</p>
         </div>
+
+        {successRedirect && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8"
+          >
+            <Card className="bg-emerald-500/10 border-emerald-500/20 rounded-[2rem] overflow-hidden">
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="text-emerald-500 w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-emerald-500 font-black uppercase text-sm tracking-widest italic">Procedimento realizado com sucesso!</h3>
+                  <p className="text-zinc-400 text-xs font-medium">Você será redirecionado para o painel do cliente em {redirectCountdown} segundos...</p>
+                </div>
+                <Button 
+                  onClick={handleGoToPortal}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase italic tracking-tighter rounded-xl h-12"
+                >
+                  Ir agora para o Painel
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         <AnimatePresence mode="wait">
           {!isRescheduling ? (
@@ -468,6 +532,15 @@ function AppointmentManagementPage() {
                         <span>Cancelar Agendamento</span>
                       </Button>
                     )}
+
+                    <Button 
+                      onClick={handleGoToPortal}
+                      variant="outline"
+                      className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl border-zinc-800 text-zinc-400 font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4"
+                    >
+                      <LayoutDashboard className="mr-3 h-6 w-6 shrink-0" />
+                      <span>Painel do Cliente</span>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
