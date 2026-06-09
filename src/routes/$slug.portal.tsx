@@ -742,10 +742,11 @@ function ClientPortalComponent() {
           toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
         }
       } else {
-        await supabase
-          .from("appointments")
-          .update({ status: "cancelled" })
-          .eq("id", app.id);
+        await supabase.rpc('cancel_appointment', {
+          p_appointment_id: app.id,
+          p_cancelled_by: 'system',
+          p_source: 'system_auto_cancellation'
+        });
       }
     }
     
