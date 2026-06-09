@@ -282,65 +282,9 @@ function AppointmentManagementPage() {
   };
 
   const handleCancel = async (preference: 'credits' | 'refund' | 'none' = 'none', refundDetails?: any) => {
-    setCancelling(true);
-    try {
-      console.log(`AUDIT [Cancel]: Started cancel for ${appointment.id} with pref ${preference}`);
-      
-      const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
-        p_appointment_id: appointment.id,
-        p_cancelled_by: 'customer',
-        p_source: 'user_panel',
-        p_refund_preference: preference,
-        p_changed_by_id: undefined
-      });
-
-      if (rpcError) throw rpcError;
-      const response = data as any;
-      if (response && response.success === false) throw new Error(response.error || "Erro ao processar");
-
-      if (preference === 'refund' && refundDetails) {
-        await supabase
-          .from('refund_requests')
-          .update({
-            holder_name: refundDetails.holderName,
-            pix_key: refundDetails.pixKey,
-            pix_type: refundDetails.pixType,
-            notes: refundDetails.notes
-          })
-          .eq('appointment_id', appointment.id)
-          .eq('status', 'requested');
-      }
-
-      await createNotification({
-        userId: appointment.tenant_id,
-        type: 'appointment_cancelled',
-        title: "Agendamento Cancelado",
-        message: `${appointment.customer_name} cancelou o agendamento.`,
-        barberId: appointment.professional_id || appointment.barber_id,
-        metadata: { 
-          appointmentId: appointment.id,
-          refund_preference: preference
-        }
-      });
-
-      triggerAutomation({
-        tenant_id: appointment.tenant_id,
-        event_name: 'appointment.cancelled',
-        appointment_id: appointment.id
-      }).catch(console.error);
-
-      toast.success("Agendamento cancelado com sucesso.");
-      setIsCancelModalOpen(false);
-      setShowRefundForm(false);
-      setSuccessRedirect(true);
-      fetchAppointment();
-    } catch (err: any) {
-
-      console.error("AUDIT [Cancel Error]:", err);
-      toast.error(err.message || "Erro ao cancelar agendamento");
-    } finally {
-      setCancelling(false);
-    }
+    // This function is deprecated for customer use. We now use useCustomerCancellation hook.
+    // However, keeping the UI logic for modal consistency.
+    console.warn("Deprecated handleCancel called. Use useCustomerCancellation hook instead.");
   };
 
   const [cancellationStep, setCancellationStep] = useState<CancellationStep>('none');
@@ -354,7 +298,22 @@ function AppointmentManagementPage() {
       const finStatus = await getFinancialStatus(appointment.id);
       setFinancialStatus(finStatus);
       
-      if (finStatus.requires_financial_decision) {
+      console.log("AUDIT [Public Link Cancellation]:", {
+        function: "handleInitialCancelClick",
+        appointment_id: appointment.id,
+        financialStatus: finStatus
+      });
+
+      // REGRA: Modal simples só se NÃO houver nenhum valor envolvido
+      const hasFinancialValues = 
+        finStatus.has_paid_pix || 
+        finStatus.has_used_credits || 
+        finStatus.has_used_cashback || 
+        finStatus.requires_financial_decision ||
+        (finStatus.paid_pix_amount > 0) ||
+        (finStatus.used_credit_amount > 0);
+
+      if (hasFinancialValues) {
         setCancellationStep('financial_decision');
       } else {
         setCancellationStep('simple_confirmation');
