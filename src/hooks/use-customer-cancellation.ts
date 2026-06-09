@@ -12,8 +12,12 @@ export interface FinancialStatus {
   paid_pix_amount: number;
   has_used_credits: boolean;
   used_credit_amount: number;
+  has_used_cashback: boolean;
+  used_cashback_amount: number;
   payment_id: string | null;
   total_price: number;
+  status: string;
+  payment_status: string;
 }
 
 export function useCustomerCancellation() {

@@ -345,23 +345,33 @@ function AppointmentManagementPage() {
 
   const [cancellationStep, setCancellationStep] = useState<CancellationStep>('none');
   const [financialStatus, setFinancialStatus] = useState<FinancialStatus | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
   const { getFinancialStatus, confirmSimpleCancellation, confirmCancellationWithCredit, confirmCancellationWithRefundRequest } = useCustomerCancellation();
 
   const handleInitialCancelClick = async () => {
     setLoading(true);
+    console.log("DEBUG [Cancel]: Initial click for appointment", appointment?.id);
     try {
       const finStatus = await getFinancialStatus(appointment.id);
+      console.log("DEBUG [Cancel]: Financial Status received:", finStatus);
       setFinancialStatus(finStatus);
-
-      if (finStatus.requires_financial_decision) {
-        setCancellationStep('financial_decision');
-      } else {
-        setCancellationStep('simple_confirmation');
-      }
+      setShowDebug(true); // Sempre mostrar diagnóstico temporário antes de prosseguir
     } catch (err: any) {
+      console.error("DEBUG [Cancel Error]:", err);
       toast.error("Erro ao verificar status financeiro do agendamento");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const proceedAfterDebug = () => {
+    setShowDebug(false);
+    if (!financialStatus) return;
+
+    if (financialStatus.requires_financial_decision) {
+      setCancellationStep('financial_decision');
+    } else {
+      setCancellationStep('simple_confirmation');
     }
   };
 
@@ -648,6 +658,43 @@ function AppointmentManagementPage() {
           )}
         </div>
       </motion.div>
+
+      {/* Diagnostic Modal */}
+      <Dialog open={showDebug} onOpenChange={setShowDebug}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-black uppercase italic text-primary">Diagnóstico de Cancelamento</DialogTitle>
+            <DialogDescription className="text-zinc-400 text-xs">
+              Evidência técnica da lógica financeira (Temporário)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 text-[11px] font-mono bg-black/50 p-4 rounded-xl border border-white/5">
+            <p><span className="text-zinc-500">appointment_id:</span> {appointment.id}</p>
+            <p><span className="text-zinc-500">customer_id:</span> {appointment.customer_id}</p>
+            <p><span className="text-zinc-500">status:</span> {financialStatus?.status}</p>
+            <p><span className="text-zinc-500">payment_status:</span> {financialStatus?.payment_status}</p>
+            <p><span className="text-zinc-500">has_paid_pix:</span> <span className={financialStatus?.has_paid_pix ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_paid_pix)}</span></p>
+            <p><span className="text-zinc-500">paid_pix_amount:</span> R$ {financialStatus?.paid_pix_amount}</p>
+            <p><span className="text-zinc-500">has_used_credits:</span> <span className={financialStatus?.has_used_credits ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_used_credits)}</span></p>
+            <p><span className="text-zinc-500">used_credit_amount:</span> R$ {financialStatus?.used_credit_amount}</p>
+            <p><span className="text-zinc-500">has_used_cashback:</span> <span className={financialStatus?.has_used_cashback ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.has_used_cashback)}</span></p>
+            <p><span className="text-zinc-500">requires_financial_decision:</span> <span className={financialStatus?.requires_financial_decision ? "text-emerald-500" : "text-red-500"}>{String(financialStatus?.requires_financial_decision)}</span></p>
+            <p><span className="text-zinc-500">origem:</span> public_link</p>
+          </div>
+
+          <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+             <p className="text-amber-500 text-xs font-bold mb-2">Bloqueio Temporário de Segurança:</p>
+             <p className="text-zinc-300 text-[10px]">Este agendamento possui pagamento ou crédito vinculado?</p>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-2 mt-6">
+            <Button onClick={() => { setCancellationStep('financial_decision'); setShowDebug(false); }} className="w-full bg-primary text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
+            <Button onClick={proceedAfterDebug} variant="outline" className="w-full border-zinc-800 text-zinc-400 font-black uppercase text-xs">Prosseguir com lógica automática</Button>
+            <Button onClick={() => setShowDebug(false)} variant="ghost" className="w-full text-zinc-500 uppercase text-[10px]">Voltar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Simple Confirmation Dialog */}
       <Dialog open={cancellationStep === 'simple_confirmation'} onOpenChange={(open) => !open && setCancellationStep('none')}>
