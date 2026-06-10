@@ -820,6 +820,26 @@ function FinancesComponent() {
                 >
                   <RefreshCcw size={18} /> Sincronizar Tudo
                 </Button>
+                <Button 
+                  variant="outline" 
+                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500" 
+                  onClick={async () => {
+                    const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
+                    if (customers) {
+                      toast.info(`Recalculando saldos de ${customers.length} clientes...`);
+                      for (const c of customers) {
+                        await supabase.rpc('recalculate_customer_stats', { p_customer_id: c.id, p_tenant_id: c.tenant_id });
+                      }
+                      fetchTransactions();
+                      fetchCashbackTransactions();
+                      fetchCustomerStats();
+                      toast.success("Saldos recalculados com sucesso!");
+                    }
+                  }}
+                >
+                  <RefreshCcw size={18} /> Recalcular Saldos
+                </Button>
+                </Button>
               </div>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
