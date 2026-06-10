@@ -4443,7 +4443,7 @@ export type Database = {
           p_changed_by_id: string
           p_changed_by_type: string
           p_metadata?: Json
-          p_source?: string
+          p_source: string
         }
         Returns: Json
       }
@@ -4604,6 +4604,14 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      recalculate_customer_cashback_balance: {
+        Args: { p_customer_id: string }
+        Returns: number
+      }
+      recalculate_customer_credit_balance: {
+        Args: { p_customer_id: string }
+        Returns: number
       }
       recalculate_customer_stats: {
         Args: { p_customer_id: string; p_tenant_id: string }

@@ -319,10 +319,8 @@ function CustomersComponent() {
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cliente</TableHead>
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Telefone</TableHead>
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Fidelidade</TableHead>
-                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Crédito Total</TableHead>
-                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Crédito Utilizado</TableHead>
-                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback Total</TableHead>
-                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback Utilizado</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Saldo de Créditos</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Saldo de Cashback</TableHead>
                   <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -349,9 +347,7 @@ function CustomersComponent() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-green-500 font-bold">R$ {(Number(customer.credits) || 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-slate-400 font-medium text-xs">R$ {(Number(customer.credits_used) || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-[#D4AF37] font-bold">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-slate-400 font-medium text-xs">R$ {(Number(customer.cashback_used) || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold h-8 text-xs" onClick={() => handleViewHistory(customer)}>Ver</Button>

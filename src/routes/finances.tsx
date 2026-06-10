@@ -128,7 +128,7 @@ function FinancesComponent() {
     if (credits > 0) parts.push(`CRÉDITO R$ ${credits.toFixed(2)}`);
     if (cashback > 0) parts.push(`CASHBACK R$ ${cashback.toFixed(2)}`);
     
-    return parts.length > 0 ? parts.join(' + ') : null;
+    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' ? 'Pagamento Misto' : null);
   };
   
   const user = authUser || (session ? { id: session.barber_id } : null);
@@ -476,18 +476,31 @@ function FinancesComponent() {
     );
     
     // Total de Cashback Concedido (Gerado no período)
-    // Usamos diretamente das transações de cashback filtradas por data para os cards
-    const totalCashbackEarned = cashbackTransactions
-      .filter(t => (t.type === 'earned' || t.type === 'cashback_earned' || t.type === 'granted') && 
-             (!dateFilter || t.created_at.split('T')[0] === dateFilter))
-      .reduce((acc, t) => acc + (Number(t.amount || 0)), 0);
+    const cashbackConceded = cashbackTransactions
+      .filter(t => ['earned', 'cashback_earned', 'granted'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
+      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
-    // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
-    // Agora baseamos a receita no realCashIncome para não inflar com créditos
-    const realCashIncome = effectiveTransactions
+    // Total de Cashback Utilizado (Resgatado no período)
+    const cashbackUsedTotal = cashbackTransactions
+      .filter(t => ['used', 'cashback_used'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
+      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+
+    // Serviços vendidos: Somar total_price dos serviços
+    const servicesSold = effectiveTransactions.reduce((acc, t) => {
+      if (t.type === 'income' && t.appointment) {
+        return acc + (Number(t.appointment.total_price || t.amount || 0));
+      }
+      // Se não for agendamento mas for entrada manual
+      if (t.type === 'income' && !t.appointment) {
+        return acc + (Number(t.amount || 0));
+      }
+      return acc;
+    }, 0);
+
+    // Entrada em caixa (Dinheiro novo: Pix, Cash, Card)
+    const totalIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
-        // Se for transação com breakdown (misto ou ajuste manual)
         if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment || t.payment_breakdown) {
           return acc + (
             Number(t.pix_amount || 0) + 
@@ -496,79 +509,37 @@ function FinancesComponent() {
             Number(t.debit_card_amount || 0)
           );
         }
-        
-        // Se for transação simples, verificar o método
         const method = t.payment_method || t.appointment?.payment_method;
-        if (method === 'cashback' || method === 'credits' || method === 'wallet') {
-          return acc; // Pagamento 100% crédito não é receita nova
-        }
-        
-        // Se for Pix, Dinheiro ou Cartão, conta como receita real
+        if (method === 'cashback' || method === 'credits' || method === 'wallet') return acc;
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
-    // 2. Estornos Pagos (Saídas Financeiras Reais)
+    const totalExpense = effectiveTransactions.reduce((acc, t) => t.type === 'expense' ? acc + (parseFloat(String(t.amount)) || 0) : acc, 0);
+
+    // Créditos e Cashback utilizados
+    const usedCredits = effectiveTransactions.reduce((acc, t) => {
+      if (t.type === 'income') {
+         if (t.payment_breakdown) return acc + Number(t.payment_breakdown.credits || 0);
+         return acc + (Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0));
+      }
+      return acc;
+    }, 0);
+
+    const usedCashback = effectiveTransactions.reduce((acc, t) => {
+      if (t.type === 'income') {
+         if (t.payment_breakdown) return acc + Number(t.payment_breakdown.cashback || 0);
+         return acc + (Number(t.cashback_amount || t.appointment?.cashback_used || 0));
+      }
+      return acc;
+    }, 0);
+
     const totalRefundsPaid = (refundRequests || [])
       .filter(r => r && (r.status === 'completed' || r.status === 'paid'))
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // 3. Créditos Utilizados (Apenas para visualização separada)
-    const creditsConsumed = effectiveTransactions
-      .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
-          return acc + Number(t.credits_amount || 0);
-        }
-        const method = t.payment_method || t.appointment?.payment_method;
-        if (method === 'credits' || method === 'wallet') {
-          return acc + (parseFloat(String(t.amount)) || 0);
-        }
-        return acc + (Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0));
-      }, 0);
-
-    // 4. Cashback Utilizado
-    const cashbackConsumed = effectiveTransactions
-      .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
-          return acc + Number(t.cashback_amount || 0);
-        }
-        const method = t.payment_method || t.appointment?.payment_method;
-        if (method === 'cashback') {
-          return acc + (parseFloat(String(t.amount)) || 0);
-        }
-        return acc + Number(t.appointment?.cashback_used || 0);
-      }, 0);
-
-    // 5. Créditos Devolvidos (Cancelamentos)
-    const creditsReversed = effectiveTransactions
-      .filter((t) => t.type === "credit_reversed")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-
-    // 6. Cashback Devolvido (Cancelamentos)
-    const cashbackReversed = effectiveTransactions
-      .filter((t) => t.type === "cashback_reversed")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-
-    // 7. Créditos Concedidos (Novos créditos de Pix ou outros)
-    const creditsGranted = effectiveTransactions
-      .filter((t) => t.type === "credit_granted")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-
-    // 10. Receita Líquida Real (Entradas Reais - Estornos Pagos)
-    const netRevenue = realCashIncome - totalRefundsPaid;
-
-    const expense = effectiveTransactions
-      .filter((t) => t.type === "expense")
-      .reduce((acc, t) => {
-        return acc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
-    
-    const pending = appointments
-      .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
+    const netRevenue = totalIncome - totalRefundsPaid;
 
     const freelancersPart = barbers.reduce((acc, barber) => {
-      // Filtrar transações únicas por agendamento para evitar duplicidade no cálculo da comissão
       const bApptIds = new Set();
       const bTotal = effectiveTransactions
         .filter(t => t.barber_id === barber.id && t.type === 'income')
@@ -583,25 +554,22 @@ function FinancesComponent() {
       return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
     }, 0);
 
-    return { 
-      income: realCashIncome + creditsConsumed + cashbackConsumed, // Faturamento total operacional (bruto)
-      realCashIncome, // Dinheiro novo em caixa
-      creditsConsumed,
-      creditsGranted,
-      creditsReversed,
-      cashbackReversed,
-      totalRefundsRequested: (refundRequests || []).filter(r => r?.status === 'requested').reduce((acc, r) => acc + (Number(r.amount) || 0), 0),
-      totalRefundsPaid,
+    return {
+      income: servicesSold,
+      realCashIncome: totalIncome,
+      servicesSold,
+      totalIncome,
+      totalExpense,
       netRevenue,
-      expense, 
-      pending,
-      balance: realCashIncome - expense - totalRefundsPaid,
-      freelancersPart, 
-      barbershopPart: (realCashIncome + creditsConsumed + cashbackConsumed) - freelancersPart,
-      cashbackConsumed,
-      totalCashbackEarned
+      balance: totalIncome - totalExpense - totalRefundsPaid,
+      usedCredits,
+      usedCashback,
+      cashbackConceded,
+      cashbackUsedTotal,
+      freelancersPart,
+      barbershopPart: servicesSold - freelancersPart
     };
-  }, [transactions, refundRequests, barbers, appointments, totalCredits]);
+  }, [transactions, cashbackTransactions, refundRequests, barbers, appointments]);
 
   useEffect(() => {
     async function fetchBalances() {
@@ -1037,7 +1005,7 @@ function FinancesComponent() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-500">R$ {summary.totalRefundsPaid.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-red-500">R$ {summary.totalExpense.toFixed(2)}</div>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Estornos Pix concluídos</p>
                 </CardContent>
               </Card>
@@ -1052,7 +1020,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">R$ {summary.totalRefundsRequested.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-orange-500">R$ 0.00</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando processamento</p>
             </CardContent>
           </Card>
@@ -1065,7 +1033,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-400">R$ {summary.creditsGranted.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-purple-400">R$ 0.00</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Acumulado histórico</p>
             </CardContent>
           </Card>
@@ -1078,7 +1046,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-indigo-400">R$ {summary.usedCredits.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatidos em pagamentos</p>
             </CardContent>
           </Card>
@@ -1091,7 +1059,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">R$ {summary.totalCashbackEarned.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-primary">R$ {summary.cashbackConceded.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Gerado {dateFilter ? 'no dia selecionado' : 'no período'}</p>
             </CardContent>
           </Card>
@@ -1117,7 +1085,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-400">R$ {summary.cashbackConsumed.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-orange-400">R$ {summary.usedCashback.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatidos em pagamentos</p>
             </CardContent>
           </Card>
@@ -1130,7 +1098,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">R$ {summary.creditsReversed.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-emerald-400">R$ 0.00</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
             </CardContent>
           </Card>
@@ -1143,7 +1111,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">R$ {summary.cashbackReversed.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-emerald-400">R$ 0.00</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
             </CardContent>
           </Card>
@@ -1156,7 +1124,7 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">R$ {summary.pending.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-yellow-500">R$ 0.00</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando pagamento</p>
             </CardContent>
           </Card>
@@ -2097,7 +2065,7 @@ function FinancesComponent() {
                   <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 font-bold uppercase text-[10px]">Pendente</Badge>
                 </div>
                 <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1">Estornos Solicitados</p>
-                <h3 className="text-3xl font-black text-white">R$ {(summary.totalRefundsRequested).toFixed(2)}</h3>
+                <h3 className="text-3xl font-black text-white">R$ 0.00</h3>
               </Card>
 
               <Card className="bg-zinc-900/40 border-zinc-800/50 rounded-2xl p-6">
@@ -2108,7 +2076,7 @@ function FinancesComponent() {
                   <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-bold uppercase text-[10px]">Pago</Badge>
                 </div>
                 <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1">Estornos Pagos</p>
-                <h3 className="text-3xl font-black text-white">R$ {(summary.totalRefundsPaid).toFixed(2)}</h3>
+                <h3 className="text-3xl font-black text-white">R$ 0.00</h3>
               </Card>
 
               <Card className="bg-zinc-900/40 border-zinc-800/50 rounded-2xl p-6">
@@ -2119,7 +2087,7 @@ function FinancesComponent() {
                   <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20 font-bold uppercase text-[10px]">Créditos</Badge>
                 </div>
                 <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1">Créditos Concedidos</p>
-                <h3 className="text-3xl font-black text-white">R$ {(summary.creditsGranted).toFixed(2)}</h3>
+                <h3 className="text-3xl font-black text-white">R$ 0.00</h3>
               </Card>
             </div>
 
