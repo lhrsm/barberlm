@@ -83,6 +83,7 @@ function FinancesComponent() {
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
+  const [customerStats, setCustomerStats] = useState({ total_cashback: 0, total_credits: 0 });
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
@@ -154,6 +155,7 @@ function FinancesComponent() {
       fetchAppointments(barberIdFilter);
       fetchRefundRequests();
       fetchCashbackTransactions();
+      fetchCustomerStats(); // Novo fetch para garantir cards atualizados
 
       // Realtime subscription
       const channel = supabase
@@ -423,6 +425,27 @@ function FinancesComponent() {
     }
   }
 
+  async function fetchCustomerStats() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("cashback_balance, credits")
+        .eq("tenant_id", user.id);
+      
+      if (error) throw error;
+      
+      const totals = (data || []).reduce((acc, curr) => ({
+        total_cashback: acc.total_cashback + Number(curr.cashback_balance || 0),
+        total_credits: acc.total_credits + Number(curr.credits || 0)
+      }), { total_cashback: 0, total_credits: 0 });
+      
+      setCustomerStats(totals);
+    } catch (err) {
+      console.error("Error fetching customer stats:", err);
+    }
+  }
+
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
 
@@ -453,10 +476,10 @@ function FinancesComponent() {
     );
     
     // Total de Cashback Concedido (Gerado no período)
-    // Buscamos diretamente das transações de cashback para precisão total
-    // Filtramos apenas por 'earned' ou 'cashback_earned' para não somar o que foi 'debit'
+    // Usamos diretamente das transações de cashback filtradas por data para os cards
     const totalCashbackEarned = cashbackTransactions
-      .filter(t => t.type === 'earned' || t.type === 'cashback_earned' || t.type === 'granted')
+      .filter(t => (t.type === 'earned' || t.type === 'cashback_earned' || t.type === 'granted') && 
+             (!dateFilter || t.created_at.split('T')[0] === dateFilter))
       .reduce((acc, t) => acc + (Number(t.amount || 0)), 0);
 
     // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
