@@ -990,11 +990,11 @@ function ClientPortalComponent() {
           </Card>
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-green-500/30 transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors">SALDO DE CRÉDITOS</CardDescription>
+              <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CRÉDITOS</CardDescription>
               <CardTitle className="text-2xl font-bold text-green-500">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
               <div className="flex flex-col gap-0.5 mt-1">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Crédito Total: R$ {(Number(customerData?.credits || 0) + Number(customerData?.credits_used || 0)).toFixed(2)}</p>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Créditos Consumidos: R$ {customerData?.credits_used ? Number(customerData.credits_used).toFixed(2) : "0,00"}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Crédito Total (Histórico): R$ {creditTransactions.filter(t => ['earned', 'credit_earned', 'granted', 'manual_added'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Créditos Consumidos: R$ {creditTransactions.filter(t => ['used', 'debit', 'manual_removed'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
               </div>
             </CardHeader>
           </Card>
