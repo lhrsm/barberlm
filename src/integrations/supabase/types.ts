@@ -4605,6 +4605,10 @@ export type Database = {
         }
         Returns: string
       }
+      recalculate_customer_stats: {
+        Args: { p_customer_id: string; p_tenant_id: string }
+        Returns: Json
+      }
       reconcile_automation_logs: { Args: never; Returns: undefined }
       register_pix_payment_transaction: {
         Args: { p_appointment_id: string }
