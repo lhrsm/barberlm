@@ -101,8 +101,10 @@ function DashboardComponent() {
       services: 0,
       customerCredits: 0,
       customerCreditsConceded: 0,
+      customerCreditsUsed: 0,
       customerCashback: 0,
       customerCashbackConceded: 0,
+      customerCashbackUsed: 0,
       customersWithCashback: 0
     }
   });
@@ -603,17 +605,11 @@ function DashboardComponent() {
     ]);
 
     const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits || 0), 0) || 0;
-    const totalCreditsConceded = customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.credits || 0) + Number(curr.credits_used || 0)), 0) || 0;
+    const totalCreditsUsed = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits_used || 0), 0) || 0;
+    const totalCreditsConceded = totalCredits + totalCreditsUsed;
     const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
-    
-    // Buscar total real de cashback concedido das transações de cashback
-    const { data: cashbackTxTotal } = await supabase
-      .from("cashback_transactions")
-      .select("amount")
-      .eq("tenant_id", tenantId)
-      .in("type", ["earned", "cashback_earned", "granted"]);
-    
-    const totalCashbackConceded = cashbackTxTotal?.reduce((acc, curr) => acc + Number(curr.amount || 0), 0) || 0;
+    const totalCashbackUsed = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const totalCashbackConceded = totalCashback + totalCashbackUsed;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
@@ -723,9 +719,11 @@ function DashboardComponent() {
         services: totalServ.count || 0,
         customerCredits: totalCredits,
         customerCreditsConceded: totalCreditsConceded,
+        customerCreditsUsed: totalCreditsUsed,
         customerCashback: totalCashback,
         customerCashbackConceded: totalCashbackConceded,
-        customersWithCashback: customersWithBalances.data?.filter(c => Number(c.cashback_balance || 0) > 0).length || 0
+        customerCashbackUsed: totalCashbackUsed,
+        customersWithCashback: (customersWithBalances.data || []).filter(c => Number(c.cashback_balance || 0) > 0).length
       }
     });
 
@@ -1006,26 +1004,38 @@ function DashboardComponent() {
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1 bg-sky-100" />
                 </div>
                 <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
-                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos Totais</span>
+                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Saldo de Créditos</span>
                   <div className="flex flex-col gap-1">
                     <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-bold text-purple-600/70 uppercase">Concedidos</p>
-                      <p className="text-[11px] font-black text-purple-700/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="flex justify-between items-end gap-2 mt-1">
+                      <div className="space-y-0.5">
+                        <p className="text-[8px] font-bold text-purple-600/70 uppercase">Concedidos</p>
+                        <p className="text-[10px] font-black text-purple-700/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="space-y-0.5 text-right">
+                        <p className="text-[8px] font-bold text-purple-600/70 uppercase">Utilizados</p>
+                        <p className="text-[10px] font-black text-purple-700/80">R$ {stats.total.customerCreditsUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
-                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback Total</span>
+                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Saldo de Cashback</span>
                   <div className="flex flex-col gap-1">
                     <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-bold text-orange-600/70 uppercase">Concedido</p>
-                      <p className="text-[11px] font-black text-orange-700/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="flex justify-between items-end gap-2 mt-1">
+                      <div className="space-y-0.5">
+                        <p className="text-[8px] font-bold text-orange-600/70 uppercase">Concedido</p>
+                        <p className="text-[10px] font-black text-orange-700/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="space-y-0.5 text-right">
+                        <p className="text-[8px] font-bold text-orange-600/70 uppercase">Utilizado</p>
+                        <p className="text-[10px] font-black text-orange-700/80">R$ {stats.total.customerCashbackUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1103,7 +1113,7 @@ function DashboardComponent() {
               {/* Financial Tenant Stats */}
               <div className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Créditos Totais</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Saldo de Créditos</h4>
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg shrink-0">
@@ -1113,14 +1123,20 @@ function DashboardComponent() {
                         R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <div className="pl-1 space-y-0.5">
-                      <p className="text-[8px] font-bold text-purple-600/70 uppercase leading-none">Concedidos</p>
-                      <p className="text-[10px] font-black text-purple-800/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="flex justify-between items-center px-1">
+                      <div className="space-y-0.5">
+                        <p className="text-[8px] font-bold text-purple-600/70 uppercase leading-none">Concedidos</p>
+                        <p className="text-[10px] font-black text-purple-800/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="space-y-0.5 text-right">
+                        <p className="text-[8px] font-bold text-purple-600/70 uppercase leading-none">Utilizados</p>
+                        <p className="text-[10px] font-black text-purple-800/80">R$ {stats.total.customerCreditsUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
-                  <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Cashback Total</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Saldo de Cashback</h4>
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg shrink-0">
@@ -1130,9 +1146,15 @@ function DashboardComponent() {
                         R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <div className="pl-1 space-y-0.5">
-                      <p className="text-[8px] font-bold text-orange-600/70 uppercase leading-none">Concedido</p>
-                      <p className="text-[10px] font-black text-orange-800/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="flex justify-between items-center px-1">
+                      <div className="space-y-0.5">
+                        <p className="text-[8px] font-bold text-orange-600/70 uppercase leading-none">Concedido</p>
+                        <p className="text-[10px] font-black text-orange-800/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="space-y-0.5 text-right">
+                        <p className="text-[8px] font-bold text-orange-600/70 uppercase leading-none">Utilizado</p>
+                        <p className="text-[10px] font-black text-orange-800/80">R$ {stats.total.customerCashbackUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -993,8 +993,8 @@ function ClientPortalComponent() {
               <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CRÉDITOS</CardDescription>
               <CardTitle className="text-2xl font-bold text-green-500">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
               <div className="flex flex-col gap-0.5 mt-1">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Crédito Total (Histórico): R$ {creditTransactions.filter(t => ['earned', 'credit_earned', 'granted', 'manual_added'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Créditos Consumidos: R$ {creditTransactions.filter(t => ['used', 'debit', 'manual_removed'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Créditos Concedidos: R$ {creditTransactions.filter(t => ['earned', 'credit_earned', 'granted', 'manual_added', 'purchase', 'payout', 'reversion', 'refund_credit', 'adjustment_add'].includes(t.type) || t.amount > 0).reduce((acc, t) => acc + Math.abs(Number(t.amount || 0)), 0).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Créditos Utilizados: R$ {creditTransactions.filter(t => (['used', 'debit', 'manual_removed'].includes(t.type) || t.amount < 0) && !['reversion', 'refund_credit'].includes(t.type)).reduce((acc, t) => acc + Math.abs(Number(t.amount || 0)), 0).toFixed(2)}</p>
               </div>
             </CardHeader>
           </Card>
@@ -1003,8 +1003,8 @@ function ClientPortalComponent() {
               <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CASHBACK</CardDescription>
               <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
               <div className="flex flex-col gap-0.5 mt-1">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Total (Histórico): R$ {cashbackTransactions.filter(t => ['earned', 'cashback_earned', 'granted'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Consumido: R$ {cashbackTransactions.filter(t => ['used', 'debit'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Concedido: R$ {cashbackTransactions.filter(t => ['earned', 'cashback_earned', 'granted', 'cashback_refund', 'refunded'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Utilizado: R$ {cashbackTransactions.filter(t => ['used', 'debit', 'expired'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
               </div>
             </CardHeader>
           </Card>
