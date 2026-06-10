@@ -606,15 +606,14 @@ function DashboardComponent() {
     const totalCreditsConceded = customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.credits || 0) + Number(curr.credits_used || 0)), 0) || 0;
     const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
     
-    // Buscar total real de cashback concedido das transações de cashback (mais preciso que o acumulado do perfil do cliente)
+    // Buscar total real de cashback concedido das transações de cashback
     const { data: cashbackTxTotal } = await supabase
       .from("cashback_transactions")
       .select("amount")
       .eq("tenant_id", tenantId)
       .in("type", ["earned", "cashback_earned", "granted"]);
     
-    const totalCashbackConceded = cashbackTxTotal?.reduce((acc, curr) => acc + Number(curr.amount || 0), 0) || 
-      customersWithBalances.data?.reduce((acc, curr) => acc + (Number(curr.cashback_balance || 0) + Number(curr.cashback_used || 0)), 0) || 0;
+    const totalCashbackConceded = cashbackTxTotal?.reduce((acc, curr) => acc + Number(curr.amount || 0), 0) || 0;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);

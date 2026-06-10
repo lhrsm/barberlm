@@ -83,6 +83,7 @@ function FinancesComponent() {
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
+  const [customerStats, setCustomerStats] = useState({ total_cashback: 0, total_credits: 0 });
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
@@ -154,6 +155,7 @@ function FinancesComponent() {
       fetchAppointments(barberIdFilter);
       fetchRefundRequests();
       fetchCashbackTransactions();
+      fetchCustomerStats(); // Novo fetch para garantir cards atualizados
 
       // Realtime subscription
       const channel = supabase
@@ -423,6 +425,27 @@ function FinancesComponent() {
     }
   }
 
+  async function fetchCustomerStats() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("cashback_balance, credits")
+        .eq("tenant_id", user.id);
+      
+      if (error) throw error;
+      
+      const totals = (data || []).reduce((acc, curr) => ({
+        total_cashback: acc.total_cashback + Number(curr.cashback_balance || 0),
+        total_credits: acc.total_credits + Number(curr.credits || 0)
+      }), { total_cashback: 0, total_credits: 0 });
+      
+      setCustomerStats(totals);
+    } catch (err) {
+      console.error("Error fetching customer stats:", err);
+    }
+  }
+
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
 
@@ -453,10 +476,10 @@ function FinancesComponent() {
     );
     
     // Total de Cashback Concedido (Gerado no período)
-    // Buscamos diretamente das transações de cashback para precisão total
-    // Filtramos apenas por 'earned' ou 'cashback_earned' para não somar o que foi 'debit'
+    // Usamos diretamente das transações de cashback filtradas por data para os cards
     const totalCashbackEarned = cashbackTransactions
-      .filter(t => t.type === 'earned' || t.type === 'cashback_earned' || t.type === 'granted')
+      .filter(t => (t.type === 'earned' || t.type === 'cashback_earned' || t.type === 'granted') && 
+             (!dateFilter || t.created_at.split('T')[0] === dateFilter))
       .reduce((acc, t) => acc + (Number(t.amount || 0)), 0);
 
     // 1. Receita Bruta (Faturamento Operacional Real - Pix, Dinheiro, Cartão)
@@ -797,6 +820,25 @@ function FinancesComponent() {
                 >
                   <RefreshCcw size={18} /> Sincronizar Tudo
                 </Button>
+                <Button 
+                  variant="outline" 
+                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500" 
+                  onClick={async () => {
+                    const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
+                    if (customers) {
+                      toast.info(`Recalculando saldos de ${customers.length} clientes...`);
+                      for (const c of customers) {
+                        await supabase.rpc('recalculate_customer_stats', { p_customer_id: c.id, p_tenant_id: c.tenant_id as string });
+                      }
+                      fetchTransactions();
+                      fetchCashbackTransactions();
+                      fetchCustomerStats();
+                      toast.success("Saldos recalculados com sucesso!");
+                    }
+                  }}
+                >
+                  <RefreshCcw size={18} /> Recalcular Saldos
+                </Button>
               </div>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -1043,14 +1085,27 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Cashback Concedido</CardTitle>
+              <CardTitle className="text-sm font-semibold">Cashback Concedido (Período)</CardTitle>
               <div className="p-2 bg-primary/10 rounded-lg">
                 <TicketPercent className="h-4 w-4 text-primary" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">R$ {summary.totalCashbackEarned.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Gerado em atendimentos</p>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Gerado {dateFilter ? 'no dia selecionado' : 'no período'}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Total (Clientes)</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <Wallet className="h-4 w-4 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-500">R$ {customerStats.total_cashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Saldo acumulado por todos os clientes</p>
             </CardContent>
           </Card>
 
