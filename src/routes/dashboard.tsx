@@ -719,9 +719,11 @@ function DashboardComponent() {
         services: totalServ.count || 0,
         customerCredits: totalCredits,
         customerCreditsConceded: totalCreditsConceded,
+        customerCreditsUsed: totalCreditsUsed,
         customerCashback: totalCashback,
         customerCashbackConceded: totalCashbackConceded,
-        customersWithCashback: customersWithBalances.data?.filter(c => Number(c.cashback_balance || 0) > 0).length || 0
+        customerCashbackUsed: totalCashbackUsed,
+        customersWithCashback: (customersWithBalances.data || []).filter(c => Number(c.cashback_balance || 0) > 0).length
       }
     });
 
