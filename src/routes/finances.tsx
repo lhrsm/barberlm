@@ -839,7 +839,6 @@ function FinancesComponent() {
                 >
                   <RefreshCcw size={18} /> Recalcular Saldos
                 </Button>
-                </Button>
               </div>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
