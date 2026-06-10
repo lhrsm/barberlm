@@ -2016,14 +2016,14 @@ export type Database = {
           {
             foreignKeyName: "cashback_transactions_appointment_id_fkey"
             columns: ["appointment_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "cashback_transactions_appointment_id_fkey"
             columns: ["appointment_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "vw_automation_debug"
             referencedColumns: ["appointment_id"]
           },
