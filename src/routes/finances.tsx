@@ -828,7 +828,7 @@ function FinancesComponent() {
                     if (customers) {
                       toast.info(`Recalculando saldos de ${customers.length} clientes...`);
                       for (const c of customers) {
-                        await supabase.rpc('recalculate_customer_stats', { p_customer_id: c.id, p_tenant_id: c.tenant_id });
+                        await supabase.rpc('recalculate_customer_stats', { p_customer_id: c.id, p_tenant_id: c.tenant_id as string });
                       }
                       fetchTransactions();
                       fetchCashbackTransactions();
