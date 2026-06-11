@@ -608,8 +608,8 @@ function FinancesComponent() {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase.from("transactions").insert([{
-      type: newTransaction.type as any,
+    const { error } = await (supabase.from("transactions").insert as any)([{
+      type: newTransaction.type,
       category: newTransaction.category,
       description: newTransaction.description,
       date: newTransaction.date,
@@ -623,8 +623,8 @@ function FinancesComponent() {
       cashback_amount: parseFloat(newTransaction.cashback_amount) || 0,
       user_id: user.id,
       tenant_id: user.id,
-      barber_id: (newTransaction.barber_id === "none" ? null : newTransaction.barber_id) as any,
-      customer_id: (newTransaction.customer_id === "none" ? null : newTransaction.customer_id) as any,
+      barber_id: newTransaction.barber_id === "none" ? null : newTransaction.barber_id,
+      customer_id: newTransaction.customer_id === "none" ? null : newTransaction.customer_id,
     }]);
 
     if (error) {
