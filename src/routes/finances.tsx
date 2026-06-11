@@ -138,7 +138,6 @@ function FinancesComponent() {
   };
   
   const role = authRole || (session ? 'barber' : null);
-  const loading = authLoading || profLoading;
 
   useEffect(() => {
     if (!loading && !user) {
