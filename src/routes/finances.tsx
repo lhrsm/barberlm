@@ -608,7 +608,7 @@ function FinancesComponent() {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase.from("transactions").insert({
+    const { error } = await supabase.from("transactions").insert([{
       type: newTransaction.type as any,
       category: newTransaction.category,
       description: newTransaction.description,
@@ -625,7 +625,7 @@ function FinancesComponent() {
       tenant_id: user.id,
       barber_id: newTransaction.barber_id === "none" ? null : newTransaction.barber_id,
       customer_id: newTransaction.customer_id === "none" ? null : newTransaction.customer_id,
-    });
+    }]);
 
     if (error) {
       toast.error("Erro ao adicionar transação");
