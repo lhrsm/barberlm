@@ -14,7 +14,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent } from "lucide-react";
+import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Handshake } from "lucide-react";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History } from "lucide-react";
@@ -22,7 +22,7 @@ import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { 
   Dialog, 
@@ -466,6 +466,40 @@ function FinancesComponent() {
 
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
+  const [isClearingData, setIsClearingData] = useState(false);
+
+  const handleClearTestData = async () => {
+    if (!user?.id) return;
+    
+    const confirm = window.confirm(
+      "ATENÇÃO: Isso removerá TODOS os agendamentos, transações, estornos e históricos financeiros desta barbearia. \n\nClientes, barbeiros e serviços serão preservados.\n\nEsta ação NÃO PODE SER DESFEITA. Deseja continuar?"
+    );
+
+    if (!confirm) return;
+
+    setIsClearingData(true);
+    try {
+      const { data, error } = await supabase.rpc('clear_barbershop_financial_data', {
+        p_tenant_id: user.id
+      });
+
+      if (error) throw error;
+
+      toast.success("Dados financeiros limpos com sucesso!");
+      queryClient.invalidateQueries();
+      fetchTransactions();
+      fetchAppointments();
+      fetchRefundRequests();
+      fetchCashbackTransactions();
+      fetchCustomerStats();
+    } catch (err: any) {
+      console.error("Error clearing data:", err);
+      toast.error("Erro ao limpar dados: " + err.message);
+    } finally {
+      setIsClearingData(false);
+    }
+  };
+
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -1183,7 +1217,7 @@ function FinancesComponent() {
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className={cn("grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-4 max-w-[800px]" : "grid-cols-3 max-w-[600px]")}>
+          <TabsList className={cn("grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-5 max-w-[900px]" : "grid-cols-3 max-w-[600px]")}>
             <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
@@ -1194,9 +1228,14 @@ function FinancesComponent() {
               <RefreshCcw size={16} /> Estornos
             </TabsTrigger>
             {role !== 'barber' && (
-              <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Users size={16} /> Por Barbeiro
-              </TabsTrigger>
+              <>
+                <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Users size={16} /> Por Barbeiro
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <AlertCircle size={16} /> Configs
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -1813,7 +1852,54 @@ function FinancesComponent() {
                 )}
               </div>
             </div>
-          </TabsContent>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Zona de Perigo
+              </CardTitle>
+              <CardDescription>
+                Ações irreversíveis para gerenciamento de dados da barbearia.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg bg-red-50 gap-4">
+                <div>
+                  <h4 className="font-semibold text-red-900">Limpar Dados Financeiros de Teste</h4>
+                  <p className="text-sm text-red-700">
+                    Remove todos os agendamentos, transações, cashback e créditos. 
+                    Útil para resetar a barbearia após o período de testes.
+                  </p>
+                  <p className="text-xs text-red-600 mt-1 font-medium">
+                    * Clientes, Barbeiros, Serviços e Configurações serão mantidos.
+                  </p>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleClearTestData}
+                  disabled={isClearingData}
+                  className="whitespace-nowrap"
+                >
+                  {isClearingData ? (
+                    <>
+                      <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                      Limpando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Limpar Tudo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
 
           <TabsContent value="pending" className="pt-4">
             <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
