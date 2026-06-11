@@ -698,6 +698,7 @@ function FinancesComponent() {
       description: editingTransaction.description,
       category: editingTransaction.category,
       barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
+      customer_id: editingTransaction.customer_id === "none" ? null : editingTransaction.customer_id,
       date: editingTransaction.date,
       time: editingTransaction.time,
       payment_method: isMixed ? 'mixed' : editingTransaction.payment_method,
@@ -1488,6 +1489,23 @@ function FinancesComponent() {
                                                   <SelectItem value="none" className="focus:bg-amber-500/20 focus:text-white">Nenhum / Geral</SelectItem>
                                                   {barbers.map((b) => (
                                                     <SelectItem key={b.id} value={b.id} className="focus:bg-amber-500/20 focus:text-white">{b.name}</SelectItem>
+                                                  ))}
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                              <Label htmlFor="edit-customer" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</Label>
+                                              <Select 
+                                                value={editingTransaction.customer_id || "none"} 
+                                                onValueChange={(val) => setEditingTransaction({...editingTransaction, customer_id: val})}
+                                              >
+                                                <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white focus:ring-amber-500/50 h-11 rounded-xl">
+                                                  <SelectValue placeholder="Selecione um cliente" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                                                  <SelectItem value="none" className="focus:bg-amber-500/20 focus:text-white">Nenhum / Geral</SelectItem>
+                                                  {customers.map((c) => (
+                                                    <SelectItem key={c.id} value={c.id} className="focus:bg-amber-500/20 focus:text-white">{c.name}</SelectItem>
                                                   ))}
                                                 </SelectContent>
                                               </Select>

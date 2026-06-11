@@ -104,7 +104,11 @@ export function useAppointmentStatus() {
         scheduled: "agendado"
       };
 
-      toast.success(`Agendamento ${statusLabels[newStatus] || newStatus} com sucesso!`);
+      if (result?.status_before !== result?.status_after) {
+        toast.success(`Agendamento ${statusLabels[newStatus] || newStatus} com sucesso!`);
+      } else if (result?.message) {
+        toast.info(result.message);
+      }
       
       const queryKeys = [
         ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
