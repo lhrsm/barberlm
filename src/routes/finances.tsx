@@ -466,6 +466,40 @@ function FinancesComponent() {
 
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
+  const [isClearingData, setIsClearingData] = useState(false);
+
+  const handleClearTestData = async () => {
+    if (!user?.id) return;
+    
+    const confirm = window.confirm(
+      "ATENÇÃO: Isso removerá TODOS os agendamentos, transações, estornos e históricos financeiros desta barbearia. \n\nClientes, barbeiros e serviços serão preservados.\n\nEsta ação NÃO PODE SER DESFEITA. Deseja continuar?"
+    );
+
+    if (!confirm) return;
+
+    setIsClearingData(true);
+    try {
+      const { data, error } = await supabase.rpc('clear_barbershop_financial_data', {
+        p_tenant_id: user.id
+      });
+
+      if (error) throw error;
+
+      toast.success("Dados financeiros limpos com sucesso!");
+      queryClient.invalidateQueries();
+      fetchTransactions();
+      fetchAppointments();
+      fetchRefundRequests();
+      fetchCashbackTransactions();
+      fetchCustomerStats();
+    } catch (err: any) {
+      console.error("Error clearing data:", err);
+      toast.error("Erro ao limpar dados: " + err.message);
+    } finally {
+      setIsClearingData(false);
+    }
+  };
+
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -1813,7 +1847,54 @@ function FinancesComponent() {
                 )}
               </div>
             </div>
-          </TabsContent>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Zona de Perigo
+              </CardTitle>
+              <CardDescription>
+                Ações irreversíveis para gerenciamento de dados da barbearia.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg bg-red-50 gap-4">
+                <div>
+                  <h4 className="font-semibold text-red-900">Limpar Dados Financeiros de Teste</h4>
+                  <p className="text-sm text-red-700">
+                    Remove todos os agendamentos, transações, cashback e créditos. 
+                    Útil para resetar a barbearia após o período de testes.
+                  </p>
+                  <p className="text-xs text-red-600 mt-1 font-medium">
+                    * Clientes, Barbeiros, Serviços e Configurações serão mantidos.
+                  </p>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleClearTestData}
+                  disabled={isClearingData}
+                  className="whitespace-nowrap"
+                >
+                  {isClearingData ? (
+                    <>
+                      <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                      Limpando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Limpar Tudo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
 
           <TabsContent value="pending" className="pt-4">
             <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
