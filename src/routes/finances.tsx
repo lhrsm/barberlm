@@ -943,23 +943,6 @@ function FinancesComponent() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="customer">Cliente</Label>
-                  <Select 
-                    value={newTransaction.customer_id} 
-                    onValueChange={(val) => setNewTransaction({...newTransaction, customer_id: val})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum / Geral</SelectItem>
-                      {customers.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="description">Descrição</Label>
                   <Input 
                     id="description" 
