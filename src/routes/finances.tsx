@@ -173,6 +173,7 @@ function FinancesComponent() {
           filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
         }, () => {
           fetchTransactions(barberIdFilter);
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -182,6 +183,7 @@ function FinancesComponent() {
         }, () => {
           fetchAppointments(barberIdFilter);
           fetchTransactions(barberIdFilter);
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -191,6 +193,7 @@ function FinancesComponent() {
         }, () => {
           fetchRefundRequests();
           fetchCashbackTransactions();
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
         })
         .subscribe();
 
