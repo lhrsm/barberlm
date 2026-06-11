@@ -624,6 +624,7 @@ function FinancesComponent() {
       user_id: user.id,
       tenant_id: user.id,
       barber_id: (newTransaction.barber_id === "none" ? null : newTransaction.barber_id) as any,
+      customer_id: (newTransaction.customer_id === "none" ? null : newTransaction.customer_id) as any,
     }]);
 
     if (error) {
