@@ -300,48 +300,12 @@ function DashboardComponent() {
   async function completeAppointment(appointment: any) {
     if (appointment.status === 'completed') return;
 
-    // 1. Get available credits and current state
-    const { data: customerData } = await supabase
-      .from("customers")
-      .select("credits, loyalty_points, cashback_balance, name")
-      .eq("id", appointment.customer_id)
-      .single();
-
-    const availableCredits = Number(customerData?.credits || 0);
-    const availableCashback = Number(customerData?.cashback_balance || 0);
-    const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
-    
-    // Determine how much credit and cashback will be used (only if not already subtracted)
-    let usedCredits = Number(appointment.credit_used || 0);
-    let usedCashback = Number(appointment.cashback_used || 0);
-    let remainingToPay = Number(appointment.final_amount || totalPrice);
-
-    // Determine how much credit and cashback will be used if not already set
-    if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && (remainingToPay === totalPrice || !appointment.final_amount)) {
-      if (availableCashback > 0) {
-        usedCashback = Math.min(availableCashback, remainingToPay);
-        remainingToPay -= usedCashback;
-      }
-      if (remainingToPay > 0 && availableCredits > 0) {
-        usedCredits = Math.min(availableCredits, remainingToPay);
-        remainingToPay -= usedCredits;
-      }
-    }
-
-    // 2. Update status using CENTRALIZED RPC hook
-    // The RPC handled in useAppointmentStatus (complete_appointment) 
-    // now correctly handles financial registration and deductions.
+    // 1. Update status using CENTRALIZED RPC hook
     const result = await centralUpdateStatus(
       appointment.id,
       'completed',
       {
         payment_status: 'paid',
-        credit_used: usedCredits,
-        credits_used: usedCredits,
-        cashback_used: usedCashback,
-        final_amount: remainingToPay,
-        pix_amount: appointment.payment_method === 'pix' ? remainingToPay : 0,
-        cash_amount: appointment.payment_method === 'cash' ? remainingToPay : 0,
         payment_method: appointment.payment_method || 'pix'
       },
       'dashboard'
@@ -349,13 +313,10 @@ function DashboardComponent() {
 
     if (!result.success) return;
 
-    // 3. Finance is now handled inside complete_appointment RPC
+    // 2. Finance is now handled inside complete_appointment RPC
     fetchTodayAppointments();
     fetchStats();
     refreshLimits();
-    queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    queryClient.invalidateQueries({ queryKey: ['calendar'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   }
 
   async function togglePaymentStatus(appointment: any) {
