@@ -617,6 +617,12 @@ function FinancesComponent() {
       return;
     }
 
+    const transactionAmount = parseFloat(editingTransaction.amount);
+    if (isNaN(transactionAmount)) {
+      toast.error("O valor total é inválido.");
+      return;
+    }
+
     const isMixed = editingTransaction.payment_method === 'misto' || editingTransaction.payment_method === 'mixed';
     
     // Validate mixed payment total
