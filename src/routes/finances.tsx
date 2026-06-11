@@ -829,41 +829,6 @@ function FinancesComponent() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="customer_id" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente (Opcional)</Label>
-                  <Select 
-                    value={newTransaction.customer_id} 
-                    onValueChange={(val) => setNewTransaction({...newTransaction, customer_id: val})}
-                  >
-                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-                      <SelectItem value="none" className="focus:bg-amber-500/20">Nenhum / Geral</SelectItem>
-                      {customers.map((c) => (
-                        <SelectItem key={c.id} value={c.id} className="focus:bg-amber-500/20">{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                                <div className="space-y-2">
-                                  <Label htmlFor="new-customer-id" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente (Opcional)</Label>
-                                  <Select 
-                                    value={newTransaction.customer_id} 
-                                    onValueChange={(val) => setNewTransaction({...newTransaction, customer_id: val})}
-                                  >
-                                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
-                                      <SelectValue placeholder="Selecione um cliente" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-                                      <SelectItem value="none" className="focus:bg-amber-500/20">Nenhum / Geral</SelectItem>
-                                      {customers.map((c) => (
-                                        <SelectItem key={c.id} value={c.id} className="focus:bg-amber-500/20">{c.name}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
 
                                 <div className="space-y-2">
                                   <Label htmlFor="amount" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Valor Total (R$)</Label>
