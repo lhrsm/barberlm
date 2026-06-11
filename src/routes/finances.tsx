@@ -1327,12 +1327,12 @@ function FinancesComponent() {
                                   time: formatTransactionTimeForEdit(t),
                                   payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
                                   category: t.category || "Serviço",
-                                  pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
-                                  cash_amount: t.cash_amount || 0,
-                                  credit_card_amount: t.credit_card_amount || 0,
-                                  debit_card_amount: t.debit_card_amount || 0,
-                                  credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
-                                  cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
+                                  pix_amount: String(t.pix_amount || t.appointment?.pix_amount || 0),
+                                  cash_amount: String(t.cash_amount || t.appointment?.cash_amount || 0),
+                                  credit_card_amount: String(t.credit_card_amount || t.appointment?.credit_card_amount || 0),
+                                  debit_card_amount: String(t.debit_card_amount || t.appointment?.debit_card_amount || 0),
+                                  credits_amount: String(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0),
+                                  cashback_amount: String(t.cashback_amount || t.appointment?.cashback_used || 0),
                                   adjustment_reason: ""
                                 });
                                 setIsEditDialogOpen(true);
