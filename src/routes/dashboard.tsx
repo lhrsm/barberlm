@@ -431,23 +431,19 @@ function DashboardComponent() {
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
         }]);
-        toast.success("Agendamento cancelado e estorno registrado como saída!");
-      } else if (appointment.refund_type === 'credits') {
-        // Créditos: Adiciona ao saldo do cliente
-        try {
-          // 1. Garantir que o cliente tem uma carteira
-          let { data: wallet } = await supabase
-            .from("wallet")
-            .select("id")
-            .eq("customer_id", appointment.customer_id)
-            .maybeSingle();
-            
-          if (!wallet) {
-            const { data: newWallet, error: walletErr } = await supabase
-              .from("wallet")
-              .insert({ 
-                customer_id: appointment.customer_id, 
-                user_id: tenantId,
+        toast.success("Agendamento cancelado!");
+      }
+      
+      fetchTodayAppointments();
+      fetchStats();
+      refreshLimits();
+    } catch (err: any) {
+      toast.error("Erro ao cancelar: " + err.message);
+    }
+  }
+
+  async function togglePaymentStatus(appointment: any) {
+    const newStatus = appointment.payment_status === 'paid' ? 'pending' : 'paid';
                 balance: 0 
               })
               .select()
