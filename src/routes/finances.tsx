@@ -852,12 +852,12 @@ function FinancesComponent() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">Tipo</Label>
+                  <Label htmlFor="type" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Tipo de Movimentação</Label>
                   <Select 
                     value={newTransaction.type} 
                     onValueChange={(val) => setNewTransaction({...newTransaction, type: val})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
