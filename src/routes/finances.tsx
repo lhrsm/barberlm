@@ -1189,7 +1189,7 @@ function FinancesComponent() {
                 variant="ghost" 
                 onClick={() => {
                   setStatusFilter("all");
-                  setDateFilter("");
+                  setDateFilter(new Date().toISOString().split('T')[0]);
                 }}
                 className="h-10 hover:bg-accent hover:text-accent-foreground"
               >
