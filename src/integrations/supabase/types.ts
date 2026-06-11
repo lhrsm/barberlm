@@ -139,10 +139,12 @@ export type Database = {
           changed_by_id: string | null
           changed_by_type: string
           created_at: string
+          error: string | null
           id: string
           metadata: Json | null
           new_status: string
           old_status: string | null
+          rpc_response: Json | null
           source: string
         }
         Insert: {
@@ -150,10 +152,12 @@ export type Database = {
           changed_by_id?: string | null
           changed_by_type: string
           created_at?: string
+          error?: string | null
           id?: string
           metadata?: Json | null
           new_status: string
           old_status?: string | null
+          rpc_response?: Json | null
           source: string
         }
         Update: {
@@ -161,10 +165,12 @@ export type Database = {
           changed_by_id?: string | null
           changed_by_type?: string
           created_at?: string
+          error?: string | null
           id?: string
           metadata?: Json | null
           new_status?: string
           old_status?: string | null
+          rpc_response?: Json | null
           source?: string
         }
         Relationships: [

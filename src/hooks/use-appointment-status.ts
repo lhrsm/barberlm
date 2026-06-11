@@ -89,8 +89,14 @@ export function useAppointmentStatus() {
         result = data as any;
       }
 
-      console.log('APPOINTMENT_STATUS_UPDATE_SUCCESS', { appointmentId, newStatus, result });
+      console.log('APPOINTMENT_STATUS_UPDATE_RESULT', { appointmentId, newStatus, result });
       
+      if (!result?.success) {
+        console.error('APPOINTMENT_STATUS_UPDATE_FAILED', { appointmentId, newStatus, result });
+        toast.error(result?.error || `Erro ao marcar como ${newStatus}`);
+        return { success: false, ...result };
+      }
+
       const statusLabels: Record<string, string> = {
         confirmed: "confirmado",
         completed: "concluído",
@@ -112,7 +118,7 @@ export function useAppointmentStatus() {
         queryClient.invalidateQueries({ queryKey: key });
       });
       
-      return { success: true, ...(typeof result === 'object' ? result : {}) };
+      return { success: true, ...result };
     } catch (error: any) {
       console.error('APPOINTMENT_STATUS_UPDATE_FATAL', error);
       toast.error(error.message || "Erro ao atualizar status do agendamento");
