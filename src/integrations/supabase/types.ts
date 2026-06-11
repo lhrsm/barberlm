@@ -4534,6 +4534,10 @@ export type Database = {
           new_credit_balance: number
         }[]
       }
+      fn_recalculate_customer_loyalty: {
+        Args: { p_customer_id: string }
+        Returns: number
+      }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_appointment_by_management_token: {
         Args: { p_token: string }
