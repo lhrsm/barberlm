@@ -609,7 +609,12 @@ function FinancesComponent() {
     if (!user) return;
 
     const { error } = await supabase.from("transactions").insert({
-      ...newTransaction,
+      type: newTransaction.type as any,
+      category: newTransaction.category,
+      description: newTransaction.description,
+      date: newTransaction.date,
+      time: newTransaction.time,
+      payment_method: newTransaction.payment_method,
       amount: parseFloat(newTransaction.amount) || 0,
       pix_amount: parseFloat(newTransaction.pix_amount) || 0,
       cash_amount: parseFloat(newTransaction.cash_amount) || 0,
