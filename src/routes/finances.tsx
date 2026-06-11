@@ -50,6 +50,8 @@ export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
 });
 
+import { useFinancial } from "@/hooks/use-financial";
+
 function FinancesComponent() {
   const queryClient = useQueryClient();
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
@@ -79,7 +81,7 @@ function FinancesComponent() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -88,6 +90,9 @@ function FinancesComponent() {
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
   const [customerStats, setCustomerStats] = useState({ total_cashback: 0, total_credits: 0 });
   const [customers, setCustomers] = useState<any[]>([]);
+  
+  const user = authUser || (session ? { id: session.barber_id } : null);
+  const { summary: financialSummary, isLoading: loadingFinancial } = useFinancial(user?.id || null, dateFilter, dateFilter);
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
@@ -481,88 +486,39 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
-    // FILTRAR TRANSAÇÕES DE AGENDAMENTOS (Independente do status do agendamento, se o pagamento foi Pix e está pago)
-    const effectiveTransactions = transactions.filter(t => 
-      !t.appointment || 
-      t.appointment.status === 'completed' || 
-      t.appointment.status === 'confirmed' || 
-      t.appointment.status === 'scheduled' ||
-      (t.appointment.payment_status === 'paid' && (t.payment_method === 'pix' || t.pix_amount > 0))
-    );
-    
-    // Total de Cashback Concedido (Gerado no período)
-    const cashbackConceded = cashbackTransactions
-      .filter(t => ['earned', 'cashback_earned', 'granted', 'credit'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
-      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+    if (!financialSummary) {
+      return {
+        income: 0,
+        realCashIncome: 0,
+        servicesSold: 0,
+        totalIncome: 0,
+        totalExpense: 0,
+        netRevenue: 0,
+        balance: 0,
+        usedCredits: 0,
+        usedCashback: 0,
+        cashbackConceded: 0,
+        cashbackUsedTotal: 0,
+        freelancersPart: 0,
+        barbershopPart: 0
+      };
+    }
 
-    // Total de Cashback Utilizado (Resgatado no período)
-    const cashbackUsedTotal = cashbackTransactions
-      .filter(t => ['used', 'cashback_used'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
-      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
-
-    // Serviços vendidos: Somar total_price dos serviços
-    const servicesSold = effectiveTransactions.reduce((acc, t) => {
-      if (t.type === 'income' && t.appointment) {
-        return acc + (Number(t.appointment.total_price || t.amount || 0));
-      }
-      // Se não for agendamento mas for entrada manual
-      if (t.type === 'income' && !t.appointment) {
-        return acc + (Number(t.amount || 0));
-      }
-      return acc;
-    }, 0);
-
-    // Entrada em caixa (Dinheiro novo: Pix, Cash, Card)
-    const totalIncome = effectiveTransactions
-      .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment || t.payment_breakdown) {
-          return acc + (
-            Number(t.pix_amount || 0) + 
-            Number(t.cash_amount || 0) + 
-            Number(t.credit_card_amount || 0) + 
-            Number(t.debit_card_amount || 0)
-          );
-        }
-        const method = t.payment_method || t.appointment?.payment_method;
-        if (method === 'cashback' || method === 'credits' || method === 'wallet') return acc;
-        return acc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
-
-    const totalExpense = effectiveTransactions.reduce((acc, t) => t.type === 'expense' ? acc + (parseFloat(String(t.amount)) || 0) : acc, 0);
-
-    // Créditos e Cashback utilizados
-    const usedCredits = effectiveTransactions.reduce((acc, t) => {
-      if (t.type === 'income') {
-         if (t.payment_breakdown) return acc + Number(t.payment_breakdown.credits || 0);
-         return acc + (Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0));
-      }
-      return acc;
-    }, 0);
-
-    const usedCashback = effectiveTransactions.reduce((acc, t) => {
-      if (t.type === 'income') {
-         if (t.payment_breakdown) return acc + Number(t.payment_breakdown.cashback || 0);
-         return acc + (Number(t.cashback_amount || t.appointment?.cashback_used || 0));
-      }
-      return acc;
-    }, 0);
-
+    const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + (parseFloat(String(t.amount)) || 0) : acc, 0);
     const totalRefundsPaid = (refundRequests || [])
       .filter(r => r && (r.status === 'completed' || r.status === 'paid'))
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    const netRevenue = totalIncome - totalRefundsPaid;
-
     const freelancersPart = barbers.reduce((acc, barber) => {
       const bApptIds = new Set();
-      const bTotal = effectiveTransactions
+      const bTotal = transactions
         .filter(t => t.barber_id === barber.id && t.type === 'income')
         .reduce((tAcc, t) => {
           if (t.appointment_id) {
             if (bApptIds.has(t.appointment_id)) return tAcc;
             bApptIds.add(t.appointment_id);
-            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
+            // Considerar o valor total do serviço para comissão
+            return tAcc + (Number(t.appointment?.original_total || t.appointment?.total_price || t.amount || 0));
           }
           return tAcc + (parseFloat(String(t.amount)) || 0);
         }, 0);
@@ -570,21 +526,21 @@ function FinancesComponent() {
     }, 0);
 
     return {
-      income: servicesSold,
-      realCashIncome: totalIncome,
-      servicesSold,
-      totalIncome,
+      income: financialSummary.servicos_vendidos,
+      realCashIncome: financialSummary.entrada_caixa,
+      servicesSold: financialSummary.servicos_vendidos,
+      totalIncome: financialSummary.entrada_caixa,
       totalExpense,
-      netRevenue,
-      balance: totalIncome - totalExpense - totalRefundsPaid,
-      usedCredits,
-      usedCashback,
-      cashbackConceded,
-      cashbackUsedTotal,
+      netRevenue: financialSummary.entrada_caixa - totalRefundsPaid,
+      balance: financialSummary.entrada_caixa - totalExpense - totalRefundsPaid,
+      usedCredits: financialSummary.creditos_utilizados,
+      usedCashback: financialSummary.cashback_utilizado,
+      cashbackConceded: financialSummary.cashback_concedido,
+      cashbackUsedTotal: financialSummary.cashback_utilizado,
       freelancersPart,
-      barbershopPart: servicesSold - freelancersPart
+      barbershopPart: financialSummary.servicos_vendidos - freelancersPart
     };
-  }, [transactions, cashbackTransactions, refundRequests, barbers, appointments]);
+  }, [financialSummary, transactions, refundRequests, barbers]);
 
   useEffect(() => {
     async function fetchBalances() {
