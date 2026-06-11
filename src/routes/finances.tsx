@@ -1346,7 +1346,7 @@ function FinancesComponent() {
                                   barber_id: t.barber_id || "none",
                                   date: formatTransactionDateForEdit(t),
                                   time: formatTransactionTimeForEdit(t),
-                                  payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
+                                  payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : (t.appointment?.payment_method === 'card' ? 'credit_card' : t.appointment?.payment_method)) || "dinheiro",
                                   category: t.category || "Serviço",
                                   pix_amount: String(t.pix_amount || t.appointment?.pix_amount || 0),
                                   cash_amount: String(t.cash_amount || t.appointment?.cash_amount || 0),
