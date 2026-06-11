@@ -1,0 +1,1 @@
+UPDATE public.customers SET loyalty_points = 1 WHERE loyalty_points > 1;

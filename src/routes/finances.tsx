@@ -477,7 +477,7 @@ function FinancesComponent() {
     
     // Total de Cashback Concedido (Gerado no período)
     const cashbackConceded = cashbackTransactions
-      .filter(t => ['earned', 'cashback_earned', 'granted'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
+      .filter(t => ['earned', 'cashback_earned', 'granted', 'credit'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
       .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
     // Total de Cashback Utilizado (Resgatado no período)
