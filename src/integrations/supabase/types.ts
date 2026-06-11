@@ -3440,6 +3440,7 @@ export type Database = {
           created_at: string
           credit_card_amount: number | null
           credits_amount: number | null
+          customer_id: string | null
           date: string | null
           debit_card_amount: number | null
           description: string | null
@@ -3466,6 +3467,7 @@ export type Database = {
           created_at?: string
           credit_card_amount?: number | null
           credits_amount?: number | null
+          customer_id?: string | null
           date?: string | null
           debit_card_amount?: number | null
           description?: string | null
@@ -3492,6 +3494,7 @@ export type Database = {
           created_at?: string
           credit_card_amount?: number | null
           credits_amount?: number | null
+          customer_id?: string | null
           date?: string | null
           debit_card_amount?: number | null
           description?: string | null
@@ -3525,6 +3528,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
           {
