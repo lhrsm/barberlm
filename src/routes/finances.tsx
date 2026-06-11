@@ -601,6 +601,8 @@ function FinancesComponent() {
         cashback_amount: "0"
       });
       fetchTransactions();
+      fetchCustomerStats();
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
     }
   }
 
@@ -710,6 +712,8 @@ function FinancesComponent() {
       setEditingTransaction(null);
       fetchTransactions();
       fetchAppointments();
+      fetchCustomerStats();
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
     }
   }
 
@@ -774,7 +778,9 @@ function FinancesComponent() {
                       for (const c of customers) {
                         await supabase.rpc('recalculate_customer_stats', { p_customer_id: c.id, p_tenant_id: c.tenant_id as string });
                       }
-                      fetchTransactions();
+      fetchTransactions();
+      fetchCustomerStats();
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
                       fetchCashbackTransactions();
                       fetchCustomerStats();
                       toast.success("Saldos recalculados com sucesso!");
