@@ -120,16 +120,13 @@ function FinancesComponent() {
   };
 
   const formatMixedPaymentLabel = (t: any) => {
-    if (!t.payment_breakdown && !t.pix_amount && !t.cash_amount && !t.credit_card_amount && !t.debit_card_amount && !t.credits_amount && !t.cashback_amount) return null;
-    
     const parts = [];
-    const breakdown = t.payment_breakdown || {};
     
-    const pix = Number(t.pix_amount || breakdown.pix || 0);
-    const cash = Number(t.cash_amount || breakdown.cash || 0);
-    const card = Number(t.credit_card_amount || t.debit_card_amount || breakdown.card || breakdown.card_credit || breakdown.card_debit || 0);
-    const credits = Number(t.credits_amount || breakdown.credits || 0);
-    const cashback = Number(t.cashback_amount || breakdown.cashback || 0);
+    const pix = Number(t.pix_amount || t.appointment?.pix_amount || 0);
+    const cash = Number(t.cash_amount || t.appointment?.cash_amount || 0);
+    const card = Number(t.credit_card_amount || t.debit_card_amount || t.appointment?.credit_card_amount || t.appointment?.debit_card_amount || 0);
+    const credits = Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0);
+    const cashback = Number(t.cashback_amount || t.appointment?.cashback_used || 0);
 
     if (pix > 0) parts.push(`PIX R$ ${pix.toFixed(2)}`);
     if (cash > 0) parts.push(`DINHEIRO R$ ${cash.toFixed(2)}`);
@@ -137,7 +134,7 @@ function FinancesComponent() {
     if (credits > 0) parts.push(`CRÉDITO R$ ${credits.toFixed(2)}`);
     if (cashback > 0) parts.push(`CASHBACK R$ ${cashback.toFixed(2)}`);
     
-    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' ? 'Pagamento Misto' : null);
+    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' || t.appointment?.payment_method === 'mixed' ? 'Pagamento Misto' : null);
   };
   
   const role = authRole || (session ? 'barber' : null);
