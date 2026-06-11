@@ -38,7 +38,7 @@ export function useAppointmentStatus() {
         if (error) throw error;
         result = data as any;
 
-        // Functional Notification
+        // WhatsApp Notification
         if (appt?.profiles?.whatsapp_enabled && appt?.customers?.phone) {
           triggerWhatsAppMessage({
             userId: appt.tenant_id,
@@ -53,24 +53,12 @@ export function useAppointmentStatus() {
           });
         }
       } else if (newStatus === 'completed') {
-        // CORREÇÃO: Passar valores normalizados se for pagamento misto
-        const finalMetadata = { ...metadata };
-        if (metadata.payment_method === 'mixed' || metadata.payment_method === 'misto') {
-           // Garantir que os campos pix_amount e cash_amount existam se não foram enviados
-           finalMetadata.pix_amount = Number(metadata.pix_amount || 0);
-           finalMetadata.cash_amount = Number(metadata.cash_amount || 0);
-           finalMetadata.credit_card_amount = Number(metadata.credit_card_amount || 0);
-           finalMetadata.debit_card_amount = Number(metadata.debit_card_amount || 0);
-           finalMetadata.credits_used = Number(metadata.credits_used || metadata.credit_used || 0);
-           finalMetadata.cashback_used = Number(metadata.cashback_used || 0);
-        }
-
         const { data, error } = await supabase.rpc('complete_appointment', {
           p_appointment_id: appointmentId,
           p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
           p_changed_by_id: user?.id as any,
           p_source: source,
-          p_metadata: finalMetadata
+          p_metadata: metadata
         });
         
         if (error) throw error;
@@ -89,10 +77,7 @@ export function useAppointmentStatus() {
         result = data as any;
       }
 
-      console.log('APPOINTMENT_STATUS_UPDATE_RESULT', { appointmentId, newStatus, result });
-      
       if (!result?.success) {
-        console.error('APPOINTMENT_STATUS_UPDATE_FAILED', { appointmentId, newStatus, result });
         toast.error(result?.error || `Erro ao marcar como ${newStatus}`);
         return { success: false, ...result };
       }
@@ -104,23 +89,10 @@ export function useAppointmentStatus() {
         scheduled: "agendado"
       };
 
-      if (result?.status_before !== result?.status_after) {
-        toast.success(`Agendamento ${statusLabels[newStatus] || newStatus} com sucesso!`);
-      } else if (result?.message) {
-        toast.info(result.message);
-      }
+      toast.success(`Agendamento ${statusLabels[newStatus] || newStatus} com sucesso!`);
       
-      const queryKeys = [
-        ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
-        ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
-        ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
-        ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
-        ['barber-dashboard'], ['customer-appointments'], ['customers']
-      ];
-
-      queryKeys.forEach(key => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
+      // Invalidação centralizada
+      queryClient.invalidateQueries();
       
       return { success: true, ...result };
     } catch (error: any) {
