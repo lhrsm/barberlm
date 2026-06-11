@@ -375,19 +375,6 @@ function DashboardComponent() {
 
     toast.success(`Pagamento marcado como ${newStatus === 'paid' ? 'pago' : 'pendente'}`);
     
-    // Invalidar caches centralizados para garantir consistência em todos os painéis
-    const queryKeys = [
-      ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
-      ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
-      ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
-      ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
-      ['barber-dashboard'], ['customer-appointments']
-    ];
-
-    queryKeys.forEach(key => {
-      queryClient.invalidateQueries({ queryKey: key });
-    });
-
     fetchTodayAppointments();
     fetchStats();
   }
@@ -395,51 +382,24 @@ function DashboardComponent() {
   async function cancelAppointment(appointmentId: string) {
     if (!confirm("Deseja realmente cancelar este agendamento?")) return;
 
-    const appointment = todayAppointments.find(a => a.id === appointmentId);
-    if (!appointment) return;
+    try {
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: appointmentId,
+        p_cancelled_by: 'admin',
+        p_source: 'dashboard',
+        p_refund_preference: 'none'
+      });
 
-    // Em vez de deletar, atualizamos o status para cancelado
-    const { error } = await supabase
-      .from("appointments")
-      .update({ status: 'cancelled' })
-      .eq("id", appointmentId);
-
-    if (error) {
-      toast.error("Erro ao cancelar agendamento");
-      return;
-    }
-
-    // Se o agendamento foi pago via Pix e o cliente solicitou reembolso/crédito
-    if (appointment.payment_status === 'paid') {
-      const totalPrice = Number(appointment.total_price || 0);
+      if (error) throw error;
       
-      if (!tenantId) {
-        toast.error("Tenant não identificado");
-        return;
-      }
-
-      if (appointment.refund_type === 'refund') {
-        // Estorno: Remove da receita (cria uma saída/despesa para abater)
-        await supabase.from("transactions").insert([{
-          amount: totalPrice,
-          type: "expense",
-          description: `Estorno (Cancelamento Pix): ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-          category: "Estorno",
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          tenant_id: tenantId,
-          user_id: tenantId,
-          date: new Date().toISOString().split('T')[0]
-        }]);
-        toast.success("Agendamento cancelado!");
-      }
-      
+      toast.success("Agendamento cancelado!");
       fetchTodayAppointments();
       fetchStats();
       refreshLimits();
     } catch (err: any) {
       toast.error("Erro ao cancelar: " + err.message);
     }
+  }
   }
 
   async function togglePaymentStatus(appointment: any) {
