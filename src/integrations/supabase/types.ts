@@ -146,6 +146,8 @@ export type Database = {
           old_status: string | null
           rpc_response: Json | null
           source: string
+          status_after: string | null
+          status_before: string | null
         }
         Insert: {
           appointment_id: string
@@ -159,6 +161,8 @@ export type Database = {
           old_status?: string | null
           rpc_response?: Json | null
           source: string
+          status_after?: string | null
+          status_before?: string | null
         }
         Update: {
           appointment_id?: string
@@ -172,6 +176,8 @@ export type Database = {
           old_status?: string | null
           rpc_response?: Json | null
           source?: string
+          status_after?: string | null
+          status_before?: string | null
         }
         Relationships: [
           {
@@ -4453,16 +4459,27 @@ export type Database = {
         Returns: Json
       }
       check_expired_trials: { Args: never; Returns: undefined }
-      complete_appointment: {
-        Args: {
-          p_appointment_id: string
-          p_changed_by_id: string
-          p_changed_by_type: string
-          p_metadata?: Json
-          p_source: string
-        }
-        Returns: Json
-      }
+      complete_appointment:
+        | {
+            Args: {
+              p_appointment_id: string
+              p_changed_by_id: string
+              p_changed_by_type: string
+              p_metadata?: Json
+              p_source: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_appointment_id: string
+              p_changed_by_id?: string
+              p_changed_by_type?: string
+              p_metadata?: Json
+              p_source?: string
+            }
+            Returns: Json
+          }
       convert_appointment_to_credit: {
         Args: {
           p_amount: number
