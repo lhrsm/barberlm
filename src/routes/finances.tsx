@@ -698,6 +698,7 @@ function FinancesComponent() {
       description: editingTransaction.description,
       category: editingTransaction.category,
       barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
+      customer_id: editingTransaction.customer_id === "none" ? null : editingTransaction.customer_id,
       date: editingTransaction.date,
       time: editingTransaction.time,
       payment_method: isMixed ? 'mixed' : editingTransaction.payment_method,
