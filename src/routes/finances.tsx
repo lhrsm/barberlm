@@ -140,7 +140,6 @@ function FinancesComponent() {
     return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' ? 'Pagamento Misto' : null);
   };
   
-  const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
   const loading = authLoading || profLoading;
 
