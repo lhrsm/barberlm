@@ -45,12 +45,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
+import { useFinancial } from "@/hooks/use-financial";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
 });
-
-import { useFinancial } from "@/hooks/use-financial";
 
 function FinancesComponent() {
   const queryClient = useQueryClient();
