@@ -335,27 +335,18 @@ function DashboardComponent() {
         return;
       }
 
-      const { error: transError } = await supabase
-        .from("transactions")
-        .insert([{
-          amount: remainingToPay,
-          type: "income",
-          description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-          category: "Serviço",
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          tenant_id: tenantId,
-          user_id: tenantId,
-          date: new Date().toISOString().split('T')[0]
-        }]);
+      // O RPC complete_appointment agora é idempotente e trata a criação da transação.
+      // Basta chamá-lo para garantir que a transação exista sem risco de duplicidade.
+      const { error: completeError } = await supabase.rpc('complete_appointment', {
+        p_appointment_id: appointment.id,
+        p_changed_by_type: 'admin',
+        p_changed_by_id: user?.id as any,
+        p_source: 'dashboard_payment_toggle',
+        p_metadata: { payment_status: 'paid', payment_method: appointment.payment_method || 'pix' }
+      });
       
-      if (transError) console.error("Error creating transaction on payment status toggle:", transError);
+      if (completeError) console.error("Error ensuring transaction via RPC:", completeError);
     } else if (newStatus === 'pending') {
-      // If marking as pending, remove from transactions
-      await supabase
-        .from("transactions")
-        .delete()
-        .eq("appointment_id", appointment.id);
     }
 
     const { error } = await supabase
