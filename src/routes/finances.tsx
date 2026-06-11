@@ -635,7 +635,6 @@ function FinancesComponent() {
         Number(editingTransaction.credits_amount || 0) + 
         Number(editingTransaction.cashback_amount || 0);
       
-      const transactionAmount = parseFloat(editingTransaction.amount);
       if (Math.abs(total - transactionAmount) > 0.01) {
         toast.error(`A soma das formas de pagamento (R$ ${total.toFixed(2)}) precisa ser igual ao valor total (R$ ${transactionAmount.toFixed(2)}).`);
         return;
