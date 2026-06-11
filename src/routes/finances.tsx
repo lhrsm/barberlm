@@ -91,6 +91,7 @@ function FinancesComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   
   const user = authUser || (session ? { id: session.barber_id } : null);
+  const loading = authLoading || profLoading;
   const { summary: financialSummary, isLoading: loadingFinancial } = useFinancial(user?.id || null, dateFilter, dateFilter);
   
   // Refund filters
