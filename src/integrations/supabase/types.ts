@@ -2001,6 +2001,7 @@ export type Database = {
           id: string
           tenant_id: string
           type: string
+          updated_at: string | null
         }
         Insert: {
           amount: number
@@ -2012,6 +2013,7 @@ export type Database = {
           id?: string
           tenant_id: string
           type: string
+          updated_at?: string | null
         }
         Update: {
           amount?: number
@@ -2023,6 +2025,7 @@ export type Database = {
           id?: string
           tenant_id?: string
           type?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -2149,6 +2152,7 @@ export type Database = {
           id: string
           tenant_id: string
           type: string
+          updated_at: string | null
         }
         Insert: {
           amount: number
@@ -2159,6 +2163,7 @@ export type Database = {
           id?: string
           tenant_id: string
           type: string
+          updated_at?: string | null
         }
         Update: {
           amount?: number
@@ -2169,6 +2174,7 @@ export type Database = {
           id?: string
           tenant_id?: string
           type?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -3458,6 +3464,7 @@ export type Database = {
           tenant_id: string | null
           time: string | null
           type: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -3485,6 +3492,7 @@ export type Database = {
           tenant_id?: string | null
           time?: string | null
           type: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -3512,6 +3520,7 @@ export type Database = {
           tenant_id?: string | null
           time?: string | null
           type?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -4469,13 +4478,17 @@ export type Database = {
         Returns: Json
       }
       check_expired_trials: { Args: never; Returns: undefined }
+      clear_barbershop_financial_data: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       complete_appointment: {
         Args: {
           p_appointment_id: string
-          p_changed_by_id: string
-          p_changed_by_type: string
+          p_changed_by_id?: string
+          p_changed_by_type?: string
           p_metadata?: Json
-          p_source: string
+          p_source?: string
         }
         Returns: Json
       }
