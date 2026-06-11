@@ -1529,7 +1529,7 @@ function FinancesComponent() {
                                                 <Input type="number" step="0.01" value={editingTransaction.cash_amount} onChange={(e) => setEditingTransaction({...editingTransaction, cash_amount: e.target.value})} className="h-10 bg-[#05070d]/50 border-[#1f2937] text-white focus:border-amber-500/40 text-sm rounded-xl" />
                                               </div>
                                               <div className="space-y-2">
-                                                <Label className="text-[9px] uppercase font-black tracking-widest text-zinc-500">Valor Crédito</Label>
+                                                <Label className="text-[9px] uppercase font-black tracking-widest text-zinc-500">Valor Cartão</Label>
                                                 <Input type="number" step="0.01" value={editingTransaction.credit_card_amount} onChange={(e) => setEditingTransaction({...editingTransaction, credit_card_amount: e.target.value})} className="h-10 bg-[#05070d]/50 border-[#1f2937] text-white focus:border-amber-500/40 text-sm rounded-xl" />
                                               </div>
                                               <div className="space-y-2">
