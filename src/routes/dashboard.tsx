@@ -300,48 +300,12 @@ function DashboardComponent() {
   async function completeAppointment(appointment: any) {
     if (appointment.status === 'completed') return;
 
-    // 1. Get available credits and current state
-    const { data: customerData } = await supabase
-      .from("customers")
-      .select("credits, loyalty_points, cashback_balance, name")
-      .eq("id", appointment.customer_id)
-      .single();
-
-    const availableCredits = Number(customerData?.credits || 0);
-    const availableCashback = Number(customerData?.cashback_balance || 0);
-    const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
-    
-    // Determine how much credit and cashback will be used (only if not already subtracted)
-    let usedCredits = Number(appointment.credit_used || 0);
-    let usedCashback = Number(appointment.cashback_used || 0);
-    let remainingToPay = Number(appointment.final_amount || totalPrice);
-
-    // Determine how much credit and cashback will be used if not already set
-    if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && (remainingToPay === totalPrice || !appointment.final_amount)) {
-      if (availableCashback > 0) {
-        usedCashback = Math.min(availableCashback, remainingToPay);
-        remainingToPay -= usedCashback;
-      }
-      if (remainingToPay > 0 && availableCredits > 0) {
-        usedCredits = Math.min(availableCredits, remainingToPay);
-        remainingToPay -= usedCredits;
-      }
-    }
-
-    // 2. Update status using CENTRALIZED RPC hook
-    // The RPC handled in useAppointmentStatus (complete_appointment) 
-    // now correctly handles financial registration and deductions.
+    // 1. Update status using CENTRALIZED RPC hook
     const result = await centralUpdateStatus(
       appointment.id,
       'completed',
       {
         payment_status: 'paid',
-        credit_used: usedCredits,
-        credits_used: usedCredits,
-        cashback_used: usedCashback,
-        final_amount: remainingToPay,
-        pix_amount: appointment.payment_method === 'pix' ? remainingToPay : 0,
-        cash_amount: appointment.payment_method === 'cash' ? remainingToPay : 0,
         payment_method: appointment.payment_method || 'pix'
       },
       'dashboard'
@@ -349,13 +313,10 @@ function DashboardComponent() {
 
     if (!result.success) return;
 
-    // 3. Finance is now handled inside complete_appointment RPC
+    // 2. Finance is now handled inside complete_appointment RPC
     fetchTodayAppointments();
     fetchStats();
     refreshLimits();
-    queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    queryClient.invalidateQueries({ queryKey: ['calendar'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   }
 
   async function togglePaymentStatus(appointment: any) {
@@ -414,19 +375,6 @@ function DashboardComponent() {
 
     toast.success(`Pagamento marcado como ${newStatus === 'paid' ? 'pago' : 'pendente'}`);
     
-    // Invalidar caches centralizados para garantir consistência em todos os painéis
-    const queryKeys = [
-      ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
-      ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
-      ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
-      ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
-      ['barber-dashboard'], ['customer-appointments']
-    ];
-
-    queryKeys.forEach(key => {
-      queryClient.invalidateQueries({ queryKey: key });
-    });
-
     fetchTodayAppointments();
     fetchStats();
   }
@@ -434,123 +382,24 @@ function DashboardComponent() {
   async function cancelAppointment(appointmentId: string) {
     if (!confirm("Deseja realmente cancelar este agendamento?")) return;
 
-    const appointment = todayAppointments.find(a => a.id === appointmentId);
-    if (!appointment) return;
+    try {
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: appointmentId,
+        p_cancelled_by: 'admin',
+        p_source: 'dashboard',
+        p_refund_preference: 'none'
+      });
 
-    // Em vez de deletar, atualizamos o status para cancelado
-    const { error } = await supabase
-      .from("appointments")
-      .update({ status: 'cancelled' })
-      .eq("id", appointmentId);
-
-    if (error) {
-      toast.error("Erro ao cancelar agendamento");
-      return;
-    }
-
-    // Se o agendamento foi pago via Pix e o cliente solicitou reembolso/crédito
-    if (appointment.payment_status === 'paid') {
-      const totalPrice = Number(appointment.total_price || 0);
+      if (error) throw error;
       
-      if (!tenantId) {
-        toast.error("Tenant não identificado");
-        return;
-      }
-
-      if (appointment.refund_type === 'refund') {
-        // Estorno: Remove da receita (cria uma saída/despesa para abater)
-        await supabase.from("transactions").insert([{
-          amount: totalPrice,
-          type: "expense",
-          description: `Estorno (Cancelamento Pix): ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-          category: "Estorno",
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          tenant_id: tenantId,
-          user_id: tenantId,
-          date: new Date().toISOString().split('T')[0]
-        }]);
-        toast.success("Agendamento cancelado e estorno registrado como saída!");
-      } else if (appointment.refund_type === 'credits') {
-        // Créditos: Adiciona ao saldo do cliente
-        try {
-          // 1. Garantir que o cliente tem uma carteira
-          let { data: wallet } = await supabase
-            .from("wallet")
-            .select("id")
-            .eq("customer_id", appointment.customer_id)
-            .maybeSingle();
-            
-          if (!wallet) {
-            const { data: newWallet, error: walletErr } = await supabase
-              .from("wallet")
-              .insert({ 
-                customer_id: appointment.customer_id, 
-                user_id: tenantId,
-                balance: 0 
-              })
-              .select()
-              .single();
-            if (walletErr) throw walletErr;
-            wallet = newWallet;
-          }
-          // @ts-ignore
-
-          // 2. Adicionar crédito à carteira
-          await supabase.from("wallet_transactions").insert([{
-            wallet_id: wallet.id,
-            amount: totalPrice,
-            type: "credit",
-            description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
-            appointment_id: appointment.id,
-            user_id: tenantId
-          }]);
-
-          // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
-          // mas documentar o movimento. O valor original de 'income' continua lá, 
-          // mas agora o cliente tem o crédito para usar.
-          // Usando valor total original para o crédito
-          await supabase.from("transactions").insert([{
-            amount: 0,
-            type: "income",
-            description: `Crédito Gerado: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'} (R$ ${totalPrice.toFixed(2)})`,
-            category: "Crédito Cliente",
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            tenant_id: tenantId,
-            user_id: tenantId,
-            date: new Date().toISOString().split('T')[0]
-          }]);
-
-          toast.success("Agendamento cancelado e valor convertido em créditos!");
-        } catch (err) {
-          console.error("Erro ao gerar créditos:", err);
-          toast.error("Erro ao converter valor em créditos.");
-        // @ts-ignore
-        }
-      } else {
-        // Fallback: se não tiver tipo de reembolso definido, registra como despesa (estorno padrão)
-        await supabase.from("transactions").insert([{
-          amount: totalPrice,
-          type: "expense",
-          description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-          category: "Cancelamento",
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          tenant_id: tenantId,
-          user_id: tenantId,
-          date: new Date().toISOString().split('T')[0]
-        }]);
-        toast.success("Agendamento cancelado!");
-      }
-    } else {
       toast.success("Agendamento cancelado!");
+      fetchTodayAppointments();
+      fetchStats();
+      refreshLimits();
+    } catch (err: any) {
+      toast.error("Erro ao cancelar: " + err.message);
     }
-
-    fetchTodayAppointments();
-    fetchStats();
   }
-
   async function fetchStats() {
     if (!user || !tenantId) return;
     const todayStart = startOfDay(new Date()).toISOString();

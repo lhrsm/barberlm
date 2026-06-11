@@ -4472,10 +4472,10 @@ export type Database = {
       complete_appointment: {
         Args: {
           p_appointment_id: string
-          p_changed_by_id?: string
-          p_changed_by_type?: string
+          p_changed_by_id: string
+          p_changed_by_type: string
           p_metadata?: Json
-          p_source?: string
+          p_source: string
         }
         Returns: Json
       }
@@ -4522,6 +4522,21 @@ export type Database = {
       decrement_product_stock: {
         Args: { amount: number; prod_id: string }
         Returns: undefined
+      }
+      fn_get_financial_summary: {
+        Args: { p_end_date: string; p_start_date: string; p_tenant_id: string }
+        Returns: Json
+      }
+      fn_recalculate_customer_balances: {
+        Args: { p_customer_id: string }
+        Returns: {
+          new_cashback_balance: number
+          new_credit_balance: number
+        }[]
+      }
+      fn_recalculate_customer_loyalty: {
+        Args: { p_customer_id: string }
+        Returns: number
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_appointment_by_management_token: {

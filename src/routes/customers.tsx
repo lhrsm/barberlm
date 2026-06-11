@@ -109,7 +109,7 @@ function CustomersComponent() {
     if (!user) return;
     const { data, error } = await supabase
       .from("customers")
-      .select("*")
+      .select("*, credits, cashback_balance, loyalty_points")
       .eq("tenant_id", user.id)
       .order("name");
     if (error) toast.error("Erro ao buscar clientes");

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
@@ -45,6 +45,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
+import { useFinancial } from "@/hooks/use-financial";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -79,7 +80,7 @@ function FinancesComponent() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -88,6 +89,10 @@ function FinancesComponent() {
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
   const [customerStats, setCustomerStats] = useState({ total_cashback: 0, total_credits: 0 });
   const [customers, setCustomers] = useState<any[]>([]);
+  
+  const user = authUser || (session ? { id: session.barber_id } : null);
+  const loading = authLoading || profLoading;
+  const { summary: financialSummary, isLoading: loadingFinancial } = useFinancial(user?.id || null, dateFilter, dateFilter);
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
@@ -115,16 +120,13 @@ function FinancesComponent() {
   };
 
   const formatMixedPaymentLabel = (t: any) => {
-    if (!t.payment_breakdown && !t.pix_amount && !t.cash_amount && !t.credit_card_amount && !t.debit_card_amount && !t.credits_amount && !t.cashback_amount) return null;
-    
     const parts = [];
-    const breakdown = t.payment_breakdown || {};
     
-    const pix = Number(t.pix_amount || breakdown.pix || 0);
-    const cash = Number(t.cash_amount || breakdown.cash || 0);
-    const card = Number(t.credit_card_amount || t.debit_card_amount || breakdown.card || breakdown.card_credit || breakdown.card_debit || 0);
-    const credits = Number(t.credits_amount || breakdown.credits || 0);
-    const cashback = Number(t.cashback_amount || breakdown.cashback || 0);
+    const pix = Number(t.pix_amount || t.appointment?.pix_amount || 0);
+    const cash = Number(t.cash_amount || t.appointment?.cash_amount || 0);
+    const card = Number(t.credit_card_amount || t.debit_card_amount || t.appointment?.credit_card_amount || t.appointment?.debit_card_amount || 0);
+    const credits = Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0);
+    const cashback = Number(t.cashback_amount || t.appointment?.cashback_used || 0);
 
     if (pix > 0) parts.push(`PIX R$ ${pix.toFixed(2)}`);
     if (cash > 0) parts.push(`DINHEIRO R$ ${cash.toFixed(2)}`);
@@ -132,12 +134,10 @@ function FinancesComponent() {
     if (credits > 0) parts.push(`CRÉDITO R$ ${credits.toFixed(2)}`);
     if (cashback > 0) parts.push(`CASHBACK R$ ${cashback.toFixed(2)}`);
     
-    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' ? 'Pagamento Misto' : null);
+    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' || t.appointment?.payment_method === 'mixed' ? 'Pagamento Misto' : null);
   };
   
-  const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
-  const loading = authLoading || profLoading;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -172,6 +172,7 @@ function FinancesComponent() {
           filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
         }, () => {
           fetchTransactions(barberIdFilter);
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -181,6 +182,7 @@ function FinancesComponent() {
         }, () => {
           fetchAppointments(barberIdFilter);
           fetchTransactions(barberIdFilter);
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -190,6 +192,7 @@ function FinancesComponent() {
         }, () => {
           fetchRefundRequests();
           fetchCashbackTransactions();
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
         })
         .subscribe();
 
@@ -481,88 +484,39 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
-    // FILTRAR TRANSAÇÕES DE AGENDAMENTOS (Independente do status do agendamento, se o pagamento foi Pix e está pago)
-    const effectiveTransactions = transactions.filter(t => 
-      !t.appointment || 
-      t.appointment.status === 'completed' || 
-      t.appointment.status === 'confirmed' || 
-      t.appointment.status === 'scheduled' ||
-      (t.appointment.payment_status === 'paid' && (t.payment_method === 'pix' || t.pix_amount > 0))
-    );
-    
-    // Total de Cashback Concedido (Gerado no período)
-    const cashbackConceded = cashbackTransactions
-      .filter(t => ['earned', 'cashback_earned', 'granted', 'credit'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
-      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+    if (!financialSummary) {
+      return {
+        income: 0,
+        realCashIncome: 0,
+        servicesSold: 0,
+        totalIncome: 0,
+        totalExpense: 0,
+        netRevenue: 0,
+        balance: 0,
+        usedCredits: 0,
+        usedCashback: 0,
+        cashbackConceded: 0,
+        cashbackUsedTotal: 0,
+        freelancersPart: 0,
+        barbershopPart: 0
+      };
+    }
 
-    // Total de Cashback Utilizado (Resgatado no período)
-    const cashbackUsedTotal = cashbackTransactions
-      .filter(t => ['used', 'cashback_used'].includes(t.type) && (!dateFilter || t.created_at.split('T')[0] === dateFilter))
-      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
-
-    // Serviços vendidos: Somar total_price dos serviços
-    const servicesSold = effectiveTransactions.reduce((acc, t) => {
-      if (t.type === 'income' && t.appointment) {
-        return acc + (Number(t.appointment.total_price || t.amount || 0));
-      }
-      // Se não for agendamento mas for entrada manual
-      if (t.type === 'income' && !t.appointment) {
-        return acc + (Number(t.amount || 0));
-      }
-      return acc;
-    }, 0);
-
-    // Entrada em caixa (Dinheiro novo: Pix, Cash, Card)
-    const totalIncome = effectiveTransactions
-      .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment || t.payment_breakdown) {
-          return acc + (
-            Number(t.pix_amount || 0) + 
-            Number(t.cash_amount || 0) + 
-            Number(t.credit_card_amount || 0) + 
-            Number(t.debit_card_amount || 0)
-          );
-        }
-        const method = t.payment_method || t.appointment?.payment_method;
-        if (method === 'cashback' || method === 'credits' || method === 'wallet') return acc;
-        return acc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
-
-    const totalExpense = effectiveTransactions.reduce((acc, t) => t.type === 'expense' ? acc + (parseFloat(String(t.amount)) || 0) : acc, 0);
-
-    // Créditos e Cashback utilizados
-    const usedCredits = effectiveTransactions.reduce((acc, t) => {
-      if (t.type === 'income') {
-         if (t.payment_breakdown) return acc + Number(t.payment_breakdown.credits || 0);
-         return acc + (Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0));
-      }
-      return acc;
-    }, 0);
-
-    const usedCashback = effectiveTransactions.reduce((acc, t) => {
-      if (t.type === 'income') {
-         if (t.payment_breakdown) return acc + Number(t.payment_breakdown.cashback || 0);
-         return acc + (Number(t.cashback_amount || t.appointment?.cashback_used || 0));
-      }
-      return acc;
-    }, 0);
-
+    const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + (parseFloat(String(t.amount)) || 0) : acc, 0);
     const totalRefundsPaid = (refundRequests || [])
       .filter(r => r && (r.status === 'completed' || r.status === 'paid'))
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    const netRevenue = totalIncome - totalRefundsPaid;
-
     const freelancersPart = barbers.reduce((acc, barber) => {
       const bApptIds = new Set();
-      const bTotal = effectiveTransactions
+      const bTotal = transactions
         .filter(t => t.barber_id === barber.id && t.type === 'income')
         .reduce((tAcc, t) => {
           if (t.appointment_id) {
             if (bApptIds.has(t.appointment_id)) return tAcc;
             bApptIds.add(t.appointment_id);
-            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
+            // Considerar o valor total do serviço para comissão
+            return tAcc + (Number(t.appointment?.original_total || t.appointment?.total_price || t.amount || 0));
           }
           return tAcc + (parseFloat(String(t.amount)) || 0);
         }, 0);
@@ -570,21 +524,21 @@ function FinancesComponent() {
     }, 0);
 
     return {
-      income: servicesSold,
-      realCashIncome: totalIncome,
-      servicesSold,
-      totalIncome,
+      income: financialSummary.servicos_vendidos,
+      realCashIncome: financialSummary.entrada_caixa,
+      servicesSold: financialSummary.servicos_vendidos,
+      totalIncome: financialSummary.entrada_caixa,
       totalExpense,
-      netRevenue,
-      balance: totalIncome - totalExpense - totalRefundsPaid,
-      usedCredits,
-      usedCashback,
-      cashbackConceded,
-      cashbackUsedTotal,
+      netRevenue: financialSummary.entrada_caixa - totalRefundsPaid,
+      balance: financialSummary.entrada_caixa - totalExpense - totalRefundsPaid,
+      usedCredits: financialSummary.creditos_utilizados,
+      usedCashback: financialSummary.cashback_utilizado,
+      cashbackConceded: financialSummary.cashback_concedido,
+      cashbackUsedTotal: financialSummary.cashback_utilizado,
       freelancersPart,
-      barbershopPart: servicesSold - freelancersPart
+      barbershopPart: financialSummary.servicos_vendidos - freelancersPart
     };
-  }, [transactions, cashbackTransactions, refundRequests, barbers, appointments]);
+  }, [financialSummary, transactions, refundRequests, barbers]);
 
   useEffect(() => {
     async function fetchBalances() {
@@ -649,6 +603,8 @@ function FinancesComponent() {
         cashback_amount: "0"
       });
       fetchTransactions();
+      fetchCustomerStats();
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
     }
   }
 
@@ -658,6 +614,12 @@ function FinancesComponent() {
 
     if (!editingTransaction.adjustment_reason) {
       toast.error("O motivo do ajuste é obrigatório.");
+      return;
+    }
+
+    const transactionAmount = parseFloat(editingTransaction.amount);
+    if (isNaN(transactionAmount)) {
+      toast.error("O valor total é inválido.");
       return;
     }
 
@@ -673,7 +635,6 @@ function FinancesComponent() {
         Number(editingTransaction.credits_amount || 0) + 
         Number(editingTransaction.cashback_amount || 0);
       
-      const transactionAmount = parseFloat(editingTransaction.amount);
       if (Math.abs(total - transactionAmount) > 0.01) {
         toast.error(`A soma das formas de pagamento (R$ ${total.toFixed(2)}) precisa ser igual ao valor total (R$ ${transactionAmount.toFixed(2)}).`);
         return;
@@ -758,6 +719,8 @@ function FinancesComponent() {
       setEditingTransaction(null);
       fetchTransactions();
       fetchAppointments();
+      fetchCustomerStats();
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
     }
   }
 
@@ -822,7 +785,9 @@ function FinancesComponent() {
                       for (const c of customers) {
                         await supabase.rpc('recalculate_customer_stats', { p_customer_id: c.id, p_tenant_id: c.tenant_id as string });
                       }
-                      fetchTransactions();
+      fetchTransactions();
+      fetchCustomerStats();
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
                       fetchCashbackTransactions();
                       fetchCustomerStats();
                       toast.success("Saldos recalculados com sucesso!");
@@ -863,11 +828,14 @@ function FinancesComponent() {
                       value={newTransaction.time} 
                       onChange={(e) => setNewTransaction({...newTransaction, time: e.target.value})} 
                       required 
+                      className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Valor (R$)</Label>
+
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="amount" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Valor Total (R$)</Label>
                   <Input 
                     id="amount" 
                     type="number"
@@ -876,15 +844,34 @@ function FinancesComponent() {
                     value={newTransaction.amount} 
                     onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})} 
                     required 
+                    className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl font-bold"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">Tipo</Label>
+                  <Label htmlFor="customer_id" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente (Opcional)</Label>
+                  <Select 
+                    value={newTransaction.customer_id} 
+                    onValueChange={(val) => setNewTransaction({...newTransaction, customer_id: val})}
+                  >
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
+                      <SelectValue placeholder="Selecione um cliente" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                      <SelectItem value="none" className="focus:bg-amber-500/20">Nenhum / Geral</SelectItem>
+                      {customers.map((c) => (
+                        <SelectItem key={c.id} value={c.id} className="focus:bg-amber-500/20">{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Tipo de Movimentação</Label>
                   <Select 
                     value={newTransaction.type} 
                     onValueChange={(val) => setNewTransaction({...newTransaction, type: val})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -894,86 +881,77 @@ function FinancesComponent() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="payment_method">Forma de Pagamento</Label>
+                  <Label htmlFor="payment_method" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Forma de Pagamento</Label>
                   <Select 
                     value={newTransaction.payment_method} 
                     onValueChange={(val) => setNewTransaction({...newTransaction, payment_method: val})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                       <SelectItem value="pix">PIX</SelectItem>
                       <SelectItem value="cash">Dinheiro</SelectItem>
                       <SelectItem value="card">Cartão</SelectItem>
                       <SelectItem value="wallet">Créditos</SelectItem>
-                      <SelectItem value="misto">Misto (Pix+Crédito+...)</SelectItem>
+                      <SelectItem value="cashback">Cashback</SelectItem>
+                      <SelectItem value="misto">Misto (Múltiplas Formas)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 {(newTransaction.payment_method === 'misto' || newTransaction.payment_method === 'mixed') && (
-                  <div className="bg-muted/50 p-4 rounded-xl border border-border space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Detalhamento Misto</p>
+                  <div className="bg-amber-500/5 p-4 rounded-xl border border-amber-500/20 space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Detalhamento Misto</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">PIX</Label>
-                        <Input type="number" step="0.01" value={newTransaction.pix_amount} onChange={(e) => setNewTransaction({...newTransaction, pix_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">PIX</Label>
+                        <Input type="number" step="0.01" value={newTransaction.pix_amount} onChange={(e) => setNewTransaction({...newTransaction, pix_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Dinheiro</Label>
-                        <Input type="number" step="0.01" value={newTransaction.cash_amount} onChange={(e) => setNewTransaction({...newTransaction, cash_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Dinheiro</Label>
+                        <Input type="number" step="0.01" value={newTransaction.cash_amount} onChange={(e) => setNewTransaction({...newTransaction, cash_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Cartão</Label>
-                        <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Cartão</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Créditos</Label>
-                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Créditos</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Cashback</Label>
+                        <Input type="number" step="0.01" value={newTransaction.cashback_amount} onChange={(e) => setNewTransaction({...newTransaction, cashback_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                     </div>
                   </div>
                 )}
+
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria</Label>
+                  <Label htmlFor="category" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Categoria</Label>
                   <Input 
                     id="category" 
                     placeholder="Serviço, Aluguel, Produtos, etc."
                     value={newTransaction.category} 
                     onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})} 
+                    className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="barber">Barbeiro</Label>
+                  <Label htmlFor="barber_id" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Barbeiro Responsável</Label>
                   <Select 
                     value={newTransaction.barber_id} 
                     onValueChange={(val) => setNewTransaction({...newTransaction, barber_id: val})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
                       <SelectValue placeholder="Selecione um barbeiro" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum / Geral</SelectItem>
+                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                      <SelectItem value="none" className="focus:bg-amber-500/20">Nenhum / Geral</SelectItem>
                       {barbers.map((b) => (
-                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customer">Cliente</Label>
-                  <Select 
-                    value={newTransaction.customer_id} 
-                    onValueChange={(val) => setNewTransaction({...newTransaction, customer_id: val})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum / Geral</SelectItem>
-                      {customers.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        <SelectItem key={b.id} value={b.id} className="focus:bg-amber-500/20">{b.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1055,13 +1033,31 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Saídas</CardTitle>
+              <div className="p-2 bg-red-500/10 rounded-lg">
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-500">R$ {summary.totalExpense.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de despesas e estornos pagos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Estornos Solicitados</CardTitle>
               <div className="p-2 bg-orange-500/10 rounded-lg">
                 <Clock className="h-4 w-4 text-orange-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">R$ 0.00</div>
+              <div className="text-2xl font-bold text-orange-500">
+                R$ {(refundRequests || [])
+                  .filter(r => r.status === 'requested')
+                  .reduce((acc, r) => acc + (Number(r.amount) || 0), 0)
+                  .toFixed(2)}
+              </div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando processamento</p>
             </CardContent>
           </Card>
@@ -1074,8 +1070,8 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-400">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Acumulado histórico</p>
+              <div className="text-2xl font-bold text-purple-400">R$ {customerStats.total_credits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Saldo acumulado por todos os clientes</p>
             </CardContent>
           </Card>
 
@@ -1133,40 +1129,40 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Créditos Devolvidos</CardTitle>
+              <CardTitle className="text-sm font-semibold">Saldo de Créditos</CardTitle>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+                <Wallet className="h-4 w-4 text-emerald-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+              <div className="text-2xl font-bold text-emerald-500">R$ {customerStats.total_credits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Soma de todos os saldos atuais</p>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Cashback Devolvido</CardTitle>
+              <CardTitle className="text-sm font-semibold">Saldo de Cashback</CardTitle>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+                <Wallet className="h-4 w-4 text-emerald-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+              <div className="text-2xl font-bold text-emerald-500">R$ {customerStats.total_cashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Soma de todos os saldos atuais</p>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Pendente</CardTitle>
+              <CardTitle className="text-sm font-semibold">Pagamentos Pendentes</CardTitle>
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Clock className="h-4 w-4 text-yellow-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando pagamento</p>
+              <div className="text-2xl font-bold text-yellow-500">R$ {appointments.reduce((acc, a) => acc + (Number(a.final_amount || a.total_price) || 0), 0).toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Agendamentos não concluídos</p>
             </CardContent>
           </Card>
 
@@ -1180,7 +1176,7 @@ function FinancesComponent() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-primary">R$ {summary.balance.toFixed(2)}</div>
-                <p className="text-[10px] text-muted-foreground font-medium mt-1">Real em caixa (Entrada - Saída)</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">Real em caixa (Entrada Líquida - Despesas)</p>
               </CardContent>
             </Card>
           )}
@@ -1234,7 +1230,7 @@ function FinancesComponent() {
                 variant="ghost" 
                 onClick={() => {
                   setStatusFilter("all");
-                  setDateFilter("");
+                  setDateFilter(new Date().toISOString().split('T')[0]);
                 }}
                 className="h-10 hover:bg-accent hover:text-accent-foreground"
               >
@@ -1256,7 +1252,8 @@ function FinancesComponent() {
                       <TableHead className="text-muted-foreground">Status</TableHead>
                       <TableHead className="text-muted-foreground">Pagamento</TableHead>
                       <TableHead className="text-muted-foreground">Categoria</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Valor</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Serviço/Faturamento Bruto</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Dinheiro Real (Caixa)</TableHead>
                       <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1328,13 +1325,15 @@ function FinancesComponent() {
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">{t.category || "-"}</TableCell>
+                        <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-white" : "text-red-500")}>
+                          R$ {(() => {
+                            const val = Number(t.appointment?.original_total || t.appointment?.total_price || t.amount || 0);
+                            return val.toFixed(2);
+                          })()}
+                        </TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-emerald-500" : "text-violet-400") : "text-red-500")}>
                           {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(() => {
                             const val = parseFloat(String(t.amount)) || 0;
-                            if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
-                              const match = t.description.match(/R\$\s*([\d.]+)/);
-                              return match ? parseFloat(match[1]).toFixed(2) : "0.00";
-                            }
                             return val.toFixed(2);
                           })()}
                           {t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && <span className="block text-[10px] opacity-70">Crédito</span>}
@@ -1352,14 +1351,14 @@ function FinancesComponent() {
                                   barber_id: t.barber_id || "none",
                                   date: formatTransactionDateForEdit(t),
                                   time: formatTransactionTimeForEdit(t),
-                                  payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
+                                  payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : (t.appointment?.payment_method === 'card' ? 'credit_card' : t.appointment?.payment_method)) || "dinheiro",
                                   category: t.category || "Serviço",
-                                  pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
-                                  cash_amount: t.cash_amount || 0,
-                                  credit_card_amount: t.credit_card_amount || 0,
-                                  debit_card_amount: t.debit_card_amount || 0,
-                                  credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
-                                  cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
+                                  pix_amount: String(t.pix_amount || t.appointment?.pix_amount || 0),
+                                  cash_amount: String(t.cash_amount || t.appointment?.cash_amount || 0),
+                                  credit_card_amount: String(t.credit_card_amount || t.appointment?.credit_card_amount || 0),
+                                  debit_card_amount: String(t.debit_card_amount || t.appointment?.debit_card_amount || 0),
+                                  credits_amount: String(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0),
+                                  cashback_amount: String(t.cashback_amount || t.appointment?.cashback_used || 0),
                                   adjustment_reason: ""
                                 });
                                 setIsEditDialogOpen(true);
@@ -1437,6 +1436,24 @@ function FinancesComponent() {
 
                                           <div className="space-y-6">
                                             <div className="space-y-2">
+                                              <Label htmlFor="edit-customer" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</Label>
+                                              <Select 
+                                                value={editingTransaction.customer_id || "none"} 
+                                                onValueChange={(val) => setEditingTransaction({...editingTransaction, customer_id: val})}
+                                              >
+                                                <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white focus:ring-amber-500/50 h-11 rounded-xl">
+                                                  <SelectValue placeholder="Selecione um cliente" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                                                  <SelectItem value="none" className="focus:bg-amber-500/20 focus:text-white">Nenhum / Geral</SelectItem>
+                                                  {customers.map((c) => (
+                                                    <SelectItem key={c.id} value={c.id} className="focus:bg-amber-500/20 focus:text-white">{c.name}</SelectItem>
+                                                  ))}
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+
+                                            <div className="space-y-2">
                                               <Label htmlFor="edit-payment-method" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Forma de Pagamento</Label>
                                               <Select 
                                                 value={editingTransaction.payment_method} 
@@ -1493,23 +1510,6 @@ function FinancesComponent() {
                                                 </SelectContent>
                                               </Select>
                                             </div>
-                                            <div className="space-y-2">
-                                              <Label htmlFor="edit-customer" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</Label>
-                                              <Select 
-                                                value={editingTransaction.customer_id || "none"} 
-                                                onValueChange={(val) => setEditingTransaction({...editingTransaction, customer_id: val})}
-                                              >
-                                                <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white focus:ring-amber-500/50 h-11 rounded-xl">
-                                                  <SelectValue placeholder="Selecione um cliente" />
-                                                </SelectTrigger>
-                                                <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-                                                  <SelectItem value="none" className="focus:bg-amber-500/20 focus:text-white">Nenhum / Geral</SelectItem>
-                                                  {customers.map((c) => (
-                                                    <SelectItem key={c.id} value={c.id} className="focus:bg-amber-500/20 focus:text-white">{c.name}</SelectItem>
-                                                  ))}
-                                                </SelectContent>
-                                              </Select>
-                                            </div>
                                           </div>
                                         </div>
 
@@ -1529,7 +1529,7 @@ function FinancesComponent() {
                                                 <Input type="number" step="0.01" value={editingTransaction.cash_amount} onChange={(e) => setEditingTransaction({...editingTransaction, cash_amount: e.target.value})} className="h-10 bg-[#05070d]/50 border-[#1f2937] text-white focus:border-amber-500/40 text-sm rounded-xl" />
                                               </div>
                                               <div className="space-y-2">
-                                                <Label className="text-[9px] uppercase font-black tracking-widest text-zinc-500">Valor Crédito</Label>
+                                                <Label className="text-[9px] uppercase font-black tracking-widest text-zinc-500">Valor Cartão</Label>
                                                 <Input type="number" step="0.01" value={editingTransaction.credit_card_amount} onChange={(e) => setEditingTransaction({...editingTransaction, credit_card_amount: e.target.value})} className="h-10 bg-[#05070d]/50 border-[#1f2937] text-white focus:border-amber-500/40 text-sm rounded-xl" />
                                               </div>
                                               <div className="space-y-2">
