@@ -956,6 +956,16 @@ function ShopPageComponent() {
         const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
         const endTime = addMinutes(startTime, item.duration);
 
+        const totalValue = calculateSubtotal();
+        const totalDiscount = calculateDiscount();
+        const payableValue = totalValue - totalDiscount;
+        
+        // Distribute cashback and credits proportionally if multiple appointments
+        const ratio = item.price / totalValue;
+        const apptCashbackUsed = useCashback ? Number((Math.min(customerCashback, payableValue) * ratio).toFixed(2)) : 0;
+        const apptCreditsUsed = useCredits ? Number((Math.min(customerCredits, payableValue - apptCashbackUsed) * ratio).toFixed(2)) : 0;
+        const apptFinalAmount = Math.max(0, item.price - apptCashbackUsed - apptCreditsUsed);
+
         const appointmentPayload = {
           user_id: shop.id,
           tenant_id: shop.id,
@@ -968,7 +978,12 @@ function ShopPageComponent() {
           original_total: item.price,
           status: "confirmed",
           payment_status: (calculateTotal() === 0) ? 'paid' : 'pending',
-          payment_method: finalPaymentMethod,
+          payment_method: (apptCashbackUsed > 0 || apptCreditsUsed > 0) ? 'mixed' : finalPaymentMethod,
+          cashback_used: apptCashbackUsed,
+          credits_used: apptCreditsUsed,
+          pix_amount: finalPaymentMethod === 'pix' ? apptFinalAmount : 0,
+          cash_amount: finalPaymentMethod === 'barbershop' ? apptFinalAmount : 0,
+          final_amount: apptFinalAmount,
           source: 'online',
           appointment_group_id: appointmentGroupId,
           service_amount: item.price,
