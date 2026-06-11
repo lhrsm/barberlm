@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/finances")({
 });
 
 function FinancesComponent() {
+  const queryClient = useQueryClient();
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
@@ -64,6 +66,7 @@ function FinancesComponent() {
     description: "", 
     category: "Serviço", 
     barber_id: "none", 
+    customer_id: "none",
     date: new Date().toISOString().split('T')[0], 
     time: "12:00",
     payment_method: "pix",
@@ -84,6 +87,7 @@ function FinancesComponent() {
   const [loadingRefunds, setLoadingRefunds] = useState(false);
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
   const [customerStats, setCustomerStats] = useState({ total_cashback: 0, total_credits: 0 });
+  const [customers, setCustomers] = useState<any[]>([]);
   
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
@@ -155,7 +159,8 @@ function FinancesComponent() {
       fetchAppointments(barberIdFilter);
       fetchRefundRequests();
       fetchCashbackTransactions();
-      fetchCustomerStats(); // Novo fetch para garantir cards atualizados
+      fetchCustomerStats(); 
+      fetchCustomers();
 
       // Realtime subscription
       const channel = supabase
@@ -446,6 +451,16 @@ function FinancesComponent() {
     }
   }
 
+  async function fetchCustomers() {
+    if (!user) return;
+    const { data } = await supabase
+      .from("customers")
+      .select("id, name")
+      .eq("tenant_id", user.id)
+      .order("name");
+    setCustomers(data || []);
+  }
+
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
 
@@ -593,8 +608,13 @@ function FinancesComponent() {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase.from("transactions").insert({
-      ...newTransaction,
+    const { error } = await (supabase.from("transactions").insert as any)([{
+      type: newTransaction.type,
+      category: newTransaction.category,
+      description: newTransaction.description,
+      date: newTransaction.date,
+      time: newTransaction.time,
+      payment_method: newTransaction.payment_method,
       amount: parseFloat(newTransaction.amount) || 0,
       pix_amount: parseFloat(newTransaction.pix_amount) || 0,
       cash_amount: parseFloat(newTransaction.cash_amount) || 0,
@@ -602,8 +622,10 @@ function FinancesComponent() {
       credits_amount: parseFloat(newTransaction.credits_amount) || 0,
       cashback_amount: parseFloat(newTransaction.cashback_amount) || 0,
       user_id: user.id,
+      tenant_id: user.id,
       barber_id: newTransaction.barber_id === "none" ? null : newTransaction.barber_id,
-    });
+      customer_id: newTransaction.customer_id === "none" ? null : newTransaction.customer_id,
+    }]);
 
     if (error) {
       toast.error("Erro ao adicionar transação");
@@ -616,6 +638,7 @@ function FinancesComponent() {
         description: "", 
         category: "Serviço", 
         barber_id: "none", 
+        customer_id: "none",
         date: new Date().toISOString().split('T')[0], 
         time: "12:00", 
         payment_method: "pix",
@@ -933,6 +956,23 @@ function FinancesComponent() {
                       <SelectItem value="none">Nenhum / Geral</SelectItem>
                       {barbers.map((b) => (
                         <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customer">Cliente</Label>
+                  <Select 
+                    value={newTransaction.customer_id} 
+                    onValueChange={(val) => setNewTransaction({...newTransaction, customer_id: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum / Geral</SelectItem>
+                      {customers.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
