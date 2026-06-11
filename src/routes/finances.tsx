@@ -867,69 +867,77 @@ function FinancesComponent() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="payment_method">Forma de Pagamento</Label>
+                  <Label htmlFor="payment_method" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Forma de Pagamento</Label>
                   <Select 
                     value={newTransaction.payment_method} 
                     onValueChange={(val) => setNewTransaction({...newTransaction, payment_method: val})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                       <SelectItem value="pix">PIX</SelectItem>
                       <SelectItem value="cash">Dinheiro</SelectItem>
                       <SelectItem value="card">Cartão</SelectItem>
                       <SelectItem value="wallet">Créditos</SelectItem>
-                      <SelectItem value="misto">Misto (Pix+Crédito+...)</SelectItem>
+                      <SelectItem value="cashback">Cashback</SelectItem>
+                      <SelectItem value="misto">Misto (Múltiplas Formas)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 {(newTransaction.payment_method === 'misto' || newTransaction.payment_method === 'mixed') && (
-                  <div className="bg-muted/50 p-4 rounded-xl border border-border space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Detalhamento Misto</p>
+                  <div className="bg-amber-500/5 p-4 rounded-xl border border-amber-500/20 space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Detalhamento Misto</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">PIX</Label>
-                        <Input type="number" step="0.01" value={newTransaction.pix_amount} onChange={(e) => setNewTransaction({...newTransaction, pix_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">PIX</Label>
+                        <Input type="number" step="0.01" value={newTransaction.pix_amount} onChange={(e) => setNewTransaction({...newTransaction, pix_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Dinheiro</Label>
-                        <Input type="number" step="0.01" value={newTransaction.cash_amount} onChange={(e) => setNewTransaction({...newTransaction, cash_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Dinheiro</Label>
+                        <Input type="number" step="0.01" value={newTransaction.cash_amount} onChange={(e) => setNewTransaction({...newTransaction, cash_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Cartão</Label>
-                        <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Cartão</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credit_card_amount} onChange={(e) => setNewTransaction({...newTransaction, credit_card_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase font-bold">Créditos</Label>
-                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-8 text-xs" />
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Créditos</Label>
+                        <Input type="number" step="0.01" value={newTransaction.credits_amount} onChange={(e) => setNewTransaction({...newTransaction, credits_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[9px] uppercase font-bold text-zinc-500">Cashback</Label>
+                        <Input type="number" step="0.01" value={newTransaction.cashback_amount} onChange={(e) => setNewTransaction({...newTransaction, cashback_amount: e.target.value})} className="h-9 bg-[#05070d] border-[#1f2937] text-white text-xs rounded-lg" />
                       </div>
                     </div>
                   </div>
                 )}
+
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria</Label>
+                  <Label htmlFor="category" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Categoria</Label>
                   <Input 
                     id="category" 
                     placeholder="Serviço, Aluguel, Produtos, etc."
                     value={newTransaction.category} 
                     onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})} 
+                    className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="barber">Barbeiro</Label>
+                  <Label htmlFor="barber_id" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Barbeiro Responsável</Label>
                   <Select 
                     value={newTransaction.barber_id} 
                     onValueChange={(val) => setNewTransaction({...newTransaction, barber_id: val})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-11 rounded-xl">
                       <SelectValue placeholder="Selecione um barbeiro" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum / Geral</SelectItem>
+                    <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                      <SelectItem value="none" className="focus:bg-amber-500/20">Nenhum / Geral</SelectItem>
                       {barbers.map((b) => (
-                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        <SelectItem key={b.id} value={b.id} className="focus:bg-amber-500/20">{b.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
