@@ -1247,9 +1247,9 @@ function FinancesComponent() {
                       <TableHead className="text-muted-foreground">Status</TableHead>
                       <TableHead className="text-muted-foreground">Pagamento</TableHead>
                       <TableHead className="text-muted-foreground">Categoria</TableHead>
-                        <TableHead className="text-right text-muted-foreground">Serviço/Faturamento Bruto</TableHead>
-                        <TableHead className="text-right text-muted-foreground">Dinheiro Real (Caixa)</TableHead>
-                        <TableHead className="text-right text-muted-foreground">Ações</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Serviço/Faturamento Bruto</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Dinheiro Real (Caixa)</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
