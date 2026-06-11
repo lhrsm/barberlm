@@ -1010,13 +1010,31 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Saídas</CardTitle>
+              <div className="p-2 bg-red-500/10 rounded-lg">
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-500">R$ {summary.totalExpense.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de despesas e estornos pagos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Estornos Solicitados</CardTitle>
               <div className="p-2 bg-orange-500/10 rounded-lg">
                 <Clock className="h-4 w-4 text-orange-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">R$ 0.00</div>
+              <div className="text-2xl font-bold text-orange-500">
+                R$ {(refundRequests || [])
+                  .filter(r => r.status === 'requested')
+                  .reduce((acc, r) => acc + (Number(r.amount) || 0), 0)
+                  .toFixed(2)}
+              </div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando processamento</p>
             </CardContent>
           </Card>
@@ -1029,8 +1047,8 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-400">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Acumulado histórico</p>
+              <div className="text-2xl font-bold text-purple-400">R$ {customerStats.total_credits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Saldo acumulado por todos os clientes</p>
             </CardContent>
           </Card>
 
@@ -1088,40 +1106,40 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Créditos Devolvidos</CardTitle>
+              <CardTitle className="text-sm font-semibold">Saldo de Créditos</CardTitle>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+                <Wallet className="h-4 w-4 text-emerald-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+              <div className="text-2xl font-bold text-emerald-500">R$ {customerStats.total_credits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Soma de todos os saldos atuais</p>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Cashback Devolvido</CardTitle>
+              <CardTitle className="text-sm font-semibold">Saldo de Cashback</CardTitle>
               <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+                <Wallet className="h-4 w-4 text-emerald-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-400">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+              <div className="text-2xl font-bold text-emerald-500">R$ {customerStats.total_cashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Soma de todos os saldos atuais</p>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">Pendente</CardTitle>
+              <CardTitle className="text-sm font-semibold">Pagamentos Pendentes</CardTitle>
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Clock className="h-4 w-4 text-yellow-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">R$ 0.00</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando pagamento</p>
+              <div className="text-2xl font-bold text-yellow-500">R$ {appointments.reduce((acc, a) => acc + (Number(a.final_amount || a.total_price) || 0), 0).toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Agendamentos não concluídos</p>
             </CardContent>
           </Card>
 
