@@ -24,6 +24,7 @@ import {
   XCircle,
   RefreshCcw,
   AlertTriangle,
+  AlertCircle,
   Edit2,
   Upload,
   Camera,
@@ -40,6 +41,17 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { normalizePhone, formatPhoneMask } from "@/utils/phone";
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -637,10 +649,13 @@ function ClientPortalComponent() {
     }
   };
 
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
   const handleLogout = () => {
     localStorage.removeItem(`client_portal_session_${slug}`);
     setIsLoggedIn(false);
     setClient(null);
+    toast.success("Sessão encerrada com sucesso");
   };
 
   const handleClaimLoyaltyReward = async () => {
@@ -925,9 +940,35 @@ function ClientPortalComponent() {
             <UserIcon size={20} />
             Portal do Cliente
           </h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-white hover:bg-white/10">
-            <LogOut size={20} />
-          </Button>
+          <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" title="Sair" className="text-white hover:bg-white/10">
+                <LogOut size={20} />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">
+              <AlertDialogHeader>
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10 text-destructive mb-4 mx-auto">
+                  <AlertCircle size={24} />
+                </div>
+                <AlertDialogTitle className="text-xl font-bold text-center text-white">Deseja realmente sair?</AlertDialogTitle>
+                <AlertDialogDescription className="text-center text-muted-foreground pt-2">
+                  Sua sessão será encerrada com segurança e você precisará se autenticar novamente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-6 flex gap-2">
+                <AlertDialogCancel className="flex-1 bg-white/5 hover:bg-white/10 border-white/10 text-white transition-all">
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleLogout}
+                  className="flex-1 bg-destructive hover:bg-destructive/90 text-white border-none shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all"
+                >
+                  Sair agora
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
