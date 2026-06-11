@@ -1150,7 +1150,7 @@ function FinancesComponent() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-primary">R$ {summary.balance.toFixed(2)}</div>
-                <p className="text-[10px] text-muted-foreground font-medium mt-1">Real em caixa (Entrada - Saída)</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">Real em caixa (Entrada Líquida - Despesas)</p>
               </CardContent>
             </Card>
           )}
