@@ -63,18 +63,23 @@ export function useAppointmentStatus() {
         
         if (error) throw error;
         result = data as any;
-      } else {
-        const { data, error } = await supabase.rpc('update_appointment_status', {
+      } else if (newStatus === 'cancelled') {
+        const { data, error } = await supabase.rpc('cancel_appointment', {
           p_appointment_id: appointmentId,
-          p_new_status: newStatus,
-          p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
-          p_changed_by_id: user?.id as any,
+          p_cancelled_by: (source.includes('portal') ? 'customer' : 'admin') as any,
           p_source: source,
-          p_metadata: metadata
-        });
-        
+          p_refund_preference: (metadata?.refund_preference as string) || 'none',
+          p_changed_by_id: user?.id as any,
+        } as any);
         if (error) throw error;
         result = data as any;
+      } else {
+        const { error: updErr } = await supabase
+          .from('appointments')
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq('id', appointmentId);
+        if (updErr) throw updErr;
+        result = { success: true } as any;
       }
 
       if (!result?.success) {

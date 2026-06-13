@@ -4440,39 +4440,20 @@ export type Database = {
     }
     Functions: {
       calculate_next_retry: { Args: { attempts: number }; Returns: string }
-      cancel_appointment:
-        | {
-            Args: {
-              p_appointment_id: string
-              p_cancelled_by: string
-              p_changed_by_id?: string
-              p_refund_preference?: string
-              p_source: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_appointment_id: string
-              p_cancelled_by: string
-              p_refund_preference?: string
-              p_source?: string
-            }
-            Returns: Json
-          }
-      cancel_appointment_by_token:
-        | {
-            Args: { token_val: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-        | {
-            Args: { token_val: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
+      cancel_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_cancelled_by: string
+          p_changed_by_id?: string
+          p_refund_preference?: string
+          p_source: string
+        }
+        Returns: Json
+      }
+      cancel_appointment_by_token: {
+        Args: { token_val: string }
+        Returns: boolean
+      }
       check_appointment_financial_status: {
         Args: { p_appointment_id: string }
         Returns: Json
@@ -4539,13 +4520,6 @@ export type Database = {
       fn_get_financial_summary: {
         Args: { p_end_date: string; p_start_date: string; p_tenant_id: string }
         Returns: Json
-      }
-      fn_recalculate_customer_balances: {
-        Args: { p_customer_id: string }
-        Returns: {
-          new_cashback_balance: number
-          new_credit_balance: number
-        }[]
       }
       fn_recalculate_customer_loyalty: {
         Args: { p_customer_id: string }
@@ -4633,10 +4607,6 @@ export type Database = {
         Args: { p_event_name: string; p_flow_type?: string }
         Returns: string
       }
-      handle_payment_success: {
-        Args: { p_appointment_id: string; p_payment_id: string }
-        Returns: undefined
-      }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -4673,15 +4643,7 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: number
       }
-      recalculate_customer_stats: {
-        Args: { p_customer_id: string; p_tenant_id: string }
-        Returns: Json
-      }
       reconcile_automation_logs: { Args: never; Returns: undefined }
-      register_pix_payment_transaction: {
-        Args: { p_appointment_id: string }
-        Returns: undefined
-      }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
@@ -4708,17 +4670,6 @@ export type Database = {
         Returns: Json
       }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
-      update_appointment_status: {
-        Args: {
-          p_appointment_id: string
-          p_changed_by_id?: string
-          p_changed_by_type: string
-          p_metadata?: Json
-          p_new_status: string
-          p_source?: string
-        }
-        Returns: Json
-      }
       use_customer_credits: {
         Args: {
           p_amount: number
