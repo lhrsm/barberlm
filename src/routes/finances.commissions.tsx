@@ -169,7 +169,7 @@ function CommissionsPage() {
       p_barber_id: payDialog.barberId,
       p_entry_ids: payDialog.entryIds,
       p_amount: Number(payAmount),
-      p_notes: payNotes || null,
+      p_notes: payNotes || undefined,
     });
     if (error) { toast.error(error.message); return; }
     const r = data as any;
