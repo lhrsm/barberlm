@@ -55,6 +55,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TenantCharts } from "@/components/dashboard/TenantCharts";
+import { SubscriptionsPremiumCards } from "@/components/dashboard/SubscriptionsPremiumCards";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
 
@@ -1504,7 +1505,15 @@ function DashboardComponent() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Assinaturas Premium */}
+            {tenantId && (
+              <div className="pt-4">
+                <SubscriptionsPremiumCards tenantId={tenantId} />
+              </div>
+            )}
           </TabsContent>
+
 
           <TabsContent value="analytics" className="space-y-6">
             <div className="p-6 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50">
