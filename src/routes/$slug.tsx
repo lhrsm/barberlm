@@ -2314,6 +2314,23 @@ function ShopPageComponent() {
                                 <p className="text-xs text-zinc-500 font-medium">Que bom ter você de volta!</p>
                               </div>
                             </div>
+                          )}
+                          {customerId && activeSubscription && (
+                            <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-4 shadow-md">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Crown className="text-amber-600" size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Plano Ativo</span>
+                              </div>
+                              <p className="text-base font-bold text-amber-900">{activeSubscription.plan?.name || "Assinatura"}</p>
+                              {activeSubscription.next_billing_at && (
+                                <p className="text-[11px] text-amber-700 mt-1">
+                                  Renovação: {format(parseISO(activeSubscription.next_billing_at), "dd/MM/yyyy", { locale: ptBR })}
+                                </p>
+                              )}
+                              <p className="text-[11px] text-amber-800 mt-1">
+                                Serviços inclusos no plano serão aplicados automaticamente no agendamento.
+                              </p>
+
                           ) : (
                             <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 space-y-3 animate-in fade-in slide-in-from-top-1">
                               <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
