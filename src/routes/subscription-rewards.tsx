@@ -231,12 +231,23 @@ function SubscriptionRewardsPage() {
                 Recompensas exclusivas para assinantes baseadas no <strong className="text-amber-400">tempo de assinatura</strong>. Diferente da fidelidade tradicional, aqui o cliente acumula meses — não atendimentos.
               </p>
             </div>
-            <Button
-              onClick={openNew}
-              className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Nova recompensa
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={syncRewards}
+                disabled={syncing}
+                variant="outline"
+                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Sincronizando…" : "Sincronizar recompensas"}
+              </Button>
+              <Button
+                onClick={openNew}
+                className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Nova recompensa
+              </Button>
+            </div>
           </div>
 
           {/* Lista */}
