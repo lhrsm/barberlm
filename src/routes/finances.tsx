@@ -17,7 +17,7 @@ import {
 import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Handshake } from "lucide-react";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History, Crown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
@@ -532,7 +532,10 @@ function FinancesComponent() {
         cashbackConceded: 0,
         cashbackUsedTotal: 0,
         freelancersPart: 0,
-        barbershopPart: 0
+        barbershopPart: 0,
+        subscriptionCovered: 0,
+        subscriptionExtra: 0,
+        subscriptionAppointments: 0,
       };
     }
 
@@ -557,6 +560,10 @@ function FinancesComponent() {
       return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
     }, 0);
 
+    const subscriptionCovered = Number(financialSummary.assinatura_coberta || 0);
+    const subscriptionExtra = Number(financialSummary.assinatura_extra || 0);
+    const subscriptionAppointments = Number(financialSummary.atendimentos_assinatura || 0);
+
     return {
       income: financialSummary.servicos_vendidos,
       realCashIncome: financialSummary.entrada_caixa,
@@ -570,7 +577,10 @@ function FinancesComponent() {
       cashbackConceded: financialSummary.cashback_concedido,
       cashbackUsedTotal: financialSummary.cashback_utilizado,
       freelancersPart,
-      barbershopPart: financialSummary.servicos_vendidos - freelancersPart
+      barbershopPart: financialSummary.servicos_vendidos - freelancersPart,
+      subscriptionCovered,
+      subscriptionExtra,
+      subscriptionAppointments,
     };
   }, [financialSummary, transactions, refundRequests, barbers]);
 
@@ -1008,7 +1018,7 @@ function FinancesComponent() {
 
 
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -1018,8 +1028,8 @@ function FinancesComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">R$ {summary.income.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de serviços agendados/concluídos</p>
+              <div className="text-2xl font-bold text-white">R$ {summary.servicesSold.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Valor cheio dos atendimentos concluídos (inclui parte coberta por assinatura)</p>
             </CardContent>
           </Card>
 
@@ -1032,7 +1042,23 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-500">R$ {summary.realCashIncome.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Dinheiro novo (PIX/Cartão/Dinheiro)</p>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Dinheiro novo recebido (PIX/Cartão/Dinheiro) — não inclui valor coberto por assinatura</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-amber-500/30 text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Coberto por Assinatura</CardTitle>
+              <div className="p-2 bg-amber-500/10 rounded-lg">
+                <Crown className="h-4 w-4 text-amber-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-amber-500">R$ {summary.subscriptionCovered.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">
+                {summary.subscriptionAppointments} atendimento(s)
+                {summary.subscriptionExtra > 0 && ` · + R$ ${summary.subscriptionExtra.toFixed(2)} extra cobrados`}
+              </p>
             </CardContent>
           </Card>
 
