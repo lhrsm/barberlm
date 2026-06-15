@@ -71,6 +71,7 @@ function SettingsComponent() {
     secondary_color: "#f4f4f5",
     logo_url: "",
     barbershop_logo_url: "",
+    loyalty_mode: "none" as "none" | "cashback" | "loyalty" | "subscription",
     cashback_enabled: false,
     cashback_percentage: 0,
     cashback_type: "percentage",
