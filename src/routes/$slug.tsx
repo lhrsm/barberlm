@@ -261,6 +261,56 @@ function ShopPageComponent() {
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
 
+  // Load active subscription whenever the identified customer changes
+  useEffect(() => {
+    async function loadActiveSub() {
+      if (!customerId || !shop?.id) {
+        setActiveSubscription(null);
+        setServiceEligibility({});
+        return;
+      }
+      const { data } = await supabase
+        .from("customer_subscriptions")
+        .select("*, plan:subscription_plans(*)")
+        .eq("customer_id", customerId)
+        .eq("tenant_id", shop.id)
+        .eq("status", "active")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setActiveSubscription(data || null);
+      setServiceEligibility({});
+    }
+    loadActiveSub();
+  }, [customerId, shop?.id]);
+
+  // Helper: check eligibility for a service (memoized in state)
+  async function ensureEligibility(serviceId: string) {
+    if (!customerId || !shop?.id || !serviceId) return null;
+    if (serviceEligibility[serviceId]) return serviceEligibility[serviceId];
+    const { data, error } = await (supabase as any).rpc("check_subscription_eligibility", {
+      p_customer_id: customerId,
+      p_service_id: serviceId,
+      p_tenant_id: shop.id,
+    });
+    if (error) {
+      console.error("eligibility error", error);
+      return null;
+    }
+    setServiceEligibility((prev) => ({ ...prev, [serviceId]: data }));
+    return data;
+  }
+
+  // Whenever the selected service or cart changes, pre-fetch eligibility
+  useEffect(() => {
+    const ids = new Set<string>();
+    if (selectedService?.id) ids.add(selectedService.id);
+    bookingCart.forEach((it: any) => it.service_id && ids.add(it.service_id));
+    ids.forEach((id) => ensureEligibility(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedService?.id, bookingCart, customerId, activeSubscription?.id]);
+
+
 
   useEffect(() => {
     if (isEmbedded && initialPhone) {
