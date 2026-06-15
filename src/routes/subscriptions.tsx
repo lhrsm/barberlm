@@ -306,6 +306,11 @@ function SubscriptionsPage() {
     const newThisMonth = subs.filter(
       (s) => new Date(s.created_at || s.started_at) >= monthStart
     ).length;
+    const canceledThisMonth = subs.filter(
+      (s: any) => s.status === "canceled" && s.canceled_at && new Date(s.canceled_at) >= monthStart
+    ).length;
+    const activeAtStart = active.length + canceledThisMonth;
+    const churn = activeAtStart > 0 ? (canceledThisMonth / activeAtStart) * 100 : 0;
 
     const counts = new Map<string, number>();
     subs.forEach((s) => {
@@ -320,6 +325,8 @@ function SubscriptionsPage() {
       mrr,
       arr,
       retention,
+      churn,
+      canceledThisMonth,
       newThisMonth,
       topPlans,
     };
@@ -569,7 +576,7 @@ function SubscriptionsPage() {
           </header>
 
           {/* KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <KpiCard
               icon={Users}
               label="Assinantes Ativos"
@@ -593,10 +600,17 @@ function SubscriptionsPage() {
             />
             <KpiCard
               icon={Sparkles}
-              label="Taxa de Retenção"
+              label="Retenção"
               value={`${kpis.retention.toFixed(0)}%`}
               hint="Assinantes mantidos"
               accent="amber"
+            />
+            <KpiCard
+              icon={XCircle}
+              label="Churn (mês)"
+              value={`${kpis.churn.toFixed(1)}%`}
+              hint={`${kpis.canceledThisMonth} cancelaram`}
+              accent="rose"
             />
           </div>
 
