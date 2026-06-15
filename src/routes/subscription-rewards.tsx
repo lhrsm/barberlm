@@ -88,21 +88,57 @@ function SubscriptionRewardsPage() {
   const { user, loading: authLoading } = useAuth();
   const tenantId = user?.id;
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<Reward> | null>(null);
 
   async function load() {
     if (!tenantId) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("subscription_loyalty_rewards" as any)
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .order("months_required", { ascending: true });
-    if (error) toast.error(error.message);
-    setRewards((data as any) || []);
+    const [{ data: rs, error: e1 }, { data: hs, error: e2 }] = await Promise.all([
+      supabase
+        .from("subscription_loyalty_rewards" as any)
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("months_required", { ascending: true }),
+      supabase
+        .from("subscription_loyalty_history" as any)
+        .select("*, reward:subscription_loyalty_rewards(description, months_required, reward_type), customer:customers(name, phone)")
+        .eq("tenant_id", tenantId)
+        .order("granted_at", { ascending: false })
+        .limit(50),
+    ]);
+    if (e1) toast.error(e1.message);
+    if (e2) toast.error(e2.message);
+    setRewards((rs as any) || []);
+    setHistory((hs as any) || []);
     setLoading(false);
+  }
+
+  async function syncRewards() {
+    if (!tenantId) return;
+    setSyncing(true);
+    const { data, error } = await supabase.rpc("process_subscription_loyalty_rewards" as any, {
+      p_tenant_id: tenantId,
+    });
+    setSyncing(false);
+    if (error) return toast.error("Erro: " + error.message);
+    const count = Array.isArray(data) ? data.length : 0;
+    toast.success(count > 0 ? `${count} recompensa(s) concedida(s)!` : "Nenhuma recompensa nova");
+    load();
+  }
+
+  async function redeem(id: string) {
+    if (!confirm("Marcar esta recompensa como resgatada?")) return;
+    const { error } = await supabase.rpc("redeem_subscription_reward" as any, {
+      p_history_id: id,
+      p_notes: null,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Recompensa resgatada");
+    load();
   }
 
   useEffect(() => {
