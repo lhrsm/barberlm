@@ -60,6 +60,7 @@ const defaultNavItems = [
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
   { label: "Suporte", icon: Headset, to: "/support" },
   { label: "Assinaturas", icon: CreditCard, to: "/subscriptions" },
+  { label: "Fidelidade", icon: Gift, to: "/loyalty" },
   { label: "Minha Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];
