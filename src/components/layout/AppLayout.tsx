@@ -58,7 +58,8 @@ const defaultNavItems = [
   { label: "Integrações", icon: Share2, to: "/integrations" },
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
   { label: "Suporte", icon: Headset, to: "/support" },
-  { label: "Assinatura", icon: CreditCard, to: "/subscription" },
+  { label: "Assinaturas", icon: CreditCard, to: "/subscriptions" },
+  { label: "Minha Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];
 

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TutorialsRouteImport } from './routes/tutorials'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
@@ -55,6 +56,11 @@ const TutorialsRoute = TutorialsRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscriptionsRoute = SubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SubscriptionRoute = SubscriptionRouteImport.update({
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
@@ -371,6 +380,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/subscriptions'
     | '/support'
     | '/tutorials'
     | '/$slug/portal'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/subscriptions'
     | '/support'
     | '/tutorials'
     | '/$slug/portal'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/subscriptions'
     | '/support'
     | '/tutorials'
     | '/$slug/portal'
@@ -488,6 +500,7 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  SubscriptionsRoute: typeof SubscriptionsRoute
   SupportRoute: typeof SupportRoute
   TutorialsRoute: typeof TutorialsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
@@ -511,6 +524,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscriptions': {
+      id: '/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof SubscriptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/subscription': {
@@ -822,6 +842,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
+  SubscriptionsRoute: SubscriptionsRoute,
   SupportRoute: SupportRoute,
   TutorialsRoute: TutorialsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
@@ -833,12 +854,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
