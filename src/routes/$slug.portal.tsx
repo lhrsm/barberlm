@@ -1470,13 +1470,47 @@ function ClientPortalComponent() {
               const totalCovered = subUsageLogs.reduce((sum: number, l: any) => sum + Number(l.covered_amount || 0), 0);
               const totalExtra = subUsageLogs.reduce((sum: number, l: any) => sum + Number(l.extra_amount || 0), 0);
               const nextBilling = mySubscription.next_billing_at || mySubscription.current_period_end;
+              const periodStart = mySubscription.current_period_start;
+
+              // Filter usage logs
+              const filteredLogs = subUsageLogs.filter((log: any) => {
+                if (!log.used_at) return true;
+                const d = parseISO(log.used_at);
+                if (benefitPeriod === "current" && periodStart) {
+                  if (d < parseISO(periodStart)) return false;
+                }
+                if (benefitPeriod === "last30") {
+                  if (d < subDays(new Date(), 30)) return false;
+                }
+                if (benefitPeriod === "custom") {
+                  if (benefitFrom && d < parseISO(benefitFrom)) return false;
+                  if (benefitTo && d > parseISO(benefitTo + "T23:59:59")) return false;
+                }
+                if (benefitSearch.trim()) {
+                  const q = benefitSearch.toLowerCase();
+                  const hay = `${log.services?.name || ""} ${log.benefit_type || ""}`.toLowerCase();
+                  if (!hay.includes(q)) return false;
+                }
+                return true;
+              });
+              const filteredCovered = filteredLogs.reduce((s: number, l: any) => s + Number(l.covered_amount || 0), 0);
+
+              const pendingRewards = subRewardsHistory.filter((h: any) => h.status === "pending");
+              const redeemedRewards = subRewardsHistory.filter((h: any) => h.status === "redeemed");
+
               return (
                 <div className="space-y-6">
                   {/* Plano + Saldo */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border-[#D4AF37]/30 shadow-lg">
+                    <Card
+                      className="bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border-[#D4AF37]/30 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform"
+                      onClick={() => setPlanDetailsOpen(true)}
+                    >
                       <CardHeader className="pb-2">
-                        <CardDescription className="text-[#D4AF37] uppercase text-xs font-bold">Plano Ativo</CardDescription>
+                        <div className="flex items-center justify-between">
+                          <CardDescription className="text-[#D4AF37] uppercase text-xs font-bold">Plano Ativo</CardDescription>
+                          <Info size={14} className="text-[#D4AF37]" />
+                        </div>
                         <CardTitle className="text-white text-xl">{plan?.name || "Assinatura"}</CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -1484,6 +1518,7 @@ function ClientPortalComponent() {
                         {nextBilling && (
                           <p className="text-[10px] text-gray-400 mt-2 uppercase">Próxima cobrança: {format(parseISO(nextBilling), "dd/MM/yyyy", { locale: ptBR })}</p>
                         )}
+                        <p className="text-[10px] text-[#D4AF37] mt-1 uppercase font-bold">Toque para ver regras</p>
                       </CardContent>
                     </Card>
 
@@ -1522,6 +1557,77 @@ function ClientPortalComponent() {
                     </Card>
                   </div>
 
+                  {/* Recompensas para resgatar */}
+                  {(pendingRewards.length > 0 || redeemedRewards.length > 0) && (
+                    <Card className="bg-gradient-to-br from-[#D4AF37]/10 to-transparent border-[#D4AF37]/30 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <Gift className="text-[#D4AF37]" size={20} />
+                          Benefícios para Resgatar
+                        </CardTitle>
+                        <CardDescription className="text-gray-400">
+                          Conquistas por tempo de assinatura
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {pendingRewards.length === 0 ? (
+                          <p className="text-center py-6 text-gray-500 italic text-sm">Nenhum benefício pendente — você já resgatou todos!</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {pendingRewards.map((r: any) => {
+                              const cfg = subRewards.find((c: any) => c.id === r.reward_id);
+                              return (
+                                <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-black/30 border border-[#D4AF37]/30 rounded-xl">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center shrink-0">
+                                      <Gift className="text-[#D4AF37] h-5 w-5" />
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-bold text-white">{cfg?.description || "Recompensa"}</p>
+                                      <p className="text-[10px] text-gray-400 uppercase">
+                                        Concedido em {format(parseISO(r.granted_at), "dd/MM/yyyy", { locale: ptBR })}
+                                        {cfg?.months_required ? ` • ${cfg.months_required} meses` : ""}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    onClick={() => handleRedeemReward(r.id)}
+                                    disabled={redeemingRewardId === r.id}
+                                    className="bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold shrink-0"
+                                  >
+                                    {redeemingRewardId === r.id ? "Resgatando..." : "Resgatar"}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {redeemedRewards.length > 0 && (
+                          <div className="mt-6 pt-4 border-t border-white/10">
+                            <p className="text-xs uppercase text-gray-500 font-bold mb-3">Já resgatados</p>
+                            <div className="space-y-2">
+                              {redeemedRewards.map((r: any) => {
+                                const cfg = subRewards.find((c: any) => c.id === r.reward_id);
+                                return (
+                                  <div key={r.id} className="flex items-center justify-between py-2 text-xs">
+                                    <span className="text-white flex items-center gap-2">
+                                      <CheckCircle2 className="text-emerald-400" size={14} />
+                                      {cfg?.description || "Recompensa"}
+                                    </span>
+                                    <span className="text-gray-500 uppercase text-[10px]">
+                                      {r.redeemed_at ? format(parseISO(r.redeemed_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Serviços inclusos */}
                   <Card className="bg-white/5 border-white/10 shadow-lg">
                     <CardHeader>
@@ -1556,21 +1662,95 @@ function ClientPortalComponent() {
                     </CardContent>
                   </Card>
 
-                  {/* Histórico de uso */}
+                  {/* Histórico de uso com filtros */}
                   <Card className="bg-white/5 border-white/10 shadow-lg">
                     <CardHeader>
-                      <CardTitle className="text-white">Histórico de Uso</CardTitle>
-                      <CardDescription className="text-gray-400">Atendimentos cobertos por sua assinatura</CardDescription>
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                          <CardTitle className="text-white">Histórico de Uso</CardTitle>
+                          <CardDescription className="text-gray-400">
+                            {filteredLogs.length} lançamento(s) • Economia: <span className="text-emerald-400 font-bold">R$ {filteredCovered.toFixed(2)}</span>
+                          </CardDescription>
+                        </div>
+                      </div>
+
+                      {/* Filtros */}
+                      <div className="mt-4 space-y-3">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                          <Input
+                            placeholder="Buscar serviço ou benefício..."
+                            value={benefitSearch}
+                            onChange={(e) => setBenefitSearch(e.target.value)}
+                            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                          />
+                          {benefitSearch && (
+                            <button
+                              type="button"
+                              onClick={() => setBenefitSearch("")}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { id: "all", label: "Tudo" },
+                            { id: "current", label: "Mês atual" },
+                            { id: "last30", label: "Últimos 30 dias" },
+                            { id: "custom", label: "Datas..." },
+                          ].map((opt) => (
+                            <Button
+                              key={opt.id}
+                              type="button"
+                              size="sm"
+                              variant={benefitPeriod === opt.id ? "default" : "outline"}
+                              onClick={() => setBenefitPeriod(opt.id as any)}
+                              className={cn(
+                                "h-8 text-xs",
+                                benefitPeriod === opt.id
+                                  ? "bg-[#D4AF37] hover:bg-[#B8941F] text-black border-none"
+                                  : "bg-transparent border-white/10 text-gray-300 hover:bg-white/5"
+                              )}
+                            >
+                              {opt.label}
+                            </Button>
+                          ))}
+                        </div>
+                        {benefitPeriod === "custom" && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-[10px] uppercase text-gray-400">De</Label>
+                              <Input
+                                type="date"
+                                value={benefitFrom}
+                                onChange={(e) => setBenefitFrom(e.target.value)}
+                                className="bg-white/5 border-white/10 text-white"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-[10px] uppercase text-gray-400">Até</Label>
+                              <Input
+                                type="date"
+                                value={benefitTo}
+                                onChange={(e) => setBenefitTo(e.target.value)}
+                                className="bg-white/5 border-white/10 text-white"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      {subUsageLogs.length === 0 ? (
+                      {filteredLogs.length === 0 ? (
                         <div className="text-center py-10 text-gray-500">
                           <History size={40} className="mx-auto mb-3 opacity-20" />
-                          <p className="italic">Nenhum benefício utilizado ainda.</p>
+                          <p className="italic">Nenhum lançamento encontrado.</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {subUsageLogs.map((log: any) => (
+                          {filteredLogs.map((log: any) => (
                             <div key={log.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
                               <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
@@ -1595,6 +1775,111 @@ function ClientPortalComponent() {
                       )}
                     </CardContent>
                   </Card>
+
+                  {/* Modal de detalhes do plano */}
+                  <Dialog open={planDetailsOpen} onOpenChange={setPlanDetailsOpen}>
+                    <DialogContent className="max-w-lg bg-zinc-950 border-white/10 text-white max-h-[85vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="text-[#D4AF37] flex items-center gap-2">
+                          <Info size={18} /> Detalhes do Plano {plan?.name}
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                          Saldo, economia e regras que justificam seus benefícios.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="space-y-4 mt-2">
+                        {plan?.description && (
+                          <p className="text-sm text-gray-300 italic border-l-2 border-[#D4AF37]/40 pl-3">{plan.description}</p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-3 bg-white/5 rounded-lg">
+                            <p className="text-[10px] uppercase text-gray-400">Mensalidade</p>
+                            <p className="text-lg font-black text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}</p>
+                          </div>
+                          <div className="p-3 bg-white/5 rounded-lg">
+                            <p className="text-[10px] uppercase text-gray-400">Economia total</p>
+                            <p className="text-lg font-black text-emerald-400">R$ {totalCovered.toFixed(2)}</p>
+                          </div>
+                          <div className="p-3 bg-white/5 rounded-lg">
+                            <p className="text-[10px] uppercase text-gray-400">Usos no período</p>
+                            <p className="text-lg font-black text-white">{usedThisPeriod}{maxUses ? ` / ${maxUses}` : " (ilim.)"}</p>
+                          </div>
+                          <div className="p-3 bg-white/5 rounded-lg">
+                            <p className="text-[10px] uppercase text-gray-400">Atendimentos cobertos</p>
+                            <p className="text-lg font-black text-white">{subUsageLogs.length}</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs uppercase text-gray-400 font-bold mb-2">Regras e Benefícios</p>
+                          <ul className="space-y-2 text-sm">
+                            {plan?.participates_traditional_loyalty && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Acumula fidelidade tradicional</li>
+                            )}
+                            {plan?.participates_cashback && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Ganha cashback em compras</li>
+                            )}
+                            {plan?.accumulates_premium_loyalty && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Acumula tempo para recompensas premium</li>
+                            )}
+                            {plan?.allows_product_discount && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Desconto em produtos</li>
+                            )}
+                            {plan?.agenda_priority && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Prioridade na agenda</li>
+                            )}
+                            {plan?.exclusive_hours && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Horários exclusivos</li>
+                            )}
+                            {plan?.exclusive_days && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Dias exclusivos</li>
+                            )}
+                            {plan?.preferential_service && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Atendimento preferencial</li>
+                            )}
+                            {maxUses && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Limite de {maxUses} usos por mês</li>
+                            )}
+                            {!maxUses && (
+                              <li className="flex items-start gap-2"><CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /> Usos ilimitados no período</li>
+                            )}
+                          </ul>
+                        </div>
+
+                        {subPlanServices.length > 0 && (
+                          <div>
+                            <p className="text-xs uppercase text-gray-400 font-bold mb-2">Serviços inclusos</p>
+                            <div className="space-y-1.5">
+                              {subPlanServices.map((ps: any) => (
+                                <div key={ps.id} className="flex items-center justify-between text-sm py-1.5 border-b border-white/5">
+                                  <span className="text-white">{ps.services?.name}</span>
+                                  <span className="text-gray-400 text-xs">
+                                    {ps.services?.price ? `R$ ${Number(ps.services.price).toFixed(2)} ` : ""}
+                                    {ps.max_uses_per_period ? `(${ps.max_uses_per_period}x/mês)` : "(ilim.)"}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+                          <p className="text-xs text-gray-300">
+                            Você pagou <span className="font-bold text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}</span> e já economizou{" "}
+                            <span className="font-bold text-emerald-400">R$ {totalCovered.toFixed(2)}</span> em atendimentos cobertos pelo plano.
+                          </p>
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button onClick={() => setPlanDetailsOpen(false)} variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                          Fechar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               );
             })()}
