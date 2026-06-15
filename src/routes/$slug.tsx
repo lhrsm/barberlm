@@ -3099,6 +3099,20 @@ function ShopPageComponent() {
                       })()}
                       
                       {(!paymentMethod && calculateTotal() > 0) ? (
+                        <>
+                          {calculateSubscriptionCoverage() > 0 && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4 flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                                <Crown size={22} className="text-amber-700" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Pagamento da diferença</p>
+                                <p className="text-sm text-amber-900 font-medium leading-tight mt-0.5">
+                                  Sua assinatura cobre <span className="font-black">R$ {calculateSubscriptionCoverage().toFixed(2)}</span>. Resta apenas <span className="font-black">R$ {calculateTotal().toFixed(2)}</span> a pagar.
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         <div className="grid grid-cols-1 gap-4">
                           <Button 
                             className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
