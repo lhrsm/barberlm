@@ -383,11 +383,24 @@ function SubscriptionsPage() {
   function openNewPlan() {
     if (!tenantId) return;
     setEditingPlan(emptyPlan(tenantId));
+    setEditingPlanServices({});
     setPlanDialogOpen(true);
   }
-  function openEditPlan(p: SubscriptionPlan) {
+  async function openEditPlan(p: SubscriptionPlan) {
     setEditingPlan({ ...p, benefits: { exclusive_services: [], ...(p.benefits || {}) } });
+    setEditingPlanServices({});
     setPlanDialogOpen(true);
+    const { data } = await (supabase as any)
+      .from("subscription_plan_services")
+      .select("service_id,max_uses_per_period")
+      .eq("plan_id", p.id);
+    if (data) {
+      const map: Record<string, { included: boolean; max_uses_per_period: number | null }> = {};
+      for (const row of data) {
+        map[row.service_id] = { included: true, max_uses_per_period: row.max_uses_per_period };
+      }
+      setEditingPlanServices(map);
+    }
   }
   async function duplicatePlan(p: SubscriptionPlan) {
     if (!tenantId) return;
@@ -419,16 +432,37 @@ function SubscriptionsPage() {
       return;
     }
     const payload: any = { ...editingPlan, tenant_id: tenantId };
-    const { error } = editingPlan.id
-      ? await supabase.from("subscription_plans").update(payload).eq("id", editingPlan.id)
-      : await supabase.from("subscription_plans").insert(payload);
-    if (error) {
-      toast.error("Erro ao salvar plano: " + error.message);
-      return;
+    let planId = editingPlan.id;
+    if (planId) {
+      const { error } = await supabase.from("subscription_plans").update(payload).eq("id", planId);
+      if (error) { toast.error("Erro ao salvar plano: " + error.message); return; }
+    } else {
+      const { data, error } = await supabase.from("subscription_plans").insert(payload).select("id").single();
+      if (error) { toast.error("Erro ao salvar plano: " + error.message); return; }
+      planId = data.id;
     }
+
+    // Sync plan ↔ services junction
+    if (planId) {
+      await (supabase as any).from("subscription_plan_services").delete().eq("plan_id", planId);
+      const rows = Object.entries(editingPlanServices)
+        .filter(([, v]) => v.included)
+        .map(([service_id, v]) => ({
+          tenant_id: tenantId,
+          plan_id: planId,
+          service_id,
+          max_uses_per_period: v.max_uses_per_period,
+        }));
+      if (rows.length > 0) {
+        const { error: linkErr } = await (supabase as any).from("subscription_plan_services").insert(rows);
+        if (linkErr) toast.error("Plano salvo, mas houve erro ao vincular serviços: " + linkErr.message);
+      }
+    }
+
     toast.success("Plano salvo");
     setPlanDialogOpen(false);
     setEditingPlan(null);
+    setEditingPlanServices({});
     loadAll();
   }
   async function deletePlan(id: string) {
