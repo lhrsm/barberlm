@@ -3543,51 +3543,187 @@ export type Database = {
           },
         ]
       }
-      subscription_plans: {
+      subscription_loyalty_history: {
+        Row: {
+          created_at: string
+          customer_id: string
+          granted_at: string
+          id: string
+          notes: string | null
+          redeemed_at: string | null
+          reward_id: string
+          status: string
+          subscription_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          granted_at?: string
+          id?: string
+          notes?: string | null
+          redeemed_at?: string | null
+          reward_id: string
+          status?: string
+          subscription_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          granted_at?: string
+          id?: string
+          notes?: string | null
+          redeemed_at?: string | null
+          reward_id?: string
+          status?: string
+          subscription_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_loyalty_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_loyalty_history_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_loyalty_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_loyalty_history_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_loyalty_rewards: {
         Row: {
           active: boolean
+          created_at: string
+          description: string
+          id: string
+          months_required: number
+          reward_metadata: Json
+          reward_type: string
+          reward_value: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description: string
+          id?: string
+          months_required: number
+          reward_metadata?: Json
+          reward_type: string
+          reward_value?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          months_required?: number
+          reward_metadata?: Json
+          reward_type?: string
+          reward_value?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          accumulates_premium_loyalty: boolean
+          active: boolean
+          agenda_priority: boolean
+          allows_product_discount: boolean
+          barber_commission_type: string
+          barber_commission_value: number
           benefits: Json
           created_at: string
           description: string | null
           display_order: number
+          exclusive_days: boolean
+          exclusive_hours: boolean
           id: string
+          included_benefits: Json
           max_uses_per_month: number | null
           monthly_price: number
           name: string
+          participates_cashback: boolean
+          participates_traditional_loyalty: boolean
           payment_methods: string[]
           plan_type: string
+          preferential_service: boolean
           tenant_id: string
           updated_at: string
           usage_type: string
         }
         Insert: {
+          accumulates_premium_loyalty?: boolean
           active?: boolean
+          agenda_priority?: boolean
+          allows_product_discount?: boolean
+          barber_commission_type?: string
+          barber_commission_value?: number
           benefits?: Json
           created_at?: string
           description?: string | null
           display_order?: number
+          exclusive_days?: boolean
+          exclusive_hours?: boolean
           id?: string
+          included_benefits?: Json
           max_uses_per_month?: number | null
           monthly_price: number
           name: string
+          participates_cashback?: boolean
+          participates_traditional_loyalty?: boolean
           payment_methods?: string[]
           plan_type?: string
+          preferential_service?: boolean
           tenant_id: string
           updated_at?: string
           usage_type?: string
         }
         Update: {
+          accumulates_premium_loyalty?: boolean
           active?: boolean
+          agenda_priority?: boolean
+          allows_product_discount?: boolean
+          barber_commission_type?: string
+          barber_commission_value?: number
           benefits?: Json
           created_at?: string
           description?: string | null
           display_order?: number
+          exclusive_days?: boolean
+          exclusive_hours?: boolean
           id?: string
+          included_benefits?: Json
           max_uses_per_month?: number | null
           monthly_price?: number
           name?: string
+          participates_cashback?: boolean
+          participates_traditional_loyalty?: boolean
           payment_methods?: string[]
           plan_type?: string
+          preferential_service?: boolean
           tenant_id?: string
           updated_at?: string
           usage_type?: string
@@ -4999,6 +5135,19 @@ export type Database = {
         Returns: number
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_active_subscription: {
+        Args: { p_customer_id: string }
+        Returns: {
+          accumulates_premium_loyalty: boolean
+          months_active: number
+          participates_cashback: boolean
+          participates_traditional_loyalty: boolean
+          plan_id: string
+          started_at: string
+          subscription_id: string
+          tenant_id: string
+        }[]
+      }
       get_appointment_by_management_token: {
         Args: { p_token: string }
         Returns: {
@@ -5076,10 +5225,15 @@ export type Database = {
         Returns: string
       }
       get_server_info: { Args: never; Returns: Json }
+      get_subscriber_months: {
+        Args: { p_subscription_id: string }
+        Returns: number
+      }
       get_workflow_key_for_event: {
         Args: { p_event_name: string; p_flow_type?: string }
         Returns: string
       }
+      grant_subscription_rewards: { Args: never; Returns: number }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -5094,6 +5248,10 @@ export type Database = {
       increment_coupon_usage: {
         Args: { p_coupon_id: string }
         Returns: undefined
+      }
+      is_active_subscriber: {
+        Args: { p_customer_id: string }
+        Returns: boolean
       }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }

@@ -91,7 +91,20 @@ interface SubscriptionPlan {
   active: boolean;
   display_order: number;
   created_at: string;
+  // Fidelidade & Premium
+  participates_traditional_loyalty?: boolean;
+  participates_cashback?: boolean;
+  accumulates_premium_loyalty?: boolean;
+  allows_product_discount?: boolean;
+  agenda_priority?: boolean;
+  exclusive_hours?: boolean;
+  exclusive_days?: boolean;
+  preferential_service?: boolean;
+  included_benefits?: string[];
+  barber_commission_type?: "fixed" | "percent" | "custom" | "none";
+  barber_commission_value?: number;
 }
+
 
 interface CustomerSub {
   id: string;
@@ -208,8 +221,20 @@ function emptyPlan(tenantId: string): Partial<SubscriptionPlan> {
     payment_methods: ["in_person"],
     active: true,
     display_order: 0,
+    participates_traditional_loyalty: false,
+    participates_cashback: false,
+    accumulates_premium_loyalty: true,
+    allows_product_discount: false,
+    agenda_priority: false,
+    exclusive_hours: false,
+    exclusive_days: false,
+    preferential_service: false,
+    included_benefits: [],
+    barber_commission_type: "fixed",
+    barber_commission_value: 0,
   };
 }
+
 
 function SubscriptionsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -1247,7 +1272,120 @@ function SubscriptionsPage() {
                 ))}
               </Block>
 
+              {/* FIDELIDADE & PREMIUM */}
+              <Block title="Fidelidade & Premium">
+                <div className="grid md:grid-cols-2 gap-2">
+                  <ToggleRow
+                    label="Participa da Fidelidade Tradicional"
+                    checked={!!editingPlan.participates_traditional_loyalty}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, participates_traditional_loyalty: v })}
+                  />
+                  <ToggleRow
+                    label="Participa do Cashback"
+                    checked={!!editingPlan.participates_cashback}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, participates_cashback: v })}
+                  />
+                  <ToggleRow
+                    label="Acumula Fidelidade Premium (por tempo)"
+                    checked={!!editingPlan.accumulates_premium_loyalty}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, accumulates_premium_loyalty: v })}
+                  />
+                  <ToggleRow
+                    label="Permite Desconto em Produtos"
+                    checked={!!editingPlan.allows_product_discount}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, allows_product_discount: v })}
+                  />
+                  <ToggleRow
+                    label="Prioridade na Agenda"
+                    checked={!!editingPlan.agenda_priority}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, agenda_priority: v })}
+                  />
+                  <ToggleRow
+                    label="Horários Exclusivos"
+                    checked={!!editingPlan.exclusive_hours}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, exclusive_hours: v })}
+                  />
+                  <ToggleRow
+                    label="Dias Exclusivos"
+                    checked={!!editingPlan.exclusive_days}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, exclusive_days: v })}
+                  />
+                  <ToggleRow
+                    label="Atendimento Preferencial"
+                    checked={!!editingPlan.preferential_service}
+                    onChange={(v) => setEditingPlan({ ...editingPlan, preferential_service: v })}
+                  />
+                </div>
+                <p className="text-xs text-zinc-500 mt-2">
+                  Clientes assinantes deste plano não acumularão cashback nem pontos de fidelidade tradicional se as opções acima estiverem desligadas — evitando dupla bonificação.
+                </p>
+              </Block>
+
+              {/* BENEFÍCIOS INCLUSOS */}
+              <Block title="Benefícios Inclusos (lista visual)">
+                <Field label="Um benefício por linha (ex: 4 cortes por mês)">
+                  <Textarea
+                    placeholder={"4 cortes por mês\nBarba inclusa\nHidratação mensal\nPrioridade na agenda"}
+                    value={(editingPlan.included_benefits || []).join("\n")}
+                    onChange={(e) =>
+                      setEditingPlan({
+                        ...editingPlan,
+                        included_benefits: e.target.value
+                          .split("\n")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    className={cn(inputCls, "min-h-[120px]")}
+                  />
+                </Field>
+              </Block>
+
+              {/* COMISSÃO DO BARBEIRO */}
+              <Block title="Comissão do Barbeiro por Atendimento">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Field label="Tipo de comissão">
+                    <Select
+                      value={editingPlan.barber_commission_type || "fixed"}
+                      onValueChange={(v) =>
+                        setEditingPlan({
+                          ...editingPlan,
+                          barber_commission_type: v as any,
+                        })
+                      }
+                    >
+                      <SelectTrigger className={inputCls}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixed">Valor fixo por atendimento (R$)</SelectItem>
+                        <SelectItem value="percent">Percentual do valor do plano (%)</SelectItem>
+                        <SelectItem value="custom">Personalizada</SelectItem>
+                        <SelectItem value="none">Sem comissão</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label={editingPlan.barber_commission_type === "percent" ? "Percentual (%)" : "Valor (R$)"}>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editingPlan.barber_commission_value ?? 0}
+                      onChange={(e) =>
+                        setEditingPlan({
+                          ...editingPlan,
+                          barber_commission_value: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className={inputCls}
+                      disabled={editingPlan.barber_commission_type === "none"}
+                    />
+                  </Field>
+                </div>
+              </Block>
+
               {/* STATUS */}
+
               <Block title="Status">
                 <ToggleRow
                   label="Plano ativo"
