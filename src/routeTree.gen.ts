@@ -21,6 +21,7 @@ import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CommissionsRouteImport } from './routes/commissions'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
@@ -30,7 +31,6 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as FinancesCommissionsRouteImport } from './routes/finances.commissions'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
@@ -110,6 +110,11 @@ const CustomersRoute = CustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommissionsRoute = CommissionsRouteImport.update({
+  id: '/commissions',
+  path: '/commissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CampaignsRoute = CampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
@@ -154,11 +159,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
-} as any)
-const FinancesCommissionsRoute = FinancesCommissionsRouteImport.update({
-  id: '/commissions',
-  path: '/commissions',
-  getParentRoute: () => FinancesRoute,
 } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
@@ -262,9 +262,10 @@ export interface FileRoutesByFullPath {
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
+  '/commissions': typeof CommissionsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
-  '/finances': typeof FinancesRouteWithChildren
+  '/finances': typeof FinancesRoute
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
@@ -289,7 +290,6 @@ export interface FileRoutesByFullPath {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
-  '/finances/commissions': typeof FinancesCommissionsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -303,9 +303,10 @@ export interface FileRoutesByTo {
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
+  '/commissions': typeof CommissionsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
-  '/finances': typeof FinancesRouteWithChildren
+  '/finances': typeof FinancesRoute
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
@@ -330,7 +331,6 @@ export interface FileRoutesByTo {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
-  '/finances/commissions': typeof FinancesCommissionsRoute
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -346,9 +346,10 @@ export interface FileRoutesById {
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
+  '/commissions': typeof CommissionsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
-  '/finances': typeof FinancesRouteWithChildren
+  '/finances': typeof FinancesRoute
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
@@ -373,7 +374,6 @@ export interface FileRoutesById {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
-  '/finances/commissions': typeof FinancesCommissionsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -390,6 +390,7 @@ export interface FileRouteTypes {
     | '/barbers'
     | '/calendar'
     | '/campaigns'
+    | '/commissions'
     | '/customers'
     | '/dashboard'
     | '/finances'
@@ -417,7 +418,6 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
-    | '/finances/commissions'
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
@@ -431,6 +431,7 @@ export interface FileRouteTypes {
     | '/barbers'
     | '/calendar'
     | '/campaigns'
+    | '/commissions'
     | '/customers'
     | '/dashboard'
     | '/finances'
@@ -458,7 +459,6 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
-    | '/finances/commissions'
     | '/admin'
     | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
@@ -473,6 +473,7 @@ export interface FileRouteTypes {
     | '/barbers'
     | '/calendar'
     | '/campaigns'
+    | '/commissions'
     | '/customers'
     | '/dashboard'
     | '/finances'
@@ -500,7 +501,6 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
-    | '/finances/commissions'
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
@@ -516,9 +516,10 @@ export interface RootRouteChildren {
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
+  CommissionsRoute: typeof CommissionsRoute
   CustomersRoute: typeof CustomersRoute
   DashboardRoute: typeof DashboardRoute
-  FinancesRoute: typeof FinancesRouteWithChildren
+  FinancesRoute: typeof FinancesRoute
   IntegrationsRoute: typeof IntegrationsRoute
   LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
@@ -621,6 +622,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/commissions': {
+      id: '/commissions'
+      path: '/commissions'
+      fullPath: '/commissions'
+      preLoaderRoute: typeof CommissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/campaigns': {
       id: '/campaigns'
       path: '/campaigns'
@@ -683,13 +691,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
-    }
-    '/finances/commissions': {
-      id: '/finances/commissions'
-      path: '/commissions'
-      fullPath: '/finances/commissions'
-      preLoaderRoute: typeof FinancesCommissionsRouteImport
-      parentRoute: typeof FinancesRoute
     }
     '/checkout/return': {
       id: '/checkout/return'
@@ -864,18 +865,6 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface FinancesRouteChildren {
-  FinancesCommissionsRoute: typeof FinancesCommissionsRoute
-}
-
-const FinancesRouteChildren: FinancesRouteChildren = {
-  FinancesCommissionsRoute: FinancesCommissionsRoute,
-}
-
-const FinancesRouteWithChildren = FinancesRoute._addFileChildren(
-  FinancesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
@@ -885,9 +874,10 @@ const rootRouteChildren: RootRouteChildren = {
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
+  CommissionsRoute: CommissionsRoute,
   CustomersRoute: CustomersRoute,
   DashboardRoute: DashboardRoute,
-  FinancesRoute: FinancesRouteWithChildren,
+  FinancesRoute: FinancesRoute,
   IntegrationsRoute: IntegrationsRoute,
   LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
