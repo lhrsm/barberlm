@@ -120,6 +120,22 @@ function ProfessionalDashboard() {
       if (allApps) {
         setAppointments(allApps.sort((a,b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()));
       }
+
+      // Commission entries
+      const { data: entries } = await supabase
+        .from("commission_entries")
+        .select("*")
+        .eq("barber_id", session.barber_id)
+        .order("earned_at", { ascending: false });
+      setCommissionEntries(entries || []);
+
+      // Commission closings (payment history)
+      const { data: closings } = await supabase
+        .from("commission_closings")
+        .select("*")
+        .eq("barber_id", session.barber_id)
+        .order("period_end", { ascending: false });
+      setCommissionClosings(closings || []);
     } catch (e: any) {
       console.error("[PROFISSIONAL_FETCH_ERROR]", e);
       setError(e.message);
