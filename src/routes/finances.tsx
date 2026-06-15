@@ -532,7 +532,10 @@ function FinancesComponent() {
         cashbackConceded: 0,
         cashbackUsedTotal: 0,
         freelancersPart: 0,
-        barbershopPart: 0
+        barbershopPart: 0,
+        subscriptionCovered: 0,
+        subscriptionExtra: 0,
+        subscriptionAppointments: 0,
       };
     }
 
@@ -557,6 +560,10 @@ function FinancesComponent() {
       return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
     }, 0);
 
+    const subscriptionCovered = Number(financialSummary.assinatura_coberta || 0);
+    const subscriptionExtra = Number(financialSummary.assinatura_extra || 0);
+    const subscriptionAppointments = Number(financialSummary.atendimentos_assinatura || 0);
+
     return {
       income: financialSummary.servicos_vendidos,
       realCashIncome: financialSummary.entrada_caixa,
@@ -570,7 +577,10 @@ function FinancesComponent() {
       cashbackConceded: financialSummary.cashback_concedido,
       cashbackUsedTotal: financialSummary.cashback_utilizado,
       freelancersPart,
-      barbershopPart: financialSummary.servicos_vendidos - freelancersPart
+      barbershopPart: financialSummary.servicos_vendidos - freelancersPart,
+      subscriptionCovered,
+      subscriptionExtra,
+      subscriptionAppointments,
     };
   }, [financialSummary, transactions, refundRequests, barbers]);
 
