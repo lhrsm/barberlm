@@ -304,6 +304,10 @@ function BarbersComponent() {
       avatar_url: editingBarber.avatar_url,
       category: editingBarber.category,
       commission_rate: editingBarber.commission_rate,
+      commission_type: editingBarber.commission_type ?? 'percentage',
+      commission_fixed_value: editingBarber.commission_fixed_value ?? 0,
+      commission_bonus_value: editingBarber.commission_bonus_value ?? 0,
+      monthly_goal: editingBarber.monthly_goal ?? 0,
       working_hours: editingBarber.working_hours,
       active: editingBarber.active
     };
