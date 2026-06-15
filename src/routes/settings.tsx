@@ -155,6 +155,14 @@ function SettingsComponent() {
         console.error("Error fetching barbershop settings:", settingsError);
       }
 
+      // Fetch loyalty settings (novo módulo)
+      const { data: loyaltyData } = await supabase
+        .from("loyalty_settings" as any)
+        .select("*")
+        .eq("tenant_id", user.id)
+        .maybeSingle();
+
+
       if (profileData && profileData.length > 0) {
         const profile = profileData[0];
         setFormData({
