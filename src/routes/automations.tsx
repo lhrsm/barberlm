@@ -234,7 +234,7 @@ function AutomationsComponent() {
             <p className="text-slate-500 font-medium text-sm">Gerencie disparos automáticos e auditoria de mensagens.</p>
           </div>
           <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-            <Button onClick={runDiagnosis} variant="outline" className="flex-1 lg:flex-none border-white/10 text-white hover:bg-white/5 font-bold uppercase text-xs h-12">
+            <Button onClick={runDiagnosis} variant="outline" className="flex-1 lg:flex-none bg-transparent border-white/10 text-white hover:bg-white/5 hover:text-white hover:border-white/20 font-bold uppercase text-xs h-12">
               <Search className="mr-2 h-4 w-4 text-amber-500" /> Diagnosticar Último
             </Button>
             <Button onClick={runQueueNow} disabled={isProcessingQueue} className="flex-1 lg:flex-none bg-amber-500 hover:bg-amber-600 text-black font-black uppercase text-xs h-12 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
