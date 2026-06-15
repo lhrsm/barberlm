@@ -273,7 +273,7 @@ function BarbersComponent() {
 
     toast.success("Barbeiro cadastrado com sucesso!");
     setIsAddDialogOpen(false);
-    setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
+    setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, commission_type: "percentage", commission_fixed_value: 0, commission_bonus_value: 0, monthly_goal: 0, working_hours: DEFAULT_WORKING_HOURS });
     setSelectedServices([]);
     
     // Invalidate Caches
