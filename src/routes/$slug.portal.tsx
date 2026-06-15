@@ -74,6 +74,9 @@ function ClientPortalComponent() {
   const [customerData, setCustomerData] = useState<any>(null);
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [loyaltyRewards, setLoyaltyRewards] = useState<any[]>([]);
+  const [mySubscription, setMySubscription] = useState<any>(null);
+  const [subRewards, setSubRewards] = useState<any[]>([]);
+  const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
   const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [services, setServices] = useState<any[]>([]);
@@ -325,6 +328,38 @@ function ClientPortalComponent() {
       .order("created_at", { ascending: false });
     
     setSales(saleData || []);
+
+    // Fetch assinatura premium ativa
+    const { data: subData } = await supabase
+      .from("customer_subscriptions")
+      .select("*, plan:subscription_plans(*)")
+      .eq("customer_id", customerId)
+      .in("status", ["active", "trialing"])
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setMySubscription(subData || null);
+
+    if (subData?.tenant_id) {
+      const [{ data: rewardsCfg }, { data: hist }] = await Promise.all([
+        supabase
+          .from("subscription_loyalty_rewards" as any)
+          .select("*")
+          .eq("tenant_id", subData.tenant_id)
+          .eq("active", true)
+          .order("months_required", { ascending: true }),
+        supabase
+          .from("subscription_loyalty_history" as any)
+          .select("*")
+          .eq("customer_id", customerId)
+          .order("granted_at", { ascending: false }),
+      ]);
+      setSubRewards((rewardsCfg as any[]) || []);
+      setSubRewardsHistory((hist as any[]) || []);
+    } else {
+      setSubRewards([]);
+      setSubRewardsHistory([]);
+    }
   }
 
   useEffect(() => {
