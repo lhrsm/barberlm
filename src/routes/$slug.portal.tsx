@@ -72,6 +72,8 @@ function ClientPortalComponent() {
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
+  const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
+  const [loyaltyRewards, setLoyaltyRewards] = useState<any[]>([]);
   const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [services, setServices] = useState<any[]>([]);
