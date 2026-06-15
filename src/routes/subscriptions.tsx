@@ -60,6 +60,8 @@ import {
   X,
   Filter,
   Activity,
+  Pause,
+  Play,
 } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -123,6 +125,12 @@ interface CustomerSub {
   uses_this_period: number;
   auto_renew: boolean;
   created_at?: string;
+  paused_at?: string | null;
+  pause_reason?: string | null;
+  pause_until?: string | null;
+  resumed_at?: string | null;
+  pause_notes?: string | null;
+  total_paused_days?: number | null;
   plan?: SubscriptionPlan;
   customer?: { id: string; name: string; phone: string | null };
 }
@@ -193,6 +201,7 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   active: { label: "Ativa", cls: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" },
   pending_payment: { label: "Pagamento Pendente", cls: "bg-amber-500/15 text-amber-400 border border-amber-500/30" },
   past_due: { label: "Em Atraso", cls: "bg-red-500/15 text-red-400 border border-red-500/30" },
+  paused: { label: "Pausada", cls: "bg-blue-500/15 text-blue-300 border border-blue-500/30" },
   canceled: { label: "Cancelada", cls: "bg-zinc-500/15 text-zinc-400 border border-zinc-500/30" },
   expired: { label: "Expirada", cls: "bg-zinc-500/15 text-zinc-400 border border-zinc-500/30" },
 };
@@ -276,6 +285,13 @@ function SubscriptionsPage() {
   const [planTypeFilter, setPlanTypeFilter] = useState<string>("all");
   const [planUsageFilter, setPlanUsageFilter] = useState<string>("all");
   const [planStatusFilter, setPlanStatusFilter] = useState<string>("all");
+
+  // Pause modal
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [pauseTarget, setPauseTarget] = useState<CustomerSub | null>(null);
+  const [pauseReason, setPauseReason] = useState("");
+  const [pauseUntil, setPauseUntil] = useState("");
+  const [pauseNotes, setPauseNotes] = useState("");
 
   async function loadAll() {
     if (!tenantId) return;
@@ -562,6 +578,46 @@ function SubscriptionsPage() {
     toast.success("Assinatura cancelada");
     loadAll();
   }
+
+  function openPauseDialog(sub: CustomerSub) {
+    setPauseTarget(sub);
+    setPauseReason("");
+    setPauseUntil("");
+    setPauseNotes("");
+    setPauseDialogOpen(true);
+  }
+
+  async function confirmPause() {
+    if (!pauseTarget) return;
+    const { data, error } = await supabase.rpc("pause_customer_subscription" as any, {
+      p_subscription_id: pauseTarget.id,
+      p_reason: pauseReason || null,
+      p_pause_until: pauseUntil ? new Date(pauseUntil).toISOString() : null,
+      p_notes: pauseNotes || null,
+    });
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao pausar");
+      return;
+    }
+    toast.success("Assinatura pausada");
+    setPauseDialogOpen(false);
+    loadAll();
+  }
+
+  async function resumeSubscription(id: string) {
+    if (!confirm("Retomar esta assinatura?")) return;
+    const { data, error } = await supabase.rpc("resume_customer_subscription" as any, {
+      p_subscription_id: id,
+    });
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao retomar");
+      return;
+    }
+    const days = (data as any)?.paused_days ?? 0;
+    toast.success(`Assinatura retomada${days ? ` (+${days} dias)` : ""}`);
+    loadAll();
+  }
+
 
   async function markInvoicePaid(inv: Invoice) {
     const now = new Date().toISOString();
@@ -952,6 +1008,13 @@ function SubscriptionsPage() {
                               {s.plan?.usage_type === "limited" &&
                                 ` · ${s.uses_this_period}/${s.plan.max_uses_per_month} usos`}
                             </div>
+                            {s.status === "paused" && (
+                              <div className="text-[11px] text-blue-300 mt-1 flex items-center gap-1.5">
+                                <Pause className="h-3 w-3" />
+                                Pausada{s.pause_reason ? ` · ${s.pause_reason}` : ""}
+                                {s.pause_until ? ` · retorno ${new Date(s.pause_until).toLocaleDateString("pt-BR")}` : ""}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -963,6 +1026,26 @@ function SubscriptionsPage() {
                           >
                             {status.label}
                           </span>
+                          {s.status === "paused" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => resumeSubscription(s.id)}
+                              className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 text-xs font-bold"
+                            >
+                              <Play className="h-3.5 w-3.5 mr-1" /> Retomar
+                            </Button>
+                          )}
+                          {["active", "pending_payment", "past_due"].includes(s.status) && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openPauseDialog(s)}
+                              className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs font-bold"
+                            >
+                              <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
+                            </Button>
+                          )}
                           {s.status !== "canceled" && (
                             <Button
                               size="sm"
@@ -2030,6 +2113,67 @@ function SubscriptionsPage() {
               className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]"
             >
               Criar Assinatura
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PAUSE DIALOG */}
+      <Dialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pause className="h-5 w-5 text-blue-300" /> Pausar Assinatura
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {pauseTarget && (
+              <div className="text-sm text-zinc-400">
+                <span className="text-white font-bold">{pauseTarget.customer?.name}</span> ·{" "}
+                {pauseTarget.plan?.name}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Motivo da pausa</Label>
+              <Input
+                value={pauseReason}
+                onChange={(e) => setPauseReason(e.target.value)}
+                placeholder="Ex.: viagem, problemas financeiros..."
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Data prevista de retorno</Label>
+              <Input
+                type="date"
+                value={pauseUntil}
+                onChange={(e) => setPauseUntil(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Observações</Label>
+              <Textarea
+                value={pauseNotes}
+                onChange={(e) => setPauseNotes(e.target.value)}
+                placeholder="Observações internas (opcional)"
+                className="bg-[#05070d] border-zinc-800 text-white min-h-[80px]"
+              />
+            </div>
+            <div className="text-[11px] text-zinc-500 bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
+              Durante a pausa, o cliente não consome benefícios, não acumula fidelidade premium,
+              não recebe cobranças e não recebe lembretes de renovação.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPauseDialogOpen(false)} className="text-zinc-400">
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmPause}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold"
+            >
+              <Pause className="h-4 w-4 mr-2" /> Pausar Assinatura
             </Button>
           </DialogFooter>
         </DialogContent>

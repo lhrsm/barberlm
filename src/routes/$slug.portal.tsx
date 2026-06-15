@@ -365,7 +365,7 @@ function ClientPortalComponent() {
       .from("customer_subscriptions")
       .select("*, plan:subscription_plans(*)")
       .eq("customer_id", customerId)
-      .in("status", ["active", "trialing"])
+      .in("status", ["active", "trialing", "paused"])
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -1149,17 +1149,25 @@ function ClientPortalComponent() {
           </Card>
 
           {mySubscription && (() => {
+            const isPaused = mySubscription.status === "paused";
             const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
-            const months = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / (1000 * 60 * 60 * 24 * 30.4375)));
+            const totalPausedDays = Number(mySubscription.total_paused_days || 0);
+            const effectiveMs = Date.now() - startedAt.getTime() - totalPausedDays * 86400000;
+            const months = Math.max(0, Math.floor(effectiveMs / (1000 * 60 * 60 * 24 * 30.4375)));
             const grantedIds = new Set(subRewardsHistory.map((h: any) => h.reward_id));
             const next = subRewards.find((r: any) => !grantedIds.has(r.id) && (r.months_required ?? 0) > months);
             const progress = next ? Math.min(100, (months / next.months_required) * 100) : 100;
             return (
-              <Card className="bg-gradient-to-br from-[#D4AF37]/10 via-black/40 to-black border-[#D4AF37]/40 shadow-[0_8px_28px_rgba(212,175,55,0.18)] md:col-span-2 lg:col-span-3">
+              <Card className={cn(
+                "shadow-[0_8px_28px_rgba(212,175,55,0.18)] md:col-span-2 lg:col-span-3",
+                isPaused
+                  ? "bg-gradient-to-br from-blue-500/10 via-black/40 to-black border-blue-500/40"
+                  : "bg-gradient-to-br from-[#D4AF37]/10 via-black/40 to-black border-[#D4AF37]/40",
+              )}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardDescription className="text-[#D4AF37]/80 uppercase font-black text-[10px] tracking-widest">
+                      <CardDescription className={cn("uppercase font-black text-[10px] tracking-widest", isPaused ? "text-blue-300/80" : "text-[#D4AF37]/80")}>
                         ★ Assinatura Premium
                       </CardDescription>
                       <CardTitle className="text-xl font-black text-white mt-1">
@@ -1169,10 +1177,29 @@ function ClientPortalComponent() {
                         {months} {months === 1 ? "mês" : "meses"} de fidelidade premium
                       </p>
                     </div>
-                    <Badge className="bg-[#D4AF37] text-black font-black uppercase text-[10px]">
-                      Ativa
+                    <Badge className={cn("font-black uppercase text-[10px]", isPaused ? "bg-blue-400 text-black" : "bg-[#D4AF37] text-black")}>
+                      {isPaused ? "Pausada" : "Ativa"}
                     </Badge>
                   </div>
+                  {isPaused && (
+                    <div className="mt-3 rounded-lg border border-blue-500/30 bg-blue-500/5 p-3 space-y-1">
+                      <p className="text-sm font-bold text-blue-200">Sua assinatura está pausada</p>
+                      {mySubscription.pause_reason && (
+                        <p className="text-xs text-gray-300">
+                          <span className="text-gray-500">Motivo:</span> {mySubscription.pause_reason}
+                        </p>
+                      )}
+                      {mySubscription.pause_until && (
+                        <p className="text-xs text-gray-300">
+                          <span className="text-gray-500">Retorno previsto:</span>{" "}
+                          {new Date(mySubscription.pause_until).toLocaleDateString("pt-BR")}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-blue-300/80 pt-1">
+                        Durante a pausa, benefícios e fidelidade premium ficam suspensos.
+                      </p>
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {next ? (
