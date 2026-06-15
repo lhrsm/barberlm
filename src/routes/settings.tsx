@@ -965,6 +965,45 @@ function SettingsComponent() {
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
                     <Gift className="text-[#ea580c] h-5 w-5" />
+                    Estratégia de Fidelização
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Recomendamos usar apenas uma estratégia por vez: Cashback, Fidelidade ou Assinatura.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                    <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Modo Ativo</Label>
+                    <Select
+                      value={formData.loyalty_mode}
+                      onValueChange={(value) => setFormData({
+                        ...formData,
+                        loyalty_mode: value,
+                        cashback_enabled: value === 'cashback' ? (formData.cashback_enabled || true) : false,
+                      })}
+                    >
+                      <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                        <SelectItem value="none">Nenhuma</SelectItem>
+                        <SelectItem value="cashback">Cashback</SelectItem>
+                        <SelectItem value="loyalty">Fidelidade (Cartão)</SelectItem>
+                        <SelectItem value="subscription">Assinatura</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-slate-600 font-medium uppercase italic">
+                      Apenas o modo selecionado gera saldo/pontos ao concluir um agendamento.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {formData.loyalty_mode === 'cashback' && (
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Gift className="text-[#ea580c] h-5 w-5" />
                     Sistema de Cashback
                   </CardTitle>
                   <CardDescription className="text-slate-400">Configure como seus clientes ganham crédito premium a cada serviço.</CardDescription>
