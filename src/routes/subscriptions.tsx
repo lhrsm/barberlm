@@ -91,7 +91,20 @@ interface SubscriptionPlan {
   active: boolean;
   display_order: number;
   created_at: string;
+  // Fidelidade & Premium
+  participates_traditional_loyalty?: boolean;
+  participates_cashback?: boolean;
+  accumulates_premium_loyalty?: boolean;
+  allows_product_discount?: boolean;
+  agenda_priority?: boolean;
+  exclusive_hours?: boolean;
+  exclusive_days?: boolean;
+  preferential_service?: boolean;
+  included_benefits?: string[];
+  barber_commission_type?: "fixed" | "percent" | "custom" | "none";
+  barber_commission_value?: number;
 }
+
 
 interface CustomerSub {
   id: string;
