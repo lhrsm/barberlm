@@ -603,14 +603,35 @@ function BarbersComponent() {
                         </Select>
                       </div>
                       {newBarber.category === 'Freelancer' && (
-                        <div className="space-y-2">
-                          <Label htmlFor="commission">Comissão (%)</Label>
-                          <Input 
-                            id="commission" 
-                            type="number"
-                            value={newBarber.commission_rate} 
-                            onChange={(e) => setNewBarber({...newBarber, commission_rate: Number(e.target.value)})} 
-                          />
+                        <div className="space-y-2 md:col-span-2 border rounded p-3">
+                          <Label>Comissão</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Select
+                              value={newBarber.commission_type}
+                              onValueChange={(v) => setNewBarber({ ...newBarber, commission_type: v })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">Percentual (%)</SelectItem>
+                                <SelectItem value="fixed">Valor fixo (R$/atendimento)</SelectItem>
+                                <SelectItem value="hybrid">Híbrido (% + bônus)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {(newBarber.commission_type === 'percentage' || newBarber.commission_type === 'hybrid') && (
+                              <Input type="number" placeholder="% sobre serviço" value={newBarber.commission_rate}
+                                onChange={(e) => setNewBarber({ ...newBarber, commission_rate: Number(e.target.value) })} />
+                            )}
+                            {newBarber.commission_type === 'fixed' && (
+                              <Input type="number" placeholder="R$ por atendimento" value={newBarber.commission_fixed_value}
+                                onChange={(e) => setNewBarber({ ...newBarber, commission_fixed_value: Number(e.target.value) })} />
+                            )}
+                            {newBarber.commission_type === 'hybrid' && (
+                              <Input type="number" placeholder="Bônus R$ por atendimento" value={newBarber.commission_bonus_value}
+                                onChange={(e) => setNewBarber({ ...newBarber, commission_bonus_value: Number(e.target.value) })} />
+                            )}
+                            <Input type="number" placeholder="Meta mensal R$" value={newBarber.monthly_goal}
+                              onChange={(e) => setNewBarber({ ...newBarber, monthly_goal: Number(e.target.value) })} />
+                          </div>
                         </div>
                       )}
                     </div>
