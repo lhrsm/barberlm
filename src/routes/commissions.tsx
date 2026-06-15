@@ -411,3 +411,17 @@ function RankCard({ icon, label, b, value }: { icon: React.ReactNode; label: str
     </Card>
   );
 }
+
+function KpiCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardDescription className="flex items-center gap-2 text-xs">{icon}{label}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-xl font-bold truncate">{value}</div>
+        {sub && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
+      </CardContent>
+    </Card>
+  );
+}
