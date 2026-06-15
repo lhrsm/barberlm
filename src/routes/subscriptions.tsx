@@ -678,6 +678,7 @@ function SubscriptionsPage() {
                 { v: "plans", label: "Planos", icon: Crown },
                 { v: "subscribers", label: "Assinantes", icon: Users },
                 { v: "invoices", label: "Cobranças", icon: Receipt },
+                { v: "usage", label: "Uso", icon: Activity },
                 { v: "reports", label: "Relatórios", icon: TrendingUp },
                 { v: "settings", label: "Configurações", icon: Wallet },
               ].map((t) => (
