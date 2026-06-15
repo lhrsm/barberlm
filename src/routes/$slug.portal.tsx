@@ -2235,6 +2235,75 @@ function ClientPortalComponent() {
         }}
       />
 
+      {/* CARTÃO DIGITAL DO ASSINANTE */}
+      {mySubscription?.card_token && (
+        <Dialog open={cardOpen} onOpenChange={setCardOpen}>
+          <DialogContent className="max-w-sm bg-transparent border-none p-0 shadow-none">
+            <DialogTitle className="sr-only">Cartão Digital do Assinante</DialogTitle>
+            {(() => {
+              const status = mySubscription.status as string;
+              const isActive = status === "active";
+              const isPaused = status === "paused";
+              const statusLabel = isActive ? "ATIVO" : isPaused ? "PAUSADO" : status === "canceled" ? "CANCELADO" : "INATIVO";
+              const statusColor = isActive ? "bg-emerald-500 text-black" : isPaused ? "bg-blue-400 text-black" : "bg-red-500 text-white";
+              const origin = typeof window !== "undefined" ? window.location.origin : "";
+              const qrUrl = `${origin}/subscription-card/validate/${mySubscription.card_token}`;
+              const planName = mySubscription.plan?.name ?? "Assinatura Premium";
+              const validUntil = mySubscription.current_period_end
+                ? new Date(mySubscription.current_period_end).toLocaleDateString("pt-BR")
+                : "—";
+              return (
+                <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
+                  <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                    style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                  <div className="relative flex items-start justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/80 font-black">Cartão Premium</p>
+                      <p className="text-xs text-gray-400 mt-1">{planName}</p>
+                    </div>
+                    <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest", statusColor)}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                  <div className="relative flex items-center gap-3 mt-5">
+                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-[#D4AF37]">
+                      {client?.avatar_url ? (
+                        <img src={client.avatar_url} alt={client?.name} className="h-full w-full object-cover" />
+                      ) : (
+                        (client?.name || "?").charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white font-black text-lg truncate">{client?.name || "Cliente"}</p>
+                      <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-widest">Assinante Premium</p>
+                    </div>
+                  </div>
+                  <div className="relative mt-6 bg-white rounded-2xl p-4 grid place-items-center">
+                    <QRCodeSVG value={qrUrl} size={200} level="H" bgColor="#ffffff" fgColor="#0a0a0a" />
+                  </div>
+                  <div className="relative mt-4 grid grid-cols-2 gap-3 text-[11px]">
+                    <div>
+                      <p className="text-gray-500 uppercase tracking-widest">Válido até</p>
+                      <p className="text-white font-bold">{validUntil}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-gray-500 uppercase tracking-widest">Usos no mês</p>
+                      <p className="text-white font-bold">
+                        {mySubscription.uses_this_period || 0}
+                        {mySubscription.plan?.max_uses_per_month ? `/${mySubscription.plan.max_uses_per_month}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="relative mt-4 text-center text-[10px] text-gray-500">
+                    Apresente este QR Code na barbearia para validar seus benefícios.
+                  </p>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
+
     </div>
   );
 }
