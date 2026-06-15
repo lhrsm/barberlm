@@ -5322,6 +5322,10 @@ export type Database = {
         Returns: Json
       }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
+      seed_subscription_automation_templates: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       use_customer_credits: {
         Args: {
           p_amount: number
