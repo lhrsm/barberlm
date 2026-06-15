@@ -1124,7 +1124,9 @@ function SettingsComponent() {
                   )}
                 </CardContent>
               </Card>
+              )}
 
+              {formData.loyalty_mode === 'loyalty' && (
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
