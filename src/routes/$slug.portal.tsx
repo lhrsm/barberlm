@@ -74,6 +74,9 @@ function ClientPortalComponent() {
   const [customerData, setCustomerData] = useState<any>(null);
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [loyaltyRewards, setLoyaltyRewards] = useState<any[]>([]);
+  const [mySubscription, setMySubscription] = useState<any>(null);
+  const [subRewards, setSubRewards] = useState<any[]>([]);
+  const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
   const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [services, setServices] = useState<any[]>([]);
@@ -325,6 +328,38 @@ function ClientPortalComponent() {
       .order("created_at", { ascending: false });
     
     setSales(saleData || []);
+
+    // Fetch assinatura premium ativa
+    const { data: subData } = await supabase
+      .from("customer_subscriptions")
+      .select("*, plan:subscription_plans(*)")
+      .eq("customer_id", customerId)
+      .in("status", ["active", "trialing"])
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setMySubscription(subData || null);
+
+    if (subData?.tenant_id) {
+      const [{ data: rewardsCfg }, { data: hist }] = await Promise.all([
+        supabase
+          .from("subscription_loyalty_rewards" as any)
+          .select("*")
+          .eq("tenant_id", subData.tenant_id)
+          .eq("active", true)
+          .order("months_required", { ascending: true }),
+        supabase
+          .from("subscription_loyalty_history" as any)
+          .select("*")
+          .eq("customer_id", customerId)
+          .order("granted_at", { ascending: false }),
+      ]);
+      setSubRewards((rewardsCfg as any[]) || []);
+      setSubRewardsHistory((hist as any[]) || []);
+    } else {
+      setSubRewards([]);
+      setSubRewardsHistory([]);
+    }
   }
 
   useEffect(() => {
@@ -1067,6 +1102,78 @@ function ClientPortalComponent() {
               </div>
             </CardHeader>
           </Card>
+
+          {mySubscription && (() => {
+            const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
+            const months = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / (1000 * 60 * 60 * 24 * 30.4375)));
+            const grantedIds = new Set(subRewardsHistory.map((h: any) => h.reward_id));
+            const next = subRewards.find((r: any) => !grantedIds.has(r.id) && (r.months_required ?? 0) > months);
+            const progress = next ? Math.min(100, (months / next.months_required) * 100) : 100;
+            return (
+              <Card className="bg-gradient-to-br from-[#D4AF37]/10 via-black/40 to-black border-[#D4AF37]/40 shadow-[0_8px_28px_rgba(212,175,55,0.18)] md:col-span-2 lg:col-span-3">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardDescription className="text-[#D4AF37]/80 uppercase font-black text-[10px] tracking-widest">
+                        ★ Assinatura Premium
+                      </CardDescription>
+                      <CardTitle className="text-xl font-black text-white mt-1">
+                        {mySubscription.plan?.name ?? "Plano Ativo"}
+                      </CardTitle>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {months} {months === 1 ? "mês" : "meses"} de fidelidade premium
+                      </p>
+                    </div>
+                    <Badge className="bg-[#D4AF37] text-black font-black uppercase text-[10px]">
+                      Ativa
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {next ? (
+                    <>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400 font-bold">
+                          Próxima recompensa: <span className="text-[#D4AF37]">{next.description || next.reward_type}</span>
+                        </span>
+                        <span className="text-[#D4AF37] font-black">
+                          {months}/{next.months_required} meses
+                        </span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F5D061] transition-all duration-700"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-[#D4AF37] font-bold">
+                      Você já desbloqueou todas as recompensas disponíveis. Obrigado pela fidelidade!
+                    </p>
+                  )}
+                  {subRewardsHistory.length > 0 && (
+                    <div className="pt-2 border-t border-white/10">
+                      <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2">
+                        Recompensas conquistadas ({subRewardsHistory.length})
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {subRewardsHistory.slice(0, 6).map((h: any) => (
+                          <Badge
+                            key={h.id}
+                            variant="outline"
+                            className="bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40 text-[10px] font-bold"
+                          >
+                            {h.notes || "Recompensa"}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
