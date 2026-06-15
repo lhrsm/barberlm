@@ -77,6 +77,8 @@ function ClientPortalComponent() {
   const [mySubscription, setMySubscription] = useState<any>(null);
   const [subRewards, setSubRewards] = useState<any[]>([]);
   const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
+  const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
+  const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [services, setServices] = useState<any[]>([]);
