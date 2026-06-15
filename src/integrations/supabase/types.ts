@@ -2435,11 +2435,17 @@ export type Database = {
           id: string
           metadata: Json
           next_billing_at: string | null
+          pause_notes: string | null
+          pause_reason: string | null
+          pause_until: string | null
+          paused_at: string | null
           payment_method: string
           plan_id: string
+          resumed_at: string | null
           started_at: string
           status: string
           tenant_id: string
+          total_paused_days: number
           updated_at: string
           uses_this_period: number
         }
@@ -2454,11 +2460,17 @@ export type Database = {
           id?: string
           metadata?: Json
           next_billing_at?: string | null
+          pause_notes?: string | null
+          pause_reason?: string | null
+          pause_until?: string | null
+          paused_at?: string | null
           payment_method?: string
           plan_id: string
+          resumed_at?: string | null
           started_at?: string
           status?: string
           tenant_id: string
+          total_paused_days?: number
           updated_at?: string
           uses_this_period?: number
         }
@@ -2473,11 +2485,17 @@ export type Database = {
           id?: string
           metadata?: Json
           next_billing_at?: string | null
+          pause_notes?: string | null
+          pause_reason?: string | null
+          pause_until?: string | null
+          paused_at?: string | null
           payment_method?: string
           plan_id?: string
+          resumed_at?: string | null
           started_at?: string
           status?: string
           tenant_id?: string
+          total_paused_days?: number
           updated_at?: string
           uses_this_period?: number
         }
@@ -3812,6 +3830,59 @@ export type Database = {
           usage_type?: string
         }
         Relationships: []
+      }
+      subscription_status_logs: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          customer_id: string | null
+          id: string
+          metadata: Json
+          new_status: string
+          notes: string | null
+          old_status: string | null
+          pause_until: string | null
+          reason: string | null
+          subscription_id: string
+          tenant_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          customer_id?: string | null
+          id?: string
+          metadata?: Json
+          new_status: string
+          notes?: string | null
+          old_status?: string | null
+          pause_until?: string | null
+          reason?: string | null
+          subscription_id: string
+          tenant_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          customer_id?: string | null
+          id?: string
+          metadata?: Json
+          new_status?: string
+          notes?: string | null
+          old_status?: string | null
+          pause_until?: string | null
+          reason?: string | null
+          subscription_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_status_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_usage_logs: {
         Row: {
@@ -5396,6 +5467,15 @@ export type Database = {
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_super_admin_user: { Args: never; Returns: boolean }
+      pause_customer_subscription: {
+        Args: {
+          p_notes?: string
+          p_pause_until?: string
+          p_reason?: string
+          p_subscription_id: string
+        }
+        Returns: Json
+      }
       pay_commission_entries: {
         Args: {
           p_amount: number
@@ -5498,6 +5578,10 @@ export type Database = {
         }
         Returns: Json
       }
+      resume_customer_subscription: {
+        Args: { p_subscription_id: string }
+        Returns: Json
+      }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
       seed_subscription_automation_templates: {
         Args: { p_tenant_id: string }
@@ -5506,6 +5590,10 @@ export type Database = {
       seed_subscription_reward_unlocked_template: {
         Args: { p_tenant_id: string }
         Returns: undefined
+      }
+      subscription_active_months: {
+        Args: { p_subscription_id: string }
+        Returns: number
       }
       use_customer_credits: {
         Args: {
