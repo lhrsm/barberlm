@@ -3057,10 +3057,23 @@ function ShopPageComponent() {
                         <span>- R$ {calculateDiscount().toFixed(2)}</span>
                       </div>
                     )}
+                    {calculateSubscriptionCoverage() > 0 && (
+                      <div className="flex justify-between items-center text-amber-700 font-black text-xs uppercase tracking-widest">
+                        <span className="flex items-center gap-1"><Crown size={12} /> Coberto pelo plano:</span>
+                        <span>- R$ {calculateSubscriptionCoverage().toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-zinc-900 font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                      <span className="text-zinc-900 font-black text-lg uppercase tracking-tighter">
+                        {calculateSubscriptionCoverage() > 0 && calculateTotal() > 0 ? "Diferença a pagar:" : "Total Final:"}
+                      </span>
                       <span className="text-3xl font-black text-zinc-900">R$ {calculateTotal().toFixed(2)}</span>
                     </div>
+                    {calculateSubscriptionCoverage() > 0 && calculateTotal() > 0 && (
+                      <p className="text-[11px] text-amber-700 font-medium text-right">
+                        Sua assinatura cobre parte do valor. Você paga apenas a diferença.
+                      </p>
+                    )}
                   </div>
 
 
