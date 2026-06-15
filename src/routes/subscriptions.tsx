@@ -59,7 +59,10 @@ import {
   Banknote,
   X,
   Filter,
+  Activity,
 } from "lucide-react";
+import { format, parseISO, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/subscriptions")({
   component: SubscriptionsPage,
