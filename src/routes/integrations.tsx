@@ -94,117 +94,143 @@ function IntegrationsComponent() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Integrações</h2>
-          <p className="text-muted-foreground">Conecte suas ferramentas favoritas para automatizar seu negócio.</p>
-        </div>
+      <div className="min-h-screen bg-[#05070d] text-white -m-4 md:-m-6 lg:-m-8 p-4 md:p-6 lg:p-8">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5 md:p-6 shadow-[0_8px_28px_rgba(16,185,129,0.08)] flex items-center gap-4">
+            <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+              <Share2 className="h-7 w-7 text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">Integrações</h2>
+              <p className="text-sm text-zinc-400 mt-1">Conecte suas ferramentas favoritas para automatizar seu negócio.</p>
+            </div>
+          </div>
 
-        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 pb-10">
-          {/* WhatsApp Z-API */}
-          {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 pb-10">
+            {/* WhatsApp Z-API */}
+            {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
 
-
-          {/* Resend E-mail */}
-          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm rounded-2xl md:rounded-[2.5rem] overflow-hidden">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                  <Mail size={24} />
-                </div>
-                <Badge variant={email?.id ? "default" : "secondary"} className={email?.id ? "bg-blue-500" : ""}>
-                  {email?.id ? "Configurado" : "Pendente"}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl mt-4">E-mail (Resend)</CardTitle>
-              <CardDescription>Envie e-mails profissionais com seu próprio domínio.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 space-y-4">
-              <form id="email-form" onSubmit={saveEmail} className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">API Key (Resend)</Label>
-                  <Input name="api_key" type="password" defaultValue={email?.api_key} placeholder="re_..." required className="h-11 rounded-xl" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">E-mail Remetente</Label>
-                    <Input name="sender_email" defaultValue={email?.sender_email} placeholder="contato@seudominio.com" required className="h-11 rounded-xl" />
+            {/* Resend E-mail */}
+            <Card className="flex flex-col bg-[#0b0f17] border border-zinc-800/80 text-white rounded-2xl overflow-hidden shadow-[0_8px_28px_rgba(16,185,129,0.06)] hover:border-emerald-500/30 transition-all">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="h-11 w-11 rounded-xl bg-sky-500/10 border border-sky-500/30 grid place-items-center">
+                    <Mail size={20} className="text-sky-400" />
                   </div>
+                  <span className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                    email?.id
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
+                  )}>
+                    {email?.id ? "Configurado" : "Pendente"}
+                  </span>
+                </div>
+                <CardTitle className="text-lg mt-4 text-white">E-mail (Resend)</CardTitle>
+                <CardDescription className="text-zinc-400">Envie e-mails profissionais com seu próprio domínio.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-4">
+                <form id="email-form" onSubmit={saveEmail} className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Nome Remetente</Label>
-                    <Input name="sender_name" defaultValue={email?.sender_name} placeholder="Barbearia X" required className="h-11 rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">API Key (Resend)</Label>
+                    <Input name="api_key" type="password" defaultValue={email?.api_key} placeholder="re_..." required className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500/50" />
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">E-mail Remetente</Label>
+                      <Input name="sender_email" defaultValue={email?.sender_email} placeholder="contato@seudominio.com" required className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500/50" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Nome Remetente</Label>
+                      <Input name="sender_name" defaultValue={email?.sender_name} placeholder="Barbearia X" required className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500/50" />
+                    </div>
+                  </div>
+                </form>
+                <div className="bg-sky-500/5 p-3 rounded-xl border border-sky-500/20 flex gap-2.5">
+                  <ShieldCheck className="text-sky-400 shrink-0 mt-0.5" size={16} />
+                  <p className="text-[11px] text-sky-300/80 leading-relaxed">Certifique-se de configurar o DNS no painel do Resend para garantir a entrega dos e-mails.</p>
                 </div>
-              </form>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex gap-3">
-                <ShieldCheck className="text-blue-600 shrink-0" size={20} />
-                <p className="text-[10px] text-blue-700">Certifique-se de configurar o DNS no painel do Resend para garantir a entrega dos e-mails.</p>
-              </div>
-            </CardContent>
-            <CardFooter className="border-t pt-4">
-              <Button form="email-form" className="w-full">Salvar Configurações</Button>
-            </CardFooter>
-          </Card>
-
-          {/* OpenAI */}
-          <Card className={cn(
-            "flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm rounded-2xl md:rounded-[2.5rem] overflow-hidden",
-            plan !== 'elite' && "opacity-75 grayscale-[0.5]"
-          )}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
-                  <Sparkles size={24} />
-                </div>
-                {plan !== 'elite' ? (
-                  <Badge variant="secondary" className="gap-1">
-                    <Lock size={10} /> ELITE
-                  </Badge>
-                ) : (
-                  <Badge variant={ai?.id ? "default" : "secondary"} className={ai?.id ? "bg-purple-500" : ""}>
-                    {ai?.id ? "Ativo" : "Pendente"}
-                  </Badge>
-                )}
-              </div>
-              <CardTitle className="text-xl mt-4">OpenAI (IA Generativa)</CardTitle>
-              <CardDescription>Gere templates e melhore a comunicação com inteligência artificial.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">API Key (OpenAI)</Label>
-                <Input type="password" defaultValue={ai?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-11 rounded-xl" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Modelo</Label>
-                <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-11 rounded-xl" />
-              </div>
-            </CardContent>
-            <CardFooter className="border-t pt-4">
-              {plan !== 'elite' ? (
-                <Button className="w-full gap-2" variant="outline" asChild>
-                  <a href="/subscription">Fazer Upgrade para Elite <Zap size={14} className="fill-current" /></a>
+              </CardContent>
+              <CardFooter className="border-t border-zinc-800/80 pt-4">
+                <Button form="email-form" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
+                  Salvar Configurações
                 </Button>
-              ) : (
-                <Button className="w-full">Conectar IA</Button>
-              )}
-            </CardFooter>
-          </Card>
+              </CardFooter>
+            </Card>
 
-          {/* Webhooks (Future) */}
-          <Card className="flex flex-col opacity-50 border-dashed">
-            <CardHeader>
-              <div className="p-2 bg-gray-50 rounded-lg text-gray-600 w-fit">
-                <Zap size={24} />
-              </div>
-              <CardTitle className="text-xl mt-4">Webhooks Customizados</CardTitle>
-              <CardDescription>Em breve: Envie dados para outras ferramentas via Zapier, Make, etc.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-center justify-center">
-              <Button variant="ghost" disabled className="gap-2">
-                <Plus size={18} /> Adicionar Webhook
-              </Button>
-            </CardContent>
-          </Card>
+            {/* OpenAI */}
+            <Card className={cn(
+              "flex flex-col bg-[#0b0f17] border border-zinc-800/80 text-white rounded-2xl overflow-hidden shadow-[0_8px_28px_rgba(168,85,247,0.06)] transition-all",
+              plan === 'elite' ? "hover:border-purple-500/30" : "opacity-80"
+            )}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="h-11 w-11 rounded-xl bg-purple-500/10 border border-purple-500/30 grid place-items-center">
+                    <Sparkles size={20} className="text-purple-400" />
+                  </div>
+                  {plan !== 'elite' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-amber-500/10 text-amber-400 border-amber-500/30">
+                      <Lock size={10} /> ELITE
+                    </span>
+                  ) : (
+                    <span className={cn(
+                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                      ai?.id
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                        : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
+                    )}>
+                      {ai?.id ? "Ativo" : "Pendente"}
+                    </span>
+                  )}
+                </div>
+                <CardTitle className="text-lg mt-4 text-white">OpenAI (IA Generativa)</CardTitle>
+                <CardDescription className="text-zinc-400">Gere templates e melhore a comunicação com inteligência artificial.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">API Key (OpenAI)</Label>
+                  <Input type="password" defaultValue={ai?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo</Label>
+                  <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-zinc-800/80 pt-4">
+                {plan !== 'elite' ? (
+                  <Button className="w-full gap-2 bg-[#0b0f17] border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold" asChild>
+                    <a href="/subscription">Fazer Upgrade para Elite <Zap size={14} className="fill-current" /></a>
+                  </Button>
+                ) : (
+                  <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
+                    Conectar IA
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+
+            {/* Webhooks (Future) */}
+            <Card className="flex flex-col bg-[#0b0f17] border border-dashed border-zinc-700/60 text-white rounded-2xl overflow-hidden">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="h-11 w-11 rounded-xl bg-zinc-800/50 border border-zinc-700/50 grid place-items-center">
+                    <Zap size={20} className="text-zinc-500" />
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-zinc-500/10 text-zinc-400 border-zinc-500/30">
+                    Em breve
+                  </span>
+                </div>
+                <CardTitle className="text-lg mt-4 text-white">Webhooks Customizados</CardTitle>
+                <CardDescription className="text-zinc-400">Envie dados para outras ferramentas via Zapier, Make, etc.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 flex items-center justify-center pb-6">
+                <Button variant="ghost" disabled className="gap-2 text-zinc-500">
+                  <Plus size={18} /> Adicionar Webhook
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppLayout>
