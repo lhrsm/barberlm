@@ -59,7 +59,10 @@ import {
   Banknote,
   X,
   Filter,
+  Activity,
 } from "lucide-react";
+import { format, parseISO, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/subscriptions")({
   component: SubscriptionsPage,
@@ -246,6 +249,15 @@ function SubscriptionsPage() {
   const [loading, setLoading] = useState(true);
   const [servicesList, setServicesList] = useState<Array<{ id: string; name: string; price: number }>>([]);
   const [editingPlanServices, setEditingPlanServices] = useState<Record<string, { included: boolean; max_uses_per_period: number | null }>>({});
+  const [usageLogs, setUsageLogs] = useState<any[]>([]);
+
+  // Filtros aba Uso
+  const [usageRange, setUsageRange] = useState<"7" | "30" | "90" | "all" | "custom">("30");
+  const [usageFrom, setUsageFrom] = useState("");
+  const [usageTo, setUsageTo] = useState("");
+  const [usagePlanFilter, setUsagePlanFilter] = useState<string>("all");
+  const [usageServiceFilter, setUsageServiceFilter] = useState<string>("all");
+  const [usageSearch, setUsageSearch] = useState("");
 
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Partial<SubscriptionPlan> | null>(null);
@@ -268,7 +280,7 @@ function SubscriptionsPage() {
   async function loadAll() {
     if (!tenantId) return;
     setLoading(true);
-    const [plansRes, subsRes, invRes, custRes, svcRes] = await Promise.all([
+    const [plansRes, subsRes, invRes, custRes, svcRes, usageRes] = await Promise.all([
       supabase.from("subscription_plans").select("*").eq("tenant_id", tenantId).order("display_order"),
       supabase
         .from("customer_subscriptions")
@@ -283,12 +295,19 @@ function SubscriptionsPage() {
         .limit(100),
       supabase.from("customers").select("id,name,phone,cpf").eq("user_id", tenantId).order("name"),
       supabase.from("services").select("id,name,price").eq("user_id", tenantId).order("name"),
+      supabase
+        .from("subscription_usage_logs" as any)
+        .select("*, services(name, price), customer:customers(id,name,phone), plan:subscription_plans(id,name,monthly_price)")
+        .eq("tenant_id", tenantId)
+        .order("used_at", { ascending: false })
+        .limit(500),
     ]);
     if (plansRes.data) setPlans(plansRes.data as any);
     if (subsRes.data) setSubs(subsRes.data as any);
     if (invRes.data) setInvoices(invRes.data as any);
     if (custRes.data) setCustomersList(custRes.data as any);
     if (svcRes.data) setServicesList(svcRes.data as any);
+    if (usageRes.data) setUsageLogs(usageRes.data as any);
     setLoading(false);
   }
 
@@ -659,6 +678,7 @@ function SubscriptionsPage() {
                 { v: "plans", label: "Planos", icon: Crown },
                 { v: "subscribers", label: "Assinantes", icon: Users },
                 { v: "invoices", label: "Cobranças", icon: Receipt },
+                { v: "usage", label: "Uso", icon: Activity },
                 { v: "reports", label: "Relatórios", icon: TrendingUp },
                 { v: "settings", label: "Configurações", icon: Wallet },
               ].map((t) => (
@@ -1020,6 +1040,297 @@ function SubscriptionsPage() {
                   </div>
                 ))
               )}
+            </TabsContent>
+
+            {/* === USAGE === */}
+            <TabsContent value="usage" className="mt-6 space-y-6">
+              {(() => {
+                // Filter logs
+                const now = new Date();
+                let cutoff: Date | null = null;
+                if (usageRange === "7") cutoff = subDays(now, 7);
+                else if (usageRange === "30") cutoff = subDays(now, 30);
+                else if (usageRange === "90") cutoff = subDays(now, 90);
+
+                const filtered = usageLogs.filter((l: any) => {
+                  if (!l.used_at) return true;
+                  const d = parseISO(l.used_at);
+                  if (cutoff && d < cutoff) return false;
+                  if (usageRange === "custom") {
+                    if (usageFrom && d < parseISO(usageFrom)) return false;
+                    if (usageTo && d > parseISO(usageTo + "T23:59:59")) return false;
+                  }
+                  if (usagePlanFilter !== "all" && l.subscription_plan_id !== usagePlanFilter) return false;
+                  if (usageServiceFilter !== "all" && l.service_id !== usageServiceFilter) return false;
+                  if (usageSearch.trim()) {
+                    const q = usageSearch.toLowerCase();
+                    const hay = `${l.customer?.name || ""} ${l.customer?.phone || ""} ${l.services?.name || ""}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                  }
+                  return true;
+                });
+
+                const totalCovered = filtered.reduce((s: number, l: any) => s + Number(l.covered_amount || 0), 0);
+                const totalExtra = filtered.reduce((s: number, l: any) => s + Number(l.extra_amount || 0), 0);
+                const uniqueCustomers = new Set(filtered.map((l: any) => l.customer_id)).size;
+
+                // Top services
+                const svcMap = new Map<string, { name: string; count: number; covered: number }>();
+                filtered.forEach((l: any) => {
+                  const k = l.service_id || "—";
+                  const name = l.services?.name || "Outros";
+                  const cur = svcMap.get(k) || { name, count: 0, covered: 0 };
+                  cur.count += 1;
+                  cur.covered += Number(l.covered_amount || 0);
+                  svcMap.set(k, cur);
+                });
+                const topServices = Array.from(svcMap.values()).sort((a, b) => b.count - a.count).slice(0, 5);
+
+                // Top customers
+                const custMap = new Map<string, { name: string; count: number; covered: number }>();
+                filtered.forEach((l: any) => {
+                  const k = l.customer_id || "—";
+                  const name = l.customer?.name || "Cliente";
+                  const cur = custMap.get(k) || { name, count: 0, covered: 0 };
+                  cur.count += 1;
+                  cur.covered += Number(l.covered_amount || 0);
+                  custMap.set(k, cur);
+                });
+                const topCustomers = Array.from(custMap.values()).sort((a, b) => b.covered - a.covered).slice(0, 5);
+
+                // Top plans
+                const planMap = new Map<string, { name: string; count: number; covered: number }>();
+                filtered.forEach((l: any) => {
+                  const k = l.subscription_plan_id || "—";
+                  const name = l.plan?.name || "Sem plano";
+                  const cur = planMap.get(k) || { name, count: 0, covered: 0 };
+                  cur.count += 1;
+                  cur.covered += Number(l.covered_amount || 0);
+                  planMap.set(k, cur);
+                });
+                const topPlans = Array.from(planMap.values()).sort((a, b) => b.covered - a.covered);
+
+                function exportCsv() {
+                  const rows = [
+                    ["Data", "Cliente", "Telefone", "Plano", "Serviço", "Coberto", "Extra"],
+                    ...filtered.map((l: any) => [
+                      l.used_at ? format(parseISO(l.used_at), "dd/MM/yyyy HH:mm") : "",
+                      l.customer?.name || "",
+                      l.customer?.phone || "",
+                      l.plan?.name || "",
+                      l.services?.name || l.benefit_type || "",
+                      Number(l.covered_amount || 0).toFixed(2),
+                      Number(l.extra_amount || 0).toFixed(2),
+                    ]),
+                  ];
+                  const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+                  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `uso-assinaturas-${format(new Date(), "yyyy-MM-dd")}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }
+
+                return (
+                  <>
+                    {/* KPIs */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Atendimentos</p>
+                        <p className="text-2xl font-black text-white mt-1">{filtered.length}</p>
+                      </div>
+                      <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Clientes únicos</p>
+                        <p className="text-2xl font-black text-white mt-1">{uniqueCustomers}</p>
+                      </div>
+                      <div className="bg-[#0b0f17] border border-emerald-500/20 rounded-2xl p-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Valor coberto</p>
+                        <p className="text-2xl font-black text-emerald-400 mt-1">R$ {totalCovered.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Receita extra</p>
+                        <p className="text-2xl font-black text-white mt-1">R$ {totalExtra.toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    {/* Filtros */}
+                    <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {[
+                            { id: "7", label: "7 dias" },
+                            { id: "30", label: "30 dias" },
+                            { id: "90", label: "90 dias" },
+                            { id: "all", label: "Tudo" },
+                            { id: "custom", label: "Datas..." },
+                          ].map((opt) => (
+                            <Button
+                              key={opt.id}
+                              size="sm"
+                              variant={usageRange === opt.id ? "default" : "outline"}
+                              onClick={() => setUsageRange(opt.id as any)}
+                              className={cn(
+                                "h-8 text-xs",
+                                usageRange === opt.id
+                                  ? "bg-emerald-500 hover:bg-emerald-600 text-black border-none"
+                                  : "bg-transparent border-zinc-800 text-zinc-300 hover:bg-zinc-800/50"
+                              )}
+                            >
+                              {opt.label}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button size="sm" variant="outline" onClick={exportCsv} className="h-8 text-xs border-zinc-800 text-zinc-300 hover:bg-zinc-800/50">
+                          Exportar CSV
+                        </Button>
+                      </div>
+
+                      {usageRange === "custom" && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-[10px] uppercase text-zinc-500">De</Label>
+                            <Input type="date" value={usageFrom} onChange={(e) => setUsageFrom(e.target.value)} className="bg-[#05070d] border-zinc-800 text-white h-9" />
+                          </div>
+                          <div>
+                            <Label className="text-[10px] uppercase text-zinc-500">Até</Label>
+                            <Input type="date" value={usageTo} onChange={(e) => setUsageTo(e.target.value)} className="bg-[#05070d] border-zinc-800 text-white h-9" />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className="relative">
+                          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                          <Input
+                            value={usageSearch}
+                            onChange={(e) => setUsageSearch(e.target.value)}
+                            placeholder="Buscar cliente, telefone ou serviço..."
+                            className="pl-9 bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 h-9"
+                          />
+                        </div>
+                        <Select value={usagePlanFilter} onValueChange={setUsagePlanFilter}>
+                          <SelectTrigger className="bg-[#05070d] border-zinc-800 text-white h-9">
+                            <SelectValue placeholder="Plano" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos os planos</SelectItem>
+                            {plans.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={usageServiceFilter} onValueChange={setUsageServiceFilter}>
+                          <SelectTrigger className="bg-[#05070d] border-zinc-800 text-white h-9">
+                            <SelectValue placeholder="Serviço" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos os serviços</SelectItem>
+                            {servicesList.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Rankings */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5">
+                        <h4 className="text-sm font-black mb-3 flex items-center gap-2"><Crown className="h-4 w-4 text-emerald-400" /> Planos por uso</h4>
+                        {topPlans.length === 0 ? (
+                          <p className="text-xs text-zinc-500 italic">Sem dados.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {topPlans.map((p, i) => (
+                              <li key={i} className="flex items-center justify-between text-xs">
+                                <span className="text-white font-bold truncate mr-2">{p.name}</span>
+                                <span className="text-zinc-400 shrink-0">{p.count}x · <span className="text-emerald-400">R$ {p.covered.toFixed(2)}</span></span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5">
+                        <h4 className="text-sm font-black mb-3 flex items-center gap-2"><Scissors className="h-4 w-4 text-emerald-400" /> Top serviços</h4>
+                        {topServices.length === 0 ? (
+                          <p className="text-xs text-zinc-500 italic">Sem dados.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {topServices.map((s, i) => (
+                              <li key={i} className="flex items-center justify-between text-xs">
+                                <span className="text-white font-bold truncate mr-2">{s.name}</span>
+                                <span className="text-zinc-400 shrink-0">{s.count}x · <span className="text-emerald-400">R$ {s.covered.toFixed(2)}</span></span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5">
+                        <h4 className="text-sm font-black mb-3 flex items-center gap-2"><Users className="h-4 w-4 text-emerald-400" /> Top clientes</h4>
+                        {topCustomers.length === 0 ? (
+                          <p className="text-xs text-zinc-500 italic">Sem dados.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {topCustomers.map((c, i) => (
+                              <li key={i} className="flex items-center justify-between text-xs">
+                                <span className="text-white font-bold truncate mr-2">{c.name}</span>
+                                <span className="text-zinc-400 shrink-0">{c.count}x · <span className="text-emerald-400">R$ {c.covered.toFixed(2)}</span></span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tabela */}
+                    <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl overflow-hidden">
+                      <div className="px-5 py-3 border-b border-zinc-800/60 flex items-center justify-between">
+                        <h4 className="text-sm font-black">Lançamentos ({filtered.length})</h4>
+                      </div>
+                      {filtered.length === 0 ? (
+                        <p className="text-center py-12 text-zinc-500 italic text-sm">Nenhum uso encontrado para os filtros aplicados.</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead className="bg-[#05070d] text-zinc-500 uppercase text-[10px] tracking-wider">
+                              <tr>
+                                <th className="text-left px-4 py-3">Data</th>
+                                <th className="text-left px-4 py-3">Cliente</th>
+                                <th className="text-left px-4 py-3">Plano</th>
+                                <th className="text-left px-4 py-3">Serviço</th>
+                                <th className="text-right px-4 py-3">Coberto</th>
+                                <th className="text-right px-4 py-3">Extra</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filtered.slice(0, 200).map((l: any) => (
+                                <tr key={l.id} className="border-t border-zinc-800/40 hover:bg-zinc-900/40">
+                                  <td className="px-4 py-3 text-zinc-300">
+                                    {l.used_at ? format(parseISO(l.used_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <p className="text-white font-bold">{l.customer?.name || "—"}</p>
+                                    <p className="text-zinc-500 text-[10px]">{l.customer?.phone || ""}</p>
+                                  </td>
+                                  <td className="px-4 py-3 text-zinc-300">{l.plan?.name || "—"}</td>
+                                  <td className="px-4 py-3 text-zinc-300">{l.services?.name || l.benefit_type || "—"}</td>
+                                  <td className="px-4 py-3 text-right text-emerald-400 font-bold">R$ {Number(l.covered_amount || 0).toFixed(2)}</td>
+                                  <td className="px-4 py-3 text-right text-zinc-300">R$ {Number(l.extra_amount || 0).toFixed(2)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {filtered.length > 200 && (
+                            <p className="text-center py-3 text-[10px] text-zinc-500 uppercase">Mostrando 200 de {filtered.length} — refine os filtros para ver mais.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </TabsContent>
 
             {/* === REPORTS === */}
