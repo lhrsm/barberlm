@@ -1423,11 +1423,30 @@ function ShopPageComponent() {
     return total;
   };
 
+  const calculateSubscriptionCoverage = () => {
+    const items = [
+      ...bookingCart.map(i => ({ service_id: i.service_id, price: i.price || 0 })),
+      ...(selectedService ? [{ service_id: selectedService.id, price: selectedService.price || 0 }] : []),
+    ];
+    let covered = 0;
+    for (const it of items) {
+      const elig = serviceEligibility[it.service_id];
+      if (!elig?.has_active_subscription || !elig?.service_included) continue;
+      if (!elig?.requires_payment) {
+        covered += it.price;
+      } else if (elig?.reason === 'partial_coverage') {
+        covered += Math.min(it.price, Number(elig?.covered_amount || 0));
+      }
+    }
+    return covered;
+  };
+
   const calculateTotal = () => {
     let total = calculateTotalBeforeCashback();
     if (useCashback) {
       total = Math.max(0, total - Math.min(customerCashback, total));
     }
+    total = Math.max(0, total - calculateSubscriptionCoverage());
     return total;
   };
 
