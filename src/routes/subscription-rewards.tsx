@@ -35,6 +35,8 @@ import {
   RefreshCw,
   CheckCircle2,
   History,
+  AlertTriangle,
+  Send,
 } from "lucide-react";
 
 export const Route = createFileRoute("/subscription-rewards")({
@@ -120,13 +122,13 @@ function SubscriptionRewardsPage() {
   async function syncRewards() {
     if (!tenantId) return;
     setSyncing(true);
-    const { data, error } = await supabase.rpc("process_subscription_loyalty_rewards" as any, {
-      p_tenant_id: tenantId,
-    });
+    // Roda a rotina global (todos os tenants) — backend filtra por elegibilidade
+    const { data, error } = await supabase.rpc("process_subscription_loyalty_rewards" as any);
     setSyncing(false);
     if (error) return toast.error("Erro: " + error.message);
-    const count = Array.isArray(data) ? data.length : 0;
-    toast.success(count > 0 ? `${count} recompensa(s) concedida(s)!` : "Nenhuma recompensa nova");
+    const granted = (data as any)?.granted ?? 0;
+    const notified = (data as any)?.notified ?? 0;
+    toast.success(granted > 0 ? `${granted} liberada(s) · ${notified} WhatsApp enfileirado(s)` : "Nenhuma recompensa nova");
     load();
   }
 
@@ -249,6 +251,37 @@ function SubscriptionRewardsPage() {
               </Button>
             </div>
           </div>
+
+          {/* KPIs da automação */}
+          {(() => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayIso = today.toISOString();
+            const grantedToday = history.filter((h: any) => h.granted_at && h.granted_at >= todayIso).length;
+            const pending = history.filter((h: any) => !h.notification_sent).length;
+            const failures = history.filter((h: any) => h.notification_error).length;
+            const notified = history.filter((h: any) => h.notification_sent).length;
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-1"><Sparkles className="w-4 h-4 text-amber-400" /><span className="text-[10px] uppercase tracking-widest text-amber-300 font-bold">Liberadas hoje</span></div>
+                  <p className="text-2xl font-black text-white">{grantedToday}</p>
+                </div>
+                <div className="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-1"><Clock className="w-4 h-4 text-sky-400" /><span className="text-[10px] uppercase tracking-widest text-sky-300 font-bold">Pendentes envio</span></div>
+                  <p className="text-2xl font-black text-white">{pending}</p>
+                </div>
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-1"><Send className="w-4 h-4 text-emerald-400" /><span className="text-[10px] uppercase tracking-widest text-emerald-300 font-bold">WhatsApp enviados</span></div>
+                  <p className="text-2xl font-black text-white">{notified}</p>
+                </div>
+                <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-1"><AlertTriangle className="w-4 h-4 text-red-400" /><span className="text-[10px] uppercase tracking-widest text-red-300 font-bold">Falhas envio</span></div>
+                  <p className="text-2xl font-black text-white">{failures}</p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Lista */}
           {rewards.length === 0 ? (
