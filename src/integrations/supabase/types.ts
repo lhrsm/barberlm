@@ -2801,6 +2801,7 @@ export type Database = {
           google_maps_url: string | null
           id: string
           logo_url: string | null
+          loyalty_mode: string
           opening_date: string | null
           payment_gateway_key: string | null
           payment_gateway_provider: string | null
@@ -2846,6 +2847,7 @@ export type Database = {
           google_maps_url?: string | null
           id: string
           logo_url?: string | null
+          loyalty_mode?: string
           opening_date?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
@@ -2891,6 +2893,7 @@ export type Database = {
           google_maps_url?: string | null
           id?: string
           logo_url?: string | null
+          loyalty_mode?: string
           opening_date?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
