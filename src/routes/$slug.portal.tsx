@@ -1195,57 +1195,113 @@ function ClientPortalComponent() {
           </TabsContent>
 
           <TabsContent value="loyalty" className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <Card className="bg-white/5 border-white/10 shadow-lg">
-                 <CardHeader>
-                   <CardTitle className="text-white">Programa de Fidelidade</CardTitle>
-                   <CardDescription className="text-gray-400">Junte pontos em cada atendimento e troque por créditos.</CardDescription>
-                 </CardHeader>
-                 <CardContent className="flex flex-col items-center py-10">
-                    <div className="relative h-40 w-40 flex items-center justify-center">
-                       <svg className="h-full w-full rotate-[-90deg]">
-                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" className="text-white/5" />
-                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="440" strokeDashoffset={440 - (440 * Math.min(customerData?.loyalty_points || 0, 10)) / 10} className="text-[#D4AF37] transition-all duration-1000" />
-                       </svg>
-                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-4xl font-black text-white">{customerData?.loyalty_points || 0}</span>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">de 10 pontos</span>
-                       </div>
-                    </div>
-                    {customerData?.loyalty_points >= 10 ? (
-                      <div className="mt-8 flex flex-col items-center gap-2">
-                        <Badge className="bg-emerald-500 text-white font-bold px-4 py-1 animate-bounce">
-                          BÔNUS DISPONÍVEL!
-                        </Badge>
-                        <p className="text-xs text-emerald-400 font-medium text-center px-4">
-                          Você atingiu 10 atendimentos! Um crédito de fidelidade foi adicionado automaticamente ao seu saldo.
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="mt-8 text-sm text-gray-400 font-medium italic text-center px-4">Faltam {10 - (customerData?.loyalty_points || 0)} pontos para você ganhar seu próximo bônus!</p>
-                    )}
-                 </CardContent>
-               </Card>
+            {(() => {
+              const target = loyaltySettings?.appointments_required ?? 10;
+              const current = Math.min(customerData?.loyalty_points || 0, target);
+              const remaining = Math.max(0, target - current);
+              const dash = 440;
+              const offset = dash - (dash * current) / target;
+              const benefitText = loyaltySettings?.benefit_description || 'Recompensa de fidelidade';
+              const available = loyaltyRewards.filter((r: any) => r.status === 'available');
+              const history = loyaltyRewards.filter((r: any) => r.status !== 'available');
+              const enabled = loyaltySettings?.enabled !== false;
 
-               <Card className="bg-white/5 border-white/10 shadow-lg">
-                 <CardHeader>
-                   <CardTitle className="text-white">Como Funciona?</CardTitle>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                    <div className="flex gap-4">
-                       <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">1</div>
-                       <p className="text-sm text-gray-400">Cada agendamento concluído gera 1 ponto no seu cartão fidelidade.</p>
-                    </div>
-                     <div className="flex gap-4">
-                        <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">2</div>
-                        <p className="text-sm text-gray-400">Ao completar 10 pontos, você ganha automaticamente um bônus em créditos.</p>
-                     </div>
-                    <div className="flex gap-4">
-                       <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">3</div>
-                       <p className="text-sm text-gray-400">Os créditos podem ser usados para pagar qualquer serviço futuro na barbearia.</p>
-                    </div>
-                 </CardContent>
-               </Card>
+              if (!enabled) {
+                return (
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardContent className="py-12 text-center text-gray-400">
+                      O programa de fidelidade está desativado nesta barbearia.
+                    </CardContent>
+                  </Card>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-white">Programa de Fidelidade</CardTitle>
+                      <CardDescription className="text-gray-400">
+                        {benefitText} a cada {target} atendimentos.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center py-10">
+                      <div className="relative h-40 w-40 flex items-center justify-center">
+                        <svg className="h-full w-full rotate-[-90deg]">
+                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" className="text-white/5" />
+                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={dash} strokeDashoffset={offset} className="text-[#D4AF37] transition-all duration-1000" />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-4xl font-black text-white">{current}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">de {target} atendimentos</span>
+                        </div>
+                      </div>
+                      {remaining === 0 ? (
+                        <div className="mt-8 flex flex-col items-center gap-2">
+                          <Badge className="bg-emerald-500 text-white font-bold px-4 py-1 animate-bounce">
+                            RECOMPENSA DISPONÍVEL!
+                          </Badge>
+                          <p className="text-xs text-emerald-400 font-medium text-center px-4">
+                            {benefitText}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="mt-8 text-sm text-gray-400 font-medium italic text-center px-4">
+                          Falta(m) {remaining} atendimento(s) para você ganhar: <span className="text-[#D4AF37] font-bold">{benefitText}</span>
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-white">Suas Recompensas</CardTitle>
+                      <CardDescription className="text-gray-400">Recompensas disponíveis e histórico.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {available.length === 0 && history.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">Nenhuma recompensa ainda. Continue agendando!</p>
+                      ) : (
+                        <>
+                          {available.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Disponíveis</p>
+                              {available.map((r: any) => (
+                                <div key={r.id} className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                  <p className="text-sm font-bold text-white">{r.benefit_description}</p>
+                                  {r.expires_at && (
+                                    <p className="text-[10px] text-emerald-300/80 uppercase">Válida até {new Date(r.expires_at).toLocaleDateString('pt-BR')}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {history.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Histórico</p>
+                              {history.slice(0, 10).map((r: any) => (
+                                <div key={r.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex justify-between items-center">
+                                  <div>
+                                    <p className="text-sm text-white">{r.benefit_description}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase">
+                                      {r.status === 'redeemed' ? `Usada em ${new Date(r.redeemed_at).toLocaleDateString('pt-BR')}` : r.status === 'expired' ? 'Expirada' : r.status}
+                                    </p>
+                                  </div>
+                                  <Badge variant="outline" className={r.status === 'redeemed' ? 'border-emerald-500/40 text-emerald-400' : 'border-gray-500/40 text-gray-400'}>
+                                    {r.status === 'redeemed' ? 'Usada' : r.status === 'expired' ? 'Expirada' : r.status}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
+          </TabsContent>
             </div>
           </TabsContent>
 
