@@ -79,6 +79,14 @@ function SettingsComponent() {
     cashback_minimum_amount: 0,
     cashback_expiration_days: 0,
     free_service_threshold: 10,
+    // Novo módulo de fidelidade (loyalty_settings)
+    loyalty_enabled: false,
+    loyalty_appointments_required: 10,
+    loyalty_benefit_type: "free_service" as "free_service" | "percent_discount" | "fixed_discount" | "free_addon",
+    loyalty_benefit_value: 0,
+    loyalty_benefit_description: "Serviço grátis",
+    loyalty_max_benefit_value: 0,
+    loyalty_validity_days: 0,
     address: "",
     google_maps_url: "",
     font_family: "Inter",
@@ -94,6 +102,7 @@ function SettingsComponent() {
     opening_date: "",
     cancellation_window_hours: 2,
   });
+
 
 
   useEffect(() => {
