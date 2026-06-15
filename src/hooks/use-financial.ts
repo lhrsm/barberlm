@@ -22,6 +22,9 @@ export function useFinancial(tenantId: string | null, startDate?: string, endDat
         cashback_concedido: number;
         cashback_utilizado: number;
         creditos_utilizados: number;
+        assinatura_coberta: number;
+        assinatura_extra: number;
+        atendimentos_assinatura: number;
       };
     },
     enabled: !!tenantId,
