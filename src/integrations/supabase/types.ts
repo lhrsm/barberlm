@@ -2551,6 +2551,113 @@ export type Database = {
           },
         ]
       }
+      loyalty_rewards: {
+        Row: {
+          appointments_count: number
+          barbershop_cost: number
+          benefit_description: string
+          benefit_type: string
+          benefit_value: number
+          created_at: string
+          customer_id: string
+          earned_at: string
+          expires_at: string | null
+          id: string
+          max_benefit_value: number
+          redeemed_appointment_id: string | null
+          redeemed_at: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointments_count: number
+          barbershop_cost?: number
+          benefit_description?: string
+          benefit_type: string
+          benefit_value?: number
+          created_at?: string
+          customer_id: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          max_benefit_value?: number
+          redeemed_appointment_id?: string | null
+          redeemed_at?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointments_count?: number
+          barbershop_cost?: number
+          benefit_description?: string
+          benefit_type?: string
+          benefit_value?: number
+          created_at?: string
+          customer_id?: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          max_benefit_value?: number
+          redeemed_appointment_id?: string | null
+          redeemed_at?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_rewards_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_settings: {
+        Row: {
+          appointments_required: number
+          benefit_description: string
+          benefit_type: string
+          benefit_value: number
+          created_at: string
+          enabled: boolean
+          id: string
+          max_benefit_value: number
+          tenant_id: string
+          updated_at: string
+          validity_days: number
+        }
+        Insert: {
+          appointments_required?: number
+          benefit_description?: string
+          benefit_type?: string
+          benefit_value?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          max_benefit_value?: number
+          tenant_id: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Update: {
+          appointments_required?: number
+          benefit_description?: string
+          benefit_type?: string
+          benefit_value?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          max_benefit_value?: number
+          tenant_id?: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           barber_id: string | null
@@ -4757,6 +4864,7 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      expire_loyalty_rewards: { Args: never; Returns: number }
       fn_get_financial_summary: {
         Args: { p_end_date: string; p_start_date: string; p_tenant_id: string }
         Returns: Json
@@ -4884,6 +4992,14 @@ export type Database = {
         Returns: number
       }
       reconcile_automation_logs: { Args: never; Returns: undefined }
+      redeem_loyalty_reward: {
+        Args: {
+          p_applied_cost?: number
+          p_appointment_id: string
+          p_reward_id: string
+        }
+        Returns: Json
+      }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
