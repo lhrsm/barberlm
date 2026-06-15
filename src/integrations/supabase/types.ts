@@ -4988,6 +4988,7 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      enqueue_subscription_renewal_reminders: { Args: never; Returns: number }
       expire_loyalty_rewards: { Args: never; Returns: number }
       fn_get_financial_summary: {
         Args: { p_end_date: string; p_start_date: string; p_tenant_id: string }
