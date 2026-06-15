@@ -228,6 +228,7 @@ export type Database = {
           debit_card_amount: number | null
           discount_amount: number | null
           end_time: string
+          extra_amount: number
           final_amount: number | null
           group_sequence: number | null
           id: string
@@ -253,6 +254,9 @@ export type Database = {
           source: string | null
           start_time: string
           status: string | null
+          subscription_covered_amount: number
+          subscription_id: string | null
+          subscription_plan_id: string | null
           subtotal_amount: number | null
           tenant_id: string
           total_price: number | null
@@ -292,6 +296,7 @@ export type Database = {
           debit_card_amount?: number | null
           discount_amount?: number | null
           end_time: string
+          extra_amount?: number
           final_amount?: number | null
           group_sequence?: number | null
           id?: string
@@ -317,6 +322,9 @@ export type Database = {
           source?: string | null
           start_time: string
           status?: string | null
+          subscription_covered_amount?: number
+          subscription_id?: string | null
+          subscription_plan_id?: string | null
           subtotal_amount?: number | null
           tenant_id: string
           total_price?: number | null
@@ -356,6 +364,7 @@ export type Database = {
           debit_card_amount?: number | null
           discount_amount?: number | null
           end_time?: string
+          extra_amount?: number
           final_amount?: number | null
           group_sequence?: number | null
           id?: string
@@ -381,6 +390,9 @@ export type Database = {
           source?: string | null
           start_time?: string
           status?: string | null
+          subscription_covered_amount?: number
+          subscription_id?: string | null
+          subscription_plan_id?: string | null
           subtotal_amount?: number | null
           tenant_id?: string
           total_price?: number | null
@@ -437,6 +449,20 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
           {
@@ -3646,6 +3672,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plan_services: {
+        Row: {
+          created_at: string
+          id: string
+          max_uses_per_period: number | null
+          plan_id: string
+          service_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_uses_per_period?: number | null
+          plan_id: string
+          service_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_uses_per_period?: number | null
+          plan_id?: string
+          service_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_services_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_plan_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           accumulates_premium_loyalty: boolean
@@ -3733,43 +3801,82 @@ export type Database = {
       subscription_usage_logs: {
         Row: {
           appointment_id: string | null
+          benefit_type: string
+          covered_amount: number
           created_at: string
+          customer_id: string | null
+          extra_amount: number
           id: string
           metadata: Json
-          period_end: string
-          period_start: string
+          period_end: string | null
+          period_start: string | null
+          service_id: string | null
           subscription_id: string
+          subscription_plan_id: string | null
           tenant_id: string
           used_at: string
         }
         Insert: {
           appointment_id?: string | null
+          benefit_type?: string
+          covered_amount?: number
           created_at?: string
+          customer_id?: string | null
+          extra_amount?: number
           id?: string
           metadata?: Json
-          period_end: string
-          period_start: string
+          period_end?: string | null
+          period_start?: string | null
+          service_id?: string | null
           subscription_id: string
+          subscription_plan_id?: string | null
           tenant_id: string
           used_at?: string
         }
         Update: {
           appointment_id?: string | null
+          benefit_type?: string
+          covered_amount?: number
           created_at?: string
+          customer_id?: string | null
+          extra_amount?: number
           id?: string
           metadata?: Json
-          period_end?: string
-          period_start?: string
+          period_end?: string | null
+          period_start?: string | null
+          service_id?: string | null
           subscription_id?: string
+          subscription_plan_id?: string | null
           tenant_id?: string
           used_at?: string
         }
         Relationships: [
           {
+            foreignKeyName: "subscription_usage_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usage_logs_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "subscription_usage_logs_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
             referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usage_logs_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
         ]
@@ -5062,6 +5169,14 @@ export type Database = {
         Returns: Json
       }
       check_expired_trials: { Args: never; Returns: undefined }
+      check_subscription_eligibility: {
+        Args: {
+          p_customer_id: string
+          p_service_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       clear_barbershop_financial_data: {
         Args: { p_tenant_id: string }
         Returns: Json
@@ -5073,6 +5188,16 @@ export type Database = {
           p_changed_by_type?: string
           p_metadata?: Json
           p_source?: string
+        }
+        Returns: Json
+      }
+      consume_subscription_benefit: {
+        Args: {
+          p_appointment_id: string
+          p_covered_amount: number
+          p_extra_amount: number
+          p_service_id: string
+          p_subscription_id: string
         }
         Returns: Json
       }

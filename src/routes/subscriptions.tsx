@@ -244,6 +244,8 @@ function SubscriptionsPage() {
   const [subs, setSubs] = useState<CustomerSub[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [servicesList, setServicesList] = useState<Array<{ id: string; name: string; price: number }>>([]);
+  const [editingPlanServices, setEditingPlanServices] = useState<Record<string, { included: boolean; max_uses_per_period: number | null }>>({});
 
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Partial<SubscriptionPlan> | null>(null);
@@ -266,7 +268,7 @@ function SubscriptionsPage() {
   async function loadAll() {
     if (!tenantId) return;
     setLoading(true);
-    const [plansRes, subsRes, invRes, custRes] = await Promise.all([
+    const [plansRes, subsRes, invRes, custRes, svcRes] = await Promise.all([
       supabase.from("subscription_plans").select("*").eq("tenant_id", tenantId).order("display_order"),
       supabase
         .from("customer_subscriptions")
@@ -280,11 +282,13 @@ function SubscriptionsPage() {
         .order("created_at", { ascending: false })
         .limit(100),
       supabase.from("customers").select("id,name,phone,cpf").eq("user_id", tenantId).order("name"),
+      supabase.from("services").select("id,name,price").eq("user_id", tenantId).order("name"),
     ]);
     if (plansRes.data) setPlans(plansRes.data as any);
     if (subsRes.data) setSubs(subsRes.data as any);
     if (invRes.data) setInvoices(invRes.data as any);
     if (custRes.data) setCustomersList(custRes.data as any);
+    if (svcRes.data) setServicesList(svcRes.data as any);
     setLoading(false);
   }
 
@@ -379,11 +383,24 @@ function SubscriptionsPage() {
   function openNewPlan() {
     if (!tenantId) return;
     setEditingPlan(emptyPlan(tenantId));
+    setEditingPlanServices({});
     setPlanDialogOpen(true);
   }
-  function openEditPlan(p: SubscriptionPlan) {
+  async function openEditPlan(p: SubscriptionPlan) {
     setEditingPlan({ ...p, benefits: { exclusive_services: [], ...(p.benefits || {}) } });
+    setEditingPlanServices({});
     setPlanDialogOpen(true);
+    const { data } = await (supabase as any)
+      .from("subscription_plan_services")
+      .select("service_id,max_uses_per_period")
+      .eq("plan_id", p.id);
+    if (data) {
+      const map: Record<string, { included: boolean; max_uses_per_period: number | null }> = {};
+      for (const row of data) {
+        map[row.service_id] = { included: true, max_uses_per_period: row.max_uses_per_period };
+      }
+      setEditingPlanServices(map);
+    }
   }
   async function duplicatePlan(p: SubscriptionPlan) {
     if (!tenantId) return;
@@ -415,16 +432,37 @@ function SubscriptionsPage() {
       return;
     }
     const payload: any = { ...editingPlan, tenant_id: tenantId };
-    const { error } = editingPlan.id
-      ? await supabase.from("subscription_plans").update(payload).eq("id", editingPlan.id)
-      : await supabase.from("subscription_plans").insert(payload);
-    if (error) {
-      toast.error("Erro ao salvar plano: " + error.message);
-      return;
+    let planId = editingPlan.id;
+    if (planId) {
+      const { error } = await supabase.from("subscription_plans").update(payload).eq("id", planId);
+      if (error) { toast.error("Erro ao salvar plano: " + error.message); return; }
+    } else {
+      const { data, error } = await supabase.from("subscription_plans").insert(payload).select("id").single();
+      if (error) { toast.error("Erro ao salvar plano: " + error.message); return; }
+      planId = data.id;
     }
+
+    // Sync plan ↔ services junction
+    if (planId) {
+      await (supabase as any).from("subscription_plan_services").delete().eq("plan_id", planId);
+      const rows = Object.entries(editingPlanServices)
+        .filter(([, v]) => v.included)
+        .map(([service_id, v]) => ({
+          tenant_id: tenantId,
+          plan_id: planId,
+          service_id,
+          max_uses_per_period: v.max_uses_per_period,
+        }));
+      if (rows.length > 0) {
+        const { error: linkErr } = await (supabase as any).from("subscription_plan_services").insert(rows);
+        if (linkErr) toast.error("Plano salvo, mas houve erro ao vincular serviços: " + linkErr.message);
+      }
+    }
+
     toast.success("Plano salvo");
     setPlanDialogOpen(false);
     setEditingPlan(null);
+    setEditingPlanServices({});
     loadAll();
   }
   async function deletePlan(id: string) {
@@ -1334,6 +1372,67 @@ function SubscriptionsPage() {
                   Clientes assinantes deste plano não acumularão cashback nem pontos de fidelidade tradicional se as opções acima estiverem desligadas — evitando dupla bonificação.
                 </p>
               </Block>
+
+              {/* SERVIÇOS COBERTOS PELO PLANO */}
+              <Block title="Serviços cobertos por este plano">
+                <p className="text-xs text-zinc-500 mb-3">
+                  Marque os serviços que ficam <strong>inclusos</strong> na assinatura. No agendamento online, o cliente assinante não pagará por esses serviços (ou pagará apenas a diferença). Deixe o limite vazio para usos ilimitados dentro do limite total do plano.
+                </p>
+                {servicesList.length === 0 ? (
+                  <p className="text-sm text-zinc-500">Nenhum serviço cadastrado.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[280px] overflow-y-auto pr-2">
+                    {servicesList.map((svc) => {
+                      const entry = editingPlanServices[svc.id] || { included: false, max_uses_per_period: null };
+                      return (
+                        <div
+                          key={svc.id}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg border p-3 transition",
+                            entry.included
+                              ? "border-emerald-500/40 bg-emerald-500/5"
+                              : "border-zinc-700 bg-zinc-900/40"
+                          )}
+                        >
+                          <Switch
+                            checked={entry.included}
+                            onCheckedChange={(v) =>
+                              setEditingPlanServices((prev) => ({
+                                ...prev,
+                                [svc.id]: { ...entry, included: v },
+                              }))
+                            }
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{svc.name}</p>
+                            <p className="text-xs text-zinc-400">{formatBRL(svc.price)}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="∞"
+                              value={entry.max_uses_per_period ?? ""}
+                              onChange={(e) => {
+                                const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                                setEditingPlanServices((prev) => ({
+                                  ...prev,
+                                  [svc.id]: { ...entry, included: true, max_uses_per_period: isNaN(val as any) ? null : val },
+                                }));
+                              }}
+                              disabled={!entry.included}
+                              className={cn(inputCls, "w-20 text-center")}
+                            />
+                            <span className="text-[10px] text-zinc-500 uppercase">usos</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Block>
+
+
 
               {/* BENEFÍCIOS INCLUSOS */}
               <Block title="Benefícios Inclusos (lista visual)">

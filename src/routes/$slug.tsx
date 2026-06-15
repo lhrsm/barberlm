@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus, Tag, TicketPercent, X } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus, Tag, TicketPercent, X, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -151,6 +151,10 @@ function ShopPageComponent() {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
 
+  // Subscription state
+  const [activeSubscription, setActiveSubscription] = useState<any>(null);
+  const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
+
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -256,6 +260,56 @@ function ShopPageComponent() {
       return () => clearTimeout(timer);
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
+
+  // Load active subscription whenever the identified customer changes
+  useEffect(() => {
+    async function loadActiveSub() {
+      if (!customerId || !shop?.id) {
+        setActiveSubscription(null);
+        setServiceEligibility({});
+        return;
+      }
+      const { data } = await supabase
+        .from("customer_subscriptions")
+        .select("*, plan:subscription_plans(*)")
+        .eq("customer_id", customerId)
+        .eq("tenant_id", shop.id)
+        .eq("status", "active")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setActiveSubscription(data || null);
+      setServiceEligibility({});
+    }
+    loadActiveSub();
+  }, [customerId, shop?.id]);
+
+  // Helper: check eligibility for a service (memoized in state)
+  async function ensureEligibility(serviceId: string) {
+    if (!customerId || !shop?.id || !serviceId) return null;
+    if (serviceEligibility[serviceId]) return serviceEligibility[serviceId];
+    const { data, error } = await (supabase as any).rpc("check_subscription_eligibility", {
+      p_customer_id: customerId,
+      p_service_id: serviceId,
+      p_tenant_id: shop.id,
+    });
+    if (error) {
+      console.error("eligibility error", error);
+      return null;
+    }
+    setServiceEligibility((prev) => ({ ...prev, [serviceId]: data }));
+    return data;
+  }
+
+  // Whenever the selected service or cart changes, pre-fetch eligibility
+  useEffect(() => {
+    const ids = new Set<string>();
+    if (selectedService?.id) ids.add(selectedService.id);
+    bookingCart.forEach((it: any) => it.service_id && ids.add(it.service_id));
+    ids.forEach((id) => ensureEligibility(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedService?.id, bookingCart, customerId, activeSubscription?.id]);
+
 
 
   useEffect(() => {
@@ -956,17 +1010,45 @@ function ShopPageComponent() {
         const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
         const endTime = addMinutes(startTime, item.duration);
 
+        // === Subscription coverage check ===
+        const elig = serviceEligibility[item.service_id];
+        const isCoveredFull =
+          elig?.has_active_subscription &&
+          elig?.service_included &&
+          !elig?.requires_payment &&
+          elig?.reason === "full_coverage";
+        const isCoveredPartial =
+          elig?.has_active_subscription &&
+          elig?.service_included &&
+          elig?.requires_payment &&
+          elig?.reason === "partial_coverage";
+        const subCoveredAmount = isCoveredFull
+          ? Number(item.price)
+          : isCoveredPartial
+            ? Number(elig?.covered_amount || 0)
+            : 0;
+        const subExtraAmount = isCoveredPartial
+          ? Math.max(0, Number(item.price) - subCoveredAmount)
+          : 0;
+
         const totalValue = calculateSubtotal();
         const totalDiscount = calculateDiscount();
         const payableValue = totalValue - totalDiscount;
-        
-        // Distribute cashback and credits proportionally if multiple appointments
-        const ratio = item.price / totalValue;
-        const apptCashbackUsed = useCashback ? Number((Math.min(customerCashback, payableValue) * ratio).toFixed(2)) : 0;
-        const apptCreditsUsed = useCredits ? Number((Math.min(customerCredits, payableValue - apptCashbackUsed) * ratio).toFixed(2)) : 0;
-        const apptFinalAmount = Math.max(0, item.price - apptCashbackUsed - apptCreditsUsed);
 
-        const appointmentPayload = {
+        // Distribute cashback and credits proportionally if multiple appointments
+        const ratio = totalValue > 0 ? item.price / totalValue : 0;
+        let apptCashbackUsed = useCashback ? Number((Math.min(customerCashback, payableValue) * ratio).toFixed(2)) : 0;
+        let apptCreditsUsed = useCredits ? Number((Math.min(customerCredits, payableValue - apptCashbackUsed) * ratio).toFixed(2)) : 0;
+        let apptFinalAmount = Math.max(0, item.price - apptCashbackUsed - apptCreditsUsed);
+
+        // When fully covered by subscription, zero out any payment
+        if (isCoveredFull) {
+          apptCashbackUsed = 0;
+          apptCreditsUsed = 0;
+          apptFinalAmount = 0;
+        }
+
+        const appointmentPayload: any = {
           user_id: shop.id,
           tenant_id: shop.id,
           customer_id: finalCustId,
@@ -977,17 +1059,27 @@ function ShopPageComponent() {
           total_price: item.price,
           original_total: item.price,
           status: "confirmed",
-          payment_status: (calculateTotal() === 0) ? 'paid' : 'pending',
-          payment_method: (apptCashbackUsed > 0 || apptCreditsUsed > 0) ? 'mixed' : finalPaymentMethod,
+          payment_status: isCoveredFull
+            ? 'covered_by_subscription'
+            : (calculateTotal() === 0 ? 'paid' : 'pending'),
+          payment_method: isCoveredFull
+            ? 'subscription'
+            : isCoveredPartial
+              ? 'subscription_plus_payment'
+              : (apptCashbackUsed > 0 || apptCreditsUsed > 0) ? 'mixed' : finalPaymentMethod,
           cashback_used: apptCashbackUsed,
           credits_used: apptCreditsUsed,
-          pix_amount: finalPaymentMethod === 'pix' ? apptFinalAmount : 0,
-          cash_amount: finalPaymentMethod === 'barbershop' ? apptFinalAmount : 0,
+          pix_amount: !isCoveredFull && finalPaymentMethod === 'pix' ? apptFinalAmount : 0,
+          cash_amount: !isCoveredFull && finalPaymentMethod === 'barbershop' ? apptFinalAmount : 0,
           final_amount: apptFinalAmount,
           source: 'online',
           appointment_group_id: appointmentGroupId,
           service_amount: item.price,
           group_sequence: index + 1,
+          subscription_id: (isCoveredFull || isCoveredPartial) ? (elig?.subscription_id || activeSubscription?.id || null) : null,
+          subscription_plan_id: (isCoveredFull || isCoveredPartial) ? (elig?.plan_id || activeSubscription?.plan_id || null) : null,
+          subscription_covered_amount: subCoveredAmount,
+          extra_amount: subExtraAmount,
           items: [{
             id: item.service_id,
             name: item.service_name,
@@ -996,18 +1088,11 @@ function ShopPageComponent() {
             quantity: 1
           }]
         };
-        console.log('AUDIT CHECKOUT:', {
-          appointment_id: 'pending_insert',
-          appointment_group_id: appointmentGroupId,
-          customer_id: finalCustId,
-          service_id: item.service_id,
-          barber_id: item.barber_id,
-          start_time: startTime.toISOString(),
-          created_at: new Date().toISOString()
-        });
 
         return supabase.from("appointments").insert([appointmentPayload]).select().single();
       });
+
+
 
       const appointmentResults = await Promise.all(appointmentPromises);
       const createdAppointments = appointmentResults.map(res => {
@@ -1040,6 +1125,21 @@ function ShopPageComponent() {
           }
         }
       }
+
+      // 2.6 Consume subscription benefit for covered appointments
+      for (const appt of createdAppointments) {
+        if (appt.subscription_id && (appt.payment_method === 'subscription' || appt.payment_method === 'subscription_plus_payment')) {
+          await (supabase as any).rpc('consume_subscription_benefit', {
+            p_appointment_id: appt.id,
+            p_subscription_id: appt.subscription_id,
+            p_service_id: appt.service_id,
+            p_covered_amount: appt.subscription_covered_amount || 0,
+            p_extra_amount: appt.extra_amount || 0,
+          });
+        }
+      }
+
+
 
 
       // 3. Handle Product Sales if any
@@ -2225,8 +2325,26 @@ function ShopPageComponent() {
                               />
                             </div>
                           )}
+                          {customerId && activeSubscription && (
+                            <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-4 shadow-md">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Crown className="text-amber-600" size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Plano Ativo</span>
+                              </div>
+                              <p className="text-base font-bold text-amber-900">{activeSubscription.plan?.name || "Assinatura"}</p>
+                              {activeSubscription.next_billing_at && (
+                                <p className="text-[11px] text-amber-700 mt-1">
+                                  Renovação: {format(parseISO(activeSubscription.next_billing_at), "dd/MM/yyyy", { locale: ptBR })}
+                                </p>
+                              )}
+                              <p className="text-[11px] text-amber-800 mt-1">
+                                Serviços inclusos no plano serão aplicados automaticamente no agendamento.
+                              </p>
+                            </div>
+                          )}
                         </motion.div>
                       )}
+
                     </AnimatePresence>
                   </div>
 
@@ -2805,25 +2923,41 @@ function ShopPageComponent() {
                   <div className="space-y-4 pt-2">
                     {/* Lista de Serviços */}
                     <div className="space-y-3">
-                      {bookingCart.map((item) => (
-                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
-                          <button 
-                            onClick={() => removeFromBookingCart(item.id)}
-                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                            title="Remover serviço"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                          <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-900">{item.service_name}</span>
-                            <span className="text-zinc-900 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
+                      {bookingCart.map((item) => {
+                        const elig = serviceEligibility[item.service_id];
+                        const covered = elig?.has_active_subscription && elig?.service_included && !elig?.requires_payment;
+                        const partial = elig?.has_active_subscription && elig?.service_included && elig?.requires_payment && elig?.reason === 'partial_coverage';
+                        return (
+                          <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
+                            <button 
+                              onClick={() => removeFromBookingCart(item.id)}
+                              className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                              title="Remover serviço"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            <div className="flex justify-between items-center pr-8">
+                              <span className="font-bold text-zinc-900">{item.service_name}</span>
+                              <span className={cn("font-bold", covered ? "text-emerald-600 line-through" : "text-zinc-900")}>R$ {(item.price || 0).toFixed(2)}</span>
+                            </div>
+                            {covered && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5 w-fit">
+                                <Crown size={10} /> Coberto pelo plano · 0,00
+                              </span>
+                            )}
+                            {partial && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 w-fit">
+                                <Crown size={10} /> Plano cobre R$ {Number(elig?.covered_amount || 0).toFixed(2)} · diferença R$ {Math.max(0, item.price - Number(elig?.covered_amount || 0)).toFixed(2)}
+                              </span>
+                            )}
+                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                              <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
+                              <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                            <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
-                            <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
+
 
                       {selectedService && (
                         <div className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
