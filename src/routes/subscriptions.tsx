@@ -244,6 +244,8 @@ function SubscriptionsPage() {
   const [subs, setSubs] = useState<CustomerSub[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [servicesList, setServicesList] = useState<Array<{ id: string; name: string; price: number }>>([]);
+  const [editingPlanServices, setEditingPlanServices] = useState<Record<string, { included: boolean; max_uses_per_period: number | null }>>({});
 
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Partial<SubscriptionPlan> | null>(null);
