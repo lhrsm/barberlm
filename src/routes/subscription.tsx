@@ -235,139 +235,106 @@ function SubscriptionComponent() {
   return (
     <AppLayout>
       <PaymentTestModeBanner />
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-black italic tracking-tighter text-amber-500 uppercase">Assinatura</h2>
-            <p className="text-muted-foreground font-medium italic">Gerencie seu plano e limites do sistema de forma profissional.</p>
-          </div>
-          {plan !== 'free' && (
-            <Button variant="outline" onClick={handleManageSubscription} disabled={updating}>
-              {updating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-              Gerenciar Assinatura
-            </Button>
-          )}
-        </div>
+      <div className="min-h-screen bg-[#05070d] text-white">
+        <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+          {/* HEADER */}
+          <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <CreditCard className="h-7 w-7 text-emerald-400" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+                  Minha Assinatura
+                </h1>
+                <p className="text-sm text-zinc-400 mt-1 truncate">
+                  Gerencie seu plano e limites do sistema
+                </p>
+              </div>
+            </div>
+            {plan !== 'free' && (
+              <Button
+                size="sm"
+                onClick={handleManageSubscription}
+                disabled={updating}
+                className="shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-9 px-3 transition-all"
+              >
+                {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
+                Gerenciar
+              </Button>
+            )}
+          </header>
 
-        <div className="grid gap-6">
           {/* Status Alerts */}
           {isTrial && (
-            <Card className="border-blue-500/30 bg-blue-50/50">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-                    <Clock className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-blue-900">Seu período de teste expira em {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</h3>
-                    <p className="text-sm text-blue-700/70">Assine agora para garantir que sua barbearia não pare e continue com todos os recursos Pro!</p>
-                  </div>
+            <div className="bg-[#0b0f17] border border-sky-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_8px_28px_rgba(56,189,248,0.10)]">
+              <div className="flex items-center gap-4">
+                <div className="h-11 w-11 rounded-xl bg-sky-500/10 border border-sky-500/20 grid place-items-center shrink-0">
+                  <Clock className="h-5 w-5 text-sky-400" />
                 </div>
-                <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white hover:scale-105 active:scale-95 shadow-xl transition-all rounded-2xl font-black italic uppercase tracking-wider whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
-                  Assinar Plano Pro Agora
-                </Button>
-              </CardContent>
-            </Card>
+                <div>
+                  <h3 className="text-base font-black text-white">Seu período de teste expira em {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">Assine agora para continuar com todos os recursos Pro.</p>
+                </div>
+              </div>
+              <Button onClick={() => handlePlanChange('pro')} className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)] whitespace-nowrap">
+                Assinar Plano Pro
+              </Button>
+            </div>
           )}
 
           {subscription?.status === 'past_due' && (
-            <Card className="border-yellow-500/30 bg-yellow-50/50">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-yellow-100 rounded-full text-yellow-600">
-                    <AlertTriangle className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-yellow-900">Pagamento Pendente</h3>
-                    <p className="text-sm text-yellow-700/70">Houve um problema com a sua última cobrança. Atualize sua forma de pagamento para evitar a suspensão dos recursos premium.</p>
-                  </div>
-                </div>
-                <Button variant="outline" className="border-yellow-500 text-yellow-700 hover:bg-yellow-100" onClick={handleManageSubscription}>
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Atualizar Cartão
-                </Button>
-              </CardContent>
-            </Card>
+            <StatusBanner tone="amber" icon={AlertTriangle} title="Pagamento Pendente" desc="Houve um problema com a última cobrança. Atualize sua forma de pagamento.">
+              <Button size="sm" onClick={handleManageSubscription} className="bg-amber-500 hover:bg-amber-400 text-black font-bold">
+                <CreditCard className="w-4 h-4 mr-2" /> Atualizar Cartão
+              </Button>
+            </StatusBanner>
           )}
-
           {subscription?.status === 'unpaid' && (
-            <Card className="border-red-500/30 bg-red-50/50">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-red-100 rounded-full text-red-600">
-                    <ShieldAlert className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-red-900">Assinatura Suspensa</h3>
-                    <p className="text-sm text-red-700/70">Sua assinatura está inativa devido a falhas recorrentes no pagamento. Seus recursos premium foram temporariamente bloqueados.</p>
-                  </div>
-                </div>
-                <Button className="bg-black text-white hover:scale-105 rounded-xl" onClick={handleManageSubscription}>
-                  Regularizar Agora
-                </Button>
-              </CardContent>
-            </Card>
+            <StatusBanner tone="red" icon={ShieldAlert} title="Assinatura Suspensa" desc="Sua assinatura está inativa por falhas recorrentes. Recursos premium bloqueados.">
+              <Button size="sm" onClick={handleManageSubscription} className="bg-red-500 hover:bg-red-400 text-white font-bold">
+                Regularizar Agora
+              </Button>
+            </StatusBanner>
           )}
-
           {subscription?.status === 'canceled' && (
-            <Card className="border-gray-500/30 bg-gray-50/50">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-gray-100 rounded-full text-gray-600">
-                    <AlertCircle className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Assinatura Cancelada</h3>
-                    <p className="text-sm text-gray-700/70">Sua assinatura anterior foi cancelada. Escolha um novo plano abaixo para continuar aproveitando os benefícios.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <StatusBanner tone="zinc" icon={AlertCircle} title="Assinatura Cancelada" desc="Sua assinatura anterior foi cancelada. Escolha um novo plano abaixo." />
           )}
-
           {subscription?.status === 'incomplete' && (
-            <Card className="border-blue-500/30 bg-blue-50/50">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-blue-900">Checkout Pendente</h3>
-                    <p className="text-sm text-blue-700/70">Você tem uma assinatura que ainda não foi concluída. Por favor, finalize o pagamento.</p>
-                  </div>
-                </div>
-                <Button className="bg-black text-white hover:scale-105 rounded-xl" onClick={handleManageSubscription}>
-                  Finalizar Pagamento
-                </Button>
-              </CardContent>
-            </Card>
+            <StatusBanner tone="sky" icon={Loader2} title="Checkout Pendente" desc="Você tem uma assinatura que ainda não foi concluída. Finalize o pagamento.">
+              <Button size="sm" onClick={handleManageSubscription} className="bg-sky-500 hover:bg-sky-400 text-white font-bold">
+                Finalizar Pagamento
+              </Button>
+            </StatusBanner>
           )}
 
-          {/* Plan Status */}
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <CardTitle className="flex items-center justify-center sm:justify-start gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{
-                    plan === 'starter' ? 'Starter' : 
-                    plan === 'pro' ? 'Pro' : 
-                    plan === 'elite' ? 'Elite' : 
-                    (!plan || plan === 'free') ? 'Grátis' : 
-                    plan
-                  }</span>
-                  {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
-                  {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
-                </CardTitle>
-                <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
+          {/* PLANO ATUAL */}
+          <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5 md:p-6 shadow-[0_8px_28px_rgba(16,185,129,0.08)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-zinc-800/80">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
+                  {plan === 'elite' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
+                   plan === 'pro' ? <Crown className="h-5 w-5 text-emerald-400" /> :
+                   plan === 'starter' ? <Zap className="h-5 w-5 text-emerald-400" /> :
+                   <Star className="h-5 w-5 text-emerald-400" />}
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Plano Atual</div>
+                  <div className="text-xl font-black text-white">
+                    {plan === 'starter' ? 'Starter' :
+                     plan === 'pro' ? 'Pro' :
+                     plan === 'elite' ? 'Elite' :
+                     (!plan || plan === 'free') ? 'Grátis' : plan}
+                  </div>
+                </div>
               </div>
               <div className={cn(
-                "px-3 py-1 rounded-full border text-xs font-black uppercase italic tracking-widest",
-                subscription?.status === 'active' ? "bg-green-100 text-green-700 border-green-200" :
-                subscription?.status === 'trialing' ? "bg-blue-100 text-blue-700 border-blue-200" :
-                subscription?.status === 'past_due' ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
-                subscription?.status === 'unpaid' ? "bg-red-100 text-red-700 border-red-200" :
-                "bg-background/50"
+                "px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest",
+                subscription?.status === 'active' || (!subscription?.status && plan !== 'free') ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" :
+                subscription?.status === 'trialing' ? "bg-sky-500/10 text-sky-400 border-sky-500/30" :
+                subscription?.status === 'past_due' ? "bg-amber-500/10 text-amber-400 border-amber-500/30" :
+                subscription?.status === 'unpaid' ? "bg-red-500/10 text-red-400 border-red-500/30" :
+                "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
               )}>
                 {subscription?.status === 'active' ? 'Assinatura Ativa' :
                  subscription?.status === 'trialing' ? 'Período de Teste' :
@@ -376,120 +343,113 @@ function SubscriptionComponent() {
                  subscription?.status === 'canceled' ? 'Cancelada' :
                  plan === 'free' ? 'Plano Gratuito' : 'Assinatura Ativa'}
               </div>
-            </CardHeader>
-            <CardContent className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">Profissionais</span>
-                  <span className="font-bold text-primary">{usage?.barbers ?? 0} / {limits?.barbers === Infinity ? "∞" : (limits?.barbers ?? 0)}</span>
-                </div>
-                <Progress value={limits?.barbers === Infinity ? 100 : Math.min(((usage?.barbers || 0) / (limits?.barbers || 1)) * 100, 100)} className="h-1.5" />
-              </div>
-              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">Serviços</span>
-                  <span className="font-bold text-primary">{usage?.services ?? 0} / {limits?.services === Infinity ? "∞" : (limits?.services ?? 0)}</span>
-                </div>
-                <Progress value={limits?.services === Infinity ? 100 : Math.min(((usage?.services || 0) / (limits?.services || 1)) * 100, 100)} className="h-1.5" />
-              </div>
-              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">Produtos</span>
-                  <span className="font-bold text-primary">{usage?.products ?? 0} / {limits?.products === Infinity ? "∞" : (limits?.products ?? 0)}</span>
-                </div>
-                <Progress value={limits?.products === Infinity ? 100 : Math.min(((usage?.products || 0) / (limits?.products || 1)) * 100, 100)} className="h-1.5" />
-              </div>
-              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">Agendamentos</span>
-                  <span className="font-bold text-primary">{usage?.monthlyAppointments ?? 0} / {limits?.monthlyAppointments === Infinity ? "∞" : (limits?.monthlyAppointments ?? 0)}</span>
-                </div>
-                <Progress value={limits?.monthlyAppointments === Infinity ? 100 : Math.min(((usage?.monthlyAppointments || 0) / (limits?.monthlyAppointments || 1)) * 100, 100)} className="h-1.5" />
-              </div>
-              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">WhatsApp</span>
-                  <span className="font-bold text-primary">{usage?.whatsappConnections ?? 0} / {limits?.whatsappConnections === Infinity ? "∞" : (limits?.whatsappConnections ?? 0)}</span>
-                </div>
-                <Progress value={limits?.whatsappConnections === Infinity ? 100 : Math.min(((usage?.whatsappConnections || 0) / (limits?.whatsappConnections || 1)) * 100, 100)} className="h-1.5" />
-              </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto py-8">
-            {planConfigs.map((config) => {
-              let isCurrentPlan = false;
-              let isUpgrade = false;
-              let isDowngrade = false;
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+              <UsageBar label="Profissionais" used={usage?.barbers ?? 0} limit={limits?.barbers} />
+              <UsageBar label="Serviços" used={usage?.services ?? 0} limit={limits?.services} />
+              <UsageBar label="Produtos" used={usage?.products ?? 0} limit={limits?.products} />
+              <UsageBar label="Agendamentos" used={usage?.monthlyAppointments ?? 0} limit={limits?.monthlyAppointments} />
+              <UsageBar label="WhatsApp" used={usage?.whatsappConnections ?? 0} limit={limits?.whatsappConnections} />
+            </div>
+          </div>
 
-              try {
-                const currentPlanIndex = planConfigs.findIndex(c => c.id === plan);
-                const configIndex = planConfigs.findIndex(c => c.id === config.id);
-                
-                isCurrentPlan = plan === config.id;
-                isUpgrade = currentPlanIndex < configIndex;
-                isDowngrade = currentPlanIndex > configIndex;
-              } catch (e) {
-                console.error("[Subscription] Error calculating plan status:", e);
-              }
+          {/* PLANOS DISPONÍVEIS */}
+          <div className="pt-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-px flex-1 bg-zinc-800" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Planos Disponíveis</span>
+              <div className="h-px flex-1 bg-zinc-800" />
+            </div>
 
-              return (
-                <Card key={config.id} className={cn(
-                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-card border-2 min-h-[500px] overflow-hidden group",
-                  isCurrentPlan && "border-amber-500 shadow-2xl ring-2 ring-amber-500/10 shadow-amber-500/20",
-                  !isCurrentPlan && "border-border/50"
-                )}>
-                  {/* Glow effect for cards */}
-                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/5 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/10 transition-all duration-500" />
+            <div className="grid gap-5 grid-cols-1 md:grid-cols-3 pt-4">
+              {planConfigs.map((config) => {
+                let isCurrentPlan = false;
+                let isUpgrade = false;
+                try {
+                  const currentPlanIndex = planConfigs.findIndex(c => c.id === plan);
+                  const configIndex = planConfigs.findIndex(c => c.id === config.id);
+                  isCurrentPlan = plan === config.id;
+                  isUpgrade = currentPlanIndex < configIndex;
+                } catch {}
+                const Icon = config.id === 'starter' ? Zap : config.id === 'pro' ? Crown : Rocket;
 
-                  {isCurrentPlan && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                      Plano Atual
+                return (
+                  <div
+                    key={config.id}
+                    className={cn(
+                      "relative flex flex-col rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1",
+                      isCurrentPlan
+                        ? "bg-gradient-to-b from-emerald-500/10 to-[#0b0f17] border-2 border-emerald-500/50 shadow-[0_8px_32px_rgba(16,185,129,0.25)]"
+                        : "bg-[#0b0f17] border border-zinc-800/80 hover:border-emerald-500/30 hover:shadow-[0_8px_28px_rgba(16,185,129,0.12)]"
+                    )}
+                  >
+                    {isCurrentPlan && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-[0_4px_16px_rgba(16,185,129,0.4)] whitespace-nowrap">
+                        Plano Atual
+                      </div>
+                    )}
+
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Plano</div>
+                        <h3 className="text-2xl font-black tracking-tight text-white">{config.name}</h3>
+                      </div>
+                      <div className={cn(
+                        "h-11 w-11 rounded-xl grid place-items-center border",
+                        isCurrentPlan
+                          ? "bg-emerald-500/15 border-emerald-500/30"
+                          : "bg-zinc-800/50 border-zinc-700/50"
+                      )}>
+                        <Icon className={cn("h-5 w-5", isCurrentPlan ? "text-emerald-400" : "text-zinc-400")} />
+                      </div>
                     </div>
-                  )}
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-2">
-                      <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-amber-500">{config.name}</CardTitle>
-                      {config.icon}
+
+                    <p className="text-xs text-zinc-400 min-h-[32px]">{config.description}</p>
+
+                    <div className="my-5 py-4 border-y border-zinc-800/80">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs text-zinc-500 font-bold">R$</span>
+                        <span className="text-4xl font-black tracking-tight text-white">{config.price}</span>
+                        <span className="text-xs text-zinc-500 font-bold ml-1">/mês</span>
+                      </div>
                     </div>
-                    <CardDescription className="min-h-[40px]">{config.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-1 space-y-4">
-                    <div className="flex items-baseline gap-1 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 justify-center">
-                      <span className="text-4xl font-black italic tracking-tighter text-amber-500">R$ {config.price}</span>
-                      <span className="text-sm text-muted-foreground">/mês</span>
-                    </div>
-                    <ul className="space-y-2.5">
+
+                    <ul className="space-y-2.5 flex-1 mb-5">
                       {config.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
+                          <div className={cn(
+                            "h-4 w-4 rounded-full grid place-items-center mt-0.5 shrink-0",
+                            isCurrentPlan ? "bg-emerald-500/20" : "bg-zinc-800"
+                          )}>
+                            <Check className={cn("w-2.5 h-2.5", isCurrentPlan ? "text-emerald-400" : "text-zinc-400")} />
+                          </div>
                           <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
-                  </CardContent>
-                  <CardFooter className="mt-auto p-6">
-                    <Button 
-                      variant={isCurrentPlan ? "outline" : "default"}
-                      className={cn(
-                        "w-full h-12 rounded-2xl font-black italic uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl",
-                        isCurrentPlan && "border-amber-500/20 text-amber-500 opacity-50 cursor-not-allowed bg-amber-500/5",
-                        !isCurrentPlan && "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20"
-                      )} 
 
-
+                    <Button
                       disabled={isCurrentPlan || updating}
                       onClick={() => handlePlanChange(config.id)}
+                      className={cn(
+                        "w-full h-11 rounded-xl font-bold text-sm transition-all",
+                        isCurrentPlan
+                          ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-100 cursor-default"
+                          : "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.3)]"
+                      )}
                     >
-                      {isCurrentPlan ? "Ativo" : isUpgrade ? `Upgrade para ${config.name}` : `Downgrade para ${config.name}`}
+                      {updating && !isCurrentPlan ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      {isCurrentPlan ? "✓ Plano Ativo" : isUpgrade ? `Fazer Upgrade` : `Mudar para ${config.name}`}
                     </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
+
 
       <Dialog open={isOpen} onOpenChange={(o) => { if (!o) closeCheckout(); }}>
         <DialogContent className="max-w-3xl min-h-[600px] h-[80vh] overflow-y-auto p-0 flex flex-col sm:rounded-xl">
