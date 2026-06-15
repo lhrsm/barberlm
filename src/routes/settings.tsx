@@ -71,6 +71,7 @@ function SettingsComponent() {
     secondary_color: "#f4f4f5",
     logo_url: "",
     barbershop_logo_url: "",
+    loyalty_mode: "none" as "none" | "cashback" | "loyalty" | "subscription",
     cashback_enabled: false,
     cashback_percentage: 0,
     cashback_type: "percentage",
@@ -158,6 +159,7 @@ function SettingsComponent() {
           secondary_color: profile.secondary_color || "#f4f4f5",
           logo_url: profile.logo_url || "",
           barbershop_logo_url: (profile as any).barbershop_logo_url || "",
+          loyalty_mode: ((profile as any).loyalty_mode as any) || "none",
           cashback_enabled: profile.cashback_enabled || false,
           cashback_percentage: profile.cashback_percentage || 0,
           cashback_type: profile.cashback_type || "percentage",
@@ -228,7 +230,8 @@ function SettingsComponent() {
         secondary_color: profileUpdateData.secondary_color,
         logo_url: profileUpdateData.logo_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
-        cashback_enabled: profileUpdateData.cashback_enabled,
+        loyalty_mode: profileUpdateData.loyalty_mode,
+        cashback_enabled: profileUpdateData.loyalty_mode === 'cashback' ? profileUpdateData.cashback_enabled : false,
         cashback_percentage: profileUpdateData.cashback_percentage,
         cashback_type: profileUpdateData.cashback_type,
         cashback_fixed_value: profileUpdateData.cashback_fixed_value,
@@ -962,6 +965,45 @@ function SettingsComponent() {
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
                     <Gift className="text-[#ea580c] h-5 w-5" />
+                    Estratégia de Fidelização
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Recomendamos usar apenas uma estratégia por vez: Cashback, Fidelidade ou Assinatura.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                    <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Modo Ativo</Label>
+                    <Select
+                      value={formData.loyalty_mode}
+                      onValueChange={(value) => setFormData({
+                        ...formData,
+                        loyalty_mode: value,
+                        cashback_enabled: value === 'cashback' ? (formData.cashback_enabled || true) : false,
+                      })}
+                    >
+                      <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                        <SelectItem value="none">Nenhuma</SelectItem>
+                        <SelectItem value="cashback">Cashback</SelectItem>
+                        <SelectItem value="loyalty">Fidelidade (Cartão)</SelectItem>
+                        <SelectItem value="subscription">Assinatura</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-slate-600 font-medium uppercase italic">
+                      Apenas o modo selecionado gera saldo/pontos ao concluir um agendamento.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {formData.loyalty_mode === 'cashback' && (
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Gift className="text-[#ea580c] h-5 w-5" />
                     Sistema de Cashback
                   </CardTitle>
                   <CardDescription className="text-slate-400">Configure como seus clientes ganham crédito premium a cada serviço.</CardDescription>
@@ -1082,7 +1124,9 @@ function SettingsComponent() {
                   )}
                 </CardContent>
               </Card>
+              )}
 
+              {formData.loyalty_mode === 'loyalty' && (
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
@@ -1122,7 +1166,9 @@ function SettingsComponent() {
                   </div>
                 </CardContent>
               </Card>
+              )}
             </TabsContent>
+
 
             <TabsContent value="pix" className="space-y-4">
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
