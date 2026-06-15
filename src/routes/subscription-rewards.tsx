@@ -334,6 +334,63 @@ function SubscriptionRewardsPage() {
               ))}
             </div>
           )}
+
+          {/* Histórico de recompensas concedidas */}
+          <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-950 to-zinc-900/40 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <History className="w-5 h-5 text-amber-400" />
+              <h2 className="text-lg font-bold text-white">Recompensas Concedidas</h2>
+              <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 ml-auto" variant="outline">
+                {history.filter((h) => h.status === "granted").length} pendentes
+              </Badge>
+            </div>
+            {history.length === 0 ? (
+              <p className="text-sm text-zinc-500 text-center py-8">
+                Nenhuma recompensa concedida ainda. Clique em <strong className="text-amber-400">Sincronizar</strong> para processar assinantes.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {history.map((h) => (
+                  <div
+                    key={h.id}
+                    className="flex items-center justify-between gap-3 p-3 rounded-xl bg-zinc-950/60 border border-zinc-800"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-white truncate">
+                          {h.customer?.name || "Cliente"}
+                        </span>
+                        {h.status === "redeemed" ? (
+                          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px]">
+                            Resgatado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-[10px]">
+                            Pendente
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-zinc-400 truncate">
+                        {h.reward?.months_required}m · {h.reward?.description}
+                      </p>
+                      <p className="text-[10px] text-zinc-500">
+                        Concedido em {new Date(h.granted_at).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                    {h.status === "granted" && (
+                      <Button
+                        size="sm"
+                        onClick={() => redeem(h.id)}
+                        className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      >
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Resgatar
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
