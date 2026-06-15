@@ -2427,6 +2427,9 @@ export type Database = {
         Row: {
           auto_renew: boolean
           canceled_at: string | null
+          card_token: string | null
+          card_token_issued_at: string | null
+          card_token_revoked_at: string | null
           created_at: string
           current_period_end: string
           current_period_start: string
@@ -2452,6 +2455,9 @@ export type Database = {
         Insert: {
           auto_renew?: boolean
           canceled_at?: string | null
+          card_token?: string | null
+          card_token_issued_at?: string | null
+          card_token_revoked_at?: string | null
           created_at?: string
           current_period_end?: string
           current_period_start?: string
@@ -2477,6 +2483,9 @@ export type Database = {
         Update: {
           auto_renew?: boolean
           canceled_at?: string | null
+          card_token?: string | null
+          card_token_issued_at?: string | null
+          card_token_revoked_at?: string | null
           created_at?: string
           current_period_end?: string
           current_period_start?: string
@@ -3520,6 +3529,53 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_card_scans: {
+        Row: {
+          customer_id: string | null
+          id: string
+          ip: string | null
+          metadata: Json
+          reason: string | null
+          result: string
+          scanned_at: string
+          scanned_by: string | null
+          subscription_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          customer_id?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          reason?: string | null
+          result: string
+          scanned_at?: string
+          scanned_by?: string | null
+          subscription_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          customer_id?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          reason?: string | null
+          result?: string
+          scanned_at?: string
+          scanned_by?: string | null
+          subscription_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_card_scans_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -5553,6 +5609,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      regenerate_subscription_card_token: {
+        Args: { p_subscription_id: string }
+        Returns: Json
+      }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
@@ -5601,6 +5661,10 @@ export type Database = {
           p_appointment_id?: string
           p_customer_id: string
         }
+        Returns: Json
+      }
+      validate_subscription_card: {
+        Args: { p_log?: boolean; p_scanned_by?: string; p_token: string }
         Returns: Json
       }
     }
