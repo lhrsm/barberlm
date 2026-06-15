@@ -2923,25 +2923,41 @@ function ShopPageComponent() {
                   <div className="space-y-4 pt-2">
                     {/* Lista de Serviços */}
                     <div className="space-y-3">
-                      {bookingCart.map((item) => (
-                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
-                          <button 
-                            onClick={() => removeFromBookingCart(item.id)}
-                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                            title="Remover serviço"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                          <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-900">{item.service_name}</span>
-                            <span className="text-zinc-900 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
+                      {bookingCart.map((item) => {
+                        const elig = serviceEligibility[item.service_id];
+                        const covered = elig?.has_active_subscription && elig?.service_included && !elig?.requires_payment;
+                        const partial = elig?.has_active_subscription && elig?.service_included && elig?.requires_payment && elig?.reason === 'partial_coverage';
+                        return (
+                          <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
+                            <button 
+                              onClick={() => removeFromBookingCart(item.id)}
+                              className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                              title="Remover serviço"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            <div className="flex justify-between items-center pr-8">
+                              <span className="font-bold text-zinc-900">{item.service_name}</span>
+                              <span className={cn("font-bold", covered ? "text-emerald-600 line-through" : "text-zinc-900")}>R$ {(item.price || 0).toFixed(2)}</span>
+                            </div>
+                            {covered && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5 w-fit">
+                                <Crown size={10} /> Coberto pelo plano · 0,00
+                              </span>
+                            )}
+                            {partial && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 w-fit">
+                                <Crown size={10} /> Plano cobre R$ {Number(elig?.covered_amount || 0).toFixed(2)} · diferença R$ {Math.max(0, item.price - Number(elig?.covered_amount || 0)).toFixed(2)}
+                              </span>
+                            )}
+                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                              <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
+                              <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                            <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
-                            <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
+
 
                       {selectedService && (
                         <div className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
