@@ -343,7 +343,7 @@ function ClientPortalComponent() {
     setMySubscription(subData || null);
 
     if (subData?.tenant_id) {
-      const [{ data: rewardsCfg }, { data: hist }] = await Promise.all([
+      const [{ data: rewardsCfg }, { data: hist }, { data: usageLogs }, { data: planSvcs }] = await Promise.all([
         supabase
           .from("subscription_loyalty_rewards" as any)
           .select("*")
@@ -355,12 +355,26 @@ function ClientPortalComponent() {
           .select("*")
           .eq("customer_id", customerId)
           .order("granted_at", { ascending: false }),
+        supabase
+          .from("subscription_usage_logs" as any)
+          .select("*, services(name)")
+          .eq("customer_id", customerId)
+          .eq("subscription_id", subData.id)
+          .order("used_at", { ascending: false }),
+        supabase
+          .from("subscription_plan_services" as any)
+          .select("*, services(name, price)")
+          .eq("plan_id", subData.plan_id),
       ]);
       setSubRewards((rewardsCfg as any[]) || []);
       setSubRewardsHistory((hist as any[]) || []);
+      setSubUsageLogs((usageLogs as any[]) || []);
+      setSubPlanServices((planSvcs as any[]) || []);
     } else {
       setSubRewards([]);
       setSubRewardsHistory([]);
+      setSubUsageLogs([]);
+      setSubPlanServices([]);
     }
   }
 
