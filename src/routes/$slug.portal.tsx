@@ -247,6 +247,14 @@ function ClientPortalComponent() {
       setBarbers(barbersRes.data || []);
       setProducts(productsRes.data || []);
 
+      // Fetch loyalty settings (módulo de fidelidade da barbearia)
+      const { data: loyaltyCfg } = await supabase
+        .from("loyalty_settings" as any)
+        .select("*")
+        .eq("tenant_id", profile.id)
+        .maybeSingle();
+      setLoyaltySettings(loyaltyCfg || null);
+
     } catch (e) {
       console.error(e);
     } finally {
