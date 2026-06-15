@@ -468,3 +468,58 @@ function SubscriptionComponent() {
     </AppLayout>
   );
 }
+
+function StatusBanner({
+  tone,
+  icon: Icon,
+  title,
+  desc,
+  children,
+}: {
+  tone: "amber" | "red" | "zinc" | "sky";
+  icon: any;
+  title: string;
+  desc: string;
+  children?: React.ReactNode;
+}) {
+  const map = {
+    amber: { border: "border-amber-500/30", bg: "bg-amber-500/10", text: "text-amber-400", glow: "shadow-[0_8px_28px_rgba(245,158,11,0.10)]" },
+    red:   { border: "border-red-500/30",   bg: "bg-red-500/10",   text: "text-red-400",   glow: "shadow-[0_8px_28px_rgba(239,68,68,0.10)]" },
+    zinc:  { border: "border-zinc-700/60",  bg: "bg-zinc-500/10",  text: "text-zinc-400",  glow: "" },
+    sky:   { border: "border-sky-500/30",   bg: "bg-sky-500/10",   text: "text-sky-400",   glow: "shadow-[0_8px_28px_rgba(56,189,248,0.10)]" },
+  }[tone];
+  return (
+    <div className={cn("bg-[#0b0f17] border rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4", map.border, map.glow)}>
+      <div className="flex items-center gap-4">
+        <div className={cn("h-11 w-11 rounded-xl grid place-items-center shrink-0 border", map.bg, map.border)}>
+          <Icon className={cn("h-5 w-5", map.text)} />
+        </div>
+        <div>
+          <h3 className="text-base font-black text-white">{title}</h3>
+          <p className="text-xs text-zinc-400 mt-0.5">{desc}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function UsageBar({ label, used, limit }: { label: string; used: number; limit: number | undefined }) {
+  const isInf = limit === Infinity;
+  const max = isInf ? 100 : (limit ?? 0);
+  const pct = isInf ? 100 : Math.min((used / (max || 1)) * 100, 100);
+  return (
+    <div className="bg-[#05070d]/60 border border-zinc-800/60 rounded-xl p-3">
+      <div className="flex justify-between items-baseline mb-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</span>
+        <span className="text-xs font-black text-emerald-400">
+          {used} / {isInf ? "∞" : max}
+        </span>
+      </div>
+      <Progress
+        value={pct}
+        className="h-1.5 bg-zinc-800 [&>div]:bg-gradient-to-r [&>div]:from-emerald-500 [&>div]:to-emerald-400"
+      />
+    </div>
+  );
+}
