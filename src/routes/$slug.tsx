@@ -3238,7 +3238,7 @@ function ShopPageComponent() {
                               {submitting ? (
                                 <RefreshCcw className="animate-spin h-5 w-5 mr-2" />
                               ) : (
-                                !paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento")
+                                !paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && calculateSubscriptionCoverage() > 0 ? `Pagar diferença R$ ${calculateTotal().toFixed(2)}` : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))
                               )}
                             </Button>
                             
