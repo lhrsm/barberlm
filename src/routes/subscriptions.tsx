@@ -1373,6 +1373,64 @@ function SubscriptionsPage() {
                 </p>
               </Block>
 
+              {/* SERVIÇOS COBERTOS PELO PLANO */}
+              <Block title="Serviços cobertos por este plano">
+                <p className="text-xs text-zinc-500 mb-3">
+                  Marque os serviços que ficam <strong>inclusos</strong> na assinatura. No agendamento online, o cliente assinante não pagará por esses serviços (ou pagará apenas a diferença). Deixe o limite vazio para usos ilimitados dentro do limite total do plano.
+                </p>
+                {servicesList.length === 0 ? (
+                  <p className="text-sm text-zinc-500">Nenhum serviço cadastrado.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[280px] overflow-y-auto pr-2">
+                    {servicesList.map((svc) => {
+                      const entry = editingPlanServices[svc.id] || { included: false, max_uses_per_period: null };
+                      return (
+                        <div
+                          key={svc.id}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg border p-3 transition",
+                            entry.included
+                              ? "border-emerald-500/40 bg-emerald-500/5"
+                              : "border-zinc-700 bg-zinc-900/40"
+                          )}
+                        >
+                          <Switch
+                            checked={entry.included}
+                            onCheckedChange={(v) =>
+                              setEditingPlanServices((prev) => ({
+                                ...prev,
+                                [svc.id]: { ...entry, included: v },
+                              }))
+                            }
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{svc.name}</p>
+                            <p className="text-xs text-zinc-400">{formatBRL(svc.price)}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="∞"
+                              value={entry.max_uses_per_period ?? ""}
+                              onChange={(e) => {
+                                const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                                setEditingPlanServices((prev) => ({
+                                  ...prev,
+                                  [svc.id]: { ...entry, included: true, max_uses_per_period: isNaN(val as any) ? null : val },
+                                }));
+                              }}
+                              disabled={!entry.included}
+                              className={cn(inputCls, "w-20 text-center")}
+                            />
+                            <span className="text-[10px] text-zinc-500 uppercase">usos</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
               {/* BENEFÍCIOS INCLUSOS */}
               <Block title="Benefícios Inclusos (lista visual)">
                 <Field label="Um benefício por linha (ex: 4 cortes por mês)">
