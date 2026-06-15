@@ -1423,11 +1423,30 @@ function ShopPageComponent() {
     return total;
   };
 
+  const calculateSubscriptionCoverage = () => {
+    const items = [
+      ...bookingCart.map(i => ({ service_id: i.service_id, price: i.price || 0 })),
+      ...(selectedService ? [{ service_id: selectedService.id, price: selectedService.price || 0 }] : []),
+    ];
+    let covered = 0;
+    for (const it of items) {
+      const elig = serviceEligibility[it.service_id];
+      if (!elig?.has_active_subscription || !elig?.service_included) continue;
+      if (!elig?.requires_payment) {
+        covered += it.price;
+      } else if (elig?.reason === 'partial_coverage') {
+        covered += Math.min(it.price, Number(elig?.covered_amount || 0));
+      }
+    }
+    return covered;
+  };
+
   const calculateTotal = () => {
     let total = calculateTotalBeforeCashback();
     if (useCashback) {
       total = Math.max(0, total - Math.min(customerCashback, total));
     }
+    total = Math.max(0, total - calculateSubscriptionCoverage());
     return total;
   };
 
@@ -3038,10 +3057,23 @@ function ShopPageComponent() {
                         <span>- R$ {calculateDiscount().toFixed(2)}</span>
                       </div>
                     )}
+                    {calculateSubscriptionCoverage() > 0 && (
+                      <div className="flex justify-between items-center text-amber-700 font-black text-xs uppercase tracking-widest">
+                        <span className="flex items-center gap-1"><Crown size={12} /> Coberto pelo plano:</span>
+                        <span>- R$ {calculateSubscriptionCoverage().toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-zinc-900 font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                      <span className="text-zinc-900 font-black text-lg uppercase tracking-tighter">
+                        {calculateSubscriptionCoverage() > 0 && calculateTotal() > 0 ? "Diferença a pagar:" : "Total Final:"}
+                      </span>
                       <span className="text-3xl font-black text-zinc-900">R$ {calculateTotal().toFixed(2)}</span>
                     </div>
+                    {calculateSubscriptionCoverage() > 0 && calculateTotal() > 0 && (
+                      <p className="text-[11px] text-amber-700 font-medium text-right">
+                        Sua assinatura cobre parte do valor. Você paga apenas a diferença.
+                      </p>
+                    )}
                   </div>
 
 
@@ -3067,6 +3099,20 @@ function ShopPageComponent() {
                       })()}
                       
                       {(!paymentMethod && calculateTotal() > 0) ? (
+                        <>
+                          {calculateSubscriptionCoverage() > 0 && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4 flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                                <Crown size={22} className="text-amber-700" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Pagamento da diferença</p>
+                                <p className="text-sm text-amber-900 font-medium leading-tight mt-0.5">
+                                  Sua assinatura cobre <span className="font-black">R$ {calculateSubscriptionCoverage().toFixed(2)}</span>. Resta apenas <span className="font-black">R$ {calculateTotal().toFixed(2)}</span> a pagar.
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         <div className="grid grid-cols-1 gap-4">
                           <Button 
                             className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
@@ -3099,6 +3145,7 @@ function ShopPageComponent() {
                             <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                           </Button>
                         </div>
+                        </>
                       ) : (
                         <div className="space-y-4">
                           {paymentMethod === 'pix' && calculateTotal() > 0 && (
@@ -3191,7 +3238,7 @@ function ShopPageComponent() {
                               {submitting ? (
                                 <RefreshCcw className="animate-spin h-5 w-5 mr-2" />
                               ) : (
-                                !paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento")
+                                !paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && calculateSubscriptionCoverage() > 0 ? `Pagar diferença R$ ${calculateTotal().toFixed(2)}` : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))
                               )}
                             </Button>
                             
