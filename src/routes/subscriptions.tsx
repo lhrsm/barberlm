@@ -536,7 +536,7 @@ function SubscriptionsPage() {
               <Button
                 onClick={openNewSub}
                 variant="outline"
-                className="bg-[#0b0f17] border-zinc-700 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-white font-bold transition-all hover:-translate-y-0.5"
+                className="bg-[#0b0f17] border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold transition-all hover:-translate-y-0.5"
               >
                 <Plus className="h-4 w-4 mr-2" /> Nova Assinatura
               </Button>
