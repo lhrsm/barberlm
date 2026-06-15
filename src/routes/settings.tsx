@@ -256,13 +256,15 @@ function SettingsComponent() {
         logo_url: profileUpdateData.logo_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
         loyalty_mode: profileUpdateData.loyalty_mode,
+        // EXCLUSIVIDADE: se modo = loyalty, cashback é forçado a OFF
         cashback_enabled: profileUpdateData.loyalty_mode === 'cashback' ? profileUpdateData.cashback_enabled : false,
         cashback_percentage: profileUpdateData.cashback_percentage,
         cashback_type: profileUpdateData.cashback_type,
         cashback_fixed_value: profileUpdateData.cashback_fixed_value,
         cashback_minimum_amount: profileUpdateData.cashback_minimum_amount,
         cashback_expiration_days: parseInt(profileUpdateData.cashback_expiration_days) || null,
-        free_service_threshold: profileUpdateData.free_service_threshold,
+        free_service_threshold: profileUpdateData.loyalty_appointments_required || profileUpdateData.free_service_threshold,
+
         address: profileUpdateData.address,
         google_maps_url: profileUpdateData.google_maps_url,
         font_family: profileUpdateData.font_family,
