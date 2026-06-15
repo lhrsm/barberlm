@@ -512,6 +512,146 @@ function ProfessionalDashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="commission" className="mt-8 space-y-6">
+            {(() => {
+              const now = new Date();
+              const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+              const monthEntries = commissionEntries.filter(e => new Date(e.earned_at) >= monthStart);
+              const totalMonth = monthEntries.reduce((s, e) => s + Number(e.commission_amount || 0), 0);
+              const paidMonth = monthEntries.reduce((s, e) => s + Number(e.paid_amount || 0), 0);
+              const pendingMonth = totalMonth - paidMonth;
+              const productionMonth = monthEntries.reduce((s, e) => s + Number(e.service_amount || 0), 0);
+              const goal = Number(barber?.monthly_goal || 0);
+              const goalPct = goal > 0 ? Math.min(100, (productionMonth / goal) * 100) : 0;
+
+              return (
+                <>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {[
+                      { title: "Comissão do Mês", value: `R$ ${totalMonth.toFixed(2)}`, icon: CircleDollarSign },
+                      { title: "Já Recebido", value: `R$ ${paidMonth.toFixed(2)}`, icon: CheckCircle2 },
+                      { title: "A Receber", value: `R$ ${pendingMonth.toFixed(2)}`, icon: Clock },
+                      { title: "Produção do Mês", value: `R$ ${productionMonth.toFixed(2)}`, icon: TrendingUp },
+                    ].map((s, i) => (
+                      <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">{s.title}</span>
+                          <s.icon className="h-6 w-6 text-[#D4AF37]" />
+                        </div>
+                        <div className="text-2xl font-black text-white">{s.value}</div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl">
+                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                      <CardTitle className="text-xl font-black text-white">Minha Meta Mensal</CardTitle>
+                      <CardDescription className="text-gray-400 font-medium">
+                        {goal > 0 ? `Meta de produção: R$ ${goal.toFixed(2)}` : "Nenhuma meta definida pelo administrador."}
+                      </CardDescription>
+                    </CardHeader>
+                    {goal > 0 && (
+                      <CardContent className="p-6 space-y-3">
+                        <div className="flex justify-between text-sm font-bold text-white">
+                          <span>R$ {productionMonth.toFixed(2)}</span>
+                          <span className="text-[#D4AF37]">{goalPct.toFixed(0)}%</span>
+                        </div>
+                        <div className="h-3 bg-[#05070d] rounded-full overflow-hidden border border-[#D4AF37]/10">
+                          <div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${goalPct}%` }} />
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+
+                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                      <CardTitle className="text-xl font-black text-white">Minha Produção (últimos lançamentos)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
+                            <tr>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Comissão</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#D4AF37]/5">
+                            {commissionEntries.length === 0 ? (
+                              <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum lançamento de comissão ainda.</td></tr>
+                            ) : commissionEntries.slice(0, 15).map(e => (
+                              <tr key={e.id} className="hover:bg-[#D4AF37]/5">
+                                <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(e.earned_at), "dd/MM/yyyy")}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">R$ {Number(e.service_amount).toFixed(2)}</td>
+                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(e.commission_amount).toFixed(2)}</td>
+                                <td className="px-6 py-3">
+                                  <Badge className={cn(
+                                    "text-[9px] font-black px-2 py-0.5 uppercase border-0",
+                                    e.status === 'paid' ? "bg-green-600/20 text-green-500" :
+                                    e.status === 'partially_paid' ? "bg-yellow-600/20 text-yellow-500" :
+                                    "bg-gray-600/20 text-gray-400"
+                                  )}>
+                                    {e.status === 'paid' ? 'PAGO' : e.status === 'partially_paid' ? 'PARCIAL' : 'PENDENTE'}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                      <CardTitle className="text-xl font-black text-white">Histórico de Pagamentos</CardTitle>
+                      <CardDescription className="text-gray-400 font-medium">Fechamentos realizados pela barbearia.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
+                            <tr>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Período</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor Total</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Pago em</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#D4AF37]/5">
+                            {commissionClosings.length === 0 ? (
+                              <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum pagamento registrado ainda.</td></tr>
+                            ) : commissionClosings.map(c => (
+                              <tr key={c.id} className="hover:bg-[#D4AF37]/5">
+                                <td className="px-6 py-3 text-sm text-white font-bold">
+                                  {format(new Date(c.period_start), "dd/MM/yy")} - {format(new Date(c.period_end), "dd/MM/yy")}
+                                </td>
+                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(c.paid_amount || c.total_amount).toFixed(2)}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">
+                                  {c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : "—"}
+                                </td>
+                                <td className="px-6 py-3">
+                                  <Badge className={cn(
+                                    "text-[9px] font-black px-2 py-0.5 uppercase border-0",
+                                    c.status === 'paid' ? "bg-green-600/20 text-green-500" : "bg-yellow-600/20 text-yellow-500"
+                                  )}>
+                                    {c.status === 'paid' ? 'PAGO' : (c.status || 'PENDENTE').toUpperCase()}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
+          </TabsContent>
+
           <TabsContent value="profile" className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
               <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
