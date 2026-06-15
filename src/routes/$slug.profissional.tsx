@@ -46,6 +46,8 @@ function ProfessionalDashboard() {
   const [barber, setBarber] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [commissionEntries, setCommissionEntries] = useState<any[]>([]);
+  const [commissionClosings, setCommissionClosings] = useState<any[]>([]);
   
   // Sync tab with URL
   useEffect(() => {
