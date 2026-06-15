@@ -291,6 +291,24 @@ function SettingsComponent() {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'barber_id' });
 
+    // Save loyalty_settings (novo módulo de fidelidade)
+    const loyaltyEnabledFinal =
+      updatedData.loyalty_mode === 'loyalty' ? !!updatedData.loyalty_enabled : false;
+    const { error: loyaltyError } = await supabase
+      .from("loyalty_settings" as any)
+      .upsert({
+        tenant_id: user.id,
+        enabled: loyaltyEnabledFinal,
+        appointments_required: Math.max(1, parseInt(String(updatedData.loyalty_appointments_required)) || 10),
+        benefit_type: updatedData.loyalty_benefit_type || 'free_service',
+        benefit_value: Number(updatedData.loyalty_benefit_value) || 0,
+        benefit_description: updatedData.loyalty_benefit_description || 'Serviço grátis',
+        max_benefit_value: Number(updatedData.loyalty_max_benefit_value) || 0,
+        validity_days: Math.max(0, parseInt(String(updatedData.loyalty_validity_days)) || 0),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'tenant_id' });
+
+
     setSaving(false);
 
     if (profileError || settingsError) {
