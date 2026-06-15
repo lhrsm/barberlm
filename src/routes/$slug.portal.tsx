@@ -365,7 +365,7 @@ function ClientPortalComponent() {
       .from("customer_subscriptions")
       .select("*, plan:subscription_plans(*)")
       .eq("customer_id", customerId)
-      .in("status", ["active", "trialing"])
+      .in("status", ["active", "trialing", "paused"])
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
