@@ -108,6 +108,31 @@ function LoyaltyDashboardPage() {
           </Card>
         )}
 
+        {/* Aviso: separação Fidelidade Tradicional x Premium */}
+        <Card className="bg-gradient-to-r from-[#D4AF37]/10 via-amber-500/5 to-transparent border-[#D4AF37]/30 text-white">
+          <CardContent className="p-5 flex items-start gap-4">
+            <div className="h-10 w-10 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 grid place-items-center shrink-0">
+              <Trophy className="h-5 w-5 text-[#D4AF37]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-black uppercase tracking-wider text-[#D4AF37]">
+                Fidelidade Premium é separada
+              </p>
+              <p className="text-xs text-zinc-300 mt-1 leading-relaxed">
+                Esta página gerencia a <strong>fidelidade tradicional</strong> (por número de atendimentos).
+                Assinantes premium possuem regras próprias por tempo de assinatura — configure recompensas em
+                {" "}
+                <Link to="/subscription-rewards" className="text-[#D4AF37] underline font-bold">
+                  Fidelidade Premium
+                </Link>
+                . Cálculos nunca se misturam.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+
+
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
