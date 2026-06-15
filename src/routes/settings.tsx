@@ -1166,7 +1166,9 @@ function SettingsComponent() {
                   </div>
                 </CardContent>
               </Card>
+              )}
             </TabsContent>
+
 
             <TabsContent value="pix" className="space-y-4">
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
