@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { Trophy, DollarSign, Users, TrendingUp, Target, RefreshCcw } from "lucide-react";
 
-export const Route = createFileRoute("/finances/commissions")({
+export const Route = createFileRoute("/commissions")({
   component: CommissionsPage,
 });
 

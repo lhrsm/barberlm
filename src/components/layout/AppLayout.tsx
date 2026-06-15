@@ -53,7 +53,7 @@ const defaultNavItems = [
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
-  { label: "Comissões", icon: CircleDollarSign, to: "/finances/commissions" },
+  { label: "Comissões", icon: CircleDollarSign, to: "/commissions" },
   { label: "Produtos", icon: ShoppingBag, to: "/products" },
   { label: "Automações", icon: MessageSquare, to: "/automations" },
   { label: "Campanhas", icon: Megaphone, to: "/campaigns" },
