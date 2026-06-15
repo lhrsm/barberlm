@@ -60,6 +60,8 @@ import {
   X,
   Filter,
   Activity,
+  Pause,
+  Play,
 } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
