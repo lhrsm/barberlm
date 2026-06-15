@@ -47,6 +47,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
+import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subscription-card.validate.$token'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -241,6 +242,12 @@ const SlugPortalRoute = SlugPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => SlugRoute,
 } as any)
+const SubscriptionCardValidateTokenRoute =
+  SubscriptionCardValidateTokenRouteImport.update({
+    id: '/subscription-card/validate/$token',
+    path: '/subscription-card/validate/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
   id: '/agendamentos/grupo/$token',
   path: '/agendamentos/grupo/$token',
@@ -299,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -341,6 +349,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -385,6 +394,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/admin/'
     | '/agendamentos/grupo/$token'
+    | '/subscription-card/validate/$token'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
@@ -472,6 +483,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/admin'
     | '/agendamentos/grupo/$token'
+    | '/subscription-card/validate/$token'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
@@ -515,6 +527,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/admin/'
     | '/agendamentos/grupo/$token'
+    | '/subscription-card/validate/$token'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
@@ -545,6 +558,7 @@ export interface RootRouteChildren {
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
+  SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -817,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugPortalRouteImport
       parentRoute: typeof SlugRoute
     }
+    '/subscription-card/validate/$token': {
+      id: '/subscription-card/validate/$token'
+      path: '/subscription-card/validate/$token'
+      fullPath: '/subscription-card/validate/$token'
+      preLoaderRoute: typeof SubscriptionCardValidateTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agendamentos/grupo/$token': {
       id: '/agendamentos/grupo/$token'
       path: '/agendamentos/grupo/$token'
@@ -911,6 +932,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
+  SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }
