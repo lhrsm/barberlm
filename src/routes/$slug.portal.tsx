@@ -58,6 +58,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { normalizePhone, formatPhoneMask } from "@/utils/phone";
+import { QRCodeSVG } from "qrcode.react";
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
