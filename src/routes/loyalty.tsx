@@ -149,26 +149,48 @@ function LoyaltyDashboardPage() {
             ) : closeToReward.length === 0 ? (
               <p className="text-sm text-slate-500 italic">Nenhum cliente acumulando pontos ainda.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {closeToReward.map((c: any) => {
-                  const pct = Math.min(100, Math.round(((c.loyalty_points || 0) / target) * 100));
+                  const points = c.loyalty_points || 0;
+                  const pct = Math.min(100, Math.round((points / target) * 100));
+                  const remaining = Math.max(0, target - points);
                   return (
-                    <div key={c.id} className="flex items-center gap-4 p-3 rounded-xl bg-[#05070d] border border-[#1f2937]">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate">{c.name}</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest">
-                          {c.loyalty_points || 0} de {target}
-                        </p>
-                        <div className="mt-1 h-1.5 w-full bg-[#1f2937] rounded-full overflow-hidden">
+                    <div
+                      key={c.id}
+                      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0f1420] to-[#05070d] border border-[#1f2937] hover:border-[#ea580c]/50 transition-all p-5 flex flex-col gap-4 shadow-[0_4px_20px_rgba(234,88,12,0.06)]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{c.name}</p>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">
+                            {remaining === 0 ? "Recompensa liberada" : `Faltam ${remaining}`}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="border-[#ea580c]/40 text-[#ea580c] font-bold shrink-0">
+                          {pct}%
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-end justify-center gap-1 py-2">
+                        <span className="text-5xl font-black italic text-[#ea580c] leading-none tabular-nums">
+                          {points}
+                        </span>
+                        <span className="text-lg font-bold text-slate-500 leading-none pb-1">
+                          /{target}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="h-2 w-full bg-[#1f2937] rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-[#ea580c] transition-all"
+                            className="h-full bg-gradient-to-r from-[#ea580c] to-[#f97316] transition-all"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest text-center">
+                          Atendimentos
+                        </p>
                       </div>
-                      <Badge variant="outline" className="border-[#ea580c]/40 text-[#ea580c] font-bold">
-                        {pct}%
-                      </Badge>
                     </div>
                   );
                 })}
