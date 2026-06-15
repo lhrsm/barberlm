@@ -249,6 +249,15 @@ function SubscriptionsPage() {
   const [loading, setLoading] = useState(true);
   const [servicesList, setServicesList] = useState<Array<{ id: string; name: string; price: number }>>([]);
   const [editingPlanServices, setEditingPlanServices] = useState<Record<string, { included: boolean; max_uses_per_period: number | null }>>({});
+  const [usageLogs, setUsageLogs] = useState<any[]>([]);
+
+  // Filtros aba Uso
+  const [usageRange, setUsageRange] = useState<"7" | "30" | "90" | "all" | "custom">("30");
+  const [usageFrom, setUsageFrom] = useState("");
+  const [usageTo, setUsageTo] = useState("");
+  const [usagePlanFilter, setUsagePlanFilter] = useState<string>("all");
+  const [usageServiceFilter, setUsageServiceFilter] = useState<string>("all");
+  const [usageSearch, setUsageSearch] = useState("");
 
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Partial<SubscriptionPlan> | null>(null);
