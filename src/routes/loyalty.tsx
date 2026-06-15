@@ -88,9 +88,9 @@ function LoyaltyDashboardPage() {
               Acompanhe o progresso dos clientes, recompensas e economia gerada.
             </p>
           </div>
-          <Button asChild variant="outline" className="gap-2 border-[#1f2937] text-white hover:bg-[#0b0f17]">
+          <Button asChild size="sm" className="gap-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
             <Link to="/settings">
-              <Settings className="h-4 w-4" /> Configurar
+              <Settings className="h-3.5 w-3.5" /> Configurar
             </Link>
           </Button>
         </div>
