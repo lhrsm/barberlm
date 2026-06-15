@@ -159,6 +159,7 @@ function SettingsComponent() {
           secondary_color: profile.secondary_color || "#f4f4f5",
           logo_url: profile.logo_url || "",
           barbershop_logo_url: (profile as any).barbershop_logo_url || "",
+          loyalty_mode: ((profile as any).loyalty_mode as any) || "none",
           cashback_enabled: profile.cashback_enabled || false,
           cashback_percentage: profile.cashback_percentage || 0,
           cashback_type: profile.cashback_type || "percentage",
