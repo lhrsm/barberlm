@@ -32,6 +32,9 @@ import {
   Gift,
   Clock,
   Sparkles,
+  RefreshCw,
+  CheckCircle2,
+  History,
 } from "lucide-react";
 
 export const Route = createFileRoute("/subscription-rewards")({
