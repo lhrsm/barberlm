@@ -1644,7 +1644,7 @@ function KpiCard({
   label: string;
   value: string;
   hint?: string;
-  accent: "emerald" | "sky" | "purple" | "amber";
+  accent: "emerald" | "sky" | "purple" | "amber" | "rose";
 }) {
   const accents: Record<string, { bg: string; text: string; border: string; glow: string }> = {
     emerald: {
@@ -1670,6 +1670,12 @@ function KpiCard({
       text: "text-amber-400",
       border: "hover:border-amber-500/40",
       glow: "hover:shadow-[0_8px_28px_rgba(245,158,11,0.18)]",
+    },
+    rose: {
+      bg: "bg-rose-500/10",
+      text: "text-rose-400",
+      border: "hover:border-rose-500/40",
+      glow: "hover:shadow-[0_8px_28px_rgba(244,63,94,0.18)]",
     },
   };
   const a = accents[accent];
