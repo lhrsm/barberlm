@@ -17,7 +17,7 @@ import {
 import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Handshake } from "lucide-react";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History, Crown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
