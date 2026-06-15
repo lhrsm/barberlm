@@ -304,6 +304,12 @@ function ProfessionalDashboard() {
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
             <TabsTrigger 
+              value="commission" 
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+            >
+              <CircleDollarSign className="h-4 w-4" /> Comissão
+            </TabsTrigger>
+            <TabsTrigger 
               value="profile" 
               className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
