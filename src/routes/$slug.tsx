@@ -151,6 +151,10 @@ function ShopPageComponent() {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
 
+  // Subscription state
+  const [activeSubscription, setActiveSubscription] = useState<any>(null);
+  const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
+
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
