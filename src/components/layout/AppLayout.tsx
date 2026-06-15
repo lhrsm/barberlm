@@ -27,7 +27,8 @@ import {
   Share2,
   History,
   User,
-  Layout
+  Layout,
+  Gift
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
@@ -59,6 +60,7 @@ const defaultNavItems = [
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
   { label: "Suporte", icon: Headset, to: "/support" },
   { label: "Assinaturas", icon: CreditCard, to: "/subscriptions" },
+  { label: "Fidelidade", icon: Gift, to: "/loyalty" },
   { label: "Minha Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];

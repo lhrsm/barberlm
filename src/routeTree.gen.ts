@@ -16,6 +16,7 @@ import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -81,6 +82,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoyaltyRoute = LoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegrationsRoute = IntegrationsRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/integrations': typeof IntegrationsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/integrations': typeof IntegrationsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/integrations': typeof IntegrationsRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -376,6 +385,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/integrations'
+    | '/loyalty'
     | '/products'
     | '/services'
     | '/settings'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/integrations'
+    | '/loyalty'
     | '/products'
     | '/services'
     | '/settings'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/integrations'
+    | '/loyalty'
     | '/products'
     | '/services'
     | '/settings'
@@ -496,6 +508,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
   IntegrationsRoute: typeof IntegrationsRoute
+  LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
@@ -559,6 +572,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loyalty': {
+      id: '/loyalty'
+      path: '/loyalty'
+      fullPath: '/loyalty'
+      preLoaderRoute: typeof LoyaltyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integrations': {
@@ -838,6 +858,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
   IntegrationsRoute: IntegrationsRoute,
+  LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
@@ -854,12 +875,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

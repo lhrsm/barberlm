@@ -79,6 +79,14 @@ function SettingsComponent() {
     cashback_minimum_amount: 0,
     cashback_expiration_days: 0,
     free_service_threshold: 10,
+    // Novo módulo de fidelidade (loyalty_settings)
+    loyalty_enabled: false,
+    loyalty_appointments_required: 10,
+    loyalty_benefit_type: "free_service" as "free_service" | "percent_discount" | "fixed_discount" | "free_addon",
+    loyalty_benefit_value: 0,
+    loyalty_benefit_description: "Serviço grátis",
+    loyalty_max_benefit_value: 0,
+    loyalty_validity_days: 0,
     address: "",
     google_maps_url: "",
     font_family: "Inter",
@@ -94,6 +102,7 @@ function SettingsComponent() {
     opening_date: "",
     cancellation_window_hours: 2,
   });
+
 
 
   useEffect(() => {
@@ -146,6 +155,14 @@ function SettingsComponent() {
         console.error("Error fetching barbershop settings:", settingsError);
       }
 
+      // Fetch loyalty settings (novo módulo)
+      const { data: loyaltyData } = await supabase
+        .from("loyalty_settings" as any)
+        .select("*")
+        .eq("tenant_id", user.id)
+        .maybeSingle();
+
+
       if (profileData && profileData.length > 0) {
         const profile = profileData[0];
         setFormData({
@@ -167,6 +184,14 @@ function SettingsComponent() {
           cashback_minimum_amount: profile.cashback_minimum_amount || 0,
           cashback_expiration_days: profile.cashback_expiration_days || 0,
           free_service_threshold: profile.free_service_threshold || 10,
+          loyalty_enabled: (loyaltyData as any)?.enabled ?? false,
+          loyalty_appointments_required: (loyaltyData as any)?.appointments_required ?? 10,
+          loyalty_benefit_type: ((loyaltyData as any)?.benefit_type as any) ?? "free_service",
+          loyalty_benefit_value: Number((loyaltyData as any)?.benefit_value ?? 0),
+          loyalty_benefit_description: (loyaltyData as any)?.benefit_description ?? "Serviço grátis",
+          loyalty_max_benefit_value: Number((loyaltyData as any)?.max_benefit_value ?? 0),
+          loyalty_validity_days: (loyaltyData as any)?.validity_days ?? 0,
+
           address: profile.address || "",
           google_maps_url: profile.google_maps_url || "",
           font_family: profile.font_family || "Inter",
@@ -231,13 +256,15 @@ function SettingsComponent() {
         logo_url: profileUpdateData.logo_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
         loyalty_mode: profileUpdateData.loyalty_mode,
+        // EXCLUSIVIDADE: se modo = loyalty, cashback é forçado a OFF
         cashback_enabled: profileUpdateData.loyalty_mode === 'cashback' ? profileUpdateData.cashback_enabled : false,
         cashback_percentage: profileUpdateData.cashback_percentage,
         cashback_type: profileUpdateData.cashback_type,
         cashback_fixed_value: profileUpdateData.cashback_fixed_value,
         cashback_minimum_amount: profileUpdateData.cashback_minimum_amount,
         cashback_expiration_days: parseInt(profileUpdateData.cashback_expiration_days) || null,
-        free_service_threshold: profileUpdateData.free_service_threshold,
+        free_service_threshold: profileUpdateData.loyalty_appointments_required || profileUpdateData.free_service_threshold,
+
         address: profileUpdateData.address,
         google_maps_url: profileUpdateData.google_maps_url,
         font_family: profileUpdateData.font_family,
@@ -264,10 +291,29 @@ function SettingsComponent() {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'barber_id' });
 
+    // Save loyalty_settings (novo módulo de fidelidade)
+    const loyaltyEnabledFinal =
+      updatedData.loyalty_mode === 'loyalty' ? !!updatedData.loyalty_enabled : false;
+    const { error: loyaltyError } = await supabase
+      .from("loyalty_settings" as any)
+      .upsert({
+        tenant_id: user.id,
+        enabled: loyaltyEnabledFinal,
+        appointments_required: Math.max(1, parseInt(String(updatedData.loyalty_appointments_required)) || 10),
+        benefit_type: updatedData.loyalty_benefit_type || 'free_service',
+        benefit_value: Number(updatedData.loyalty_benefit_value) || 0,
+        benefit_description: updatedData.loyalty_benefit_description || 'Serviço grátis',
+        max_benefit_value: Number(updatedData.loyalty_max_benefit_value) || 0,
+        validity_days: Math.max(0, parseInt(String(updatedData.loyalty_validity_days)) || 0),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'tenant_id' });
+
+
     setSaving(false);
 
-    if (profileError || settingsError) {
-      const error = profileError || settingsError;
+    if (profileError || settingsError || loyaltyError) {
+      const error = profileError || settingsError || loyaltyError;
+
       if (error?.code === "23505") {
         toast.error("Este endereço (URL) já está em uso.");
       } else {
@@ -1131,42 +1177,141 @@ function SettingsComponent() {
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
                     <Gift className="text-[#ea580c] h-5 w-5" />
-                    Cartão Fidelidade
+                    Programa de Fidelidade
                   </CardTitle>
-                  <CardDescription className="text-slate-400">A cada X serviços realizados, o próximo é gratuito.</CardDescription>
+                  <CardDescription className="text-slate-400">
+                    A fidelidade pertence à barbearia. Atendimentos com qualquer barbeiro contam para a meta.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                    <Label htmlFor="free_service_threshold" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Meta para Serviço Gratuito</Label>
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                      <Input 
-                        id="free_service_threshold" 
-                        type="number"
-                        min="2"
-                        max="100"
-                        value={formData.free_service_threshold} 
-                        onChange={(e) => setFormData({ ...formData, free_service_threshold: parseInt(e.target.value) || 10 })}
-                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
-                      />
-                      <span className="text-xs text-slate-500 font-medium italic">
-                        Após completar <span className="text-[#ea580c] font-black">{formData.free_service_threshold}</span> procedimentos, o cliente ganha o próximo gratuitamente.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#ea580c] shrink-0" />
+                  <div className="flex items-center justify-between p-5 bg-[#05070d]/50 border border-[#1f2937] rounded-2xl">
                     <div className="space-y-1">
-                      <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Regra de Conclusão</p>
-                      <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
-                        O sistema contabiliza automaticamente cada agendamento marcado como "Concluído". 
-                        O cliente poderá acompanhar o progresso em sua página exclusiva.
+                      <Label className="text-base font-black uppercase italic">Ativar Fidelidade</Label>
+                      <p className="text-[10px] text-slate-500 font-medium uppercase">
+                        Ao ativar, o cashback é desativado automaticamente.
                       </p>
                     </div>
+                    <Switch
+                      checked={formData.loyalty_enabled}
+                      onCheckedChange={(checked) => setFormData({ ...formData, loyalty_enabled: checked })}
+                      className="data-[state=checked]:bg-[#ea580c]"
+                    />
                   </div>
+
+                  {formData.loyalty_enabled && (
+                    <div className="grid gap-6 animate-in fade-in slide-in-from-top-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label htmlFor="loyalty_appointments_required" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Quantidade de Atendimentos</Label>
+                          <Input
+                            id="loyalty_appointments_required"
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={formData.loyalty_appointments_required}
+                            onChange={(e) => setFormData({ ...formData, loyalty_appointments_required: parseInt(e.target.value) || 1 })}
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
+                          />
+                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">
+                            Meta para concessão do benefício.
+                          </p>
+                        </div>
+
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo de Benefício</Label>
+                          <Select
+                            value={formData.loyalty_benefit_type}
+                            onValueChange={(value) => setFormData({ ...formData, loyalty_benefit_type: value })}
+                          >
+                            <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                              <SelectItem value="free_service">Serviço grátis</SelectItem>
+                              <SelectItem value="percent_discount">Desconto percentual (%)</SelectItem>
+                              <SelectItem value="fixed_discount">Desconto fixo (R$)</SelectItem>
+                              <SelectItem value="free_addon">Brinde / serviço adicional grátis</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {(formData.loyalty_benefit_type === 'percent_discount' || formData.loyalty_benefit_type === 'fixed_discount') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                            <Label htmlFor="loyalty_benefit_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                              {formData.loyalty_benefit_type === 'percent_discount' ? 'Percentual de desconto (%)' : 'Valor do desconto (R$)'}
+                            </Label>
+                            <Input
+                              id="loyalty_benefit_value"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={formData.loyalty_benefit_value}
+                              onChange={(e) => setFormData({ ...formData, loyalty_benefit_value: parseFloat(e.target.value) || 0 })}
+                              className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label htmlFor="loyalty_benefit_description" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Descrição visível ao cliente</Label>
+                          <Input
+                            id="loyalty_benefit_description"
+                            type="text"
+                            value={formData.loyalty_benefit_description}
+                            onChange={(e) => setFormData({ ...formData, loyalty_benefit_description: e.target.value })}
+                            placeholder="Ex.: Corte grátis"
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full font-bold"
+                          />
+                        </div>
+
+                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                          <Label htmlFor="loyalty_max_benefit_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor máximo do benefício (R$)</Label>
+                          <Input
+                            id="loyalty_max_benefit_value"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.loyalty_max_benefit_value}
+                            onChange={(e) => setFormData({ ...formData, loyalty_max_benefit_value: parseFloat(e.target.value) || 0 })}
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
+                          />
+                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">0 = sem teto.</p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl max-w-md">
+                        <Label htmlFor="loyalty_validity_days" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Validade da recompensa (dias)</Label>
+                        <Input
+                          id="loyalty_validity_days"
+                          type="number"
+                          min="0"
+                          value={formData.loyalty_validity_days}
+                          onChange={(e) => setFormData({ ...formData, loyalty_validity_days: parseInt(e.target.value) || 0 })}
+                          className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
+                        />
+                        <p className="text-[10px] text-slate-600 font-medium uppercase italic">0 = sem expiração.</p>
+                      </div>
+
+                      <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                        <CheckCircle2 className="h-5 w-5 text-[#ea580c] shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Como funciona</p>
+                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
+                            A fidelidade pertence à barbearia: atendimentos concluídos com qualquer barbeiro contam para a meta.
+                            Quando o cliente atinge a meta, uma recompensa é gerada automaticamente. A comissão do barbeiro permanece normal — o custo da promoção é absorvido pela barbearia.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
               )}
+
             </TabsContent>
 
 
