@@ -77,6 +77,8 @@ function ClientPortalComponent() {
   const [mySubscription, setMySubscription] = useState<any>(null);
   const [subRewards, setSubRewards] = useState<any[]>([]);
   const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
+  const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
+  const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [services, setServices] = useState<any[]>([]);
@@ -341,7 +343,7 @@ function ClientPortalComponent() {
     setMySubscription(subData || null);
 
     if (subData?.tenant_id) {
-      const [{ data: rewardsCfg }, { data: hist }] = await Promise.all([
+      const [{ data: rewardsCfg }, { data: hist }, { data: usageLogs }, { data: planSvcs }] = await Promise.all([
         supabase
           .from("subscription_loyalty_rewards" as any)
           .select("*")
@@ -353,12 +355,26 @@ function ClientPortalComponent() {
           .select("*")
           .eq("customer_id", customerId)
           .order("granted_at", { ascending: false }),
+        supabase
+          .from("subscription_usage_logs" as any)
+          .select("*, services(name)")
+          .eq("customer_id", customerId)
+          .eq("subscription_id", subData.id)
+          .order("used_at", { ascending: false }),
+        supabase
+          .from("subscription_plan_services" as any)
+          .select("*, services(name, price)")
+          .eq("plan_id", subData.plan_id),
       ]);
       setSubRewards((rewardsCfg as any[]) || []);
       setSubRewardsHistory((hist as any[]) || []);
+      setSubUsageLogs((usageLogs as any[]) || []);
+      setSubPlanServices((planSvcs as any[]) || []);
     } else {
       setSubRewards([]);
       setSubRewardsHistory([]);
+      setSubUsageLogs([]);
+      setSubPlanServices([]);
     }
   }
 
@@ -1177,13 +1193,18 @@ function ClientPortalComponent() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-[600px] bg-white/5 p-1 rounded-xl">
+          <TabsList className={cn("grid w-full max-w-[750px] bg-white/5 p-1 rounded-xl", mySubscription ? "grid-cols-5" : "grid-cols-4")}>
             <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
             <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
                Fidelidade
             </TabsTrigger>
+            {mySubscription && (
+              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+                 Benefícios
+              </TabsTrigger>
+            )}
             <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
                Extrato
             </TabsTrigger>
@@ -1409,6 +1430,147 @@ function ClientPortalComponent() {
               );
             })()}
           </TabsContent>
+
+          {mySubscription && (
+          <TabsContent value="benefits" className="pt-6">
+            {(() => {
+              const plan = mySubscription.plan;
+              const usedThisPeriod = mySubscription.uses_this_period || 0;
+              const maxUses = plan?.max_uses_per_month;
+              const remaining = maxUses ? Math.max(0, maxUses - usedThisPeriod) : null;
+              const totalCovered = subUsageLogs.reduce((sum: number, l: any) => sum + Number(l.covered_amount || 0), 0);
+              const totalExtra = subUsageLogs.reduce((sum: number, l: any) => sum + Number(l.extra_amount || 0), 0);
+              const nextBilling = mySubscription.next_billing_at || mySubscription.current_period_end;
+              return (
+                <div className="space-y-6">
+                  {/* Plano + Saldo */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border-[#D4AF37]/30 shadow-lg">
+                      <CardHeader className="pb-2">
+                        <CardDescription className="text-[#D4AF37] uppercase text-xs font-bold">Plano Ativo</CardDescription>
+                        <CardTitle className="text-white text-xl">{plan?.name || "Assinatura"}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-black text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}<span className="text-xs text-gray-400 font-normal">/mês</span></p>
+                        {nextBilling && (
+                          <p className="text-[10px] text-gray-400 mt-2 uppercase">Próxima cobrança: {format(parseISO(nextBilling), "dd/MM/yyyy", { locale: ptBR })}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/5 border-white/10 shadow-lg">
+                      <CardHeader className="pb-2">
+                        <CardDescription className="text-gray-400 uppercase text-xs font-bold">Usos no Período</CardDescription>
+                        <CardTitle className="text-white text-xl">
+                          {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {maxUses ? (
+                          <>
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${Math.min(100, (usedThisPeriod / maxUses) * 100)}%` }} />
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2 uppercase">{remaining} restante(s)</p>
+                          </>
+                        ) : (
+                          <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold">Ilimitado</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/5 border-white/10 shadow-lg">
+                      <CardHeader className="pb-2">
+                        <CardDescription className="text-gray-400 uppercase text-xs font-bold">Economia Total</CardDescription>
+                        <CardTitle className="text-emerald-400 text-xl">R$ {totalCovered.toFixed(2)}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-[10px] text-gray-400 uppercase">Cobertos pelo plano</p>
+                        {totalExtra > 0 && (
+                          <p className="text-[10px] text-gray-400 uppercase mt-1">Extras pagos: R$ {totalExtra.toFixed(2)}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Serviços inclusos */}
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-white">Serviços Inclusos</CardTitle>
+                      <CardDescription className="text-gray-400">O que seu plano cobre</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {subPlanServices.length === 0 ? (
+                        <p className="text-center py-8 text-gray-500 italic">Nenhum serviço específico vinculado a este plano.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {subPlanServices.map((ps: any) => (
+                            <div key={ps.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                                  <CheckCircle2 className="text-[#D4AF37] h-5 w-5" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-white">{ps.services?.name || "Serviço"}</p>
+                                  <p className="text-[10px] text-gray-400 uppercase">
+                                    {ps.max_uses_per_period ? `${ps.max_uses_per_period}x/mês` : "Ilimitado"}
+                                  </p>
+                                </div>
+                              </div>
+                              {ps.services?.price && (
+                                <span className="text-xs text-gray-400 line-through">R$ {Number(ps.services.price).toFixed(2)}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Histórico de uso */}
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-white">Histórico de Uso</CardTitle>
+                      <CardDescription className="text-gray-400">Atendimentos cobertos por sua assinatura</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {subUsageLogs.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500">
+                          <History size={40} className="mx-auto mb-3 opacity-20" />
+                          <p className="italic">Nenhum benefício utilizado ainda.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {subUsageLogs.map((log: any) => (
+                            <div key={log.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                                  <Scissors className="text-emerald-400 h-4 w-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-white">{log.services?.name || log.benefit_type || "Benefício utilizado"}</p>
+                                  <p className="text-[10px] text-gray-500 uppercase">
+                                    {log.used_at ? format(parseISO(log.used_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "—"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-black text-emerald-400">- R$ {Number(log.covered_amount || 0).toFixed(2)}</p>
+                                {Number(log.extra_amount || 0) > 0 && (
+                                  <p className="text-[10px] text-gray-400 uppercase">+ R$ {Number(log.extra_amount).toFixed(2)} extra</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
+          </TabsContent>
+          )}
 
           <TabsContent value="finances" className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
