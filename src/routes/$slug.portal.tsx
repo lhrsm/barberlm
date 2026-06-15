@@ -34,7 +34,12 @@ import {
   QrCode,
   ChevronLeft,
   ChevronRight,
-  DollarSign
+  DollarSign,
+  Search,
+  Gift,
+  Info,
+  Filter,
+  X
 } from "lucide-react";
 import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
