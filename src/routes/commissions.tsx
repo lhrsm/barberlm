@@ -155,6 +155,15 @@ function CommissionsPage() {
     };
   }, [byBarber]);
 
+  const kpis = useMemo(() => {
+    const faturamento = byBarber.reduce((s, b) => s + b.production, 0);
+    const geradas = byBarber.reduce((s, b) => s + b.accrued, 0);
+    const pagas = byBarber.reduce((s, b) => s + b.paid, 0);
+    const pendentes = geradas - pagas;
+    const melhor = [...byBarber].sort((a, b) => b.production - a.production)[0];
+    return { faturamento, geradas, pagas, pendentes, melhor };
+  }, [byBarber]);
+
   function openPayDialog(barberId: string) {
     const pending = entries.filter(e => e.barber_id === barberId && e.status !== "paid");
     const total = pending.reduce((s, e) => s + (Number(e.commission_amount) - Number(e.paid_amount)), 0);
