@@ -1430,6 +1430,9 @@ function SubscriptionsPage() {
                     })}
                   </div>
                 )}
+              </Block>
+
+
 
               {/* BENEFÍCIOS INCLUSOS */}
               <Block title="Benefícios Inclusos (lista visual)">
