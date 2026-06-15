@@ -2314,6 +2314,16 @@ function ShopPageComponent() {
                                 <p className="text-xs text-zinc-500 font-medium">Que bom ter você de volta!</p>
                               </div>
                             </div>
+                          ) : (
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 space-y-3 animate-in fade-in slide-in-from-top-1">
+                              <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
+                              <Input 
+                                placeholder="Digite seu nome completo" 
+                                value={customerName} 
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="bg-white text-black border border-zinc-200 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-sky-600/50"
+                              />
+                            </div>
                           )}
                           {customerId && activeSubscription && (
                             <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-4 shadow-md">
@@ -2330,20 +2340,11 @@ function ShopPageComponent() {
                               <p className="text-[11px] text-amber-800 mt-1">
                                 Serviços inclusos no plano serão aplicados automaticamente no agendamento.
                               </p>
-
-                          ) : (
-                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 space-y-3 animate-in fade-in slide-in-from-top-1">
-                              <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
-                              <Input 
-                                placeholder="Digite seu nome completo" 
-                                value={customerName} 
-                                onChange={(e) => setCustomerName(e.target.value)}
-                                className="bg-white text-black border border-zinc-200 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-sky-600/50"
-                              />
                             </div>
                           )}
                         </motion.div>
                       )}
+
                     </AnimatePresence>
                   </div>
 
