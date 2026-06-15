@@ -123,6 +123,12 @@ interface CustomerSub {
   uses_this_period: number;
   auto_renew: boolean;
   created_at?: string;
+  paused_at?: string | null;
+  pause_reason?: string | null;
+  pause_until?: string | null;
+  resumed_at?: string | null;
+  pause_notes?: string | null;
+  total_paused_days?: number | null;
   plan?: SubscriptionPlan;
   customer?: { id: string; name: string; phone: string | null };
 }
