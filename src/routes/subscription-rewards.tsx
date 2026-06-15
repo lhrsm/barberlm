@@ -122,13 +122,13 @@ function SubscriptionRewardsPage() {
   async function syncRewards() {
     if (!tenantId) return;
     setSyncing(true);
-    const { data, error } = await supabase.rpc("process_subscription_loyalty_rewards" as any, {
-      p_tenant_id: tenantId,
-    });
+    // Roda a rotina global (todos os tenants) — backend filtra por elegibilidade
+    const { data, error } = await supabase.rpc("process_subscription_loyalty_rewards" as any);
     setSyncing(false);
     if (error) return toast.error("Erro: " + error.message);
-    const count = Array.isArray(data) ? data.length : 0;
-    toast.success(count > 0 ? `${count} recompensa(s) concedida(s)!` : "Nenhuma recompensa nova");
+    const granted = (data as any)?.granted ?? 0;
+    const notified = (data as any)?.notified ?? 0;
+    toast.success(granted > 0 ? `${granted} liberada(s) · ${notified} WhatsApp enfileirado(s)` : "Nenhuma recompensa nova");
     load();
   }
 
