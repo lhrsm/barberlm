@@ -3145,6 +3145,7 @@ function ShopPageComponent() {
                             <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                           </Button>
                         </div>
+                        </>
                       ) : (
                         <div className="space-y-4">
                           {paymentMethod === 'pix' && calculateTotal() > 0 && (
