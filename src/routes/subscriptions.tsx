@@ -1008,6 +1008,13 @@ function SubscriptionsPage() {
                               {s.plan?.usage_type === "limited" &&
                                 ` · ${s.uses_this_period}/${s.plan.max_uses_per_month} usos`}
                             </div>
+                            {s.status === "paused" && (
+                              <div className="text-[11px] text-blue-300 mt-1 flex items-center gap-1.5">
+                                <Pause className="h-3 w-3" />
+                                Pausada{s.pause_reason ? ` · ${s.pause_reason}` : ""}
+                                {s.pause_until ? ` · retorno ${new Date(s.pause_until).toLocaleDateString("pt-BR")}` : ""}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -1019,6 +1026,26 @@ function SubscriptionsPage() {
                           >
                             {status.label}
                           </span>
+                          {s.status === "paused" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => resumeSubscription(s.id)}
+                              className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 text-xs font-bold"
+                            >
+                              <Play className="h-3.5 w-3.5 mr-1" /> Retomar
+                            </Button>
+                          )}
+                          {["active", "pending_payment", "past_due"].includes(s.status) && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openPauseDialog(s)}
+                              className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs font-bold"
+                            >
+                              <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
+                            </Button>
+                          )}
                           {s.status !== "canceled" && (
                             <Button
                               size="sm"
