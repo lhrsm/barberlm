@@ -98,6 +98,10 @@ function BarbersComponent() {
     avatar_url: "", 
     category: "Proprietário", 
     commission_rate: 0,
+    commission_type: "percentage",
+    commission_fixed_value: 0,
+    commission_bonus_value: 0,
+    monthly_goal: 0,
     working_hours: DEFAULT_WORKING_HOURS
   });
   const [uploading, setUploading] = useState(false);
