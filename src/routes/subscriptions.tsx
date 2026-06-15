@@ -227,10 +227,10 @@ function SubscriptionsPage() {
       toast.error("Informe a quantidade máxima de atendimentos");
       return;
     }
-    const payload = { ...editingPlan, tenant_id: tenantId };
+    const payload: any = { ...editingPlan, tenant_id: tenantId };
     const { error } = editingPlan.id
       ? await supabase.from("subscription_plans").update(payload).eq("id", editingPlan.id)
-      : await supabase.from("subscription_plans").insert(payload as any);
+      : await supabase.from("subscription_plans").insert(payload);
     if (error) {
       toast.error("Erro ao salvar plano: " + error.message);
       return;
