@@ -579,6 +579,46 @@ function SubscriptionsPage() {
     loadAll();
   }
 
+  function openPauseDialog(sub: CustomerSub) {
+    setPauseTarget(sub);
+    setPauseReason("");
+    setPauseUntil("");
+    setPauseNotes("");
+    setPauseDialogOpen(true);
+  }
+
+  async function confirmPause() {
+    if (!pauseTarget) return;
+    const { data, error } = await supabase.rpc("pause_customer_subscription" as any, {
+      p_subscription_id: pauseTarget.id,
+      p_reason: pauseReason || null,
+      p_pause_until: pauseUntil ? new Date(pauseUntil).toISOString() : null,
+      p_notes: pauseNotes || null,
+    });
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao pausar");
+      return;
+    }
+    toast.success("Assinatura pausada");
+    setPauseDialogOpen(false);
+    loadAll();
+  }
+
+  async function resumeSubscription(id: string) {
+    if (!confirm("Retomar esta assinatura?")) return;
+    const { data, error } = await supabase.rpc("resume_customer_subscription" as any, {
+      p_subscription_id: id,
+    });
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao retomar");
+      return;
+    }
+    const days = (data as any)?.paused_days ?? 0;
+    toast.success(`Assinatura retomada${days ? ` (+${days} dias)` : ""}`);
+    loadAll();
+  }
+
+
   async function markInvoicePaid(inv: Invoice) {
     const now = new Date().toISOString();
     const { error } = await supabase
