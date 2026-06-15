@@ -3576,7 +3576,12 @@ export type Database = {
           granted_at: string
           id: string
           notes: string | null
+          notification_error: string | null
+          notification_sent: boolean
+          notification_sent_at: string | null
           redeemed_at: string | null
+          reward_cycle: number
+          reward_description: string | null
           reward_id: string
           status: string
           subscription_id: string
@@ -3589,7 +3594,12 @@ export type Database = {
           granted_at?: string
           id?: string
           notes?: string | null
+          notification_error?: string | null
+          notification_sent?: boolean
+          notification_sent_at?: string | null
           redeemed_at?: string | null
+          reward_cycle?: number
+          reward_description?: string | null
           reward_id: string
           status?: string
           subscription_id: string
@@ -3602,7 +3612,12 @@ export type Database = {
           granted_at?: string
           id?: string
           notes?: string | null
+          notification_error?: string | null
+          notification_sent?: boolean
+          notification_sent_at?: string | null
           redeemed_at?: string | null
+          reward_cycle?: number
+          reward_description?: string | null
           reward_id?: string
           status?: string
           subscription_id?: string
@@ -5400,14 +5415,16 @@ export type Database = {
         }
         Returns: string
       }
-      process_subscription_loyalty_rewards: {
-        Args: { p_tenant_id: string }
-        Returns: {
-          granted_count: number
-          reward_id: string
-          subscription_id: string
-        }[]
-      }
+      process_subscription_loyalty_rewards:
+        | { Args: never; Returns: Json }
+        | {
+            Args: { p_tenant_id: string }
+            Returns: {
+              granted_count: number
+              reward_id: string
+              subscription_id: string
+            }[]
+          }
       recalculate_barber_commissions: {
         Args: { p_from?: string; p_tenant_id: string; p_to?: string }
         Returns: number
@@ -5437,7 +5454,12 @@ export type Database = {
           granted_at: string
           id: string
           notes: string | null
+          notification_error: string | null
+          notification_sent: boolean
+          notification_sent_at: string | null
           redeemed_at: string | null
+          reward_cycle: number
+          reward_description: string | null
           reward_id: string
           status: string
           subscription_id: string
@@ -5478,6 +5500,10 @@ export type Database = {
       }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
       seed_subscription_automation_templates: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
+      seed_subscription_reward_unlocked_template: {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
