@@ -221,8 +221,20 @@ function emptyPlan(tenantId: string): Partial<SubscriptionPlan> {
     payment_methods: ["in_person"],
     active: true,
     display_order: 0,
+    participates_traditional_loyalty: false,
+    participates_cashback: false,
+    accumulates_premium_loyalty: true,
+    allows_product_discount: false,
+    agenda_priority: false,
+    exclusive_hours: false,
+    exclusive_days: false,
+    preferential_service: false,
+    included_benefits: [],
+    barber_commission_type: "fixed",
+    barber_commission_value: 0,
   };
 }
+
 
 function SubscriptionsPage() {
   const { user, loading: authLoading } = useAuth();
