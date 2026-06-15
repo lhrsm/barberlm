@@ -125,6 +125,30 @@ function ClientPortalComponent() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
+  // Benefits tab — filters & modals
+  const [benefitSearch, setBenefitSearch] = useState("");
+  const [benefitPeriod, setBenefitPeriod] = useState<"all" | "current" | "last30" | "custom">("all");
+  const [benefitFrom, setBenefitFrom] = useState("");
+  const [benefitTo, setBenefitTo] = useState("");
+  const [planDetailsOpen, setPlanDetailsOpen] = useState(false);
+  const [redeemingRewardId, setRedeemingRewardId] = useState<string | null>(null);
+
+  async function handleRedeemReward(historyId: string) {
+    if (!confirm("Confirmar resgate deste benefício na barbearia?")) return;
+    setRedeemingRewardId(historyId);
+    const { error } = await supabase.rpc("redeem_subscription_reward" as any, {
+      p_history_id: historyId,
+      p_notes: "Resgatado pelo cliente via portal",
+    });
+    setRedeemingRewardId(null);
+    if (error) {
+      toast.error("Erro ao resgatar: " + error.message);
+      return;
+    }
+    toast.success("Benefício resgatado! Apresente na barbearia.");
+    if (client?.customer_id) fetchClientData(client.customer_id);
+  }
+
   useEffect(() => {
     if (slug) {
       fetchShopData(slug);
