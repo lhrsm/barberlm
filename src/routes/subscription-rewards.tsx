@@ -32,6 +32,9 @@ import {
   Gift,
   Clock,
   Sparkles,
+  RefreshCw,
+  CheckCircle2,
+  History,
 } from "lucide-react";
 
 export const Route = createFileRoute("/subscription-rewards")({
@@ -85,21 +88,57 @@ function SubscriptionRewardsPage() {
   const { user, loading: authLoading } = useAuth();
   const tenantId = user?.id;
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<Reward> | null>(null);
 
   async function load() {
     if (!tenantId) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("subscription_loyalty_rewards" as any)
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .order("months_required", { ascending: true });
-    if (error) toast.error(error.message);
-    setRewards((data as any) || []);
+    const [{ data: rs, error: e1 }, { data: hs, error: e2 }] = await Promise.all([
+      supabase
+        .from("subscription_loyalty_rewards" as any)
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("months_required", { ascending: true }),
+      supabase
+        .from("subscription_loyalty_history" as any)
+        .select("*, reward:subscription_loyalty_rewards(description, months_required, reward_type), customer:customers(name, phone)")
+        .eq("tenant_id", tenantId)
+        .order("granted_at", { ascending: false })
+        .limit(50),
+    ]);
+    if (e1) toast.error(e1.message);
+    if (e2) toast.error(e2.message);
+    setRewards((rs as any) || []);
+    setHistory((hs as any) || []);
     setLoading(false);
+  }
+
+  async function syncRewards() {
+    if (!tenantId) return;
+    setSyncing(true);
+    const { data, error } = await supabase.rpc("process_subscription_loyalty_rewards" as any, {
+      p_tenant_id: tenantId,
+    });
+    setSyncing(false);
+    if (error) return toast.error("Erro: " + error.message);
+    const count = Array.isArray(data) ? data.length : 0;
+    toast.success(count > 0 ? `${count} recompensa(s) concedida(s)!` : "Nenhuma recompensa nova");
+    load();
+  }
+
+  async function redeem(id: string) {
+    if (!confirm("Marcar esta recompensa como resgatada?")) return;
+    const { error } = await supabase.rpc("redeem_subscription_reward" as any, {
+      p_history_id: id,
+      p_notes: null,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Recompensa resgatada");
+    load();
   }
 
   useEffect(() => {
@@ -192,12 +231,23 @@ function SubscriptionRewardsPage() {
                 Recompensas exclusivas para assinantes baseadas no <strong className="text-amber-400">tempo de assinatura</strong>. Diferente da fidelidade tradicional, aqui o cliente acumula meses — não atendimentos.
               </p>
             </div>
-            <Button
-              onClick={openNew}
-              className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Nova recompensa
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={syncRewards}
+                disabled={syncing}
+                variant="outline"
+                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Sincronizando…" : "Sincronizar recompensas"}
+              </Button>
+              <Button
+                onClick={openNew}
+                className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Nova recompensa
+              </Button>
+            </div>
           </div>
 
           {/* Lista */}
@@ -284,6 +334,63 @@ function SubscriptionRewardsPage() {
               ))}
             </div>
           )}
+
+          {/* Histórico de recompensas concedidas */}
+          <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-950 to-zinc-900/40 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <History className="w-5 h-5 text-amber-400" />
+              <h2 className="text-lg font-bold text-white">Recompensas Concedidas</h2>
+              <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 ml-auto" variant="outline">
+                {history.filter((h) => h.status === "granted").length} pendentes
+              </Badge>
+            </div>
+            {history.length === 0 ? (
+              <p className="text-sm text-zinc-500 text-center py-8">
+                Nenhuma recompensa concedida ainda. Clique em <strong className="text-amber-400">Sincronizar</strong> para processar assinantes.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {history.map((h) => (
+                  <div
+                    key={h.id}
+                    className="flex items-center justify-between gap-3 p-3 rounded-xl bg-zinc-950/60 border border-zinc-800"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-white truncate">
+                          {h.customer?.name || "Cliente"}
+                        </span>
+                        {h.status === "redeemed" ? (
+                          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px]">
+                            Resgatado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-[10px]">
+                            Pendente
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-zinc-400 truncate">
+                        {h.reward?.months_required}m · {h.reward?.description}
+                      </p>
+                      <p className="text-[10px] text-zinc-500">
+                        Concedido em {new Date(h.granted_at).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                    {h.status === "granted" && (
+                      <Button
+                        size="sm"
+                        onClick={() => redeem(h.id)}
+                        className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      >
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Resgatar
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

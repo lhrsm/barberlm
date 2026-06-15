@@ -5275,6 +5275,14 @@ export type Database = {
         }
         Returns: string
       }
+      process_subscription_loyalty_rewards: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          granted_count: number
+          reward_id: string
+          subscription_id: string
+        }[]
+      }
       recalculate_barber_commissions: {
         Args: { p_from?: string; p_tenant_id: string; p_to?: string }
         Returns: number
@@ -5295,6 +5303,28 @@ export type Database = {
           p_reward_id: string
         }
         Returns: Json
+      }
+      redeem_subscription_reward: {
+        Args: { p_history_id: string; p_notes?: string }
+        Returns: {
+          created_at: string
+          customer_id: string
+          granted_at: string
+          id: string
+          notes: string | null
+          redeemed_at: string | null
+          reward_id: string
+          status: string
+          subscription_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "subscription_loyalty_history"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       request_appointment_refund: {
         Args: {
