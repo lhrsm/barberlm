@@ -1202,6 +1202,15 @@ function ClientPortalComponent() {
                       </p>
                     </div>
                   )}
+                  {mySubscription.card_token && (
+                    <Button
+                      onClick={() => setCardOpen(true)}
+                      size="sm"
+                      className="mt-3 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] hover:from-[#F5D061] hover:to-[#D4AF37] text-black font-black uppercase text-[11px] tracking-widest gap-2 shadow-[0_4px_16px_rgba(212,175,55,0.35)]"
+                    >
+                      <QrCode className="h-4 w-4" /> Meu Cartão de Assinante
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {next ? (
