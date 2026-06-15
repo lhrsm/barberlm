@@ -204,7 +204,21 @@ function CommissionsPage() {
             <div>
               <Label className="text-xs">De</Label>
               <Input type="date" value={from} onChange={e => setFrom(e.target.value)} />
-            </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <KpiCard icon={<DollarSign className="h-4 w-4 text-emerald-500" />} label="Faturamento Total" value={fmt(kpis.faturamento)} />
+          <KpiCard icon={<TrendingUp className="h-4 w-4 text-blue-500" />} label="Comissões Geradas" value={fmt(kpis.geradas)} />
+          <KpiCard icon={<DollarSign className="h-4 w-4 text-green-500" />} label="Comissões Pagas" value={fmt(kpis.pagas)} />
+          <KpiCard icon={<Target className="h-4 w-4 text-amber-500" />} label="Comissões Pendentes" value={fmt(kpis.pendentes)} />
+          <KpiCard
+            icon={<Trophy className="h-4 w-4 text-yellow-500" />}
+            label="Melhor Barbeiro"
+            value={kpis.melhor?.barber.name ?? "-"}
+            sub={kpis.melhor ? `${kpis.melhor.services} atend. · ${fmt(kpis.melhor.production)}` : undefined}
+          />
+        </div>
+
             <div>
               <Label className="text-xs">Até</Label>
               <Input type="date" value={to} onChange={e => setTo(e.target.value)} />
