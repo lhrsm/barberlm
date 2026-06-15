@@ -299,6 +299,14 @@ function ClientPortalComponent() {
     setCreditTransactions(creditsRes.data || []);
     setCashbackTransactions(cashbackRes.data || []);
 
+    // Fetch loyalty rewards
+    const { data: rewards } = await supabase
+      .from("loyalty_rewards" as any)
+      .select("*")
+      .eq("customer_id", customerId)
+      .order("earned_at", { ascending: false });
+    setLoyaltyRewards((rewards as any[]) || []);
+
     // Fetch appointments
     const { data: appts } = await supabase
       .from("appointments")
