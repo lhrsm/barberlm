@@ -1126,6 +1126,21 @@ function ShopPageComponent() {
         }
       }
 
+      // 2.6 Consume subscription benefit for covered appointments
+      for (const appt of createdAppointments) {
+        if (appt.subscription_id && (appt.payment_method === 'subscription' || appt.payment_method === 'subscription_plus_payment')) {
+          await (supabase as any).rpc('consume_subscription_benefit', {
+            p_appointment_id: appt.id,
+            p_subscription_id: appt.subscription_id,
+            p_service_id: appt.service_id,
+            p_covered_amount: appt.subscription_covered_amount || 0,
+            p_extra_amount: appt.extra_amount || 0,
+          });
+        }
+      }
+
+
+
 
       // 3. Handle Product Sales if any
       if (selectedProducts.length > 0) {
