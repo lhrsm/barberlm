@@ -1766,10 +1766,14 @@ export type Database = {
           average_rating: number | null
           bio: string | null
           category: string | null
+          commission_bonus_value: number
+          commission_fixed_value: number
           commission_rate: number | null
+          commission_type: string
           created_at: string
           email: string | null
           id: string
+          monthly_goal: number
           name: string
           phone: string | null
           specialties: string[] | null
@@ -1785,10 +1789,14 @@ export type Database = {
           average_rating?: number | null
           bio?: string | null
           category?: string | null
+          commission_bonus_value?: number
+          commission_fixed_value?: number
           commission_rate?: number | null
+          commission_type?: string
           created_at?: string
           email?: string | null
           id?: string
+          monthly_goal?: number
           name: string
           phone?: string | null
           specialties?: string[] | null
@@ -1804,10 +1812,14 @@ export type Database = {
           average_rating?: number | null
           bio?: string | null
           category?: string | null
+          commission_bonus_value?: number
+          commission_fixed_value?: number
           commission_rate?: number | null
+          commission_type?: string
           created_at?: string
           email?: string | null
           id?: string
+          monthly_goal?: number
           name?: string
           phone?: string | null
           specialties?: string[] | null
@@ -2085,6 +2097,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      commission_closings: {
+        Row: {
+          barber_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          paid_amount: number
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          status: string
+          tenant_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          barber_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+          tenant_id: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          barber_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          tenant_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      commission_entries: {
+        Row: {
+          appointment_id: string
+          barber_id: string
+          closing_id: string | null
+          commission_amount: number
+          commission_bonus: number
+          commission_fixed: number
+          commission_rate: number
+          commission_type: string
+          created_at: string
+          customer_id: string | null
+          earned_at: string
+          id: string
+          paid_amount: number
+          service_amount: number
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          barber_id: string
+          closing_id?: string | null
+          commission_amount?: number
+          commission_bonus?: number
+          commission_fixed?: number
+          commission_rate?: number
+          commission_type?: string
+          created_at?: string
+          customer_id?: string | null
+          earned_at?: string
+          id?: string
+          paid_amount?: number
+          service_amount?: number
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          barber_id?: string
+          closing_id?: string | null
+          commission_amount?: number
+          commission_bonus?: number
+          commission_fixed?: number
+          commission_rate?: number
+          commission_type?: string
+          created_at?: string
+          customer_id?: string | null
+          earned_at?: string
+          id?: string
+          paid_amount?: number
+          service_amount?: number
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       coupons: {
         Row: {
@@ -2973,6 +3090,7 @@ export type Database = {
           cashback_minimum_amount: number | null
           cashback_percentage: number
           cashback_type: string | null
+          commission_base: string
           created_at: string
           effective_plan: string | null
           email: string | null
@@ -3019,6 +3137,7 @@ export type Database = {
           cashback_minimum_amount?: number | null
           cashback_percentage?: number
           cashback_type?: string | null
+          commission_base?: string
           created_at?: string
           effective_plan?: string | null
           email?: string | null
@@ -3065,6 +3184,7 @@ export type Database = {
           cashback_minimum_amount?: number | null
           cashback_percentage?: number
           cashback_type?: string | null
+          commission_base?: string
           created_at?: string
           effective_plan?: string | null
           email?: string | null
@@ -4782,6 +4902,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_commission_for_appointment: {
+        Args: { p_appointment_id: string }
+        Returns: undefined
+      }
       calculate_next_retry: { Args: { attempts: number }; Returns: string }
       cancel_appointment: {
         Args: {
@@ -4973,6 +5097,15 @@ export type Database = {
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_super_admin_user: { Args: never; Returns: boolean }
+      pay_commission_entries: {
+        Args: {
+          p_amount: number
+          p_barber_id: string
+          p_entry_ids: string[]
+          p_notes?: string
+        }
+        Returns: Json
+      }
       process_product_sale: {
         Args: {
           p_customer_id: string
@@ -4982,6 +5115,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      recalculate_barber_commissions: {
+        Args: { p_from?: string; p_tenant_id: string; p_to?: string }
+        Returns: number
       }
       recalculate_customer_cashback_balance: {
         Args: { p_customer_id: string }

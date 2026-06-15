@@ -30,6 +30,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as FinancesCommissionsRouteImport } from './routes/finances.commissions'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
@@ -154,6 +155,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const FinancesCommissionsRoute = FinancesCommissionsRouteImport.update({
+  id: '/commissions',
+  path: '/commissions',
+  getParentRoute: () => FinancesRoute,
+} as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -258,7 +264,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
-  '/finances': typeof FinancesRoute
+  '/finances': typeof FinancesRouteWithChildren
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
@@ -283,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/finances/commissions': typeof FinancesCommissionsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -298,7 +305,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
-  '/finances': typeof FinancesRoute
+  '/finances': typeof FinancesRouteWithChildren
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
@@ -323,6 +330,7 @@ export interface FileRoutesByTo {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/finances/commissions': typeof FinancesCommissionsRoute
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -340,7 +348,7 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
-  '/finances': typeof FinancesRoute
+  '/finances': typeof FinancesRouteWithChildren
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
@@ -365,6 +373,7 @@ export interface FileRoutesById {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/finances/commissions': typeof FinancesCommissionsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/finances/commissions'
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/finances/commissions'
     | '/admin'
     | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
@@ -489,6 +500,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/finances/commissions'
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
@@ -506,7 +518,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRoute
   CustomersRoute: typeof CustomersRoute
   DashboardRoute: typeof DashboardRoute
-  FinancesRoute: typeof FinancesRoute
+  FinancesRoute: typeof FinancesRouteWithChildren
   IntegrationsRoute: typeof IntegrationsRoute
   LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
@@ -671,6 +683,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/finances/commissions': {
+      id: '/finances/commissions'
+      path: '/commissions'
+      fullPath: '/finances/commissions'
+      preLoaderRoute: typeof FinancesCommissionsRouteImport
+      parentRoute: typeof FinancesRoute
     }
     '/checkout/return': {
       id: '/checkout/return'
@@ -845,6 +864,18 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface FinancesRouteChildren {
+  FinancesCommissionsRoute: typeof FinancesCommissionsRoute
+}
+
+const FinancesRouteChildren: FinancesRouteChildren = {
+  FinancesCommissionsRoute: FinancesCommissionsRoute,
+}
+
+const FinancesRouteWithChildren = FinancesRoute._addFileChildren(
+  FinancesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
@@ -856,7 +887,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRoute,
   CustomersRoute: CustomersRoute,
   DashboardRoute: DashboardRoute,
-  FinancesRoute: FinancesRoute,
+  FinancesRoute: FinancesRouteWithChildren,
   IntegrationsRoute: IntegrationsRoute,
   LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
@@ -875,12 +906,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

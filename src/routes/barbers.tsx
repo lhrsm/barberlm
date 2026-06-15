@@ -98,6 +98,10 @@ function BarbersComponent() {
     avatar_url: "", 
     category: "Proprietário", 
     commission_rate: 0,
+    commission_type: "percentage",
+    commission_fixed_value: 0,
+    commission_bonus_value: 0,
+    monthly_goal: 0,
     working_hours: DEFAULT_WORKING_HOURS
   });
   const [uploading, setUploading] = useState(false);
@@ -269,7 +273,7 @@ function BarbersComponent() {
 
     toast.success("Barbeiro cadastrado com sucesso!");
     setIsAddDialogOpen(false);
-    setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
+    setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, commission_type: "percentage", commission_fixed_value: 0, commission_bonus_value: 0, monthly_goal: 0, working_hours: DEFAULT_WORKING_HOURS });
     setSelectedServices([]);
     
     // Invalidate Caches
@@ -300,6 +304,10 @@ function BarbersComponent() {
       avatar_url: editingBarber.avatar_url,
       category: editingBarber.category,
       commission_rate: editingBarber.commission_rate,
+      commission_type: editingBarber.commission_type ?? 'percentage',
+      commission_fixed_value: editingBarber.commission_fixed_value ?? 0,
+      commission_bonus_value: editingBarber.commission_bonus_value ?? 0,
+      monthly_goal: editingBarber.monthly_goal ?? 0,
       working_hours: editingBarber.working_hours,
       active: editingBarber.active
     };
@@ -595,14 +603,35 @@ function BarbersComponent() {
                         </Select>
                       </div>
                       {newBarber.category === 'Freelancer' && (
-                        <div className="space-y-2">
-                          <Label htmlFor="commission">Comissão (%)</Label>
-                          <Input 
-                            id="commission" 
-                            type="number"
-                            value={newBarber.commission_rate} 
-                            onChange={(e) => setNewBarber({...newBarber, commission_rate: Number(e.target.value)})} 
-                          />
+                        <div className="space-y-2 md:col-span-2 border rounded p-3">
+                          <Label>Comissão</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Select
+                              value={newBarber.commission_type}
+                              onValueChange={(v) => setNewBarber({ ...newBarber, commission_type: v })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">Percentual (%)</SelectItem>
+                                <SelectItem value="fixed">Valor fixo (R$/atendimento)</SelectItem>
+                                <SelectItem value="hybrid">Híbrido (% + bônus)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {(newBarber.commission_type === 'percentage' || newBarber.commission_type === 'hybrid') && (
+                              <Input type="number" placeholder="% sobre serviço" value={newBarber.commission_rate}
+                                onChange={(e) => setNewBarber({ ...newBarber, commission_rate: Number(e.target.value) })} />
+                            )}
+                            {newBarber.commission_type === 'fixed' && (
+                              <Input type="number" placeholder="R$ por atendimento" value={newBarber.commission_fixed_value}
+                                onChange={(e) => setNewBarber({ ...newBarber, commission_fixed_value: Number(e.target.value) })} />
+                            )}
+                            {newBarber.commission_type === 'hybrid' && (
+                              <Input type="number" placeholder="Bônus R$ por atendimento" value={newBarber.commission_bonus_value}
+                                onChange={(e) => setNewBarber({ ...newBarber, commission_bonus_value: Number(e.target.value) })} />
+                            )}
+                            <Input type="number" placeholder="Meta mensal R$" value={newBarber.monthly_goal}
+                              onChange={(e) => setNewBarber({ ...newBarber, monthly_goal: Number(e.target.value) })} />
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1029,14 +1058,35 @@ function BarbersComponent() {
                     </Select>
                   </div>
                   {editingBarber.category === 'Freelancer' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="edit_commission">Comissão (%)</Label>
-                      <Input 
-                        id="edit_commission" 
-                        type="number"
-                        value={editingBarber.commission_rate} 
-                        onChange={(e) => setEditingBarber({...editingBarber, commission_rate: Number(e.target.value)})} 
-                      />
+                    <div className="space-y-2 md:col-span-2 border rounded p-3">
+                      <Label>Comissão</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Select
+                          value={editingBarber.commission_type ?? 'percentage'}
+                          onValueChange={(v) => setEditingBarber({ ...editingBarber, commission_type: v })}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="percentage">Percentual (%)</SelectItem>
+                            <SelectItem value="fixed">Valor fixo (R$/atendimento)</SelectItem>
+                            <SelectItem value="hybrid">Híbrido (% + bônus)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {((editingBarber.commission_type ?? 'percentage') === 'percentage' || editingBarber.commission_type === 'hybrid') && (
+                          <Input type="number" placeholder="% sobre serviço" value={editingBarber.commission_rate ?? 0}
+                            onChange={(e) => setEditingBarber({ ...editingBarber, commission_rate: Number(e.target.value) })} />
+                        )}
+                        {editingBarber.commission_type === 'fixed' && (
+                          <Input type="number" placeholder="R$ por atendimento" value={editingBarber.commission_fixed_value ?? 0}
+                            onChange={(e) => setEditingBarber({ ...editingBarber, commission_fixed_value: Number(e.target.value) })} />
+                        )}
+                        {editingBarber.commission_type === 'hybrid' && (
+                          <Input type="number" placeholder="Bônus R$ por atendimento" value={editingBarber.commission_bonus_value ?? 0}
+                            onChange={(e) => setEditingBarber({ ...editingBarber, commission_bonus_value: Number(e.target.value) })} />
+                        )}
+                        <Input type="number" placeholder="Meta mensal R$" value={editingBarber.monthly_goal ?? 0}
+                          onChange={(e) => setEditingBarber({ ...editingBarber, monthly_goal: Number(e.target.value) })} />
+                      </div>
                     </div>
                   )}
                 </div>
