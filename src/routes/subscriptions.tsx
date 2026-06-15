@@ -2117,6 +2117,67 @@ function SubscriptionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PAUSE DIALOG */}
+      <Dialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pause className="h-5 w-5 text-blue-300" /> Pausar Assinatura
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {pauseTarget && (
+              <div className="text-sm text-zinc-400">
+                <span className="text-white font-bold">{pauseTarget.customer?.name}</span> ·{" "}
+                {pauseTarget.plan?.name}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Motivo da pausa</Label>
+              <Input
+                value={pauseReason}
+                onChange={(e) => setPauseReason(e.target.value)}
+                placeholder="Ex.: viagem, problemas financeiros..."
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Data prevista de retorno</Label>
+              <Input
+                type="date"
+                value={pauseUntil}
+                onChange={(e) => setPauseUntil(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Observações</Label>
+              <Textarea
+                value={pauseNotes}
+                onChange={(e) => setPauseNotes(e.target.value)}
+                placeholder="Observações internas (opcional)"
+                className="bg-[#05070d] border-zinc-800 text-white min-h-[80px]"
+              />
+            </div>
+            <div className="text-[11px] text-zinc-500 bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
+              Durante a pausa, o cliente não consome benefícios, não acumula fidelidade premium,
+              não recebe cobranças e não recebe lembretes de renovação.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPauseDialogOpen(false)} className="text-zinc-400">
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmPause}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold"
+            >
+              <Pause className="h-4 w-4 mr-2" /> Pausar Assinatura
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
