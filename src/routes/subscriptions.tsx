@@ -286,6 +286,13 @@ function SubscriptionsPage() {
   const [planUsageFilter, setPlanUsageFilter] = useState<string>("all");
   const [planStatusFilter, setPlanStatusFilter] = useState<string>("all");
 
+  // Pause modal
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [pauseTarget, setPauseTarget] = useState<CustomerSub | null>(null);
+  const [pauseReason, setPauseReason] = useState("");
+  const [pauseUntil, setPauseUntil] = useState("");
+  const [pauseNotes, setPauseNotes] = useState("");
+
   async function loadAll() {
     if (!tenantId) return;
     setLoading(true);
