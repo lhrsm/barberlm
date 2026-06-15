@@ -311,8 +311,9 @@ function SettingsComponent() {
 
     setSaving(false);
 
-    if (profileError || settingsError) {
-      const error = profileError || settingsError;
+    if (profileError || settingsError || loyaltyError) {
+      const error = profileError || settingsError || loyaltyError;
+
       if (error?.code === "23505") {
         toast.error("Este endereço (URL) já está em uso.");
       } else {
