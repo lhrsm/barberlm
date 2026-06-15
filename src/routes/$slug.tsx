@@ -1010,17 +1010,45 @@ function ShopPageComponent() {
         const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
         const endTime = addMinutes(startTime, item.duration);
 
+        // === Subscription coverage check ===
+        const elig = serviceEligibility[item.service_id];
+        const isCoveredFull =
+          elig?.has_active_subscription &&
+          elig?.service_included &&
+          !elig?.requires_payment &&
+          elig?.reason === "full_coverage";
+        const isCoveredPartial =
+          elig?.has_active_subscription &&
+          elig?.service_included &&
+          elig?.requires_payment &&
+          elig?.reason === "partial_coverage";
+        const subCoveredAmount = isCoveredFull
+          ? Number(item.price)
+          : isCoveredPartial
+            ? Number(elig?.covered_amount || 0)
+            : 0;
+        const subExtraAmount = isCoveredPartial
+          ? Math.max(0, Number(item.price) - subCoveredAmount)
+          : 0;
+
         const totalValue = calculateSubtotal();
         const totalDiscount = calculateDiscount();
         const payableValue = totalValue - totalDiscount;
-        
-        // Distribute cashback and credits proportionally if multiple appointments
-        const ratio = item.price / totalValue;
-        const apptCashbackUsed = useCashback ? Number((Math.min(customerCashback, payableValue) * ratio).toFixed(2)) : 0;
-        const apptCreditsUsed = useCredits ? Number((Math.min(customerCredits, payableValue - apptCashbackUsed) * ratio).toFixed(2)) : 0;
-        const apptFinalAmount = Math.max(0, item.price - apptCashbackUsed - apptCreditsUsed);
 
-        const appointmentPayload = {
+        // Distribute cashback and credits proportionally if multiple appointments
+        const ratio = totalValue > 0 ? item.price / totalValue : 0;
+        let apptCashbackUsed = useCashback ? Number((Math.min(customerCashback, payableValue) * ratio).toFixed(2)) : 0;
+        let apptCreditsUsed = useCredits ? Number((Math.min(customerCredits, payableValue - apptCashbackUsed) * ratio).toFixed(2)) : 0;
+        let apptFinalAmount = Math.max(0, item.price - apptCashbackUsed - apptCreditsUsed);
+
+        // When fully covered by subscription, zero out any payment
+        if (isCoveredFull) {
+          apptCashbackUsed = 0;
+          apptCreditsUsed = 0;
+          apptFinalAmount = 0;
+        }
+
+        const appointmentPayload: any = {
           user_id: shop.id,
           tenant_id: shop.id,
           customer_id: finalCustId,
@@ -1031,17 +1059,27 @@ function ShopPageComponent() {
           total_price: item.price,
           original_total: item.price,
           status: "confirmed",
-          payment_status: (calculateTotal() === 0) ? 'paid' : 'pending',
-          payment_method: (apptCashbackUsed > 0 || apptCreditsUsed > 0) ? 'mixed' : finalPaymentMethod,
+          payment_status: isCoveredFull
+            ? 'covered_by_subscription'
+            : (calculateTotal() === 0 ? 'paid' : 'pending'),
+          payment_method: isCoveredFull
+            ? 'subscription'
+            : isCoveredPartial
+              ? 'subscription_plus_payment'
+              : (apptCashbackUsed > 0 || apptCreditsUsed > 0) ? 'mixed' : finalPaymentMethod,
           cashback_used: apptCashbackUsed,
           credits_used: apptCreditsUsed,
-          pix_amount: finalPaymentMethod === 'pix' ? apptFinalAmount : 0,
-          cash_amount: finalPaymentMethod === 'barbershop' ? apptFinalAmount : 0,
+          pix_amount: !isCoveredFull && finalPaymentMethod === 'pix' ? apptFinalAmount : 0,
+          cash_amount: !isCoveredFull && finalPaymentMethod === 'barbershop' ? apptFinalAmount : 0,
           final_amount: apptFinalAmount,
           source: 'online',
           appointment_group_id: appointmentGroupId,
           service_amount: item.price,
           group_sequence: index + 1,
+          subscription_id: (isCoveredFull || isCoveredPartial) ? (elig?.subscription_id || activeSubscription?.id || null) : null,
+          subscription_plan_id: (isCoveredFull || isCoveredPartial) ? (elig?.plan_id || activeSubscription?.plan_id || null) : null,
+          subscription_covered_amount: subCoveredAmount,
+          extra_amount: subExtraAmount,
           items: [{
             id: item.service_id,
             name: item.service_name,
@@ -1050,18 +1088,11 @@ function ShopPageComponent() {
             quantity: 1
           }]
         };
-        console.log('AUDIT CHECKOUT:', {
-          appointment_id: 'pending_insert',
-          appointment_group_id: appointmentGroupId,
-          customer_id: finalCustId,
-          service_id: item.service_id,
-          barber_id: item.barber_id,
-          start_time: startTime.toISOString(),
-          created_at: new Date().toISOString()
-        });
 
         return supabase.from("appointments").insert([appointmentPayload]).select().single();
       });
+
+
 
       const appointmentResults = await Promise.all(appointmentPromises);
       const createdAppointments = appointmentResults.map(res => {
