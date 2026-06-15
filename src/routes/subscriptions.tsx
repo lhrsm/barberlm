@@ -1459,7 +1459,7 @@ function SubscriptionsPage() {
             <Button
               variant="outline"
               onClick={() => setSubDialogOpen(false)}
-              className="bg-transparent border-zinc-700 hover:bg-zinc-800 text-white"
+              className="bg-transparent border-zinc-700 text-white hover:bg-zinc-800 hover:text-white hover:border-zinc-600"
             >
               Cancelar
             </Button>
