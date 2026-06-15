@@ -35,6 +35,8 @@ import {
   RefreshCw,
   CheckCircle2,
   History,
+  AlertTriangle,
+  Send,
 } from "lucide-react";
 
 export const Route = createFileRoute("/subscription-rewards")({
