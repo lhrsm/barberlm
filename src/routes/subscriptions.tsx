@@ -570,7 +570,31 @@ function SubscriptionsPage() {
       toast.error(res?.error || error?.message || "Cupom inválido");
       setNewSubCoupon(null);
       return;
+  }
+
+  async function applyNewSubReferral() {
+    if (!tenantId || !newSubReferralCode.trim()) return;
+    setNewSubReferralLoading(true);
+    const { data, error } = await supabase.rpc("validate_subscription_referral_code" as any, {
+      p_tenant_id: tenantId,
+      p_code: newSubReferralCode.trim().toUpperCase(),
+      p_new_customer_id: newSubCustomerId || null,
+    });
+    setNewSubReferralLoading(false);
+    const res = data as any;
+    if (error || !res?.valid) {
+      toast.error(res?.reason === "self_referral" ? "Cliente não pode indicar a si mesmo" :
+                  res?.reason === "not_found" ? "Código não encontrado" :
+                  res?.reason === "inactive" ? "Assinatura do indicador inativa" :
+                  "Código inválido");
+      setNewSubReferral(null);
+      return;
     }
+    setNewSubReferral({ ...res, code: newSubReferralCode.trim().toUpperCase() });
+    toast.success(`Indicado por ${res.referrer_name}`);
+  }
+
+
     setNewSubCoupon(res);
     setNewSubCouponCode("");
     toast.success("Cupom aplicado");
