@@ -451,22 +451,48 @@ function SubscriptionsPage() {
     if (!tenantId) return;
     setEditingPlan(emptyPlan(tenantId));
     setEditingPlanServices({});
+    setEditingBenefits([]);
+    setEditingBenefitServices({});
     setPlanDialogOpen(true);
   }
   async function openEditPlan(p: SubscriptionPlan) {
     setEditingPlan({ ...p, benefits: { exclusive_services: [], ...(p.benefits || {}) } });
     setEditingPlanServices({});
+    setEditingBenefits([]);
+    setEditingBenefitServices({});
     setPlanDialogOpen(true);
-    const { data } = await (supabase as any)
-      .from("subscription_plan_services")
-      .select("service_id,max_uses_per_period")
-      .eq("plan_id", p.id);
+    const [{ data }, { data: benefitsData }, { data: benefitServicesData }] = await Promise.all([
+      (supabase as any)
+        .from("subscription_plan_services")
+        .select("service_id,max_uses_per_period")
+        .eq("plan_id", p.id),
+      (supabase as any)
+        .from("subscription_plan_benefits")
+        .select("id, benefit_key, benefit_name, monthly_limit")
+        .eq("plan_id", p.id)
+        .order("display_order", { ascending: true }),
+      (supabase as any)
+        .from("subscription_plan_benefit_services")
+        .select("service_id, consume_quantity, benefit:subscription_plan_benefits(benefit_key)")
+        .eq("plan_id", p.id),
+    ]);
     if (data) {
       const map: Record<string, { included: boolean; max_uses_per_period: number | null }> = {};
       for (const row of data) {
         map[row.service_id] = { included: true, max_uses_per_period: row.max_uses_per_period };
       }
       setEditingPlanServices(map);
+    }
+    if (benefitsData) setEditingBenefits(benefitsData as BenefitDraft[]);
+    if (benefitServicesData) {
+      const map: Record<string, Record<string, number>> = {};
+      for (const row of benefitServicesData as any[]) {
+        const key = row.benefit?.benefit_key;
+        if (!key) continue;
+        if (!map[row.service_id]) map[row.service_id] = {};
+        map[row.service_id][key] = row.consume_quantity || 1;
+      }
+      setEditingBenefitServices(map);
     }
   }
   async function duplicatePlan(p: SubscriptionPlan) {
