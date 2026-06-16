@@ -115,11 +115,13 @@ export function CouponManagement() {
         code: data.code.toUpperCase().trim(),
         type: data.type,
         value: data.value,
-        minimum_amount: data.minimum_amount || 0,
+        minimum_amount: data.applies_to === 'subscription' ? 0 : (data.minimum_amount || 0),
         max_discount: data.max_discount || null,
         usage_limit: data.usage_limit || null,
         expires_at: data.expires_at || null,
-        active: data.active
+        active: data.active,
+        applies_to: data.applies_to,
+        first_month_only: data.applies_to === 'subscription' ? !!data.first_month_only : false,
       };
 
       if (data.id) {
