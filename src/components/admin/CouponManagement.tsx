@@ -191,7 +191,9 @@ export function CouponManagement() {
       max_discount: coupon.max_discount || undefined,
       usage_limit: coupon.usage_limit || undefined,
       expires_at: coupon.expires_at ? coupon.expires_at.split('T')[0] : "",
-      active: coupon.active
+      active: coupon.active,
+      applies_to: (coupon.applies_to ?? 'order'),
+      first_month_only: !!coupon.first_month_only,
     });
     setIsDialogOpen(true);
   };
@@ -206,10 +208,13 @@ export function CouponManagement() {
       max_discount: coupon.max_discount || undefined,
       usage_limit: coupon.usage_limit || undefined,
       expires_at: coupon.expires_at ? coupon.expires_at.split('T')[0] : "",
-      active: false
+      active: false,
+      applies_to: (coupon.applies_to ?? 'order'),
+      first_month_only: !!coupon.first_month_only,
     });
     setIsDialogOpen(true);
   };
+
 
   const handleOpenNew = () => {
     setEditingCoupon(null);
