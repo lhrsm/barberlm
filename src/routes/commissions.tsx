@@ -111,6 +111,7 @@ function CommissionsPage() {
   const [commissionBase, setCommissionBase] = useState("gross");
   const [loadingData, setLoadingData] = useState(true);
   const [barberFilter, setBarberFilter] = useState<string>("all");
+  const [commTab, setCommTab] = useState<string>("dashboard");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [payDialog, setPayDialog] = useState<{
     barberId: string;
