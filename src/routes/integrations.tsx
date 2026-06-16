@@ -22,7 +22,15 @@ import {
   Settings2,
   Trash2,
   Lock,
-  Plus
+  Plus,
+  Calendar,
+  Instagram,
+  Send,
+  CreditCard,
+  Workflow,
+  BarChart3,
+  Facebook,
+  Webhook,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +39,8 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
+import { WebhooksCard } from "@/components/integrations/WebhooksCard";
+
 
 export const Route = createFileRoute("/integrations")({
   component: IntegrationsComponent,
