@@ -1371,22 +1371,32 @@ function ClientPortalComponent() {
 
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className={cn("grid w-full max-w-[750px] bg-white/5 p-1 rounded-xl", mySubscription ? "grid-cols-5" : "grid-cols-4")}>
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+          <TabsList className={cn("flex w-full flex-wrap bg-white/5 p-1 rounded-xl gap-1", mySubscription ? "md:grid md:grid-cols-7 md:max-w-[1100px]" : "md:grid md:grid-cols-4 md:max-w-[750px]")}>
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Fidelidade
             </TabsTrigger>
             {mySubscription && (
-              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                  Benefícios
               </TabsTrigger>
             )}
-            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+            {mySubscription && (
+              <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+                <QrCode size={16} /> Carteirinha
+              </TabsTrigger>
+            )}
+            {mySubscription && (
+              <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+                ✦ Clube VIP
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Extrato
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
