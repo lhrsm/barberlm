@@ -50,6 +50,12 @@ function CampaignsComponent() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [metrics, setMetrics] = useState({
+    totalSent: 0,
+    openRate: 0,
+    responseRate: 0,
+    vipCustomers: 0,
+  });
   const [newCampaign, setNewCampaign] = useState({
     title: "",
     content: "",
