@@ -463,7 +463,7 @@ function SettingsComponent() {
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-xl h-10 px-4"
+                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-[10px] h-10 px-[18px] py-3"
                   >
                     <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
                     {isSyncing ? "Sincronizando..." : "Sincronizar"}
