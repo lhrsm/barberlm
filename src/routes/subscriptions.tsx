@@ -277,6 +277,9 @@ function SubscriptionsPage() {
   const [newSubCustomerId, setNewSubCustomerId] = useState("");
   const [newSubPlanId, setNewSubPlanId] = useState("");
   const [newSubPayment, setNewSubPayment] = useState<PaymentMethod>("in_person");
+  const [newSubCouponCode, setNewSubCouponCode] = useState("");
+  const [newSubCoupon, setNewSubCoupon] = useState<any | null>(null);
+  const [newSubCouponLoading, setNewSubCouponLoading] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [customersList, setCustomersList] = useState<
     { id: string; name: string; phone: string | null; cpf: string | null }[]
