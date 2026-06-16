@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 
 import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
 import { WebhooksCard } from "@/components/integrations/WebhooksCard";
+import { ConfigurableIntegrationCard } from "@/components/integrations/ConfigurableIntegrationCard";
 
 
 export const Route = createFileRoute("/integrations")({
@@ -223,90 +224,119 @@ function IntegrationsComponent() {
             {/* Webhooks Customizados (ativo) */}
             {tenantId && <WebhooksCard tenantId={tenantId} />}
 
-            {/* Mais integrações (em breve) */}
-            <ComingSoonCard
-              icon={<Calendar size={20} className="text-blue-400" />}
-              iconBg="bg-blue-500/10 border-blue-500/30"
-              title="Google Calendar"
-              description="Sincronize automaticamente os agendamentos com a agenda Google dos profissionais."
-            />
+            {/* Integrações configuráveis */}
+            {tenantId && (
+              <>
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="google_calendar"
+                  title="Google Calendar"
+                  description="Sincronize automaticamente os agendamentos com a agenda Google dos profissionais."
+                  icon={<Calendar size={20} className="text-blue-400" />}
+                  iconBg="bg-blue-500/10 border-blue-500/30"
+                  accentColor="blue"
+                  docsUrl="https://console.cloud.google.com/apis/credentials"
+                  fields={[
+                    { key: "client_id", label: "Client ID", placeholder: "xxxxxxxx.apps.googleusercontent.com", required: true },
+                    { key: "client_secret", label: "Client Secret", placeholder: "GOCSPX-...", type: "password", required: true },
+                    { key: "calendar_id", label: "Calendar ID", placeholder: "primary", helper: "Use 'primary' para a agenda principal." },
+                  ]}
+                />
 
-            <ComingSoonCard
-              icon={<Camera size={20} className="text-pink-400" />}
-              iconBg="bg-pink-500/10 border-pink-500/30"
-              title="Instagram"
-              description="Receba mensagens diretas do Instagram dentro do seu inbox da Barbex."
-            />
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="instagram"
+                  title="Instagram"
+                  description="Receba mensagens diretas do Instagram dentro do seu inbox da Barbex."
+                  icon={<Camera size={20} className="text-pink-400" />}
+                  iconBg="bg-pink-500/10 border-pink-500/30"
+                  accentColor="pink"
+                  docsUrl="https://developers.facebook.com/apps/"
+                  fields={[
+                    { key: "page_id", label: "Page ID", placeholder: "Ex: 17841400000000000", required: true },
+                    { key: "access_token", label: "Access Token", placeholder: "EAAG...", type: "password", required: true },
+                  ]}
+                />
 
-            <ComingSoonCard
-              icon={<Send size={20} className="text-cyan-400" />}
-              iconBg="bg-cyan-500/10 border-cyan-500/30"
-              title="Telegram Bot"
-              description="Notifique clientes e profissionais via Telegram de forma instantânea."
-            />
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="telegram"
+                  title="Telegram Bot"
+                  description="Notifique clientes e profissionais via Telegram de forma instantânea."
+                  icon={<Send size={20} className="text-cyan-400" />}
+                  iconBg="bg-cyan-500/10 border-cyan-500/30"
+                  accentColor="cyan"
+                  docsUrl="https://core.telegram.org/bots#how-do-i-create-a-bot"
+                  fields={[
+                    { key: "bot_token", label: "Bot Token", placeholder: "123456:ABC-...", type: "password", required: true, helper: "Crie um bot com o @BotFather no Telegram." },
+                    { key: "chat_id", label: "Chat ID (opcional)", placeholder: "-1001234567890" },
+                  ]}
+                />
 
-            <ComingSoonCard
-              icon={<CreditCard size={20} className="text-amber-400" />}
-              iconBg="bg-amber-500/10 border-amber-500/30"
-              title="Mercado Pago"
-              description="Aceite pagamentos online, Pix e cartão direto no checkout do agendamento."
-            />
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="mercado_pago"
+                  title="Mercado Pago"
+                  description="Aceite pagamentos online, Pix e cartão direto no checkout do agendamento."
+                  icon={<CreditCard size={20} className="text-amber-400" />}
+                  iconBg="bg-amber-500/10 border-amber-500/30"
+                  accentColor="amber"
+                  docsUrl="https://www.mercadopago.com.br/developers/panel/app"
+                  fields={[
+                    { key: "public_key", label: "Public Key", placeholder: "APP_USR-...", required: true },
+                    { key: "access_token", label: "Access Token", placeholder: "APP_USR-...", type: "password", required: true },
+                  ]}
+                />
 
-            <ComingSoonCard
-              icon={<Workflow size={20} className="text-orange-400" />}
-              iconBg="bg-orange-500/10 border-orange-500/30"
-              title="n8n / Make"
-              description="Automatize fluxos avançados conectando a Barbex a milhares de apps."
-            />
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="n8n_make"
+                  title="n8n / Make"
+                  description="Automatize fluxos avançados conectando a Barbex a milhares de apps."
+                  icon={<Workflow size={20} className="text-orange-400" />}
+                  iconBg="bg-orange-500/10 border-orange-500/30"
+                  accentColor="orange"
+                  fields={[
+                    { key: "webhook_url", label: "Webhook URL", placeholder: "https://hook.n8n.cloud/...", type: "url", required: true },
+                    { key: "auth_header", label: "Header de Autenticação (opcional)", placeholder: "Bearer xxx", type: "password" },
+                  ]}
+                />
 
-            <ComingSoonCard
-              icon={<BarChart3 size={20} className="text-rose-400" />}
-              iconBg="bg-rose-500/10 border-rose-500/30"
-              title="Google Analytics 4"
-              description="Acompanhe métricas de tráfego e conversões da sua página pública de agendamento."
-            />
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="ga4"
+                  title="Google Analytics 4"
+                  description="Acompanhe métricas de tráfego e conversões da sua página pública de agendamento."
+                  icon={<BarChart3 size={20} className="text-rose-400" />}
+                  iconBg="bg-rose-500/10 border-rose-500/30"
+                  accentColor="rose"
+                  docsUrl="https://analytics.google.com/"
+                  fields={[
+                    { key: "measurement_id", label: "Measurement ID", placeholder: "G-XXXXXXXXXX", required: true },
+                    { key: "api_secret", label: "API Secret (opcional)", placeholder: "xxxxxxxx", type: "password" },
+                  ]}
+                />
 
-            <ComingSoonCard
-              icon={<Globe size={20} className="text-indigo-400" />}
-              iconBg="bg-indigo-500/10 border-indigo-500/30"
-              title="Meta Pixel"
-              description="Rastreie conversões de campanhas no Facebook e Instagram Ads."
-            />
+                <ConfigurableIntegrationCard
+                  tenantId={tenantId}
+                  provider="meta_pixel"
+                  title="Meta Pixel"
+                  description="Rastreie conversões de campanhas no Facebook e Instagram Ads."
+                  icon={<Globe size={20} className="text-indigo-400" />}
+                  iconBg="bg-indigo-500/10 border-indigo-500/30"
+                  accentColor="indigo"
+                  docsUrl="https://business.facebook.com/events_manager2"
+                  fields={[
+                    { key: "pixel_id", label: "Pixel ID", placeholder: "1234567890", required: true },
+                    { key: "access_token", label: "Conversions API Token (opcional)", placeholder: "EAAG...", type: "password" },
+                  ]}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
     </AppLayout>
-  );
-}
-
-interface ComingSoonCardProps {
-  icon: React.ReactNode;
-  iconBg: string;
-  title: string;
-  description: string;
-}
-
-function ComingSoonCard({ icon, iconBg, title, description }: ComingSoonCardProps) {
-  return (
-    <Card className="flex flex-col bg-[#0b0f17] border border-dashed border-zinc-700/60 text-white rounded-2xl overflow-hidden hover:border-zinc-600 transition-all">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className={cn("h-11 w-11 rounded-xl border grid place-items-center", iconBg)}>
-            {icon}
-          </div>
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-zinc-500/10 text-zinc-400 border-zinc-500/30">
-            Em breve
-          </span>
-        </div>
-        <CardTitle className="text-lg mt-4 text-white">{title}</CardTitle>
-        <CardDescription className="text-zinc-400">{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 flex items-end pb-6">
-        <Button variant="ghost" disabled className="w-full gap-2 text-zinc-500">
-          Notifique-me
-        </Button>
-      </CardContent>
-    </Card>
   );
 }
 

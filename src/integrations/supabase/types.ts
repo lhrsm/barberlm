@@ -4483,6 +4483,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_integrations: {
+        Row: {
+          active: boolean
+          created_at: string
+          credentials: Json
+          id: string
+          provider: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          credentials?: Json
+          id?: string
+          provider: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          credentials?: Json
+          id?: string
+          provider?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tenant_webhooks: {
         Row: {
           active: boolean
