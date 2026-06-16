@@ -216,11 +216,17 @@ function ProductsComponent() {
     const { error } = await supabase.from("products").insert({
       name: `${product.name} (Cópia)`,
       price: product.price,
+      promotional_price: product.promotional_price,
       stock_quantity: product.stock_quantity,
       description: product.description,
+      short_description: product.short_description,
+      category: product.category,
+      brand: product.brand,
       image_url: product.image_url,
+      featured: false,
+      badge: product.badge,
       user_id: user.id,
-    });
+    } as any);
 
     if (error) {
       toast.error("Erro ao duplicar produto");
