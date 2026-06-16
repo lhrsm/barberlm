@@ -4483,6 +4483,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_webhooks: {
+        Row: {
+          active: boolean
+          created_at: string
+          event: string
+          id: string
+          name: string
+          secret: string | null
+          tenant_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          event?: string
+          id?: string
+          name: string
+          secret?: string | null
+          tenant_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          event?: string
+          id?: string
+          name?: string
+          secret?: string | null
+          tenant_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       ticket_messages: {
         Row: {
           created_at: string

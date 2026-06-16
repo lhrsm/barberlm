@@ -22,7 +22,15 @@ import {
   Settings2,
   Trash2,
   Lock,
-  Plus
+  Plus,
+  Calendar,
+  Camera,
+  Send,
+  CreditCard,
+  Workflow,
+  BarChart3,
+  Globe,
+  Webhook,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +39,8 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
+import { WebhooksCard } from "@/components/integrations/WebhooksCard";
+
 
 export const Route = createFileRoute("/integrations")({
   component: IntegrationsComponent,
@@ -210,30 +220,93 @@ function IntegrationsComponent() {
               </CardFooter>
             </Card>
 
-            {/* Webhooks (Future) */}
-            <Card className="flex flex-col bg-[#0b0f17] border border-dashed border-zinc-700/60 text-white rounded-2xl overflow-hidden">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="h-11 w-11 rounded-xl bg-zinc-800/50 border border-zinc-700/50 grid place-items-center">
-                    <Zap size={20} className="text-zinc-500" />
-                  </div>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-zinc-500/10 text-zinc-400 border-zinc-500/30">
-                    Em breve
-                  </span>
-                </div>
-                <CardTitle className="text-lg mt-4 text-white">Webhooks Customizados</CardTitle>
-                <CardDescription className="text-zinc-400">Envie dados para outras ferramentas via Zapier, Make, etc.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center pb-6">
-                <Button variant="ghost" disabled className="gap-2 text-zinc-500">
-                  <Plus size={18} /> Adicionar Webhook
-                </Button>
-              </CardContent>
-            </Card>
+            {/* Webhooks Customizados (ativo) */}
+            {tenantId && <WebhooksCard tenantId={tenantId} />}
+
+            {/* Mais integrações (em breve) */}
+            <ComingSoonCard
+              icon={<Calendar size={20} className="text-blue-400" />}
+              iconBg="bg-blue-500/10 border-blue-500/30"
+              title="Google Calendar"
+              description="Sincronize automaticamente os agendamentos com a agenda Google dos profissionais."
+            />
+
+            <ComingSoonCard
+              icon={<Camera size={20} className="text-pink-400" />}
+              iconBg="bg-pink-500/10 border-pink-500/30"
+              title="Instagram"
+              description="Receba mensagens diretas do Instagram dentro do seu inbox da Barbex."
+            />
+
+            <ComingSoonCard
+              icon={<Send size={20} className="text-cyan-400" />}
+              iconBg="bg-cyan-500/10 border-cyan-500/30"
+              title="Telegram Bot"
+              description="Notifique clientes e profissionais via Telegram de forma instantânea."
+            />
+
+            <ComingSoonCard
+              icon={<CreditCard size={20} className="text-amber-400" />}
+              iconBg="bg-amber-500/10 border-amber-500/30"
+              title="Mercado Pago"
+              description="Aceite pagamentos online, Pix e cartão direto no checkout do agendamento."
+            />
+
+            <ComingSoonCard
+              icon={<Workflow size={20} className="text-orange-400" />}
+              iconBg="bg-orange-500/10 border-orange-500/30"
+              title="n8n / Make"
+              description="Automatize fluxos avançados conectando a Barbex a milhares de apps."
+            />
+
+            <ComingSoonCard
+              icon={<BarChart3 size={20} className="text-rose-400" />}
+              iconBg="bg-rose-500/10 border-rose-500/30"
+              title="Google Analytics 4"
+              description="Acompanhe métricas de tráfego e conversões da sua página pública de agendamento."
+            />
+
+            <ComingSoonCard
+              icon={<Globe size={20} className="text-indigo-400" />}
+              iconBg="bg-indigo-500/10 border-indigo-500/30"
+              title="Meta Pixel"
+              description="Rastreie conversões de campanhas no Facebook e Instagram Ads."
+            />
           </div>
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+interface ComingSoonCardProps {
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  description: string;
+}
+
+function ComingSoonCard({ icon, iconBg, title, description }: ComingSoonCardProps) {
+  return (
+    <Card className="flex flex-col bg-[#0b0f17] border border-dashed border-zinc-700/60 text-white rounded-2xl overflow-hidden hover:border-zinc-600 transition-all">
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div className={cn("h-11 w-11 rounded-xl border grid place-items-center", iconBg)}>
+            {icon}
+          </div>
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-zinc-500/10 text-zinc-400 border-zinc-500/30">
+            Em breve
+          </span>
+        </div>
+        <CardTitle className="text-lg mt-4 text-white">{title}</CardTitle>
+        <CardDescription className="text-zinc-400">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 flex items-end pb-6">
+        <Button variant="ghost" disabled className="w-full gap-2 text-zinc-500">
+          Notifique-me
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
