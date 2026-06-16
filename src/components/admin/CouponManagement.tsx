@@ -218,9 +218,12 @@ export function CouponManagement() {
 
   const handleOpenNew = () => {
     setEditingCoupon(null);
-    setCouponForm(initialCouponState);
+    setCouponForm({ ...initialCouponState, applies_to: activeTab });
     setIsDialogOpen(true);
   };
+
+  const filteredCoupons = (coupons || []).filter((c) => (c.applies_to ?? 'order') === activeTab);
+
 
   if (isLoading) return <div className="p-8 text-center text-slate-400">Carregando cupons...</div>;
 
