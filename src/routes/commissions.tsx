@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -110,6 +111,7 @@ function CommissionsPage() {
   const [commissionBase, setCommissionBase] = useState("gross");
   const [loadingData, setLoadingData] = useState(true);
   const [barberFilter, setBarberFilter] = useState<string>("all");
+  const [commTab, setCommTab] = useState<string>("dashboard");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [payDialog, setPayDialog] = useState<{
     barberId: string;
@@ -446,8 +448,8 @@ function CommissionsPage() {
           </div>
 
           {/* TABS */}
-          <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 flex flex-wrap">
+          <Tabs value={commTab} onValueChange={setCommTab} className="w-full">
+            <TabsList className="hidden md:flex bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 flex-wrap">
               {[
                 { v: "dashboard", label: "Dashboard", icon: TrendingUp },
                 { v: "ranking", label: "Ranking", icon: Trophy },
@@ -464,6 +466,53 @@ function CommissionsPage() {
               ))}
             </TabsList>
 
+            {/* Mobile accordion */}
+            <div className="md:hidden">
+              <Accordion type="single" collapsible className="border border-zinc-800/80 bg-[#0b0f17] rounded-2xl">
+                <AccordionItem value="nav" className="border-0">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <span className="flex items-center gap-2 text-sm font-bold text-white">
+                      {(() => {
+                        const map: Record<string, { icon: any; label: string }> = {
+                          dashboard: { icon: TrendingUp, label: "Dashboard" },
+                          ranking: { icon: Trophy, label: "Ranking" },
+                          reports: { icon: Receipt, label: "Relatórios" },
+                          closings: { icon: Wallet, label: "Fechamentos" },
+                        };
+                        const cur = map[commTab] || map.dashboard;
+                        const Icon = cur.icon;
+                        return (<><Icon size={16} className="text-emerald-400" /> {cur.label}</>);
+                      })()}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-2 pb-2">
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {[
+                        { v: "dashboard", icon: TrendingUp, label: "Dashboard" },
+                        { v: "ranking", icon: Trophy, label: "Ranking" },
+                        { v: "reports", icon: Receipt, label: "Relatórios" },
+                        { v: "closings", icon: Wallet, label: "Fechamentos" },
+                      ].map(({ v, icon: Icon, label }) => (
+                        <Button
+                          key={v}
+                          variant="ghost"
+                          onClick={() => setCommTab(v)}
+                          className={cn(
+                            "justify-start gap-2 rounded-lg h-10 font-bold",
+                            commTab === v
+                              ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20"
+                              : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                          )}
+                        >
+                          <Icon size={16} /> {label}
+                        </Button>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
             {/* DASHBOARD */}
             <TabsContent value="dashboard" className="mt-6 space-y-4">
               {byBarber.length === 0 && (
@@ -475,15 +524,15 @@ function CommissionsPage() {
                 {byBarber.map((b) => (
                   <div
                     key={b.barber.id}
-                    className="bg-[#0b0f17] border border-zinc-800/80 hover:border-emerald-500/30 rounded-2xl p-5 transition-all hover:shadow-[0_8px_28px_rgba(16,185,129,0.12)]"
+                    className="bg-[#0b0f17] border border-zinc-800/80 hover:border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-[0_8px_28px_rgba(16,185,129,0.12)]"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
                           <Users className="h-5 w-5 text-emerald-400" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-lg font-black truncate">
+                          <h3 className="text-base sm:text-lg font-black truncate">
                             {b.barber.name}
                           </h3>
                           <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 mt-0.5">
@@ -502,13 +551,13 @@ function CommissionsPage() {
                         size="sm"
                         onClick={() => openPayDialog(b.barber.id)}
                         disabled={b.pending <= 0}
-                        className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.25)] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.25)] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Pagar Comissão
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                       <Metric label="Produção" value={fmt(b.production)} />
                       <Metric label="Atendimentos" value={String(b.services)} />
                       <Metric label="Clientes" value={String(b.uniqueCust)} />
