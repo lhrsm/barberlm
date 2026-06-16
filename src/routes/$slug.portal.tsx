@@ -402,11 +402,19 @@ function ClientPortalComponent() {
       setSubRewardsHistory((hist as any[]) || []);
       setSubUsageLogs((usageLogs as any[]) || []);
       setSubPlanServices((planSvcs as any[]) || []);
+
+      const { data: refs } = await supabase
+        .from("subscription_referrals" as any)
+        .select("*, referred:customers!subscription_referrals_referred_customer_id_fkey(name)")
+        .eq("referrer_customer_id", customerId)
+        .order("created_at", { ascending: false });
+      setMyReferrals((refs as any[]) || []);
     } else {
       setSubRewards([]);
       setSubRewardsHistory([]);
       setSubUsageLogs([]);
       setSubPlanServices([]);
+      setMyReferrals([]);
     }
   }
 
