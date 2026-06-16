@@ -921,14 +921,14 @@ function SettingsComponent() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-lg font-bold uppercase text-[8px] tracking-widest h-8 px-3 transition-all"
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-md font-bold uppercase text-[7px] tracking-widest h-6 px-2 transition-all"
                     >
                       Testar Conexão
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg font-bold uppercase text-[8px] tracking-widest h-8 px-3 transition-all"
+                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md font-bold uppercase text-[7px] tracking-widest h-6 px-2 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
