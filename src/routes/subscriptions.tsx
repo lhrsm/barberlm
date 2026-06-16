@@ -694,7 +694,7 @@ function SubscriptionsPage() {
     setHistoryDialogOpen(true);
   }
 
-
+  async function markInvoicePaid(inv: Invoice) {
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("subscription_invoices")
