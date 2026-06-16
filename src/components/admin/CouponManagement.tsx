@@ -419,14 +419,14 @@ export function CouponManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {coupons?.length === 0 ? (
+                {filteredCoupons.length === 0 ? (
                   <TableRow className="border-none hover:bg-transparent">
                     <TableCell colSpan={6} className="text-center py-12 text-slate-500 italic">
                       Nenhum cupom encontrado.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  coupons?.map((coupon) => (
+                  filteredCoupons.map((coupon) => (
                     <TableRow key={coupon.id} className="border-b border-[#1f2937]/30 hover:bg-[#ea580c]/5 transition-colors group">
                       <TableCell className="font-bold">
                         <div className="flex items-center gap-3 text-white">
@@ -510,12 +510,12 @@ export function CouponManagement() {
           </div>
 
           <div className="md:hidden divide-y divide-[#1f2937]/50 bg-[#0b0f17]">
-            {coupons?.length === 0 ? (
+            {filteredCoupons.length === 0 ? (
               <div className="p-12 text-center text-slate-600 font-bold uppercase text-[10px] tracking-widest italic">
                 Nenhum cupom encontrado.
               </div>
             ) : (
-              coupons?.map((coupon) => (
+              filteredCoupons.map((coupon) => (
                 <div key={coupon.id} className="p-6 space-y-6 hover:bg-[#ea580c]/5 transition-all">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
