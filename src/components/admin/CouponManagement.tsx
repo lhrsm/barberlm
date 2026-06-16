@@ -63,13 +63,16 @@ interface Coupon {
   expires_at: string | null;
   active: boolean;
   created_at: string;
+  applies_to?: 'order' | 'subscription';
+  first_month_only?: boolean;
 }
 
 export function CouponManagement() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Partial<Coupon> | null>(null);
-  
+  const [activeTab, setActiveTab] = useState<'order' | 'subscription'>('order');
+
   const initialCouponState = {
     code: "",
     type: "fixed" as "fixed" | "percentage",
@@ -78,7 +81,9 @@ export function CouponManagement() {
     max_discount: undefined as number | undefined,
     usage_limit: undefined as number | undefined,
     expires_at: "",
-    active: true
+    active: true,
+    applies_to: "order" as "order" | "subscription",
+    first_month_only: false,
   };
 
   const [couponForm, setCouponForm] = useState(initialCouponState);
