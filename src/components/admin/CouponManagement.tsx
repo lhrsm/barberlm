@@ -229,40 +229,42 @@ export function CouponManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-[#ea580c]/10 rounded-2xl shadow-[0_0_15px_rgba(234,88,12,0.1)]">
-            <TicketPercent className="text-[#ea580c] h-6 w-6" />
+      <div className="bg-[#0B1220] border border-[#f59e0b]/[0.12] rounded-2xl p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-[#ea580c]/10 rounded-2xl shadow-[0_0_15px_rgba(234,88,12,0.1)] shrink-0">
+              <TicketPercent className="text-[#ea580c] h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Cupons Premium</h2>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Gerencie promoções e fidelize com elegância.</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Cupons Premium</h2>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Gerencie promoções e fidelize com elegância.</p>
-          </div>
+          <Button
+            onClick={handleOpenNew}
+            className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white font-black uppercase italic tracking-widest h-[42px] px-[18px] rounded-xl shadow-md hover:-translate-y-0.5 transition-all w-full sm:w-fit sm:min-w-[180px] sm:max-w-[220px] text-xs shrink-0"
+          >
+            <Plus size={14} /> Novo Cupom
+          </Button>
         </div>
-        <Button 
-          onClick={handleOpenNew} 
-          className="gap-1.5 bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase italic tracking-widest h-7 px-2.5 text-[10px] rounded-md shadow-md hover:scale-105 transition-all"
-        >
-          <Plus size={12} /> Novo Cupom
-        </Button>
-      </div>
 
-      {/* TABS: Order coupons vs Subscription coupons */}
-      <div className="flex gap-2 border-b border-[#1f2937]">
-        <button
-          type="button"
-          onClick={() => setActiveTab('order')}
-          className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'order' ? 'text-[#ea580c] border-[#ea580c]' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
-        >
-          Serviços / Produtos
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('subscription')}
-          className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'subscription' ? 'text-emerald-400 border-emerald-400' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
-        >
-          Assinatura
-        </button>
+        {/* TABS: Order coupons vs Subscription coupons */}
+        <div className="flex gap-2 border-b border-[#1f2937]">
+          <button
+            type="button"
+            onClick={() => setActiveTab('order')}
+            className={`h-11 px-4 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'order' ? 'text-[#ea580c] border-[#ea580c]' : 'text-slate-400 border-transparent hover:text-[#ea580c]/80'}`}
+          >
+            Serviços / Produtos
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('subscription')}
+            className={`h-11 px-4 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'subscription' ? 'text-[#ea580c] border-[#ea580c]' : 'text-slate-400 border-transparent hover:text-[#ea580c]/80'}`}
+          >
+            Assinatura
+          </button>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
