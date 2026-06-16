@@ -723,102 +723,102 @@ function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onSt
     }
   }
 
-  if (loading) return <div className="text-center py-12">Carregando histórico...</div>;
+  if (loading) return <div className="text-center py-12 text-zinc-400">Carregando histórico...</div>;
 
   return (
-    <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
-      <CardHeader>
-        <CardTitle>{onlyCompleted ? "Faturamento de Produtos" : "Histórico de Vendas"}</CardTitle>
-        <CardDescription>
-          {onlyCompleted 
-            ? "Acompanhe suas vendas concluídas (exclui cancelamentos e reembolsos)." 
+    <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+      <div className="border-b border-zinc-800/80 pb-4">
+        <h3 className="font-bold flex items-center gap-2 text-white">
+          <History className="h-5 w-5 text-[#f59e0b]" />
+          {onlyCompleted ? "Faturamento de Produtos" : "Histórico de Vendas"}
+        </h3>
+        <p className="text-sm text-zinc-400 mt-1">
+          {onlyCompleted
+            ? "Acompanhe suas vendas concluídas (exclui cancelamentos e reembolsos)."
             : "Acompanhe todas as suas vendas, incluindo cancelamentos e reembolsos."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {sales.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <History size={48} className="mx-auto mb-4 opacity-20" />
-            <p>Nenhuma venda registrada ainda.</p>
-          </div>
-        ) : (
-          <div className="relative overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3">Data</th>
-                  <th className="px-4 py-3">Itens</th>
-                  <th className="px-4 py-3">Total</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {sales.map((sale) => (
-                  <tr key={sale.id} className="bg-white border-b border-slate-100 last:border-0 text-black">
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="max-w-[200px] truncate">
-                        {sale.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 font-bold">
-                      R$ {sale.total_amount.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={cn(
-                        "px-2 py-1 rounded-full text-[10px] font-bold uppercase",
-                        sale.status === 'completed' && "bg-green-100 text-green-700",
-                        sale.status === 'cancelled' && "bg-red-100 text-red-700",
-                        sale.status === 'refunded' && "bg-amber-100 text-amber-700"
-                      )}>
-                        {sale.status === 'completed' ? 'Concluída' : 
-                         sale.status === 'cancelled' ? 'Cancelada' : 'Reembolsada'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex gap-2">
-                        {sale.status === 'completed' && (
-                          <>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-7 px-2 text-[10px] gap-1"
-                              onClick={() => updateStatus(sale.id, 'cancelled')}
-                            >
-                              <XCircle size={12} /> Cancelar
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-7 px-2 text-[10px] gap-1"
-                              onClick={() => updateStatus(sale.id, 'refunded')}
-                            >
-                              <RefreshCcw size={12} /> Reembolsar
-                            </Button>
-                          </>
-                        )}
-                        {sale.status !== 'completed' && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-7 px-2 text-[10px] gap-1"
-                            onClick={() => updateStatus(sale.id, 'completed')}
+        </p>
+      </div>
+
+      {sales.length === 0 ? (
+        <div className="text-center py-20 border-2 border-dashed rounded-2xl bg-[#05070d] border-zinc-800">
+          <History className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+          <h4 className="text-lg font-bold text-white">Nenhuma venda registrada</h4>
+          <p className="text-zinc-400 text-sm mt-2">Suas vendas aparecerão aqui.</p>
+        </div>
+      ) : (
+        <div className="relative overflow-x-auto rounded-xl border border-zinc-800">
+          <table className="w-full text-sm text-left">
+            <thead className="text-[10px] uppercase tracking-widest bg-[#05070d] text-zinc-400">
+              <tr>
+                <th className="px-4 py-3 font-bold">Data</th>
+                <th className="px-4 py-3 font-bold">Itens</th>
+                <th className="px-4 py-3 font-bold">Total</th>
+                <th className="px-4 py-3 font-bold">Status</th>
+                <th className="px-4 py-3 font-bold">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.map((sale) => (
+                <tr key={sale.id} className="border-t border-zinc-800 text-zinc-300 hover:bg-white/[0.02] transition-colors">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="max-w-[200px] truncate">
+                      {sale.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 font-bold text-white">
+                    R$ {sale.total_amount.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={cn(
+                      "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border",
+                      sale.status === 'completed' && "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+                      sale.status === 'cancelled' && "bg-red-500/15 text-red-400 border-red-500/30",
+                      sale.status === 'refunded' && "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                    )}>
+                      {sale.status === 'completed' ? 'Concluída' :
+                       sale.status === 'cancelled' ? 'Cancelada' : 'Reembolsada'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex gap-2">
+                      {sale.status === 'completed' && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="h-8 px-3 text-[10px] gap-1 rounded-lg bg-transparent border border-zinc-800 text-zinc-300 hover:text-white hover:border-red-500/40 hover:bg-red-500/5"
+                            onClick={() => updateStatus(sale.id, 'cancelled')}
                           >
-                            <CheckCircle2 size={12} /> Restaurar
+                            <XCircle size={12} /> Cancelar
                           </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                          <Button
+                            size="sm"
+                            className="h-8 px-3 text-[10px] gap-1 rounded-lg bg-transparent border border-zinc-800 text-zinc-300 hover:text-white hover:border-amber-500/40 hover:bg-amber-500/5"
+                            onClick={() => updateStatus(sale.id, 'refunded')}
+                          >
+                            <RefreshCcw size={12} /> Reembolsar
+                          </Button>
+                        </>
+                      )}
+                      {sale.status !== 'completed' && (
+                        <Button
+                          size="sm"
+                          className="h-8 px-3 text-[10px] gap-1 rounded-lg bg-transparent border border-zinc-800 text-zinc-300 hover:text-white hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                          onClick={() => updateStatus(sale.id, 'completed')}
+                        >
+                          <CheckCircle2 size={12} /> Restaurar
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
