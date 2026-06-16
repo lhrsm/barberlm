@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 
 import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
 import { WebhooksCard } from "@/components/integrations/WebhooksCard";
+import { ConfigurableIntegrationCard } from "@/components/integrations/ConfigurableIntegrationCard";
 
 
 export const Route = createFileRoute("/integrations")({
