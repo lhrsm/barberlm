@@ -524,15 +524,15 @@ function CommissionsPage() {
                 {byBarber.map((b) => (
                   <div
                     key={b.barber.id}
-                    className="bg-[#0b0f17] border border-zinc-800/80 hover:border-emerald-500/30 rounded-2xl p-5 transition-all hover:shadow-[0_8px_28px_rgba(16,185,129,0.12)]"
+                    className="bg-[#0b0f17] border border-zinc-800/80 hover:border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-[0_8px_28px_rgba(16,185,129,0.12)]"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
                           <Users className="h-5 w-5 text-emerald-400" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-lg font-black truncate">
+                          <h3 className="text-base sm:text-lg font-black truncate">
                             {b.barber.name}
                           </h3>
                           <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 mt-0.5">
@@ -551,13 +551,13 @@ function CommissionsPage() {
                         size="sm"
                         onClick={() => openPayDialog(b.barber.id)}
                         disabled={b.pending <= 0}
-                        className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.25)] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.25)] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Pagar Comissão
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                       <Metric label="Produção" value={fmt(b.production)} />
                       <Metric label="Atendimentos" value={String(b.services)} />
                       <Metric label="Clientes" value={String(b.uniqueCust)} />
