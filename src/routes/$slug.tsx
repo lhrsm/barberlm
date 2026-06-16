@@ -2400,14 +2400,19 @@ function ShopPageComponent() {
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {services.map(s => (
+                    {services.map(s => {
+                      const elig = serviceEligibility[s.id];
+                      const isCovered = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) === 0);
+                      const isPartial = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) > 0);
+                      return (
                       <motion.div 
                         key={s.id} 
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={cn(
                           "bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-4 transition-all duration-300 hover:shadow-lg hover:border-zinc-300 cursor-pointer flex justify-between items-center group relative overflow-hidden",
-                          selectedService?.id === s.id ? "border-sky-600 ring-2 ring-sky-600/20" : ""
+                          selectedService?.id === s.id ? "border-sky-600 ring-2 ring-sky-600/20" : "",
+                          isCovered ? "border-[#D4AF37]/60 ring-1 ring-[#D4AF37]/30" : ""
                         )}
                         onClick={() => {
                           if (!isEmbedded && (!customerName || customerName.length < 3)) {
@@ -2420,14 +2425,39 @@ function ShopPageComponent() {
                       >
                         <div className="relative z-10">
                           <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-sky-700" : "text-black")}>{s.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                              <Clock size={12} className={selectedService?.id === s.id ? "text-sky-600" : "text-gray-400"} />
                              <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-sky-600" : "text-gray-400")}>{s.duration_minutes} min</p>
+                             {isCovered && (
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-black text-[9px] font-black uppercase tracking-wider shadow-sm">
+                                 ✦ Incluso no Plano
+                               </span>
+                             )}
+                             {isPartial && (
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#8A6D1F] text-[9px] font-black uppercase tracking-wider">
+                                 Parcial pelo Plano
+                               </span>
+                             )}
                           </div>
                         </div>
-                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-sky-600" : "text-black")}>R$ {s.price.toFixed(2)}</p>
+                        <div className="text-right relative z-10">
+                          {isCovered ? (
+                            <>
+                              <p className="font-black text-xl text-emerald-600">R$ 0,00</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 line-through">R$ {s.price.toFixed(2)}</p>
+                            </>
+                          ) : isPartial ? (
+                            <>
+                              <p className="font-black text-xl text-[#8A6D1F]">R$ {Number(elig.extra_amount).toFixed(2)}</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">de R$ {s.price.toFixed(2)}</p>
+                            </>
+                          ) : (
+                            <p className={cn("font-black text-xl", selectedService?.id === s.id ? "text-sky-600" : "text-black")}>R$ {s.price.toFixed(2)}</p>
+                          )}
+                        </div>
                       </motion.div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
