@@ -2319,6 +2319,47 @@ function SubscriptionsPage() {
               </Block>
             )}
 
+            {/* CÓDIGO DE INDICAÇÃO */}
+            <Block title="Código de indicação (opcional)">
+              {newSubReferral?.valid ? (
+                <div className="flex items-center justify-between bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-xl p-3">
+                  <div>
+                    <div className="text-sm font-black text-fuchsia-300 uppercase tracking-widest">
+                      {newSubReferral.code}
+                    </div>
+                    <div className="text-xs text-fuchsia-200/80 mt-0.5">
+                      Indicado por <span className="font-bold">{newSubReferral.referrer_name}</span> · ganha 1 mês grátis quando esta assinatura for ativada
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setNewSubReferral(null)}
+                    className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-600 h-8"
+                  >
+                    Remover
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    placeholder="CÓDIGO DE INDICAÇÃO"
+                    value={newSubReferralCode}
+                    onChange={(e) => setNewSubReferralCode(e.target.value.toUpperCase())}
+                    className="flex-1 bg-[#05070d] border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500"
+                  />
+                  <Button
+                    onClick={applyNewSubReferral}
+                    disabled={newSubReferralLoading || !newSubReferralCode.trim()}
+                    className="bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold"
+                  >
+                    {newSubReferralLoading ? "..." : "Validar"}
+                  </Button>
+                </div>
+              )}
+            </Block>
+
+
+
             {/* RESUMO */}
             {selectedNewPlan && (
               <Block title="Resumo">
