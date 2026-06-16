@@ -583,6 +583,12 @@ function SubscriptionsPage() {
     const periodEnd = new Date(now);
     periodEnd.setMonth(periodEnd.getMonth() + 1);
 
+    const monthlyPrice = Number(plan.monthly_price);
+    const couponDiscount = newSubCoupon?.valid ? Number(newSubCoupon.discount_amount || 0) : 0;
+    const firstInvoiceAmount = newSubCoupon?.valid
+      ? Number(newSubCoupon.final_amount ?? Math.max(0, monthlyPrice - couponDiscount))
+      : monthlyPrice;
+
     const { data: sub, error } = await supabase
       .from("customer_subscriptions")
       .insert({
@@ -595,7 +601,15 @@ function SubscriptionsPage() {
         current_period_start: now.toISOString(),
         current_period_end: periodEnd.toISOString(),
         next_billing_at: periodEnd.toISOString(),
-      })
+        ...(newSubCoupon?.valid
+          ? {
+              coupon_id: newSubCoupon.coupon_id,
+              coupon_code: newSubCoupon.coupon_code,
+              coupon_discount: couponDiscount,
+              coupon_first_month_only: !!newSubCoupon.first_month_only,
+            }
+          : {}),
+      } as any)
       .select("id")
       .single();
     if (error || !sub) {
@@ -606,16 +620,40 @@ function SubscriptionsPage() {
       tenant_id: tenantId,
       subscription_id: sub.id,
       customer_id: newSubCustomerId,
-      amount: plan.monthly_price,
+      amount: firstInvoiceAmount,
       status: newSubPayment === "in_person" ? "paid" : "pending",
       payment_method: newSubPayment,
       due_date: now.toISOString(),
       paid_at: newSubPayment === "in_person" ? now.toISOString() : null,
-    });
+      ...(newSubCoupon?.valid
+        ? {
+            coupon_id: newSubCoupon.coupon_id,
+            coupon_code: newSubCoupon.coupon_code,
+            discount_amount: couponDiscount,
+            original_amount: monthlyPrice,
+          }
+        : {}),
+    } as any);
+
+    if (newSubCoupon?.valid && newSubCoupon.coupon_id) {
+      await supabase.rpc("increment" as any, {}).then(() => {}).catch(() => {});
+      // Best-effort increment of used_count
+      const { data: cpRow } = await supabase
+        .from("coupons")
+        .select("used_count")
+        .eq("id", newSubCoupon.coupon_id)
+        .maybeSingle();
+      await supabase
+        .from("coupons")
+        .update({ used_count: (Number(cpRow?.used_count) || 0) + 1 })
+        .eq("id", newSubCoupon.coupon_id);
+    }
+
     toast.success("Assinatura criada com sucesso");
     setSubDialogOpen(false);
     loadAll();
   }
+
 
   async function cancelSubscription(id: string) {
     if (!confirm("Cancelar esta assinatura?")) return;
