@@ -113,6 +113,7 @@ function DashboardComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dashboardTab, setDashboardTab] = useState<string>("daily");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [birthdayCustomers, setBirthdayCustomers] = useState<any[]>([]);
 
@@ -1019,14 +1020,51 @@ function DashboardComponent() {
           </Card>
         </div>
 
-        <Tabs defaultValue="daily" className="space-y-6">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+        <Tabs value={dashboardTab} onValueChange={setDashboardTab} className="space-y-6">
+          {/* Desktop tabs */}
+          <div className="hidden sm:block overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
             <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
               <TabsTrigger value="daily">Hoje</TabsTrigger>
               <TabsTrigger value="monthly">Este Mês</TabsTrigger>
               <TabsTrigger value="analytics">Gráficos</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* Mobile accordion selector */}
+          <div className="sm:hidden">
+            <Accordion type="single" collapsible className="rounded-2xl border border-white/10 bg-[#0b0f17]">
+              <AccordionItem value="period" className="border-0">
+                <AccordionTrigger className="px-4 py-3 text-sm font-semibold hover:no-underline">
+                  <span className="flex items-center gap-2 text-zinc-300">
+                    <span className="text-[11px] uppercase tracking-[0.08em] text-zinc-500">Visão</span>
+                    <span className="text-white">
+                      {({ daily: "Hoje", monthly: "Este Mês", analytics: "Gráficos" } as Record<string, string>)[dashboardTab]}
+                    </span>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-3 pb-3">
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { v: "daily", label: "Hoje" },
+                      { v: "monthly", label: "Este Mês" },
+                      { v: "analytics", label: "Gráficos" },
+                    ].map((opt) => (
+                      <Button
+                        key={opt.v}
+                        variant={dashboardTab === opt.v ? "default" : "outline"}
+                        size="sm"
+                        className="w-full rounded-xl h-10 justify-start"
+                        onClick={() => setDashboardTab(opt.v)}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
 
 
           <TabsContent value="daily" className="space-y-6">
