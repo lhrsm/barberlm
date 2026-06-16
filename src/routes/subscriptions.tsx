@@ -333,7 +333,7 @@ function SubscriptionsPage() {
         .limit(500),
       supabase
         .from("subscription_plan_changes" as any)
-        .select("*, old_plan:subscription_plans!subscription_plan_changes_old_plan_id_fkey(name), new_plan:subscription_plans!subscription_plan_changes_new_plan_id_fkey(name), customer:customers(name)")
+        .select("*, customer:customers(name)")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(200),
