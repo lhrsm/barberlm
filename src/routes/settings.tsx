@@ -921,14 +921,14 @@ function SettingsComponent() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-lg font-bold uppercase text-[8px] tracking-widest h-8 px-3 transition-all"
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-md font-bold uppercase text-[7px] tracking-widest h-6 px-2 transition-all"
                     >
                       Testar Conexão
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg font-bold uppercase text-[8px] tracking-widest h-8 px-3 transition-all"
+                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md font-bold uppercase text-[7px] tracking-widest h-6 px-2 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
@@ -1393,13 +1393,13 @@ function SettingsComponent() {
             <div className="flex justify-end pt-10 pb-20">
               <Button 
                 type="submit" 
-                className="gap-2 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 active:scale-95 transition-all h-9 px-6 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-lg group" 
+                className="gap-1.5 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 active:scale-95 transition-all h-7 px-3 rounded-md font-black uppercase text-[9px] tracking-widest shadow-lg group" 
                 disabled={saving}
               >
                 {saving ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <RefreshCw className="h-3 w-3 animate-spin" />
                 ) : (
-                  <Save className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                  <Save className="h-3 w-3 group-hover:rotate-12 transition-transform" />
                 )}
                 {saving ? "Salvando..." : "Salvar Configurações"}
               </Button>
