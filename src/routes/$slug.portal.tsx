@@ -1709,12 +1709,42 @@ function ClientPortalComponent() {
                     <Card className="bg-white/5 border-white/10 shadow-lg hover:border-white/20 transition-colors">
                       <CardHeader className="pb-2">
                         <CardDescription className="text-gray-400 uppercase text-[10px] font-black tracking-widest">Benefícios do Período</CardDescription>
-                        <CardTitle className="text-white text-lg">
-                          {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""} <span className="text-xs text-gray-400 font-normal">utilizados</span>
-                        </CardTitle>
+                        {(() => {
+                          const totalLimit = benefitBalances.reduce((s, b: any) => s + Number(b.monthly_limit || 0), 0);
+                          const totalUsed = benefitBalances.reduce((s, b: any) => s + Number(b.used || 0), 0);
+                          if (benefitBalances.length > 0 && totalLimit > 0) {
+                            return (
+                              <CardTitle className="text-white text-lg">
+                                {totalUsed} / {totalLimit} <span className="text-xs text-gray-400 font-normal">utilizados</span>
+                              </CardTitle>
+                            );
+                          }
+                          return (
+                            <CardTitle className="text-white text-lg">
+                              {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""} <span className="text-xs text-gray-400 font-normal">utilizados</span>
+                            </CardTitle>
+                          );
+                        })()}
                       </CardHeader>
                       <CardContent>
-                        {maxUses ? (
+                        {benefitBalances.length > 0 ? (
+                          <div className="space-y-2">
+                            {benefitBalances.map((b: any) => {
+                              const pct = b.monthly_limit > 0 ? Math.min(100, (b.used / b.monthly_limit) * 100) : 0;
+                              return (
+                                <div key={b.benefit_key}>
+                                  <div className="flex items-center justify-between text-[10px] text-gray-300 uppercase font-bold tracking-wider mb-1">
+                                    <span>{b.benefit_name}</span>
+                                    <span className="text-[#D4AF37]">{b.used}/{b.monthly_limit}</span>
+                                  </div>
+                                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${pct}%` }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : maxUses ? (
                           <>
                             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${Math.min(100, (usedThisPeriod / maxUses) * 100)}%` }} />
@@ -1731,6 +1761,7 @@ function ClientPortalComponent() {
                         )}
                       </CardContent>
                     </Card>
+
 
                     <Card className="bg-gradient-to-br from-emerald-500/15 to-transparent border-emerald-500/30 shadow-lg">
                       <CardHeader className="pb-2">
