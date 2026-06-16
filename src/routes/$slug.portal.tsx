@@ -1371,22 +1371,32 @@ function ClientPortalComponent() {
 
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className={cn("grid w-full max-w-[750px] bg-white/5 p-1 rounded-xl", mySubscription ? "grid-cols-5" : "grid-cols-4")}>
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+          <TabsList className={cn("flex w-full flex-wrap bg-white/5 p-1 rounded-xl gap-1", mySubscription ? "md:grid md:grid-cols-7 md:max-w-[1100px]" : "md:grid md:grid-cols-4 md:max-w-[750px]")}>
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Fidelidade
             </TabsTrigger>
             {mySubscription && (
-              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                  Benefícios
               </TabsTrigger>
             )}
-            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+            {mySubscription && (
+              <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+                <QrCode size={16} /> Carteirinha
+              </TabsTrigger>
+            )}
+            {mySubscription && (
+              <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+                ✦ Clube VIP
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Extrato
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
@@ -1647,60 +1657,112 @@ function ClientPortalComponent() {
               const pendingRewards = subRewardsHistory.filter((h: any) => h.status === "pending");
               const redeemedRewards = subRewardsHistory.filter((h: any) => h.status === "redeemed");
 
+              // Monthly savings (current period)
+              const currentPeriodCovered = subUsageLogs.reduce((s: number, l: any) => {
+                if (!l.used_at || !periodStart) return s;
+                return parseISO(l.used_at) >= parseISO(periodStart) ? s + Number(l.covered_amount || 0) : s;
+              }, 0);
+
+              // Next premium reward
+              const pendingRewardsAll = subRewardsHistory.filter((h: any) => h.status === "pending");
+              const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
+              const monthsActive = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+              const nextRewardCfg = subRewards
+                .filter((r: any) => Number(r.months_required || 0) > monthsActive)
+                .sort((a: any, b: any) => Number(a.months_required) - Number(b.months_required))[0];
+              const nextRewardProgress = nextRewardCfg
+                ? Math.min(100, (monthsActive / Number(nextRewardCfg.months_required)) * 100)
+                : 100;
+
               return (
                 <div className="space-y-6">
-                  {/* Plano + Saldo */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Premium Dashboard - 4 cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <Card
-                      className="bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border-[#D4AF37]/30 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform"
+                      className="bg-gradient-to-br from-[#D4AF37]/25 via-[#D4AF37]/10 to-transparent border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(212,175,55,0.15)] cursor-pointer hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(212,175,55,0.25)] transition-all"
                       onClick={() => setPlanDetailsOpen(true)}
                     >
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
-                          <CardDescription className="text-[#D4AF37] uppercase text-xs font-bold">Plano Ativo</CardDescription>
+                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Plano Atual</CardDescription>
                           <Info size={14} className="text-[#D4AF37]" />
                         </div>
-                        <CardTitle className="text-white text-xl">{plan?.name || "Assinatura"}</CardTitle>
+                        <CardTitle className="text-white text-lg leading-tight">{plan?.name || "Assinatura"}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-2xl font-black text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}<span className="text-xs text-gray-400 font-normal">/mês</span></p>
+                        <p className="text-2xl font-black text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}<span className="text-[10px] text-gray-400 font-normal">/mês</span></p>
                         {nextBilling && (
-                          <p className="text-[10px] text-gray-400 mt-2 uppercase">Próxima cobrança: {format(parseISO(nextBilling), "dd/MM/yyyy", { locale: ptBR })}</p>
+                          <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">Renovação: {format(parseISO(nextBilling), "dd/MM/yyyy", { locale: ptBR })}</p>
                         )}
-                        <p className="text-[10px] text-[#D4AF37] mt-1 uppercase font-bold">Toque para ver regras</p>
+                        <p className="text-[10px] text-[#D4AF37] mt-1 uppercase font-bold tracking-wider">Ver detalhes ›</p>
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <Card className="bg-white/5 border-white/10 shadow-lg hover:border-white/20 transition-colors">
                       <CardHeader className="pb-2">
-                        <CardDescription className="text-gray-400 uppercase text-xs font-bold">Usos no Período</CardDescription>
-                        <CardTitle className="text-white text-xl">
-                          {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""}
+                        <CardDescription className="text-gray-400 uppercase text-[10px] font-black tracking-widest">Benefícios do Período</CardDescription>
+                        <CardTitle className="text-white text-lg">
+                          {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""} <span className="text-xs text-gray-400 font-normal">utilizados</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         {maxUses ? (
                           <>
                             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${Math.min(100, (usedThisPeriod / maxUses) * 100)}%` }} />
+                              <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${Math.min(100, (usedThisPeriod / maxUses) * 100)}%` }} />
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-2 uppercase">{remaining} restante(s)</p>
+                            <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold tracking-wider">{remaining} disponível(is)</p>
                           </>
                         ) : (
-                          <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold">Ilimitado</p>
+                          <>
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-full" />
+                            </div>
+                            <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold tracking-wider">Ilimitado</p>
+                          </>
                         )}
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <Card className="bg-gradient-to-br from-emerald-500/15 to-transparent border-emerald-500/30 shadow-lg">
                       <CardHeader className="pb-2">
-                        <CardDescription className="text-gray-400 uppercase text-xs font-bold">Economia Total</CardDescription>
-                        <CardTitle className="text-emerald-400 text-xl">R$ {totalCovered.toFixed(2)}</CardTitle>
+                        <CardDescription className="text-emerald-400 uppercase text-[10px] font-black tracking-widest">Economia Obtida</CardDescription>
+                        <CardTitle className="text-emerald-400 text-2xl font-black">R$ {totalCovered.toFixed(2)}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-[10px] text-gray-400 uppercase">Cobertos pelo plano</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Este mês: <span className="text-emerald-300 font-bold">R$ {currentPeriodCovered.toFixed(2)}</span></p>
                         {totalExtra > 0 && (
-                          <p className="text-[10px] text-gray-400 uppercase mt-1">Extras pagos: R$ {totalExtra.toFixed(2)}</p>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Extras pagos: R$ {totalExtra.toFixed(2)}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-[#D4AF37]/15 to-purple-500/5 border-[#D4AF37]/30 shadow-lg">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Próxima Recompensa</CardDescription>
+                          <Gift size={14} className="text-[#D4AF37]" />
+                        </div>
+                        <CardTitle className="text-white text-base leading-tight line-clamp-2">
+                          {pendingRewardsAll.length > 0
+                            ? "Resgate disponível!"
+                            : nextRewardCfg?.description || "Tudo em dia ✦"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {pendingRewardsAll.length > 0 ? (
+                          <p className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">{pendingRewardsAll.length} pendente(s) — vá em Benefícios para resgatar</p>
+                        ) : nextRewardCfg ? (
+                          <>
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${nextRewardProgress}%` }} />
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">
+                              {monthsActive} / {nextRewardCfg.months_required} meses
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Você já alcançou todas as recompensas premium.</p>
                         )}
                       </CardContent>
                     </Card>
@@ -2034,6 +2096,201 @@ function ClientPortalComponent() {
             })()}
           </TabsContent>
           )}
+
+          {mySubscription && (
+          <TabsContent value="card" className="pt-6">
+            {(() => {
+              const status = mySubscription.status as string;
+              const isActive = status === "active";
+              const isPaused = status === "paused";
+              const statusLabel = isActive ? "ATIVO" : isPaused ? "PAUSADO" : status === "canceled" ? "CANCELADO" : "INATIVO";
+              const statusColor = isActive ? "bg-emerald-500 text-black" : isPaused ? "bg-blue-400 text-black" : "bg-red-500 text-white";
+              const origin = typeof window !== "undefined" ? window.location.origin : "";
+              const qrUrl = mySubscription.card_token ? `${origin}/subscription-card/validate/${mySubscription.card_token}` : "";
+              const planName = mySubscription.plan?.name ?? "Assinatura Premium";
+              const validUntil = mySubscription.current_period_end
+                ? new Date(mySubscription.current_period_end).toLocaleDateString("pt-BR")
+                : "—";
+              return (
+                <div className="max-w-sm mx-auto">
+                  <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
+                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                      style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                    <div className="relative flex items-start justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/80 font-black">Carteirinha Premium</p>
+                        <p className="text-xs text-gray-400 mt-1">{planName}</p>
+                      </div>
+                      <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest", statusColor)}>
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <div className="relative flex items-center gap-3 mt-5">
+                      <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-[#D4AF37]">
+                        {client?.avatar_url ? (
+                          <img src={client.avatar_url} alt={client?.name} className="h-full w-full object-cover" />
+                        ) : (
+                          (client?.name || "?").charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-white font-black text-lg truncate">{client?.name || "Cliente"}</p>
+                        <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-widest">Assinante Premium</p>
+                      </div>
+                    </div>
+                    {qrUrl ? (
+                      <div className="relative mt-6 bg-white rounded-2xl p-4 grid place-items-center">
+                        <QRCodeSVG value={qrUrl} size={200} level="H" bgColor="#ffffff" fgColor="#0a0a0a" />
+                      </div>
+                    ) : (
+                      <div className="relative mt-6 bg-white/5 border border-white/10 rounded-2xl p-6 text-center text-xs text-gray-400">
+                        QR Code indisponível para esta assinatura.
+                      </div>
+                    )}
+                    <div className="relative mt-4 grid grid-cols-2 gap-3 text-[11px]">
+                      <div>
+                        <p className="text-gray-500 uppercase tracking-widest">Válido até</p>
+                        <p className="text-white font-bold">{validUntil}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-gray-500 uppercase tracking-widest">Usos no mês</p>
+                        <p className="text-white font-bold">
+                          {mySubscription.uses_this_period || 0}
+                          {mySubscription.plan?.max_uses_per_month ? `/${mySubscription.plan.max_uses_per_month}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="relative mt-4 text-center text-[10px] text-gray-500">
+                      Apresente este QR Code na barbearia para validar seus benefícios.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+          </TabsContent>
+          )}
+
+          {mySubscription && (
+          <TabsContent value="vip" className="pt-6">
+            {(() => {
+              const plan = mySubscription.plan;
+              const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
+              const monthsActive = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+              const totalCovered = subUsageLogs.reduce((s: number, l: any) => s + Number(l.covered_amount || 0), 0);
+              const redeemedCount = subRewardsHistory.filter((h: any) => h.status === "redeemed").length;
+              const referralsConverted = myReferrals.filter((r: any) => r.status === "converted" || r.converted_at).length;
+              return (
+                <div className="space-y-6">
+                  <Card className="bg-gradient-to-br from-[#D4AF37]/20 via-[#1a1408] to-black border-[#D4AF37]/40 shadow-[0_20px_60px_rgba(212,175,55,0.2)] overflow-hidden relative">
+                    <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                      style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                    <CardHeader className="relative">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black">
+                          <Gift size={22} />
+                        </div>
+                        <div>
+                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Clube VIP</CardDescription>
+                          <CardTitle className="text-white text-2xl">Bem-vindo, {client?.name?.split(" ")[0] || "Assinante"}</CardTitle>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="relative">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Tempo VIP</p>
+                          <p className="text-xl font-black text-white mt-1">{monthsActive}<span className="text-xs text-gray-400 font-normal"> {monthsActive === 1 ? "mês" : "meses"}</span></p>
+                        </div>
+                        <div className="bg-black/40 border border-emerald-500/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Economia</p>
+                          <p className="text-xl font-black text-emerald-400 mt-1">R$ {totalCovered.toFixed(0)}</p>
+                        </div>
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Recompensas</p>
+                          <p className="text-xl font-black text-white mt-1">{redeemedCount}</p>
+                        </div>
+                        <div className="bg-black/40 border border-purple-500/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Indicações</p>
+                          <p className="text-xl font-black text-white mt-1">{referralsConverted}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <CheckCircle2 className="text-[#D4AF37]" size={20} />
+                        Vantagens Exclusivas
+                      </CardTitle>
+                      <CardDescription className="text-gray-400">Benefícios que só assinantes têm acesso</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-300">
+                        {plan?.agenda_priority && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Prioridade na agenda</li>
+                        )}
+                        {plan?.exclusive_hours && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Horários exclusivos</li>
+                        )}
+                        {plan?.exclusive_days && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Dias exclusivos</li>
+                        )}
+                        {plan?.preferential_service && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Atendimento preferencial</li>
+                        )}
+                        {plan?.allows_product_discount && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Desconto em produtos</li>
+                        )}
+                        {plan?.accumulates_premium_loyalty && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Acumula recompensas premium</li>
+                        )}
+                        {plan?.participates_cashback && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Cashback em compras</li>
+                        )}
+                        {!plan?.agenda_priority && !plan?.exclusive_hours && !plan?.exclusive_days && !plan?.preferential_service && !plan?.allows_product_discount && (
+                          <li className="text-gray-500 italic text-xs col-span-2">Consulte sua barbearia sobre vantagens adicionais do seu plano.</li>
+                        )}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  {mySubscription.referral_code && (
+                    <Card className="bg-gradient-to-br from-purple-500/10 to-[#D4AF37]/5 border-purple-500/30 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="text-white">Indique e ganhe</CardTitle>
+                        <CardDescription className="text-gray-400">Compartilhe seu código VIP e ganhe vantagens</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between gap-3 p-4 bg-black/40 border border-[#D4AF37]/30 rounded-xl">
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Seu código</p>
+                            <p className="text-2xl font-black text-[#D4AF37] tracking-widest">{mySubscription.referral_code}</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(mySubscription.referral_code);
+                              toast.success("Código copiado!");
+                            }}
+                            className="bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold"
+                          >
+                            Copiar
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-3 uppercase tracking-wider">
+                          {referralsConverted} indicação(ões) convertida(s)
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              );
+            })()}
+          </TabsContent>
+          )}
+
+
 
           <TabsContent value="finances" className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
