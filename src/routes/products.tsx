@@ -476,8 +476,9 @@ function ProductsComponent() {
             </Alert>
           )}
 
-          <Tabs defaultValue="inventory" className="w-full">
-            <TabsList className="bg-[#0b0f17] border border-zinc-800/80 rounded-xl p-1 h-auto inline-flex">
+          <Tabs value={productsTab} onValueChange={setProductsTab} className="w-full">
+            {/* Desktop tabs */}
+            <TabsList className="hidden md:inline-flex bg-[#0b0f17] border border-zinc-800/80 rounded-xl p-1 h-auto">
               <TabsTrigger value="inventory" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f59e0b] data-[state=active]:to-[#ea580c] data-[state=active]:text-white text-zinc-400">
                 <Package size={16} /> Estoque
               </TabsTrigger>
@@ -488,6 +489,45 @@ function ProductsComponent() {
                 <History size={16} /> Histórico
               </TabsTrigger>
             </TabsList>
+
+            {/* Mobile accordion */}
+            <div className="md:hidden">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="tabs" className="border border-zinc-800/80 rounded-xl bg-[#0b0f17] overflow-hidden">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <span className="flex items-center gap-2 text-white font-semibold text-sm">
+                      {productsTab === "inventory" && (<><Package size={16} className="text-[#f59e0b]" /> Estoque</>)}
+                      {productsTab === "billing" && (<><History size={16} className="text-[#f59e0b]" /> Faturamento</>)}
+                      {productsTab === "history" && (<><History size={16} className="text-[#f59e0b]" /> Histórico</>)}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-2 pb-2">
+                    <div className="grid grid-cols-1 gap-1">
+                      {[
+                        { val: "inventory", label: "Estoque", icon: Package },
+                        { val: "billing", label: "Faturamento", icon: History },
+                        { val: "history", label: "Histórico", icon: History },
+                      ].map(({ val, label, icon: Icon }) => (
+                        <Button
+                          key={val}
+                          variant="ghost"
+                          onClick={() => setProductsTab(val)}
+                          className={cn(
+                            "justify-start gap-2 h-11 rounded-lg text-sm font-semibold",
+                            productsTab === val
+                              ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white hover:from-[#fbbf24] hover:to-[#f59e0b] hover:text-white"
+                              : "text-zinc-400 hover:bg-zinc-800/60 hover:text-white"
+                          )}
+                        >
+                          <Icon size={16} /> {label}
+                        </Button>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
 
             <TabsContent value="inventory" className="pt-6">
               <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
