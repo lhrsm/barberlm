@@ -570,6 +570,10 @@ function SubscriptionsPage() {
       toast.error(res?.error || error?.message || "Cupom inválido");
       setNewSubCoupon(null);
       return;
+    }
+    setNewSubCoupon(res);
+    setNewSubCouponCode("");
+    toast.success("Cupom aplicado");
   }
 
   async function applyNewSubReferral() {
@@ -594,11 +598,6 @@ function SubscriptionsPage() {
     toast.success(`Indicado por ${res.referrer_name}`);
   }
 
-
-    setNewSubCoupon(res);
-    setNewSubCouponCode("");
-    toast.success("Cupom aplicado");
-  }
 
 
   async function createSubscription() {
