@@ -584,41 +584,44 @@ function DashboardComponent() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            {profile?.logo_url ? (
-              <img 
-                src={profile.logo_url} 
-                alt={profile.business_name} 
-                className="h-16 w-16 rounded-full object-cover border-2 border-primary/20"
-              />
-            ) : (
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-primary/20">
-                <UserIcon size={32} />
+      <div className="min-h-screen bg-[#05070d] text-white">
+        <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+          {/* HEADER */}
+          <header className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              {profile?.logo_url ? (
+                <img
+                  src={profile.logo_url}
+                  alt={profile.business_name}
+                  className="shrink-0 h-14 w-14 rounded-2xl object-cover border border-[#f59e0b]/30 shadow-[0_4px_20px_rgba(245,158,11,0.15)]"
+                />
+              ) : (
+                <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+                  <UserIcon className="h-7 w-7 text-[#f59e0b]" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+                  {profile?.business_name ? `Olá, ${profile.business_name}!` : "Painel de Controle"}
+                </h1>
+                <p className="text-sm text-zinc-400 mt-1 truncate">
+                  Bem-vindo de volta ao seu painel administrativo.
+                </p>
               </div>
-            )}
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">
-                {profile?.business_name ? `Olá, ${profile.business_name}!` : "Painel de Controle"}
-              </h2>
-              <p className="text-muted-foreground">Bem-vindo de volta ao seu painel administrativo.</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <AppointmentModal 
+            <AppointmentModal
               onSuccess={() => {
                 fetchTodayAppointments();
                 fetchStats();
               }}
               trigger={
-                <Button className="gap-2 bg-white text-black hover:bg-white/90 border border-input shadow-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95">
-                  <Calendar size={18} /> Novo Agendamento
+                <Button className="h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5 w-full sm:w-auto">
+                  <Calendar size={18} className="mr-2" /> Novo Agendamento
                 </Button>
               }
             />
-          </div>
-        </div>
+          </header>
+
         
         {/* Banner de Trial / Assinatura */}
         {((isTrial || isExpired) && !hasActiveSubscription) && (
