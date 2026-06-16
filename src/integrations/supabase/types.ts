@@ -3761,6 +3761,83 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plan_changes: {
+        Row: {
+          change_type: string
+          changed_by: string | null
+          created_at: string
+          credit_transaction_id: string | null
+          customer_id: string
+          days_in_cycle: number
+          days_remaining: number
+          effective_date: string
+          id: string
+          invoice_id: string | null
+          net_amount: number
+          new_plan_id: string | null
+          new_price: number
+          notes: string | null
+          old_plan_id: string | null
+          old_price: number
+          proration_charge: number
+          proration_credit: number
+          subscription_id: string
+          tenant_id: string
+        }
+        Insert: {
+          change_type: string
+          changed_by?: string | null
+          created_at?: string
+          credit_transaction_id?: string | null
+          customer_id: string
+          days_in_cycle?: number
+          days_remaining?: number
+          effective_date?: string
+          id?: string
+          invoice_id?: string | null
+          net_amount?: number
+          new_plan_id?: string | null
+          new_price?: number
+          notes?: string | null
+          old_plan_id?: string | null
+          old_price?: number
+          proration_charge?: number
+          proration_credit?: number
+          subscription_id: string
+          tenant_id: string
+        }
+        Update: {
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string
+          credit_transaction_id?: string | null
+          customer_id?: string
+          days_in_cycle?: number
+          days_remaining?: number
+          effective_date?: string
+          id?: string
+          invoice_id?: string | null
+          net_amount?: number
+          new_plan_id?: string | null
+          new_price?: number
+          notes?: string | null
+          old_plan_id?: string | null
+          old_price?: number
+          proration_charge?: number
+          proration_credit?: number
+          subscription_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_changes_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plan_services: {
         Row: {
           created_at: string
@@ -5306,6 +5383,16 @@ export type Database = {
         Args: { token_val: string }
         Returns: boolean
       }
+      change_subscription_plan: {
+        Args: {
+          p_apply_credit_to_wallet?: boolean
+          p_new_plan_id: string
+          p_notes?: string
+          p_payment_method?: string
+          p_subscription_id: string
+        }
+        Returns: Json
+      }
       check_appointment_financial_status: {
         Args: { p_appointment_id: string }
         Returns: Json
@@ -5539,6 +5626,10 @@ export type Database = {
           p_entry_ids: string[]
           p_notes?: string
         }
+        Returns: Json
+      }
+      preview_subscription_plan_change: {
+        Args: { p_new_plan_id: string; p_subscription_id: string }
         Returns: Json
       }
       process_product_sale: {
