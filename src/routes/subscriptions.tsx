@@ -1112,15 +1112,33 @@ function SubscriptionsPage() {
                             </Button>
                           )}
                           {["active", "pending_payment", "past_due"].includes(s.status) && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => openPauseDialog(s)}
-                              className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs font-bold"
-                            >
-                              <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openChangeDialog(s)}
+                                className="text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 text-xs font-bold"
+                              >
+                                <ArrowRightLeft className="h-3.5 w-3.5 mr-1" /> Trocar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openPauseDialog(s)}
+                                className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs font-bold"
+                              >
+                                <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
+                              </Button>
+                            </>
                           )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openHistoryDialog(s)}
+                            className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-500/10 text-xs font-bold"
+                          >
+                            <History className="h-3.5 w-3.5 mr-1" /> Histórico
+                          </Button>
                           {s.status !== "canceled" && (
                             <Button
                               size="sm"
