@@ -552,10 +552,66 @@ function SubscriptionsPage() {
       }
     }
 
+    // Sync per-category benefits and benefit→service links (new system)
+    if (planId) {
+      // Replace benefits for this plan
+      await (supabase as any).from("subscription_plan_benefits").delete().eq("plan_id", planId);
+      const benefitKeyToId: Record<string, string> = {};
+      if (editingBenefits.length > 0) {
+        const benefitRows = editingBenefits
+          .filter((b) => b.benefit_key && b.benefit_name && Number(b.monthly_limit) >= 0)
+          .map((b, idx) => ({
+            tenant_id: tenantId,
+            plan_id: planId,
+            benefit_key: b.benefit_key.trim(),
+            benefit_name: b.benefit_name.trim(),
+            monthly_limit: Number(b.monthly_limit),
+            display_order: idx,
+            active: true,
+          }));
+        if (benefitRows.length > 0) {
+          const { data: inserted, error: bErr } = await (supabase as any)
+            .from("subscription_plan_benefits")
+            .insert(benefitRows)
+            .select("id, benefit_key");
+          if (bErr) {
+            toast.error("Plano salvo, mas houve erro ao salvar categorias: " + bErr.message);
+          } else if (inserted) {
+            for (const row of inserted as any[]) {
+              benefitKeyToId[row.benefit_key] = row.id;
+            }
+          }
+        }
+      }
+
+      // Replace benefit-service links
+      await (supabase as any).from("subscription_plan_benefit_services").delete().eq("plan_id", planId);
+      const bsRows: any[] = [];
+      for (const [serviceId, byKey] of Object.entries(editingBenefitServices)) {
+        for (const [benefitKey, qty] of Object.entries(byKey)) {
+          if (!benefitKeyToId[benefitKey] || !qty || qty <= 0) continue;
+          bsRows.push({
+            tenant_id: tenantId,
+            plan_id: planId,
+            benefit_id: benefitKeyToId[benefitKey],
+            service_id: serviceId,
+            consume_quantity: qty,
+            active: true,
+          });
+        }
+      }
+      if (bsRows.length > 0) {
+        const { error: bsErr } = await (supabase as any).from("subscription_plan_benefit_services").insert(bsRows);
+        if (bsErr) toast.error("Plano salvo, mas houve erro nos vínculos de benefício: " + bsErr.message);
+      }
+    }
+
     toast.success("Plano salvo");
     setPlanDialogOpen(false);
     setEditingPlan(null);
     setEditingPlanServices({});
+    setEditingBenefits([]);
+    setEditingBenefitServices({});
     loadAll();
   }
   async function deletePlan(id: string) {
