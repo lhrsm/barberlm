@@ -238,7 +238,7 @@ function SubscriptionRewardsPage() {
                 onClick={syncRewards}
                 disabled={syncing}
                 variant="outline"
-                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                className="border-amber-500/40 bg-amber-500/5 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 hover:border-amber-400"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
                 {syncing ? "Sincronizando…" : "Sincronizar recompensas"}
