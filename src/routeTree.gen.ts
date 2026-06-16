@@ -32,6 +32,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
@@ -167,6 +168,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const SubscriptionsReportsRoute = SubscriptionsReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => SubscriptionsRoute,
+} as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -286,7 +292,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
-  '/subscriptions': typeof SubscriptionsRoute
+  '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
@@ -329,7 +336,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
-  '/subscriptions': typeof SubscriptionsRoute
+  '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByTo {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
@@ -374,7 +382,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
-  '/subscriptions': typeof SubscriptionsRoute
+  '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/subscriptions/reports'
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
@@ -481,6 +491,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/subscriptions/reports'
     | '/admin'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
@@ -525,6 +536,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/subscriptions/reports'
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
@@ -552,7 +564,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
   SubscriptionRewardsRoute: typeof SubscriptionRewardsRoute
-  SubscriptionsRoute: typeof SubscriptionsRoute
+  SubscriptionsRoute: typeof SubscriptionsRouteWithChildren
   SupportRoute: typeof SupportRoute
   TutorialsRoute: typeof TutorialsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
@@ -725,6 +737,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/subscriptions/reports': {
+      id: '/subscriptions/reports'
+      path: '/reports'
+      fullPath: '/subscriptions/reports'
+      preLoaderRoute: typeof SubscriptionsReportsRouteImport
+      parentRoute: typeof SubscriptionsRoute
     }
     '/checkout/return': {
       id: '/checkout/return'
@@ -906,6 +925,18 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface SubscriptionsRouteChildren {
+  SubscriptionsReportsRoute: typeof SubscriptionsReportsRoute
+}
+
+const SubscriptionsRouteChildren: SubscriptionsRouteChildren = {
+  SubscriptionsReportsRoute: SubscriptionsReportsRoute,
+}
+
+const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(
+  SubscriptionsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
@@ -926,7 +957,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
   SubscriptionRewardsRoute: SubscriptionRewardsRoute,
-  SubscriptionsRoute: SubscriptionsRoute,
+  SubscriptionsRoute: SubscriptionsRouteWithChildren,
   SupportRoute: SupportRoute,
   TutorialsRoute: TutorialsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
