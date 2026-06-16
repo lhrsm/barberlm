@@ -541,8 +541,36 @@ function SubscriptionsPage() {
     setNewSubPlanId("");
     setNewSubPayment("in_person");
     setCustomerSearch("");
+    setNewSubCouponCode("");
+    setNewSubCoupon(null);
     setSubDialogOpen(true);
   }
+
+  async function applyNewSubCoupon() {
+    if (!tenantId || !newSubCouponCode.trim() || !newSubPlanId) {
+      toast.error("Selecione um plano antes de aplicar o cupom");
+      return;
+    }
+    const plan = plans.find((p) => p.id === newSubPlanId);
+    if (!plan) return;
+    setNewSubCouponLoading(true);
+    const { data, error } = await supabase.rpc("validate_subscription_coupon" as any, {
+      p_tenant_id: tenantId,
+      p_code: newSubCouponCode.trim(),
+      p_plan_price: Number(plan.monthly_price),
+    });
+    setNewSubCouponLoading(false);
+    const res = data as any;
+    if (error || !res?.valid) {
+      toast.error(res?.error || error?.message || "Cupom inválido");
+      setNewSubCoupon(null);
+      return;
+    }
+    setNewSubCoupon(res);
+    setNewSubCouponCode("");
+    toast.success("Cupom aplicado");
+  }
+
 
   async function createSubscription() {
     if (!tenantId || !newSubCustomerId || !newSubPlanId) {
