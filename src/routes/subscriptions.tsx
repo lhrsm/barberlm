@@ -295,6 +295,18 @@ function SubscriptionsPage() {
   const [pauseUntil, setPauseUntil] = useState("");
   const [pauseNotes, setPauseNotes] = useState("");
 
+  // Change plan modal
+  const [changeDialogOpen, setChangeDialogOpen] = useState(false);
+  const [changeTarget, setChangeTarget] = useState<CustomerSub | null>(null);
+  const [changeNewPlanId, setChangeNewPlanId] = useState<string>("");
+  const [changePreview, setChangePreview] = useState<any>(null);
+  const [changeLoading, setChangeLoading] = useState(false);
+  const [changeApplyWallet, setChangeApplyWallet] = useState(true);
+  const [changeNotes, setChangeNotes] = useState("");
+  const [planChanges, setPlanChanges] = useState<any[]>([]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyTarget, setHistoryTarget] = useState<CustomerSub | null>(null);
+
   async function loadAll() {
     if (!tenantId) return;
     setLoading(true);
