@@ -546,6 +546,8 @@ function SubscriptionsPage() {
     setCustomerSearch("");
     setNewSubCouponCode("");
     setNewSubCoupon(null);
+    setNewSubReferralCode("");
+    setNewSubReferral(null);
     setSubDialogOpen(true);
   }
 
