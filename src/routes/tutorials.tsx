@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   GraduationCap, 
   Search, 
-  Filter, 
   Star,
   BookOpen,
   PlayCircle,
