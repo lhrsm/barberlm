@@ -2562,26 +2562,55 @@ function ShopPageComponent() {
                       </span>
                     </div>
                     <p className="relative text-white text-xl font-black leading-tight">{plan?.name || "Assinatura"}</p>
-                    <div className="relative grid grid-cols-3 gap-2 mt-4">
-                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
-                        <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                    {benefitBalances.length > 0 ? (
+                      <div className="relative space-y-2 mt-4">
+                        {benefitBalances.map((b: any) => {
+                          const pct = b.monthly_limit > 0 ? Math.min(100, (b.used / b.monthly_limit) * 100) : 0;
+                          return (
+                            <div key={b.benefit_key} className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300">{b.benefit_name}</p>
+                                <p className="text-[11px] font-black text-[#D4AF37]">{b.used}/{b.monthly_limit}</p>
+                              </div>
+                              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F]" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div className="flex items-center justify-between text-[10px] uppercase tracking-widest pt-1">
+                          <span className="text-gray-500 font-bold">Renovação</span>
+                          <span className="text-white font-black">
+                            {activeSubscription.next_billing_at
+                              ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                              : activeSubscription.current_period_end
+                                ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                                : "—"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
-                        <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                    ) : (
+                      <div className="relative grid grid-cols-3 gap-2 mt-4">
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
+                          <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                        </div>
+                        <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
+                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
+                          <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                        </div>
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
+                          <p className="text-[11px] font-black text-white mt-0.5">
+                            {activeSubscription.next_billing_at
+                              ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                              : activeSubscription.current_period_end
+                                ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                                : "—"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
-                        <p className="text-[11px] font-black text-white mt-0.5">
-                          {activeSubscription.next_billing_at
-                            ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
-                            : activeSubscription.current_period_end
-                              ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
-                              : "—"}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Como deseja agendar?</h5>
