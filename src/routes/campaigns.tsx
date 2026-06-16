@@ -126,6 +126,7 @@ function CampaignsComponent() {
       setIsAddModalOpen(false);
       setNewCampaign({ title: "", content: "", scheduled_at: "", filters: {} });
       fetchCampaigns();
+      fetchMetrics();
     }
   }
 
@@ -135,6 +136,7 @@ function CampaignsComponent() {
     if (!error) {
       toast.success("Campanha excluída!");
       fetchCampaigns();
+      fetchMetrics();
     }
   }
 
@@ -153,11 +155,14 @@ function CampaignsComponent() {
     }
   };
 
+  const fmtPct = (n: number) =>
+    `${n.toLocaleString("pt-BR", { minimumFractionDigits: n % 1 === 0 ? 0 : 1, maximumFractionDigits: 1 })}%`;
+
   const stats = [
-    { label: "Total Enviado", value: "1.284", color: "text-white" },
-    { label: "Taxa Abertura", value: "94.2%", color: "text-emerald-400" },
-    { label: "Taxa Resposta", value: "12.5%", color: "text-blue-400" },
-    { label: "Clientes VIP", value: "42", color: "text-[#f59e0b]" },
+    { label: "Total Enviado", value: metrics.totalSent.toLocaleString("pt-BR"), color: "text-white" },
+    { label: "Taxa Abertura", value: fmtPct(metrics.openRate), color: "text-emerald-400" },
+    { label: "Taxa Resposta", value: fmtPct(metrics.responseRate), color: "text-blue-400" },
+    { label: "Clientes VIP", value: metrics.vipCustomers.toLocaleString("pt-BR"), color: "text-[#f59e0b]" },
   ];
 
   return (
