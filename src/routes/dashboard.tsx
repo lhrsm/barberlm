@@ -1143,7 +1143,7 @@ function DashboardComponent() {
                     todayAppointments.map((app) => (
                       <div 
                         key={app.id} 
-                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group gap-4"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 border border-white/10 bg-[#0b0f17] rounded-2xl hover:border-[#f59e0b]/30 hover:bg-[#0f1422] transition-colors group gap-4"
                       >
                         <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate({ to: "/calendar" })}>
                           <div className="h-12 w-12 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0">
