@@ -678,10 +678,22 @@ function SubscriptionsPage() {
         .eq("id", newSubCoupon.coupon_id);
     }
 
+    if (newSubReferral?.valid && sub?.id) {
+      const { error: refErr } = await supabase.rpc("register_subscription_referral" as any, {
+        p_subscription_id: sub.id,
+        p_referral_code: newSubReferral.code,
+        p_reward_type: "free_month",
+        p_reward_value: 0,
+        p_reward_description: "1 mês grátis por indicação",
+      });
+      if (refErr) console.error("referral register failed", refErr);
+    }
+
     toast.success("Assinatura criada com sucesso");
     setSubDialogOpen(false);
     loadAll();
   }
+
 
 
   async function cancelSubscription(id: string) {
