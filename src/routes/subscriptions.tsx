@@ -1619,7 +1619,22 @@ function SubscriptionsPage() {
             </TabsContent>
 
             {/* === REPORTS === */}
-            <TabsContent value="reports" className="mt-6">
+            <TabsContent value="reports" className="mt-6 space-y-4">
+              <Link
+                to="/subscriptions/reports"
+                className="flex items-center justify-between bg-gradient-to-r from-purple-600/20 to-emerald-500/10 border border-purple-500/30 rounded-2xl p-5 hover:border-purple-400/60 transition-all group"
+              >
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-purple-300 mb-1">
+                    Novo · Enterprise
+                  </div>
+                  <h3 className="text-lg font-black text-white">Cohort de retenção & Forecast MRR</h3>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Visão profissional sobre retenção, churn e previsão de receita recorrente.
+                  </p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-purple-400 group-hover:translate-x-1 transition-transform" />
+              </Link>
               <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6">
                 <h3 className="text-lg font-black mb-1">Planos mais vendidos</h3>
                 <p className="text-xs text-zinc-500 mb-5">Ranking por número de assinantes.</p>
