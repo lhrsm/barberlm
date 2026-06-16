@@ -2454,6 +2454,9 @@ export type Database = {
           paused_at: string | null
           payment_method: string
           plan_id: string
+          referral_code: string | null
+          referred_by_code: string | null
+          referred_by_subscription_id: string | null
           resumed_at: string | null
           started_at: string
           status: string
@@ -2486,6 +2489,9 @@ export type Database = {
           paused_at?: string | null
           payment_method?: string
           plan_id: string
+          referral_code?: string | null
+          referred_by_code?: string | null
+          referred_by_subscription_id?: string | null
           resumed_at?: string | null
           started_at?: string
           status?: string
@@ -2518,6 +2524,9 @@ export type Database = {
           paused_at?: string | null
           payment_method?: string
           plan_id?: string
+          referral_code?: string | null
+          referred_by_code?: string | null
+          referred_by_subscription_id?: string | null
           resumed_at?: string | null
           started_at?: string
           status?: string
@@ -2546,6 +2555,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_subscriptions_referred_by_subscription_id_fkey"
+            columns: ["referred_by_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -4007,6 +4023,101 @@ export type Database = {
           usage_type?: string
         }
         Relationships: []
+      }
+      subscription_referrals: {
+        Row: {
+          cancelled_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          notification_sent: boolean
+          notification_sent_at: string | null
+          referral_code: string
+          referred_customer_id: string
+          referrer_customer_id: string
+          referrer_subscription_id: string | null
+          reward_description: string | null
+          reward_granted: boolean
+          reward_type: string
+          reward_value: number
+          status: string
+          subscription_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          notification_sent?: boolean
+          notification_sent_at?: string | null
+          referral_code: string
+          referred_customer_id: string
+          referrer_customer_id: string
+          referrer_subscription_id?: string | null
+          reward_description?: string | null
+          reward_granted?: boolean
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          subscription_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          notification_sent?: boolean
+          notification_sent_at?: string | null
+          referral_code?: string
+          referred_customer_id?: string
+          referrer_customer_id?: string
+          referrer_subscription_id?: string | null
+          reward_description?: string | null
+          reward_granted?: boolean
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_referrals_referred_customer_id_fkey"
+            columns: ["referred_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_referrals_referrer_customer_id_fkey"
+            columns: ["referrer_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_referrals_referrer_subscription_id_fkey"
+            columns: ["referrer_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_referrals_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: true
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_status_logs: {
         Row: {
@@ -5532,6 +5643,7 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: number
       }
+      generate_subscription_referral_code: { Args: never; Returns: string }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_active_subscription: {
         Args: { p_customer_id: string }
@@ -5630,6 +5742,10 @@ export type Database = {
       get_workflow_key_for_event: {
         Args: { p_event_name: string; p_flow_type?: string }
         Returns: string
+      }
+      grant_subscription_referral_reward: {
+        Args: { p_referral_id: string }
+        Returns: Json
       }
       grant_subscription_rewards: { Args: never; Returns: number }
       has_active_subscription: {
@@ -5748,6 +5864,16 @@ export type Database = {
         Args: { p_subscription_id: string }
         Returns: Json
       }
+      register_subscription_referral: {
+        Args: {
+          p_referral_code: string
+          p_reward_description?: string
+          p_reward_type?: string
+          p_reward_value?: number
+          p_subscription_id: string
+        }
+        Returns: Json
+      }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
@@ -5804,6 +5930,14 @@ export type Database = {
       }
       validate_subscription_coupon: {
         Args: { p_code: string; p_plan_price: number; p_tenant_id: string }
+        Returns: Json
+      }
+      validate_subscription_referral_code: {
+        Args: {
+          p_code: string
+          p_new_customer_id?: string
+          p_tenant_id: string
+        }
         Returns: Json
       }
     }

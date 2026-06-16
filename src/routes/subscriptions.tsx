@@ -280,6 +280,9 @@ function SubscriptionsPage() {
   const [newSubCouponCode, setNewSubCouponCode] = useState("");
   const [newSubCoupon, setNewSubCoupon] = useState<any | null>(null);
   const [newSubCouponLoading, setNewSubCouponLoading] = useState(false);
+  const [newSubReferralCode, setNewSubReferralCode] = useState("");
+  const [newSubReferral, setNewSubReferral] = useState<any | null>(null);
+  const [newSubReferralLoading, setNewSubReferralLoading] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [customersList, setCustomersList] = useState<
     { id: string; name: string; phone: string | null; cpf: string | null }[]
@@ -543,6 +546,8 @@ function SubscriptionsPage() {
     setCustomerSearch("");
     setNewSubCouponCode("");
     setNewSubCoupon(null);
+    setNewSubReferralCode("");
+    setNewSubReferral(null);
     setSubDialogOpen(true);
   }
 
@@ -570,6 +575,29 @@ function SubscriptionsPage() {
     setNewSubCouponCode("");
     toast.success("Cupom aplicado");
   }
+
+  async function applyNewSubReferral() {
+    if (!tenantId || !newSubReferralCode.trim()) return;
+    setNewSubReferralLoading(true);
+    const { data, error } = await supabase.rpc("validate_subscription_referral_code" as any, {
+      p_tenant_id: tenantId,
+      p_code: newSubReferralCode.trim().toUpperCase(),
+      p_new_customer_id: newSubCustomerId || null,
+    });
+    setNewSubReferralLoading(false);
+    const res = data as any;
+    if (error || !res?.valid) {
+      toast.error(res?.reason === "self_referral" ? "Cliente não pode indicar a si mesmo" :
+                  res?.reason === "not_found" ? "Código não encontrado" :
+                  res?.reason === "inactive" ? "Assinatura do indicador inativa" :
+                  "Código inválido");
+      setNewSubReferral(null);
+      return;
+    }
+    setNewSubReferral({ ...res, code: newSubReferralCode.trim().toUpperCase() });
+    toast.success(`Indicado por ${res.referrer_name}`);
+  }
+
 
 
   async function createSubscription() {
@@ -649,10 +677,22 @@ function SubscriptionsPage() {
         .eq("id", newSubCoupon.coupon_id);
     }
 
+    if (newSubReferral?.valid && sub?.id) {
+      const { error: refErr } = await supabase.rpc("register_subscription_referral" as any, {
+        p_subscription_id: sub.id,
+        p_referral_code: newSubReferral.code,
+        p_reward_type: "free_month",
+        p_reward_value: 0,
+        p_reward_description: "1 mês grátis por indicação",
+      });
+      if (refErr) console.error("referral register failed", refErr);
+    }
+
     toast.success("Assinatura criada com sucesso");
     setSubDialogOpen(false);
     loadAll();
   }
+
 
 
   async function cancelSubscription(id: string) {
@@ -2277,6 +2317,47 @@ function SubscriptionsPage() {
                 )}
               </Block>
             )}
+
+            {/* CÓDIGO DE INDICAÇÃO */}
+            <Block title="Código de indicação (opcional)">
+              {newSubReferral?.valid ? (
+                <div className="flex items-center justify-between bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-xl p-3">
+                  <div>
+                    <div className="text-sm font-black text-fuchsia-300 uppercase tracking-widest">
+                      {newSubReferral.code}
+                    </div>
+                    <div className="text-xs text-fuchsia-200/80 mt-0.5">
+                      Indicado por <span className="font-bold">{newSubReferral.referrer_name}</span> · ganha 1 mês grátis quando esta assinatura for ativada
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setNewSubReferral(null)}
+                    className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-600 h-8"
+                  >
+                    Remover
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    placeholder="CÓDIGO DE INDICAÇÃO"
+                    value={newSubReferralCode}
+                    onChange={(e) => setNewSubReferralCode(e.target.value.toUpperCase())}
+                    className="flex-1 bg-[#05070d] border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500"
+                  />
+                  <Button
+                    onClick={applyNewSubReferral}
+                    disabled={newSubReferralLoading || !newSubReferralCode.trim()}
+                    className="bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold"
+                  >
+                    {newSubReferralLoading ? "..." : "Validar"}
+                  </Button>
+                </div>
+              )}
+            </Block>
+
+
 
             {/* RESUMO */}
             {selectedNewPlan && (
