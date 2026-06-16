@@ -404,6 +404,12 @@ function ClientPortalComponent() {
       setSubUsageLogs((usageLogs as any[]) || []);
       setSubPlanServices((planSvcs as any[]) || []);
 
+      // Per-category benefit balance (new system)
+      const { data: balances } = await (supabase as any).rpc("get_subscription_benefit_balance", {
+        _subscription_id: subData.id,
+      });
+      setBenefitBalances((balances as any[]) || []);
+
       const { data: refs } = await supabase
         .from("subscription_referrals" as any)
         .select("*, referred:customers!subscription_referrals_referred_customer_id_fkey(name)")
@@ -415,6 +421,7 @@ function ClientPortalComponent() {
       setSubRewardsHistory([]);
       setSubUsageLogs([]);
       setSubPlanServices([]);
+      setBenefitBalances([]);
       setMyReferrals([]);
     }
   }
