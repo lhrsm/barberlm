@@ -295,9 +295,10 @@ function SubscriptionRewardsPage() {
               </p>
               <Button
                 onClick={openNew}
-                className="bg-gradient-to-br from-amber-500 to-amber-600 text-black font-semibold"
+                size="sm"
+                className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold h-8 px-3 text-xs"
               >
-                <Plus className="w-4 h-4 mr-2" /> Criar primeira recompensa
+                <Plus className="w-3.5 h-3.5 mr-1.5" /> Criar primeira recompensa
               </Button>
             </div>
           ) : (
