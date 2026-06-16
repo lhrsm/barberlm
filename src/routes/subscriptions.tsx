@@ -2130,7 +2130,125 @@ function SubscriptionsPage() {
                 )}
               </Block>
 
+              {/* CATEGORIAS DE BENEFÍCIO (NOVO MOTOR) */}
+              <Block title="Categorias de Benefício (limites por categoria)">
+                <p className="text-xs text-zinc-500 mb-3">
+                  Crie categorias como <strong>Cabelo</strong> e <strong>Barba</strong> com limites mensais próprios. Em seguida, vincule cada serviço a uma ou mais categorias. Um combo pode consumir 1 de Cabelo + 1 de Barba.
+                </p>
 
+                <div className="space-y-2">
+                  {editingBenefits.map((b, idx) => (
+                    <div key={idx} className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900/40 p-3">
+                      <Input
+                        placeholder="Chave (ex: hair)"
+                        value={b.benefit_key}
+                        onChange={(e) => setEditingBenefits((prev) => prev.map((x, i) => i === idx ? { ...x, benefit_key: e.target.value.replace(/\s+/g, '_').toLowerCase() } : x))}
+                        className={cn(inputCls, "w-32")}
+                      />
+                      <Input
+                        placeholder="Nome (ex: Cabelo)"
+                        value={b.benefit_name}
+                        onChange={(e) => setEditingBenefits((prev) => prev.map((x, i) => i === idx ? { ...x, benefit_name: e.target.value } : x))}
+                        className={cn(inputCls, "flex-1 min-w-[140px]")}
+                      />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={b.monthly_limit}
+                          onChange={(e) => setEditingBenefits((prev) => prev.map((x, i) => i === idx ? { ...x, monthly_limit: parseInt(e.target.value || '0', 10) } : x))}
+                          className={cn(inputCls, "w-20 text-center")}
+                        />
+                        <span className="text-[10px] text-zinc-500 uppercase">/mês</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const removedKey = editingBenefits[idx].benefit_key;
+                          setEditingBenefits((prev) => prev.filter((_, i) => i !== idx));
+                          // Remove links pointing at this benefit
+                          setEditingBenefitServices((prev) => {
+                            const next: typeof prev = {};
+                            for (const [sid, byKey] of Object.entries(prev)) {
+                              const cleaned: Record<string, number> = {};
+                              for (const [k, v] of Object.entries(byKey)) {
+                                if (k !== removedKey) cleaned[k] = v;
+                              }
+                              if (Object.keys(cleaned).length > 0) next[sid] = cleaned;
+                            }
+                            return next;
+                          });
+                        }}
+                        className="text-rose-400 hover:text-rose-300"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => setEditingBenefits((prev) => [...prev, { benefit_key: "", benefit_name: "", monthly_limit: 4 }])}
+                >
+                  + Adicionar categoria
+                </Button>
+
+                {/* Service ↔ benefit links */}
+                {editingBenefits.length > 0 && (
+                  <div className="mt-5">
+                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Vincular serviços às categorias</p>
+                    <p className="text-[11px] text-zinc-500 mb-3">
+                      Defina quantas utilizações cada serviço consome em cada categoria. Para combos, preencha 1 em mais de uma categoria.
+                    </p>
+                    <div className="space-y-2 max-h-[320px] overflow-y-auto pr-2">
+                      {servicesList
+                        .filter((svc) => editingPlanServices[svc.id]?.included)
+                        .map((svc) => (
+                          <div key={svc.id} className="rounded-lg border border-zinc-700 bg-zinc-900/40 p-3">
+                            <p className="text-sm font-semibold text-white mb-2">{svc.name}</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {editingBenefits.filter(b => b.benefit_key).map((b) => {
+                                const qty = editingBenefitServices[svc.id]?.[b.benefit_key] || 0;
+                                return (
+                                  <div key={b.benefit_key} className="flex items-center gap-2">
+                                    <label className="text-[11px] text-zinc-300 flex-1">{b.benefit_name || b.benefit_key}</label>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      value={qty}
+                                      onChange={(e) => {
+                                        const v = parseInt(e.target.value || '0', 10);
+                                        setEditingBenefitServices((prev) => {
+                                          const next = { ...prev };
+                                          const cur = { ...(next[svc.id] || {}) };
+                                          if (v > 0) cur[b.benefit_key] = v;
+                                          else delete cur[b.benefit_key];
+                                          if (Object.keys(cur).length > 0) next[svc.id] = cur;
+                                          else delete next[svc.id];
+                                          return next;
+                                        });
+                                      }}
+                                      className={cn(inputCls, "w-16 text-center")}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      {servicesList.filter((svc) => editingPlanServices[svc.id]?.included).length === 0 && (
+                        <p className="text-xs text-zinc-500">Marque os serviços inclusos acima para vinculá-los às categorias.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Block>
 
               {/* BENEFÍCIOS INCLUSOS */}
               <Block title="Benefícios Inclusos (lista visual)">
