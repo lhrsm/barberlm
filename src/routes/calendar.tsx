@@ -242,6 +242,30 @@ function CalendarComponent() {
     if (servRes.data) setServices(servRes.data);
   }
 
+  const weekDays = useMemo(() => {
+    const start = startOfWeek(currentDate, { weekStartsOn: 0 });
+    return eachDayOfInterval({ start, end: addDays(start, 6) });
+  }, [currentDate]);
+
+  const getAppointmentsForTime = (date: Date, hour: number) => {
+    return appointments.filter((app: any) => {
+      const appDate = new Date(app.start_time);
+      const startOfHourDate = new Date(date);
+      startOfHourDate.setHours(hour, 0, 0, 0);
+      const endOfHourDate = new Date(date);
+      endOfHourDate.setHours(hour + 1, 0, 0, 0);
+      const appStartMs = appDate.getTime();
+      const appEndMs = new Date(app.end_time).getTime();
+      const slotStartMs = startOfHourDate.getTime();
+      const slotEndMs = endOfHourDate.getTime();
+      return appStartMs < slotEndMs && appEndMs > slotStartMs;
+    });
+  };
+
+  if (loading || !user) return null;
+
+
+
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
   const todayRevenue = useMemo(() => todayApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0), [todayApps]);
   const isToday = isSameDay(currentDate, new Date());
