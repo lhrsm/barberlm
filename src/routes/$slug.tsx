@@ -278,6 +278,8 @@ function ShopPageComponent() {
       if (!customerId || !shop?.id) {
         setActiveSubscription(null);
         setServiceEligibility({});
+        setSubPlanServices([]);
+        setBookingMode(null);
         return;
       }
       const { data } = await supabase
@@ -291,6 +293,15 @@ function ShopPageComponent() {
         .maybeSingle();
       setActiveSubscription(data || null);
       setServiceEligibility({});
+      if (data?.plan_id) {
+        const { data: planSvcs } = await supabase
+          .from("subscription_plan_services")
+          .select("*, services(*)")
+          .eq("plan_id", data.plan_id);
+        setSubPlanServices(planSvcs || []);
+      } else {
+        setSubPlanServices([]);
+      }
     }
     loadActiveSub();
   }, [customerId, shop?.id]);
