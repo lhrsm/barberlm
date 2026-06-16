@@ -1230,13 +1230,26 @@ function ShopPageComponent() {
       // 2.6 Consume subscription benefit for covered appointments
       for (const appt of createdAppointments) {
         if (appt.subscription_id && (appt.payment_method === 'subscription' || appt.payment_method === 'subscription_plus_payment')) {
-          await (supabase as any).rpc('consume_subscription_benefit', {
-            p_appointment_id: appt.id,
-            p_subscription_id: appt.subscription_id,
-            p_service_id: appt.service_id,
-            p_covered_amount: appt.subscription_covered_amount || 0,
-            p_extra_amount: appt.extra_amount || 0,
-          });
+          // Prefer new per-category engine; fall back to legacy RPC if no benefit links configured.
+          const hasNewLinks = planBenefitServices.some((l: any) => l.service_id === appt.service_id);
+          if (hasNewLinks) {
+            const { data: res, error: rpcErr } = await (supabase as any).rpc('consume_subscription_benefits_v2', {
+              _subscription_id: appt.subscription_id,
+              _service_id: appt.service_id,
+              _appointment_id: appt.id,
+            });
+            if (rpcErr || (res && res.success === false)) {
+              console.error('[PREMIUM FLOW] consume_subscription_benefits_v2 error', rpcErr || res);
+            }
+          } else {
+            await (supabase as any).rpc('consume_subscription_benefit', {
+              p_appointment_id: appt.id,
+              p_subscription_id: appt.subscription_id,
+              p_service_id: appt.service_id,
+              p_covered_amount: appt.subscription_covered_amount || 0,
+              p_extra_amount: appt.extra_amount || 0,
+            });
+          }
         }
       }
 
