@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { 
   Users, 
@@ -1053,39 +1054,60 @@ function DashboardComponent() {
                 </Popover>
               </div>
               
-              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1">
-                <Button 
-                  variant={statusFilter === "all" ? "default" : "outline"} 
-                  size="sm"
-                  className="flex-shrink-0 w-auto"
-                  onClick={() => setStatusFilter("all")}
-                >
-                  Todos
-                </Button>
-                <Button 
-                  variant={statusFilter === "scheduled" ? "default" : "outline"} 
-                  size="sm"
-                  className="flex-shrink-0 w-auto"
-                  onClick={() => setStatusFilter("scheduled")}
-                >
-                  Agendados
-                </Button>
-                <Button 
-                  variant={statusFilter === "completed" ? "default" : "outline"} 
-                  size="sm"
-                  className="flex-shrink-0 w-auto"
-                  onClick={() => setStatusFilter("completed")}
-                >
-                  Concluídos
-                </Button>
-                <Button 
-                  variant={statusFilter === "cancelled" ? "default" : "outline"} 
-                  size="sm"
-                  className="flex-shrink-0 w-auto"
-                  onClick={() => setStatusFilter("cancelled")}
-                >
-                  Cancelados
-                </Button>
+              {/* Desktop: pill buttons */}
+              <div className="hidden sm:flex gap-2 overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1">
+                {[
+                  { v: "all", label: "Todos" },
+                  { v: "scheduled", label: "Agendados" },
+                  { v: "completed", label: "Concluídos" },
+                  { v: "cancelled", label: "Cancelados" },
+                ].map((opt) => (
+                  <Button
+                    key={opt.v}
+                    variant={statusFilter === opt.v ? "default" : "outline"}
+                    size="sm"
+                    className="flex-shrink-0 w-auto rounded-xl"
+                    onClick={() => setStatusFilter(opt.v)}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Mobile: accordion */}
+              <div className="sm:hidden">
+                <Accordion type="single" collapsible className="rounded-2xl border border-white/10 bg-[#0b0f17]">
+                  <AccordionItem value="filter" className="border-0">
+                    <AccordionTrigger className="px-4 py-3 text-sm font-semibold hover:no-underline">
+                      <span className="flex items-center gap-2 text-zinc-300">
+                        <span className="text-[11px] uppercase tracking-[0.08em] text-zinc-500">Status</span>
+                        <span className="text-white">
+                          {({ all: "Todos", scheduled: "Agendados", completed: "Concluídos", cancelled: "Cancelados" } as Record<string, string>)[statusFilter]}
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { v: "all", label: "Todos" },
+                          { v: "scheduled", label: "Agendados" },
+                          { v: "completed", label: "Concluídos" },
+                          { v: "cancelled", label: "Cancelados" },
+                        ].map((opt) => (
+                          <Button
+                            key={opt.v}
+                            variant={statusFilter === opt.v ? "default" : "outline"}
+                            size="sm"
+                            className="w-full rounded-xl h-10"
+                            onClick={() => setStatusFilter(opt.v)}
+                          >
+                            {opt.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
             </div>
             <Card>
