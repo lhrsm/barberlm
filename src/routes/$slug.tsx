@@ -154,6 +154,17 @@ function ShopPageComponent() {
   // Subscription state
   const [activeSubscription, setActiveSubscription] = useState<any>(null);
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
+  const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
+  const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
+  const [premiumSuccess, setPremiumSuccess] = useState<null | {
+    plan: string;
+    service: string;
+    date: string;
+    time: string;
+    barber: string;
+    remaining: number | null;
+    nextRenewal: string | null;
+  }>(null);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
