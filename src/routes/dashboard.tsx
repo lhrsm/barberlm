@@ -113,6 +113,7 @@ function DashboardComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dashboardTab, setDashboardTab] = useState<string>("daily");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [birthdayCustomers, setBirthdayCustomers] = useState<any[]>([]);
 
