@@ -97,6 +97,11 @@ export function SubscriptionsPremiumCards({ tenantId }: { tenantId: string }) {
     return { activeCount: active.length, mrr, arr, newInRange, arpu };
   }, [filtered, from]);
 
+  const fieldClass =
+    "h-12 rounded-xl bg-[#05070D] border border-white/10 text-white placeholder:text-slate-500 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b]/15 focus-visible:ring-2 focus-visible:ring-[#f59e0b]/15 focus-visible:ring-offset-0 [color-scheme:dark]";
+  const labelClass =
+    "text-[11px] font-bold uppercase tracking-[0.08em] text-slate-400 mb-1.5 block";
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -105,53 +110,53 @@ export function SubscriptionsPremiumCards({ tenantId }: { tenantId: string }) {
             <Crown className="h-4 w-4 text-black" />
           </div>
           <div>
-            <h3 className="text-base font-black uppercase tracking-wider text-slate-900">
+            <h3 className="text-base font-black uppercase tracking-wider text-white">
               Assinaturas Premium
             </h3>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Receita recorrente e assinantes ativos
             </p>
           </div>
         </div>
-        <Badge className="bg-amber-500/15 text-amber-700 border border-amber-500/30 font-black uppercase text-[10px]">
+        <Badge className="rounded-full px-3 py-1.5 bg-[#f59e0b]/12 text-[#f59e0b] border border-[#f59e0b]/35 font-bold uppercase text-[11px]">
           Fidelidade separada
         </Badge>
       </div>
 
       {/* Filtros */}
-      <Card className="bg-white border-2 border-amber-500/20">
-        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+      <div
+        className="rounded-2xl p-5 shadow-lg shadow-black/30"
+        style={{
+          background: "#0B1220",
+          border: "1px solid rgba(245,158,11,0.18)",
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
           <div>
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">
-              De
-            </Label>
+            <Label className={labelClass}>De</Label>
             <Input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="h-9 text-sm"
+              className={fieldClass}
             />
           </div>
           <div>
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">
-              Até
-            </Label>
+            <Label className={labelClass}>Até</Label>
             <Input
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="h-9 text-sm"
+              className={fieldClass}
             />
           </div>
           <div>
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">
-              Plano
-            </Label>
+            <Label className={labelClass}>Plano</Label>
             <Select value={planFilter} onValueChange={setPlanFilter}>
-              <SelectTrigger className="h-9 text-sm">
+              <SelectTrigger className={fieldClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-[#0B1220] border-white/10 text-white">
                 <SelectItem value="all">Todos os planos</SelectItem>
                 {plans.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -161,8 +166,8 @@ export function SubscriptionsPremiumCards({ tenantId }: { tenantId: string }) {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
