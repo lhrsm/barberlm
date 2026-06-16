@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/table";
 import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 import { Handshake } from "lucide-react";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History, Crown } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -80,6 +82,8 @@ function FinancesComponent() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [financeTab, setFinanceTab] = useState<string>("transactions");
+
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
@@ -845,9 +849,10 @@ function FinancesComponent() {
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus size={18} /> Nova Transação
+              <Button className="gap-2 bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black rounded-xl shadow-[0_8px_24px_rgba(245,197,66,0.3)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0">
+                <Plus size={18} strokeWidth={3} /> Nova Transação
               </Button>
+
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -1243,8 +1248,9 @@ function FinancesComponent() {
           )}
         </div>
 
-        <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className={cn("grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-5 max-w-[900px]" : "grid-cols-3 max-w-[600px]")}>
+        <Tabs value={financeTab} onValueChange={setFinanceTab} className="w-full">
+          {/* Desktop tabs */}
+          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-5 max-w-[900px]" : "grid-cols-3 max-w-[600px]")}>
             <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
@@ -1265,6 +1271,58 @@ function FinancesComponent() {
               </>
             )}
           </TabsList>
+
+          {/* Mobile accordion */}
+          <div className="md:hidden">
+            <Accordion type="single" collapsible className="border border-white/10 bg-[#0b0f17] rounded-xl">
+              <AccordionItem value="nav" className="border-0">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <span className="flex items-center gap-2 text-sm font-bold text-white">
+                    {(() => {
+                      const map: Record<string, { icon: any; label: string }> = {
+                        transactions: { icon: FileText, label: "Lançamentos" },
+                        pending: { icon: Clock, label: "Pendentes" },
+                        refunds: { icon: RefreshCcw, label: "Estornos" },
+                        barbers: { icon: Users, label: "Por Barbeiro" },
+                        settings: { icon: AlertCircle, label: "Configs" },
+                      };
+                      const cur = map[financeTab] || map.transactions;
+                      const Icon = cur.icon;
+                      return (<><Icon size={16} className="text-[#F5C542]" /> {cur.label}</>);
+                    })()}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-2 pb-2">
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {[
+                      { v: "transactions", icon: FileText, label: "Lançamentos" },
+                      { v: "pending", icon: Clock, label: "Pendentes" },
+                      { v: "refunds", icon: RefreshCcw, label: "Estornos" },
+                      ...(role !== 'barber' ? [
+                        { v: "barbers", icon: Users, label: "Por Barbeiro" },
+                        { v: "settings", icon: AlertCircle, label: "Configs" },
+                      ] : []),
+                    ].map(({ v, icon: Icon, label }) => (
+                      <Button
+                        key={v}
+                        variant="ghost"
+                        onClick={() => setFinanceTab(v)}
+                        className={cn(
+                          "justify-start gap-2 rounded-lg h-10 font-bold",
+                          financeTab === v
+                            ? "bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black hover:brightness-110"
+                            : "text-slate-300 hover:bg-white/5 hover:text-white"
+                        )}
+                      >
+                        <Icon size={16} /> {label}
+                      </Button>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
             <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
