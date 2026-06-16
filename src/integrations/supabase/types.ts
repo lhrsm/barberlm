@@ -3821,6 +3821,111 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plan_benefit_services: {
+        Row: {
+          active: boolean
+          benefit_id: string
+          consume_quantity: number
+          created_at: string
+          id: string
+          plan_id: string
+          service_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          benefit_id: string
+          consume_quantity?: number
+          created_at?: string
+          id?: string
+          plan_id: string
+          service_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          benefit_id?: string
+          consume_quantity?: number
+          created_at?: string
+          id?: string
+          plan_id?: string
+          service_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_benefit_services_benefit_id_fkey"
+            columns: ["benefit_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plan_benefits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_plan_benefit_services_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_plan_benefit_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plan_benefits: {
+        Row: {
+          active: boolean
+          benefit_key: string
+          benefit_name: string
+          created_at: string
+          display_order: number
+          id: string
+          monthly_limit: number
+          plan_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          benefit_key: string
+          benefit_name: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          monthly_limit: number
+          plan_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          benefit_key?: string
+          benefit_name?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          monthly_limit?: number
+          plan_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_benefits_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plan_changes: {
         Row: {
           change_type: string
@@ -4175,7 +4280,9 @@ export type Database = {
       subscription_usage_logs: {
         Row: {
           appointment_id: string | null
+          benefit_key: string | null
           benefit_type: string
+          consume_quantity: number
           covered_amount: number
           created_at: string
           customer_id: string | null
@@ -4185,6 +4292,7 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           service_id: string | null
+          status: string
           subscription_id: string
           subscription_plan_id: string | null
           tenant_id: string
@@ -4192,7 +4300,9 @@ export type Database = {
         }
         Insert: {
           appointment_id?: string | null
+          benefit_key?: string | null
           benefit_type?: string
+          consume_quantity?: number
           covered_amount?: number
           created_at?: string
           customer_id?: string | null
@@ -4202,6 +4312,7 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           service_id?: string | null
+          status?: string
           subscription_id: string
           subscription_plan_id?: string | null
           tenant_id: string
@@ -4209,7 +4320,9 @@ export type Database = {
         }
         Update: {
           appointment_id?: string | null
+          benefit_key?: string | null
           benefit_type?: string
+          consume_quantity?: number
           covered_amount?: number
           created_at?: string
           customer_id?: string | null
@@ -4219,6 +4332,7 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           service_id?: string | null
+          status?: string
           subscription_id?: string
           subscription_plan_id?: string | null
           tenant_id?: string
@@ -5651,6 +5765,14 @@ export type Database = {
         }
         Returns: Json
       }
+      consume_subscription_benefits_v2: {
+        Args: {
+          _appointment_id: string
+          _service_id: string
+          _subscription_id: string
+        }
+        Returns: Json
+      }
       consume_subscription_use: {
         Args: { p_appointment_id?: string; p_subscription_id: string }
         Returns: Json
@@ -5804,6 +5926,16 @@ export type Database = {
       get_subscriber_months: {
         Args: { p_subscription_id: string }
         Returns: number
+      }
+      get_subscription_benefit_balance: {
+        Args: { _subscription_id: string }
+        Returns: {
+          benefit_key: string
+          benefit_name: string
+          monthly_limit: number
+          remaining: number
+          used: number
+        }[]
       }
       get_workflow_key_for_event: {
         Args: { p_event_name: string; p_flow_type?: string }
