@@ -64,43 +64,68 @@ function getCalendarStatusConfig(status: string) {
   if (['completed', 'concluido', 'concluído', 'done'].includes(normalized)) {
     return {
       label: 'Concluído',
-      className: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+      badge: 'bg-emerald-700/25 text-emerald-300 border-emerald-600/40',
+      ring: 'border-emerald-600/30',
+      dot: 'bg-emerald-500',
     };
   }
-
+  if (['paid', 'pago'].includes(normalized)) {
+    return {
+      label: 'Pago',
+      badge: 'bg-emerald-400/15 text-emerald-300 border-emerald-400/40',
+      ring: 'border-emerald-400/30',
+      dot: 'bg-emerald-400',
+    };
+  }
   if (['cancelled', 'canceled', 'cancelado'].includes(normalized)) {
     return {
       label: 'Cancelado',
-      className: 'bg-red-600/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
+      badge: 'bg-red-600/20 text-red-300 border-red-500/40',
+      ring: 'border-red-500/30',
+      dot: 'bg-red-500',
     };
   }
-
+  if (['no_show', 'faltou', 'missed'].includes(normalized)) {
+    return {
+      label: 'Faltou',
+      badge: 'bg-slate-500/20 text-slate-300 border-slate-400/30',
+      ring: 'border-slate-400/20',
+      dot: 'bg-slate-400',
+    };
+  }
   if (['confirmed', 'confirmado'].includes(normalized)) {
     return {
       label: 'Confirmado',
-      className: 'bg-yellow-600/20 text-yellow-400 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.1)]'
+      badge: 'bg-blue-600/20 text-blue-300 border-blue-500/40',
+      ring: 'border-blue-500/30',
+      dot: 'bg-blue-500',
     };
   }
-
   if (['rescheduled', 'reagendado'].includes(normalized)) {
     return {
       label: 'Reagendado',
-      className: 'bg-purple-600/20 text-purple-400 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
+      badge: 'bg-purple-600/20 text-purple-300 border-purple-500/40',
+      ring: 'border-purple-500/30',
+      dot: 'bg-purple-500',
     };
   }
-
   if (['awaiting_payment'].includes(normalized)) {
     return {
       label: 'Pgto Pendente',
-      className: 'bg-amber-600/20 text-amber-400 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+      badge: 'bg-amber-600/20 text-amber-300 border-amber-500/40',
+      ring: 'border-amber-500/30',
+      dot: 'bg-amber-500',
     };
   }
-
+  // Agendado / pending default
   return {
-    label: 'Pendente',
-    className: 'bg-blue-600/20 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+    label: 'Agendado',
+    badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+    ring: 'border-orange-500/30',
+    dot: 'bg-orange-500',
   };
 }
+
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
 
