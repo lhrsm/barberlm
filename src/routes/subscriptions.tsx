@@ -260,6 +260,11 @@ function SubscriptionsPage() {
   const [loading, setLoading] = useState(true);
   const [servicesList, setServicesList] = useState<Array<{ id: string; name: string; price: number }>>([]);
   const [editingPlanServices, setEditingPlanServices] = useState<Record<string, { included: boolean; max_uses_per_period: number | null }>>({});
+  // New: per-category benefits editor
+  type BenefitDraft = { id?: string; benefit_key: string; benefit_name: string; monthly_limit: number };
+  const [editingBenefits, setEditingBenefits] = useState<BenefitDraft[]>([]);
+  // Map service_id -> { benefit_key -> consume_quantity }
+  const [editingBenefitServices, setEditingBenefitServices] = useState<Record<string, Record<string, number>>>({});
   const [usageLogs, setUsageLogs] = useState<any[]>([]);
 
   // Filtros aba Uso
