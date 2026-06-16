@@ -2695,6 +2695,8 @@ function ShopPageComponent() {
                       const elig = serviceEligibility[s.id];
                       const isCovered = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) === 0);
                       const isPartial = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) > 0);
+                      const consumesFor = planBenefitServices.filter((l: any) => l.service_id === s.id);
+                      const totalConsume = consumesFor.reduce((acc: number, l: any) => acc + Number(l.consume_quantity || 1), 0);
                       return (
                       <motion.div 
                         key={s.id} 
@@ -2730,6 +2732,18 @@ function ShopPageComponent() {
                                </span>
                              )}
                           </div>
+                          {bookingMode === 'benefit' && consumesFor.length > 0 && (
+                            <div className="mt-2 space-y-0.5">
+                              {consumesFor.map((l: any) => (
+                                <p key={l.benefit_key} className="text-[10px] text-zinc-600">
+                                  Consome: <span className="font-bold text-[#8A6D1F]">{l.consume_quantity} utilização de {l.benefit_name}</span>
+                                </p>
+                              ))}
+                              {totalConsume > 1 && (
+                                <p className="text-[10px] font-black uppercase tracking-wider text-[#D4AF37]">Total: {totalConsume} utilizações</p>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="text-right relative z-10">
                           {isCovered ? (
