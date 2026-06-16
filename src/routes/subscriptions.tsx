@@ -277,6 +277,9 @@ function SubscriptionsPage() {
   const [newSubCustomerId, setNewSubCustomerId] = useState("");
   const [newSubPlanId, setNewSubPlanId] = useState("");
   const [newSubPayment, setNewSubPayment] = useState<PaymentMethod>("in_person");
+  const [newSubCouponCode, setNewSubCouponCode] = useState("");
+  const [newSubCoupon, setNewSubCoupon] = useState<any | null>(null);
+  const [newSubCouponLoading, setNewSubCouponLoading] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [customersList, setCustomersList] = useState<
     { id: string; name: string; phone: string | null; cpf: string | null }[]
@@ -538,8 +541,36 @@ function SubscriptionsPage() {
     setNewSubPlanId("");
     setNewSubPayment("in_person");
     setCustomerSearch("");
+    setNewSubCouponCode("");
+    setNewSubCoupon(null);
     setSubDialogOpen(true);
   }
+
+  async function applyNewSubCoupon() {
+    if (!tenantId || !newSubCouponCode.trim() || !newSubPlanId) {
+      toast.error("Selecione um plano antes de aplicar o cupom");
+      return;
+    }
+    const plan = plans.find((p) => p.id === newSubPlanId);
+    if (!plan) return;
+    setNewSubCouponLoading(true);
+    const { data, error } = await supabase.rpc("validate_subscription_coupon" as any, {
+      p_tenant_id: tenantId,
+      p_code: newSubCouponCode.trim(),
+      p_plan_price: Number(plan.monthly_price),
+    });
+    setNewSubCouponLoading(false);
+    const res = data as any;
+    if (error || !res?.valid) {
+      toast.error(res?.error || error?.message || "Cupom inválido");
+      setNewSubCoupon(null);
+      return;
+    }
+    setNewSubCoupon(res);
+    setNewSubCouponCode("");
+    toast.success("Cupom aplicado");
+  }
+
 
   async function createSubscription() {
     if (!tenantId || !newSubCustomerId || !newSubPlanId) {
@@ -551,6 +582,12 @@ function SubscriptionsPage() {
     const now = new Date();
     const periodEnd = new Date(now);
     periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+    const monthlyPrice = Number(plan.monthly_price);
+    const couponDiscount = newSubCoupon?.valid ? Number(newSubCoupon.discount_amount || 0) : 0;
+    const firstInvoiceAmount = newSubCoupon?.valid
+      ? Number(newSubCoupon.final_amount ?? Math.max(0, monthlyPrice - couponDiscount))
+      : monthlyPrice;
 
     const { data: sub, error } = await supabase
       .from("customer_subscriptions")
@@ -564,7 +601,15 @@ function SubscriptionsPage() {
         current_period_start: now.toISOString(),
         current_period_end: periodEnd.toISOString(),
         next_billing_at: periodEnd.toISOString(),
-      })
+        ...(newSubCoupon?.valid
+          ? {
+              coupon_id: newSubCoupon.coupon_id,
+              coupon_code: newSubCoupon.coupon_code,
+              coupon_discount: couponDiscount,
+              coupon_first_month_only: !!newSubCoupon.first_month_only,
+            }
+          : {}),
+      } as any)
       .select("id")
       .single();
     if (error || !sub) {
@@ -575,16 +620,40 @@ function SubscriptionsPage() {
       tenant_id: tenantId,
       subscription_id: sub.id,
       customer_id: newSubCustomerId,
-      amount: plan.monthly_price,
+      amount: firstInvoiceAmount,
       status: newSubPayment === "in_person" ? "paid" : "pending",
       payment_method: newSubPayment,
       due_date: now.toISOString(),
       paid_at: newSubPayment === "in_person" ? now.toISOString() : null,
-    });
+      ...(newSubCoupon?.valid
+        ? {
+            coupon_id: newSubCoupon.coupon_id,
+            coupon_code: newSubCoupon.coupon_code,
+            discount_amount: couponDiscount,
+            original_amount: monthlyPrice,
+          }
+        : {}),
+    } as any);
+
+    if (newSubCoupon?.valid && newSubCoupon.coupon_id) {
+      // Best-effort increment of used_count
+
+      const { data: cpRow } = await supabase
+        .from("coupons")
+        .select("used_count")
+        .eq("id", newSubCoupon.coupon_id)
+        .maybeSingle();
+      await supabase
+        .from("coupons")
+        .update({ used_count: (Number(cpRow?.used_count) || 0) + 1 })
+        .eq("id", newSubCoupon.coupon_id);
+    }
+
     toast.success("Assinatura criada com sucesso");
     setSubDialogOpen(false);
     loadAll();
   }
+
 
   async function cancelSubscription(id: string) {
     if (!confirm("Cancelar esta assinatura?")) return;
@@ -2167,15 +2236,75 @@ function SubscriptionsPage() {
               </div>
             </Block>
 
+            {/* CUPOM DE ASSINATURA */}
+            {selectedNewPlan && (
+              <Block title="Cupom de assinatura (opcional)">
+                {newSubCoupon?.valid ? (
+                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
+                    <div>
+                      <div className="text-sm font-black text-emerald-300 uppercase tracking-widest">
+                        {newSubCoupon.coupon_code}
+                      </div>
+                      <div className="text-xs text-emerald-200/80 mt-0.5">
+                        -{formatBRL(Number(newSubCoupon.discount_amount || 0))}
+                        {newSubCoupon.first_month_only ? " · só primeira mensalidade" : ""}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setNewSubCoupon(null)}
+                      className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-600 h-8"
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      placeholder="CÓDIGO DO CUPOM"
+                      value={newSubCouponCode}
+                      onChange={(e) => setNewSubCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 bg-[#05070d] border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                    />
+                    <Button
+                      onClick={applyNewSubCoupon}
+                      disabled={newSubCouponLoading || !newSubCouponCode.trim()}
+                      className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold"
+                    >
+                      {newSubCouponLoading ? "..." : "Aplicar"}
+                    </Button>
+                  </div>
+                )}
+              </Block>
+            )}
+
             {/* RESUMO */}
             {selectedNewPlan && (
               <Block title="Resumo">
                 <div className="bg-[#05070d] border border-emerald-500/20 rounded-xl p-4 space-y-2 text-sm">
                   <Row label="Plano" value={selectedNewPlan.name} />
                   <Row
-                    label="Valor"
+                    label="Valor mensal"
                     value={`${formatBRL(Number(selectedNewPlan.monthly_price))}/mês`}
                   />
+                  {newSubCoupon?.valid && (
+                    <>
+                      <Row
+                        label={`Cupom ${newSubCoupon.coupon_code}`}
+                        value={`-${formatBRL(Number(newSubCoupon.discount_amount || 0))}`}
+                      />
+                      <Row
+                        label="1ª mensalidade"
+                        value={formatBRL(Number(newSubCoupon.final_amount ?? Number(selectedNewPlan.monthly_price)))}
+                      />
+                      {newSubCoupon.first_month_only && (
+                        <Row
+                          label="A partir do 2º mês"
+                          value={`${formatBRL(Number(selectedNewPlan.monthly_price))}/mês`}
+                        />
+                      )}
+                    </>
+                  )}
                   <Row label="Pagamento" value={paymentMethodLabel(newSubPayment)} />
                   <Row
                     label="Uso"
@@ -2191,6 +2320,7 @@ function SubscriptionsPage() {
                 </div>
               </Block>
             )}
+
           </div>
 
           <DialogFooter className="gap-2">

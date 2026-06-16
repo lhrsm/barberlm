@@ -63,13 +63,16 @@ interface Coupon {
   expires_at: string | null;
   active: boolean;
   created_at: string;
+  applies_to?: 'order' | 'subscription';
+  first_month_only?: boolean;
 }
 
 export function CouponManagement() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Partial<Coupon> | null>(null);
-  
+  const [activeTab, setActiveTab] = useState<'order' | 'subscription'>('order');
+
   const initialCouponState = {
     code: "",
     type: "fixed" as "fixed" | "percentage",
@@ -78,7 +81,9 @@ export function CouponManagement() {
     max_discount: undefined as number | undefined,
     usage_limit: undefined as number | undefined,
     expires_at: "",
-    active: true
+    active: true,
+    applies_to: "order" as "order" | "subscription",
+    first_month_only: false,
   };
 
   const [couponForm, setCouponForm] = useState(initialCouponState);
@@ -110,11 +115,13 @@ export function CouponManagement() {
         code: data.code.toUpperCase().trim(),
         type: data.type,
         value: data.value,
-        minimum_amount: data.minimum_amount || 0,
+        minimum_amount: data.applies_to === 'subscription' ? 0 : (data.minimum_amount || 0),
         max_discount: data.max_discount || null,
         usage_limit: data.usage_limit || null,
         expires_at: data.expires_at || null,
-        active: data.active
+        active: data.active,
+        applies_to: data.applies_to,
+        first_month_only: data.applies_to === 'subscription' ? !!data.first_month_only : false,
       };
 
       if (data.id) {
@@ -184,7 +191,9 @@ export function CouponManagement() {
       max_discount: coupon.max_discount || undefined,
       usage_limit: coupon.usage_limit || undefined,
       expires_at: coupon.expires_at ? coupon.expires_at.split('T')[0] : "",
-      active: coupon.active
+      active: coupon.active,
+      applies_to: (coupon.applies_to ?? 'order'),
+      first_month_only: !!coupon.first_month_only,
     });
     setIsDialogOpen(true);
   };
@@ -199,16 +208,22 @@ export function CouponManagement() {
       max_discount: coupon.max_discount || undefined,
       usage_limit: coupon.usage_limit || undefined,
       expires_at: coupon.expires_at ? coupon.expires_at.split('T')[0] : "",
-      active: false
+      active: false,
+      applies_to: (coupon.applies_to ?? 'order'),
+      first_month_only: !!coupon.first_month_only,
     });
     setIsDialogOpen(true);
   };
 
+
   const handleOpenNew = () => {
     setEditingCoupon(null);
-    setCouponForm(initialCouponState);
+    setCouponForm({ ...initialCouponState, applies_to: activeTab });
     setIsDialogOpen(true);
   };
+
+  const filteredCoupons = (coupons || []).filter((c) => (c.applies_to ?? 'order') === activeTab);
+
 
   if (isLoading) return <div className="p-8 text-center text-slate-400">Carregando cupons...</div>;
 
@@ -232,7 +247,26 @@ export function CouponManagement() {
         </Button>
       </div>
 
+      {/* TABS: Order coupons vs Subscription coupons */}
+      <div className="flex gap-2 border-b border-[#1f2937]">
+        <button
+          type="button"
+          onClick={() => setActiveTab('order')}
+          className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'order' ? 'text-[#ea580c] border-[#ea580c]' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+        >
+          Serviços / Produtos
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('subscription')}
+          className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'subscription' ? 'text-emerald-400 border-emerald-400' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+        >
+          Assinatura
+        </button>
+      </div>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+
         <DialogContent className="sm:max-w-[425px] bg-[#0b0f17] border-[#1f2937] text-white rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase italic tracking-widest flex items-center gap-2">
@@ -242,15 +276,49 @@ export function CouponManagement() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
+              <Label className="text-slate-400">Aplica-se a</Label>
+              <Select
+                value={couponForm.applies_to}
+                onValueChange={v => setCouponForm({...couponForm, applies_to: v as 'order' | 'subscription'})}
+              >
+                <SelectTrigger className="bg-[#2a2b2e] border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1b1e] border-slate-800 text-white">
+                  <SelectItem value="order">Serviços / Produtos</SelectItem>
+                  <SelectItem value="subscription">Assinatura</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                {couponForm.applies_to === 'subscription'
+                  ? 'Válido apenas em mensalidades de assinatura.'
+                  : 'Válido em agendamentos e produtos avulsos.'}
+              </p>
+            </div>
+            {couponForm.applies_to === 'subscription' && (
+              <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3">
+                <div>
+                  <Label className="text-emerald-300 font-black uppercase tracking-widest text-[11px]">Apenas Primeira Mensalidade</Label>
+                  <p className="text-[10px] text-slate-500 mt-1">Desconto aplica só no primeiro mês; renovações voltam ao valor normal.</p>
+                </div>
+                <Switch
+                  checked={!!couponForm.first_month_only}
+                  onCheckedChange={v => setCouponForm({...couponForm, first_month_only: v})}
+                  className="data-[state=checked]:bg-emerald-500"
+                />
+              </div>
+            )}
+            <div className="grid gap-2">
               <Label htmlFor="code" className="text-slate-400">Código do Cupom</Label>
               <Input 
                 id="code" 
-                placeholder="EX: VERÃO20" 
+                placeholder={couponForm.applies_to === 'subscription' ? 'EX: PRIMEIROMES' : 'EX: VERÃO20'}
                 value={couponForm.code}
                 onChange={e => setCouponForm({...couponForm, code: e.target.value.toUpperCase()})}
                 className="bg-[#2a2b2e] border-slate-700 text-white placeholder:text-slate-600 focus:ring-[#ea580c]"
               />
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label className="text-slate-400">Tipo</Label>
@@ -351,14 +419,14 @@ export function CouponManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {coupons?.length === 0 ? (
+                {filteredCoupons.length === 0 ? (
                   <TableRow className="border-none hover:bg-transparent">
                     <TableCell colSpan={6} className="text-center py-12 text-slate-500 italic">
                       Nenhum cupom encontrado.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  coupons?.map((coupon) => (
+                  filteredCoupons.map((coupon) => (
                     <TableRow key={coupon.id} className="border-b border-[#1f2937]/30 hover:bg-[#ea580c]/5 transition-colors group">
                       <TableCell className="font-bold">
                         <div className="flex items-center gap-3 text-white">
@@ -442,12 +510,12 @@ export function CouponManagement() {
           </div>
 
           <div className="md:hidden divide-y divide-[#1f2937]/50 bg-[#0b0f17]">
-            {coupons?.length === 0 ? (
+            {filteredCoupons.length === 0 ? (
               <div className="p-12 text-center text-slate-600 font-bold uppercase text-[10px] tracking-widest italic">
                 Nenhum cupom encontrado.
               </div>
             ) : (
-              coupons?.map((coupon) => (
+              filteredCoupons.map((coupon) => (
                 <div key={coupon.id} className="p-6 space-y-6 hover:bg-[#ea580c]/5 transition-all">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
