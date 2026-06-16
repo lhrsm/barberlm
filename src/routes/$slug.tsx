@@ -154,6 +154,17 @@ function ShopPageComponent() {
   // Subscription state
   const [activeSubscription, setActiveSubscription] = useState<any>(null);
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
+  const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
+  const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
+  const [premiumSuccess, setPremiumSuccess] = useState<null | {
+    plan: string;
+    service: string;
+    date: string;
+    time: string;
+    barber: string;
+    remaining: number | null;
+    nextRenewal: string | null;
+  }>(null);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -267,6 +278,8 @@ function ShopPageComponent() {
       if (!customerId || !shop?.id) {
         setActiveSubscription(null);
         setServiceEligibility({});
+        setSubPlanServices([]);
+        setBookingMode(null);
         return;
       }
       const { data } = await supabase
@@ -280,6 +293,15 @@ function ShopPageComponent() {
         .maybeSingle();
       setActiveSubscription(data || null);
       setServiceEligibility({});
+      if (data?.plan_id) {
+        const { data: planSvcs } = await supabase
+          .from("subscription_plan_services")
+          .select("*, services(*)")
+          .eq("plan_id", data.plan_id);
+        setSubPlanServices(planSvcs || []);
+      } else {
+        setSubPlanServices([]);
+      }
     }
     loadActiveSub();
   }, [customerId, shop?.id]);
@@ -1246,11 +1268,44 @@ function ShopPageComponent() {
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
       console.log('DEBUG: Persisted session before portal redirect', sessionData);
 
+      // Premium success screen — when client used the subscription benefit
+      const usedBenefit = createdAppointments.some(
+        (a: any) => a.subscription_id && (a.payment_method === 'subscription' || a.payment_method === 'subscription_plus_payment')
+      );
+      if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
+        const appt = createdAppointments[0] as any;
+        const item = finalCart.find((i) => i.service_id === appt.service_id) || finalCart[0];
+        const max = activeSubscription.plan?.max_uses_per_month;
+        const used = (activeSubscription.uses_this_period || 0) + 1;
+        const remaining = max ? Math.max(0, max - used) : null;
+        setPremiumSuccess({
+          plan: activeSubscription.plan?.name || "Assinatura",
+          service: item?.service_name || "Serviço",
+          date: item?.date || format(new Date(), "yyyy-MM-dd"),
+          time: item?.start_time || "",
+          barber: item?.barber_name || "",
+          remaining,
+          nextRenewal: activeSubscription.next_billing_at || activeSubscription.current_period_end || null,
+        });
+        // Soft-reset booking flow but keep modal-free overlay visible
+        setBookingCart([]);
+        setSelectedProducts([]);
+        setIsBookingOpen(false);
+        setBookingStep(1);
+        setBookingMode(null);
+        setAppliedCoupon(null);
+        setUseCashback(false);
+        setUseCredits(false);
+        setPaymentMethod(null);
+        return;
+      }
+
       // Reset and redirect
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
       setBookingStep(1);
+      setBookingMode(null);
       setAppliedCoupon(null);
       setUseCashback(false);
       setUseCredits(false);
@@ -2389,18 +2444,162 @@ function ShopPageComponent() {
               </motion.div>
             )}
 
-            {bookingStep === 2 && (
+            {bookingStep === 2 && activeSubscription && !bookingMode && (() => {
+              const plan = activeSubscription.plan;
+              const used = activeSubscription.uses_this_period || 0;
+              const max = plan?.max_uses_per_month;
+              const remaining = max ? Math.max(0, max - used) : null;
+              const noBenefit = remaining === 0 || subPlanServices.length === 0;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-5"
+                >
+                  {/* Subscription summary - Premium dark */}
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-[#D4AF37]/60 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-5 shadow-[0_12px_40px_rgba(212,175,55,0.25)]">
+                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                      style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                    <div className="relative flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Crown className="text-[#D4AF37]" size={18} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]">Assinante Premium</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                        {activeSubscription.status === "active" ? "ATIVO" : activeSubscription.status?.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="relative text-white text-xl font-black leading-tight">{plan?.name || "Assinatura"}</p>
+                    <div className="relative grid grid-cols-3 gap-2 mt-4">
+                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
+                        <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                      </div>
+                      <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
+                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
+                        <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                      </div>
+                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
+                        <p className="text-[11px] font-black text-white mt-0.5">
+                          {activeSubscription.next_billing_at
+                            ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                            : activeSubscription.current_period_end
+                              ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                              : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Como deseja agendar?</h5>
+
+                  <div className="grid gap-3">
+                    <button
+                      type="button"
+                      disabled={noBenefit}
+                      onClick={() => setBookingMode('benefit')}
+                      className={cn(
+                        "group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition-all",
+                        noBenefit
+                          ? "border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed"
+                          : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black shrink-0">
+                            <Crown size={22} />
+                          </div>
+                          <div>
+                            <p className="font-black uppercase tracking-tight text-base text-black">Utilizar Benefício</p>
+                            <p className="text-[11px] text-zinc-600 font-medium">
+                              {noBenefit
+                                ? remaining === 0 ? "Limite mensal atingido" : "Plano sem serviços vinculados"
+                                : `${subPlanServices.length} serviço(s) incluso(s) • R$ 0,00`}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight size={20} className="text-[#D4AF37] shrink-0" />
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setBookingMode('standalone')}
+                      className="group relative overflow-hidden rounded-2xl border-2 border-zinc-200 bg-white p-5 text-left transition-all hover:border-zinc-400 hover:shadow-lg hover:scale-[1.01] cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-xl bg-zinc-900 grid place-items-center text-white shrink-0">
+                            <Scissors size={22} />
+                          </div>
+                          <div>
+                            <p className="font-black uppercase tracking-tight text-base text-black">Serviço Avulso</p>
+                            <p className="text-[11px] text-zinc-500 font-medium">Catálogo completo • PIX, créditos, cashback</p>
+                          </div>
+                        </div>
+                        <ChevronRight size={20} className="text-zinc-400 shrink-0" />
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })()}
+
+            {bookingStep === 2 && (!activeSubscription || bookingMode) && (
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                {/* O campo de nome agora é exibido no Step 1 se o cliente não for encontrado */}
-                
+                {/* Premium benefit ribbon when in benefit mode */}
+                {activeSubscription && bookingMode === 'benefit' && (() => {
+                  const used = activeSubscription.uses_this_period || 0;
+                  const max = activeSubscription.plan?.max_uses_per_month;
+                  const remaining = max ? Math.max(0, max - used) : null;
+                  return (
+                    <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#1a1408] to-[#0a0a0a] p-3 text-white shadow-[0_8px_24px_rgba(212,175,55,0.2)]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Crown size={16} className="text-[#D4AF37] shrink-0" />
+                        <p className="text-[11px] font-black uppercase tracking-widest truncate">
+                          Modo Benefício • {remaining ?? "∞"} restante(s)
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBookingMode(null)}
+                        className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] hover:text-white transition-colors shrink-0"
+                      >
+                        Trocar
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {activeSubscription && bookingMode === 'standalone' && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Scissors size={14} className="text-zinc-500 shrink-0" />
+                      <p className="text-[11px] font-black uppercase tracking-widest text-zinc-700 truncate">Serviço Avulso</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setBookingMode(null)}
+                      className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-black transition-colors shrink-0"
+                    >
+                      Trocar
+                    </button>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {services.map(s => {
+                    {(bookingMode === 'benefit'
+                      ? services.filter((s) => subPlanServices.some((ps: any) => ps.service_id === s.id))
+                      : services
+                    ).map(s => {
                       const elig = serviceEligibility[s.id];
                       const isCovered = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) === 0);
                       const isPartial = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) > 0);
@@ -3897,6 +4096,94 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Premium Success Overlay */}
+      <Dialog open={!!premiumSuccess} onOpenChange={(o) => { if (!o) { setPremiumSuccess(null); navigate({ to: `/${slug}/portal` as any, replace: true }); } }}>
+        <DialogContent className="max-w-md bg-transparent border-none p-0 shadow-none">
+          <DialogTitle className="sr-only">Agendamento Premium Confirmado</DialogTitle>
+          {premiumSuccess && (
+            <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_30px_80px_rgba(212,175,55,0.45)]">
+              <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+
+              <div className="relative flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                  className="h-20 w-20 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center mb-3 shadow-[0_10px_30px_rgba(212,175,55,0.5)]"
+                >
+                  <CheckCircle2 size={44} className="text-black" />
+                </motion.div>
+
+                <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/90 font-black">Agendamento Premium</p>
+                <h3 className="text-2xl font-black uppercase tracking-tight text-white mt-1">Confirmado ✦</h3>
+                <p className="text-[11px] text-gray-400 mt-1">Benefício do plano reservado com sucesso</p>
+              </div>
+
+              <div className="relative mt-5 space-y-2.5">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-[#D4AF37]/20 p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Crown size={14} className="text-[#D4AF37] shrink-0" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Plano</span>
+                  </div>
+                  <span className="text-sm font-black text-white truncate">{premiumSuccess.plan}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-white/5 p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Scissors size={14} className="text-[#D4AF37] shrink-0" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Serviço</span>
+                  </div>
+                  <span className="text-sm font-black text-white truncate">{premiumSuccess.service}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="rounded-xl bg-black/40 border border-white/5 p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Data</p>
+                    <p className="text-sm font-black text-white mt-1">
+                      {(() => { try { return format(parseISO(premiumSuccess.date), "dd 'de' MMM", { locale: ptBR }); } catch { return premiumSuccess.date; } })()}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-black/40 border border-white/5 p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Horário</p>
+                    <p className="text-sm font-black text-white mt-1">{premiumSuccess.time}</p>
+                  </div>
+                </div>
+                {premiumSuccess.barber && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-white/5 p-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <UserIcon size={14} className="text-[#D4AF37] shrink-0" />
+                      <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Profissional</span>
+                    </div>
+                    <span className="text-sm font-black text-white truncate">{premiumSuccess.barber}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-transparent border border-emerald-500/30 p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Gift size={14} className="text-emerald-400 shrink-0" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-300">Benefícios restantes</span>
+                  </div>
+                  <span className="text-base font-black text-emerald-400">
+                    {premiumSuccess.remaining === null ? "Ilimitado" : premiumSuccess.remaining}
+                  </span>
+                </div>
+                {premiumSuccess.nextRenewal && (
+                  <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest font-bold pt-1">
+                    Próxima renovação: {format(parseISO(premiumSuccess.nextRenewal), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                className="relative w-full h-12 mt-5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-black font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg"
+                onClick={() => { setPremiumSuccess(null); navigate({ to: `/${slug}/portal` as any, replace: true }); }}
+              >
+                Ir para o portal
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
