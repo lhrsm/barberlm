@@ -530,7 +530,7 @@ function ProductsComponent() {
 
 
             <TabsContent value="inventory" className="pt-6">
-              <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+              <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5">
                 <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
                   <h3 className="font-bold flex items-center gap-2 text-white">
                     <LayoutGrid className="h-5 w-5 text-[#f59e0b]" />
