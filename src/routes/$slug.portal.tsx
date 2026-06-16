@@ -84,6 +84,7 @@ function ClientPortalComponent() {
   const [cardOpen, setCardOpen] = useState(false);
   const [subRewards, setSubRewards] = useState<any[]>([]);
   const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
+  const [myReferrals, setMyReferrals] = useState<any[]>([]);
   const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [phone, setPhone] = useState("");
