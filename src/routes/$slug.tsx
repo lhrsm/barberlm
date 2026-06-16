@@ -2411,18 +2411,162 @@ function ShopPageComponent() {
               </motion.div>
             )}
 
-            {bookingStep === 2 && (
+            {bookingStep === 2 && activeSubscription && !bookingMode && (() => {
+              const plan = activeSubscription.plan;
+              const used = activeSubscription.uses_this_period || 0;
+              const max = plan?.max_uses_per_month;
+              const remaining = max ? Math.max(0, max - used) : null;
+              const noBenefit = remaining === 0 || subPlanServices.length === 0;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-5"
+                >
+                  {/* Subscription summary - Premium dark */}
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-[#D4AF37]/60 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-5 shadow-[0_12px_40px_rgba(212,175,55,0.25)]">
+                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                      style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                    <div className="relative flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Crown className="text-[#D4AF37]" size={18} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]">Assinante Premium</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                        {activeSubscription.status === "active" ? "ATIVO" : activeSubscription.status?.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="relative text-white text-xl font-black leading-tight">{plan?.name || "Assinatura"}</p>
+                    <div className="relative grid grid-cols-3 gap-2 mt-4">
+                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
+                        <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                      </div>
+                      <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
+                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
+                        <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                      </div>
+                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
+                        <p className="text-[11px] font-black text-white mt-0.5">
+                          {activeSubscription.next_billing_at
+                            ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                            : activeSubscription.current_period_end
+                              ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                              : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Como deseja agendar?</h5>
+
+                  <div className="grid gap-3">
+                    <button
+                      type="button"
+                      disabled={noBenefit}
+                      onClick={() => setBookingMode('benefit')}
+                      className={cn(
+                        "group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition-all",
+                        noBenefit
+                          ? "border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed"
+                          : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black shrink-0">
+                            <Crown size={22} />
+                          </div>
+                          <div>
+                            <p className="font-black uppercase tracking-tight text-base text-black">Utilizar Benefício</p>
+                            <p className="text-[11px] text-zinc-600 font-medium">
+                              {noBenefit
+                                ? remaining === 0 ? "Limite mensal atingido" : "Plano sem serviços vinculados"
+                                : `${subPlanServices.length} serviço(s) incluso(s) • R$ 0,00`}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight size={20} className="text-[#D4AF37] shrink-0" />
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setBookingMode('standalone')}
+                      className="group relative overflow-hidden rounded-2xl border-2 border-zinc-200 bg-white p-5 text-left transition-all hover:border-zinc-400 hover:shadow-lg hover:scale-[1.01] cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-xl bg-zinc-900 grid place-items-center text-white shrink-0">
+                            <Scissors size={22} />
+                          </div>
+                          <div>
+                            <p className="font-black uppercase tracking-tight text-base text-black">Serviço Avulso</p>
+                            <p className="text-[11px] text-zinc-500 font-medium">Catálogo completo • PIX, créditos, cashback</p>
+                          </div>
+                        </div>
+                        <ChevronRight size={20} className="text-zinc-400 shrink-0" />
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })()}
+
+            {bookingStep === 2 && (!activeSubscription || bookingMode) && (
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                {/* O campo de nome agora é exibido no Step 1 se o cliente não for encontrado */}
-                
+                {/* Premium benefit ribbon when in benefit mode */}
+                {activeSubscription && bookingMode === 'benefit' && (() => {
+                  const used = activeSubscription.uses_this_period || 0;
+                  const max = activeSubscription.plan?.max_uses_per_month;
+                  const remaining = max ? Math.max(0, max - used) : null;
+                  return (
+                    <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#1a1408] to-[#0a0a0a] p-3 text-white shadow-[0_8px_24px_rgba(212,175,55,0.2)]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Crown size={16} className="text-[#D4AF37] shrink-0" />
+                        <p className="text-[11px] font-black uppercase tracking-widest truncate">
+                          Modo Benefício • {remaining ?? "∞"} restante(s)
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBookingMode(null)}
+                        className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] hover:text-white transition-colors shrink-0"
+                      >
+                        Trocar
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {activeSubscription && bookingMode === 'standalone' && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Scissors size={14} className="text-zinc-500 shrink-0" />
+                      <p className="text-[11px] font-black uppercase tracking-widest text-zinc-700 truncate">Serviço Avulso</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setBookingMode(null)}
+                      className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-black transition-colors shrink-0"
+                    >
+                      Trocar
+                    </button>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {services.map(s => {
+                    {(bookingMode === 'benefit'
+                      ? services.filter((s) => subPlanServices.some((ps: any) => ps.service_id === s.id))
+                      : services
+                    ).map(s => {
                       const elig = serviceEligibility[s.id];
                       const isCovered = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) === 0);
                       const isPartial = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) > 0);
