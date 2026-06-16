@@ -378,7 +378,7 @@ function CalendarComponent() {
             <div className="min-w-0 text-center">
               <div className="flex items-center justify-center gap-2 text-white">
                 <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#F5C542] shrink-0" />
-                <h3 className="font-black capitalize tracking-tight text-[22px] sm:text-[28px] leading-tight break-words">
+                <h3 className="font-black capitalize tracking-tight text-[17px] sm:text-[22px] leading-tight break-words">
                   {format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}
                 </h3>
               </div>
