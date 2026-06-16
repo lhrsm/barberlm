@@ -50,6 +50,12 @@ function CampaignsComponent() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [metrics, setMetrics] = useState({
+    totalSent: 0,
+    openRate: 0,
+    responseRate: 0,
+    vipCustomers: 0,
+  });
   const [newCampaign, setNewCampaign] = useState({
     title: "",
     content: "",
@@ -58,7 +64,10 @@ function CampaignsComponent() {
   });
 
   useEffect(() => {
-    if (tenantId) fetchCampaigns();
+    if (tenantId) {
+      fetchCampaigns();
+      fetchMetrics();
+    }
   }, [tenantId]);
 
   async function fetchCampaigns() {
@@ -70,6 +79,34 @@ function CampaignsComponent() {
       .order("created_at", { ascending: false });
     if (data) setCampaigns(data);
     setLoading(false);
+  }
+
+  async function fetchMetrics() {
+    if (!tenantId) return;
+
+    const { data: logs } = await supabase
+      .from("campaign_logs")
+      .select("status, response")
+      .eq("tenant_id", tenantId);
+
+    const totalSent = logs?.length || 0;
+    const opened = logs?.filter((l: any) =>
+      ["read", "opened", "delivered"].includes((l.status || "").toLowerCase())
+    ).length || 0;
+    const responded = logs?.filter((l: any) => l.response != null && l.response !== "").length || 0;
+
+    const { count: vipCount } = await supabase
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .gt("loyalty_points", 0);
+
+    setMetrics({
+      totalSent,
+      openRate: totalSent > 0 ? (opened / totalSent) * 100 : 0,
+      responseRate: totalSent > 0 ? (responded / totalSent) * 100 : 0,
+      vipCustomers: vipCount || 0,
+    });
   }
 
   async function handleCreateCampaign() {
@@ -89,6 +126,7 @@ function CampaignsComponent() {
       setIsAddModalOpen(false);
       setNewCampaign({ title: "", content: "", scheduled_at: "", filters: {} });
       fetchCampaigns();
+      fetchMetrics();
     }
   }
 
@@ -98,6 +136,7 @@ function CampaignsComponent() {
     if (!error) {
       toast.success("Campanha excluída!");
       fetchCampaigns();
+      fetchMetrics();
     }
   }
 
@@ -116,11 +155,14 @@ function CampaignsComponent() {
     }
   };
 
+  const fmtPct = (n: number) =>
+    `${n.toLocaleString("pt-BR", { minimumFractionDigits: n % 1 === 0 ? 0 : 1, maximumFractionDigits: 1 })}%`;
+
   const stats = [
-    { label: "Total Enviado", value: "1.284", color: "text-white" },
-    { label: "Taxa Abertura", value: "94.2%", color: "text-emerald-400" },
-    { label: "Taxa Resposta", value: "12.5%", color: "text-blue-400" },
-    { label: "Clientes VIP", value: "42", color: "text-[#f59e0b]" },
+    { label: "Total Enviado", value: metrics.totalSent.toLocaleString("pt-BR"), color: "text-white" },
+    { label: "Taxa Abertura", value: fmtPct(metrics.openRate), color: "text-emerald-400" },
+    { label: "Taxa Resposta", value: fmtPct(metrics.responseRate), color: "text-blue-400" },
+    { label: "Clientes VIP", value: metrics.vipCustomers.toLocaleString("pt-BR"), color: "text-[#f59e0b]" },
   ];
 
   return (
