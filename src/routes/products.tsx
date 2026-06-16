@@ -55,6 +55,7 @@ function ProductsComponent() {
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [products, setProducts] = useState<any[]>([]);
+  const [productsTab, setProductsTab] = useState<string>("inventory");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
