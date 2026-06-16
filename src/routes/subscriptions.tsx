@@ -310,7 +310,7 @@ function SubscriptionsPage() {
   async function loadAll() {
     if (!tenantId) return;
     setLoading(true);
-    const [plansRes, subsRes, invRes, custRes, svcRes, usageRes] = await Promise.all([
+    const [plansRes, subsRes, invRes, custRes, svcRes, usageRes, changesRes] = await Promise.all([
       supabase.from("subscription_plans").select("*").eq("tenant_id", tenantId).order("display_order"),
       supabase
         .from("customer_subscriptions")
@@ -331,6 +331,12 @@ function SubscriptionsPage() {
         .eq("tenant_id", tenantId)
         .order("used_at", { ascending: false })
         .limit(500),
+      supabase
+        .from("subscription_plan_changes" as any)
+        .select("*, old_plan:subscription_plans!subscription_plan_changes_old_plan_id_fkey(name), new_plan:subscription_plans!subscription_plan_changes_new_plan_id_fkey(name), customer:customers(name)")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(200),
     ]);
     if (plansRes.data) setPlans(plansRes.data as any);
     if (subsRes.data) setSubs(subsRes.data as any);
@@ -338,6 +344,7 @@ function SubscriptionsPage() {
     if (custRes.data) setCustomersList(custRes.data as any);
     if (svcRes.data) setServicesList(svcRes.data as any);
     if (usageRes.data) setUsageLogs(usageRes.data as any);
+    if (changesRes.data) setPlanChanges(changesRes.data as any);
     setLoading(false);
   }
 
