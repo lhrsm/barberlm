@@ -1657,60 +1657,112 @@ function ClientPortalComponent() {
               const pendingRewards = subRewardsHistory.filter((h: any) => h.status === "pending");
               const redeemedRewards = subRewardsHistory.filter((h: any) => h.status === "redeemed");
 
+              // Monthly savings (current period)
+              const currentPeriodCovered = subUsageLogs.reduce((s: number, l: any) => {
+                if (!l.used_at || !periodStart) return s;
+                return parseISO(l.used_at) >= parseISO(periodStart) ? s + Number(l.covered_amount || 0) : s;
+              }, 0);
+
+              // Next premium reward
+              const pendingRewardsAll = subRewardsHistory.filter((h: any) => h.status === "pending");
+              const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
+              const monthsActive = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+              const nextRewardCfg = subRewards
+                .filter((r: any) => Number(r.months_required || 0) > monthsActive)
+                .sort((a: any, b: any) => Number(a.months_required) - Number(b.months_required))[0];
+              const nextRewardProgress = nextRewardCfg
+                ? Math.min(100, (monthsActive / Number(nextRewardCfg.months_required)) * 100)
+                : 100;
+
               return (
                 <div className="space-y-6">
-                  {/* Plano + Saldo */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Premium Dashboard - 4 cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <Card
-                      className="bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border-[#D4AF37]/30 shadow-lg cursor-pointer hover:scale-[1.02] transition-transform"
+                      className="bg-gradient-to-br from-[#D4AF37]/25 via-[#D4AF37]/10 to-transparent border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(212,175,55,0.15)] cursor-pointer hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(212,175,55,0.25)] transition-all"
                       onClick={() => setPlanDetailsOpen(true)}
                     >
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
-                          <CardDescription className="text-[#D4AF37] uppercase text-xs font-bold">Plano Ativo</CardDescription>
+                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Plano Atual</CardDescription>
                           <Info size={14} className="text-[#D4AF37]" />
                         </div>
-                        <CardTitle className="text-white text-xl">{plan?.name || "Assinatura"}</CardTitle>
+                        <CardTitle className="text-white text-lg leading-tight">{plan?.name || "Assinatura"}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-2xl font-black text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}<span className="text-xs text-gray-400 font-normal">/mês</span></p>
+                        <p className="text-2xl font-black text-white">R$ {Number(plan?.monthly_price || 0).toFixed(2)}<span className="text-[10px] text-gray-400 font-normal">/mês</span></p>
                         {nextBilling && (
-                          <p className="text-[10px] text-gray-400 mt-2 uppercase">Próxima cobrança: {format(parseISO(nextBilling), "dd/MM/yyyy", { locale: ptBR })}</p>
+                          <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">Renovação: {format(parseISO(nextBilling), "dd/MM/yyyy", { locale: ptBR })}</p>
                         )}
-                        <p className="text-[10px] text-[#D4AF37] mt-1 uppercase font-bold">Toque para ver regras</p>
+                        <p className="text-[10px] text-[#D4AF37] mt-1 uppercase font-bold tracking-wider">Ver detalhes ›</p>
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <Card className="bg-white/5 border-white/10 shadow-lg hover:border-white/20 transition-colors">
                       <CardHeader className="pb-2">
-                        <CardDescription className="text-gray-400 uppercase text-xs font-bold">Usos no Período</CardDescription>
-                        <CardTitle className="text-white text-xl">
-                          {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""}
+                        <CardDescription className="text-gray-400 uppercase text-[10px] font-black tracking-widest">Benefícios do Período</CardDescription>
+                        <CardTitle className="text-white text-lg">
+                          {usedThisPeriod}{maxUses ? ` / ${maxUses}` : ""} <span className="text-xs text-gray-400 font-normal">utilizados</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         {maxUses ? (
                           <>
                             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${Math.min(100, (usedThisPeriod / maxUses) * 100)}%` }} />
+                              <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${Math.min(100, (usedThisPeriod / maxUses) * 100)}%` }} />
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-2 uppercase">{remaining} restante(s)</p>
+                            <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold tracking-wider">{remaining} disponível(is)</p>
                           </>
                         ) : (
-                          <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold">Ilimitado</p>
+                          <>
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-full" />
+                            </div>
+                            <p className="text-[10px] text-emerald-400 mt-2 uppercase font-bold tracking-wider">Ilimitado</p>
+                          </>
                         )}
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <Card className="bg-gradient-to-br from-emerald-500/15 to-transparent border-emerald-500/30 shadow-lg">
                       <CardHeader className="pb-2">
-                        <CardDescription className="text-gray-400 uppercase text-xs font-bold">Economia Total</CardDescription>
-                        <CardTitle className="text-emerald-400 text-xl">R$ {totalCovered.toFixed(2)}</CardTitle>
+                        <CardDescription className="text-emerald-400 uppercase text-[10px] font-black tracking-widest">Economia Obtida</CardDescription>
+                        <CardTitle className="text-emerald-400 text-2xl font-black">R$ {totalCovered.toFixed(2)}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-[10px] text-gray-400 uppercase">Cobertos pelo plano</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Este mês: <span className="text-emerald-300 font-bold">R$ {currentPeriodCovered.toFixed(2)}</span></p>
                         {totalExtra > 0 && (
-                          <p className="text-[10px] text-gray-400 uppercase mt-1">Extras pagos: R$ {totalExtra.toFixed(2)}</p>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Extras pagos: R$ {totalExtra.toFixed(2)}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-[#D4AF37]/15 to-purple-500/5 border-[#D4AF37]/30 shadow-lg">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Próxima Recompensa</CardDescription>
+                          <Gift size={14} className="text-[#D4AF37]" />
+                        </div>
+                        <CardTitle className="text-white text-base leading-tight line-clamp-2">
+                          {pendingRewardsAll.length > 0
+                            ? "Resgate disponível!"
+                            : nextRewardCfg?.description || "Tudo em dia ✦"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {pendingRewardsAll.length > 0 ? (
+                          <p className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">{pendingRewardsAll.length} pendente(s) — vá em Benefícios para resgatar</p>
+                        ) : nextRewardCfg ? (
+                          <>
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${nextRewardProgress}%` }} />
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">
+                              {monthsActive} / {nextRewardCfg.months_required} meses
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Você já alcançou todas as recompensas premium.</p>
                         )}
                       </CardContent>
                     </Card>
