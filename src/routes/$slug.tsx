@@ -803,6 +803,43 @@ function ShopPageComponent() {
 
 
 
+  // Fetch active subscription synchronously and update state. Returns the row or null.
+  const fetchActiveSubscriptionFor = async (customerIdArg: string) => {
+    if (!customerIdArg || !shop?.id) return null;
+    try {
+      const nowIso = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("customer_subscriptions")
+        .select("*, plan:subscription_plans(*)")
+        .eq("customer_id", customerIdArg)
+        .eq("tenant_id", shop.id)
+        .eq("status", "active")
+        .or(`current_period_end.gte.${nowIso},next_billing_at.gte.${nowIso}`)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) {
+        console.error("[PREMIUM FLOW] subscription lookup error", error);
+        return null;
+      }
+      setActiveSubscription(data || null);
+      setBookingMode(null);
+      if (data?.plan_id) {
+        const { data: planSvcs } = await supabase
+          .from("subscription_plan_services")
+          .select("*, services(*)")
+          .eq("plan_id", data.plan_id);
+        setSubPlanServices(planSvcs || []);
+      } else {
+        setSubPlanServices([]);
+      }
+      return data || null;
+    } catch (e) {
+      console.error("[PREMIUM FLOW] subscription lookup exception", e);
+      return null;
+    }
+  };
+
   const handlePhoneCheck = async () => {
     const normalized = normalizePhone(customerPhone);
     console.log('BOOKING DATA DEBUG: handlePhoneCheck', { customerPhone, normalized, customerName, customerId });
@@ -826,12 +863,30 @@ function ShopPageComponent() {
         currentCustomer = data;
       }
 
-      if (customerId || currentCustomer) {
+      const resolvedCustomerId = customerId || currentCustomer?.id || null;
+
+      if (resolvedCustomerId) {
         const name = customerName || currentCustomer?.name;
-        if (name) {
-          setCustomerName(name);
-        }
+        if (name) setCustomerName(name);
         if (currentCustomer?.id) setCustomerId(currentCustomer.id);
+
+        // CRITICAL: check active subscription BEFORE advancing to step 2
+        // so the premium chooser renders instead of the regular service list.
+        const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
+        const planUsed = sub?.uses_this_period || 0;
+        const planMax = sub?.plan?.max_uses_per_month;
+        const remaining = planMax ? Math.max(0, planMax - planUsed) : null;
+        console.log('[PREMIUM FLOW] phone check result', {
+          customer_id: resolvedCustomerId,
+          phone: normalized,
+          has_active_subscription: !!sub,
+          subscription_id: sub?.id || null,
+          plan_id: sub?.plan_id || null,
+          plan_name: sub?.plan?.name || null,
+          subscription_status: sub?.status || null,
+          remaining_benefits: remaining,
+          next_step: sub ? 'premium_chooser' : 'service_selection',
+        });
         setBookingStep(2);
       } else {
         // Novo cliente
@@ -839,6 +894,8 @@ function ShopPageComponent() {
           toast.info("Por favor, informe seu nome completo.");
         } else {
           console.log('BOOKING DATA DEBUG: New customer proceeding', { customerName, customerPhone });
+          setActiveSubscription(null);
+          setBookingMode(null);
           setBookingStep(2);
         }
       }
