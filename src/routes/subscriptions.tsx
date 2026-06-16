@@ -639,8 +639,62 @@ function SubscriptionsPage() {
     loadAll();
   }
 
+  // === Trocar plano (pró-rata) ===
+  function openChangeDialog(sub: CustomerSub) {
+    setChangeTarget(sub);
+    setChangeNewPlanId("");
+    setChangePreview(null);
+    setChangeNotes("");
+    setChangeApplyWallet(true);
+    setChangeDialogOpen(true);
+  }
 
-  async function markInvoicePaid(inv: Invoice) {
+  async function loadChangePreview(newPlanId: string) {
+    if (!changeTarget || !newPlanId) {
+      setChangePreview(null);
+      return;
+    }
+    setChangeLoading(true);
+    const { data, error } = await supabase.rpc("preview_subscription_plan_change" as any, {
+      p_subscription_id: changeTarget.id,
+      p_new_plan_id: newPlanId,
+    });
+    setChangeLoading(false);
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao calcular pró-rata");
+      setChangePreview(null);
+      return;
+    }
+    setChangePreview(data);
+  }
+
+  async function confirmChangePlan() {
+    if (!changeTarget || !changeNewPlanId || !changePreview) return;
+    const { data, error } = await supabase.rpc("change_subscription_plan" as any, {
+      p_subscription_id: changeTarget.id,
+      p_new_plan_id: changeNewPlanId,
+      p_payment_method: changeTarget.payment_method || "in_person",
+      p_apply_credit_to_wallet: changeApplyWallet,
+      p_notes: changeNotes || null,
+    });
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao trocar plano");
+      return;
+    }
+    const net = Number((data as any)?.net_amount || 0);
+    if (net > 0) toast.success(`Plano alterado · cobrança de ${formatBRL(net)} gerada`);
+    else if (net < 0) toast.success(`Plano alterado · crédito de ${formatBRL(Math.abs(net))} ${changeApplyWallet ? "na carteira" : "registrado"}`);
+    else toast.success("Plano alterado sem diferença");
+    setChangeDialogOpen(false);
+    loadAll();
+  }
+
+  function openHistoryDialog(sub: CustomerSub) {
+    setHistoryTarget(sub);
+    setHistoryDialogOpen(true);
+  }
+
+
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("subscription_invoices")
