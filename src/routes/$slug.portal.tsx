@@ -1266,7 +1266,109 @@ function ClientPortalComponent() {
               </Card>
             );
           })()}
+
+          {mySubscription?.referral_code && (() => {
+            const code = mySubscription.referral_code as string;
+            const origin = typeof window !== "undefined" ? window.location.origin : "";
+            const link = `${origin}/${slug}/portal?ref=${code}`;
+            const confirmed = myReferrals.filter((r) => r.status === "confirmed").length;
+            const pending = myReferrals.filter((r) => r.status === "pending").length;
+            return (
+              <Card className="bg-gradient-to-br from-fuchsia-950/40 via-black/60 to-black/80 border border-fuchsia-500/30 shadow-[0_8px_30px_rgba(217,70,239,0.15)]">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-base font-black text-fuchsia-200 uppercase tracking-widest flex items-center gap-2">
+                        <Gift className="h-4 w-4" /> Indique e Ganhe
+                      </CardTitle>
+                      <CardDescription className="text-xs text-fuchsia-300/70 mt-1">
+                        Indique amigos e ganhe 1 mês grátis a cada nova assinatura ativada.
+                      </CardDescription>
+                    </div>
+                    <Badge className="bg-fuchsia-500 text-white font-black uppercase text-[10px]">
+                      {confirmed} {confirmed === 1 ? "confirmada" : "confirmadas"}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="rounded-xl border border-fuchsia-500/30 bg-black/40 p-3">
+                    <p className="text-[10px] font-black uppercase text-fuchsia-300/70 tracking-widest mb-1">Seu código</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-2xl font-black tracking-[0.3em] text-fuchsia-100">{code}</span>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(code);
+                          toast.success("Código copiado");
+                        }}
+                        className="bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold uppercase text-[10px] h-8"
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-fuchsia-500/20 bg-black/30 p-3">
+                    <p className="text-[10px] font-black uppercase text-fuchsia-300/70 tracking-widest mb-1">Link de indicação</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        readOnly
+                        value={link}
+                        className="bg-black/60 border-fuchsia-500/20 text-fuchsia-100 text-xs"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(link);
+                          toast.success("Link copiado");
+                        }}
+                        className="bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold uppercase text-[10px] h-8"
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg border border-fuchsia-500/20 bg-black/30 p-2 text-center">
+                      <div className="text-xl font-black text-fuchsia-200">{confirmed}</div>
+                      <div className="text-[9px] font-bold uppercase tracking-widest text-fuchsia-300/70">Recompensas ganhas</div>
+                    </div>
+                    <div className="rounded-lg border border-fuchsia-500/20 bg-black/30 p-2 text-center">
+                      <div className="text-xl font-black text-fuchsia-200">{pending}</div>
+                      <div className="text-[9px] font-bold uppercase tracking-widest text-fuchsia-300/70">Pendentes</div>
+                    </div>
+                  </div>
+                  {myReferrals.length > 0 && (
+                    <div className="pt-2 border-t border-fuchsia-500/20">
+                      <p className="text-[10px] font-black uppercase text-fuchsia-300/70 tracking-widest mb-2">Indicações</p>
+                      <div className="space-y-1 max-h-32 overflow-auto">
+                        {myReferrals.slice(0, 8).map((r) => (
+                          <div key={r.id} className="flex items-center justify-between text-xs">
+                            <span className="text-fuchsia-100 truncate">{r.referred?.name || "Cliente"}</span>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[9px] font-bold",
+                                r.status === "confirmed"
+                                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/40"
+                                  : r.status === "cancelled"
+                                  ? "bg-red-500/10 text-red-300 border-red-500/40"
+                                  : "bg-yellow-500/10 text-yellow-300 border-yellow-500/40"
+                              )}
+                            >
+                              {r.status === "confirmed" ? "Confirmada" : r.status === "cancelled" ? "Cancelada" : "Pendente"}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
+
+
 
         <Tabs defaultValue="appointments" className="w-full">
           <TabsList className={cn("grid w-full max-w-[750px] bg-white/5 p-1 rounded-xl", mySubscription ? "grid-cols-5" : "grid-cols-4")}>
