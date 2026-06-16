@@ -62,6 +62,8 @@ import {
   Activity,
   Pause,
   Play,
+  ArrowRightLeft,
+  History,
 } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -293,10 +295,22 @@ function SubscriptionsPage() {
   const [pauseUntil, setPauseUntil] = useState("");
   const [pauseNotes, setPauseNotes] = useState("");
 
+  // Change plan modal
+  const [changeDialogOpen, setChangeDialogOpen] = useState(false);
+  const [changeTarget, setChangeTarget] = useState<CustomerSub | null>(null);
+  const [changeNewPlanId, setChangeNewPlanId] = useState<string>("");
+  const [changePreview, setChangePreview] = useState<any>(null);
+  const [changeLoading, setChangeLoading] = useState(false);
+  const [changeApplyWallet, setChangeApplyWallet] = useState(true);
+  const [changeNotes, setChangeNotes] = useState("");
+  const [planChanges, setPlanChanges] = useState<any[]>([]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyTarget, setHistoryTarget] = useState<CustomerSub | null>(null);
+
   async function loadAll() {
     if (!tenantId) return;
     setLoading(true);
-    const [plansRes, subsRes, invRes, custRes, svcRes, usageRes] = await Promise.all([
+    const [plansRes, subsRes, invRes, custRes, svcRes, usageRes, changesRes] = await Promise.all([
       supabase.from("subscription_plans").select("*").eq("tenant_id", tenantId).order("display_order"),
       supabase
         .from("customer_subscriptions")
@@ -317,6 +331,12 @@ function SubscriptionsPage() {
         .eq("tenant_id", tenantId)
         .order("used_at", { ascending: false })
         .limit(500),
+      supabase
+        .from("subscription_plan_changes" as any)
+        .select("*, customer:customers(name)")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(200),
     ]);
     if (plansRes.data) setPlans(plansRes.data as any);
     if (subsRes.data) setSubs(subsRes.data as any);
@@ -324,6 +344,7 @@ function SubscriptionsPage() {
     if (custRes.data) setCustomersList(custRes.data as any);
     if (svcRes.data) setServicesList(svcRes.data as any);
     if (usageRes.data) setUsageLogs(usageRes.data as any);
+    if (changesRes.data) setPlanChanges(changesRes.data as any);
     setLoading(false);
   }
 
@@ -618,6 +639,60 @@ function SubscriptionsPage() {
     loadAll();
   }
 
+  // === Trocar plano (pró-rata) ===
+  function openChangeDialog(sub: CustomerSub) {
+    setChangeTarget(sub);
+    setChangeNewPlanId("");
+    setChangePreview(null);
+    setChangeNotes("");
+    setChangeApplyWallet(true);
+    setChangeDialogOpen(true);
+  }
+
+  async function loadChangePreview(newPlanId: string) {
+    if (!changeTarget || !newPlanId) {
+      setChangePreview(null);
+      return;
+    }
+    setChangeLoading(true);
+    const { data, error } = await supabase.rpc("preview_subscription_plan_change" as any, {
+      p_subscription_id: changeTarget.id,
+      p_new_plan_id: newPlanId,
+    });
+    setChangeLoading(false);
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao calcular pró-rata");
+      setChangePreview(null);
+      return;
+    }
+    setChangePreview(data);
+  }
+
+  async function confirmChangePlan() {
+    if (!changeTarget || !changeNewPlanId || !changePreview) return;
+    const { data, error } = await supabase.rpc("change_subscription_plan" as any, {
+      p_subscription_id: changeTarget.id,
+      p_new_plan_id: changeNewPlanId,
+      p_payment_method: changeTarget.payment_method || "in_person",
+      p_apply_credit_to_wallet: changeApplyWallet,
+      p_notes: changeNotes || null,
+    });
+    if (error || (data as any)?.success === false) {
+      toast.error((data as any)?.error || error?.message || "Erro ao trocar plano");
+      return;
+    }
+    const net = Number((data as any)?.net_amount || 0);
+    if (net > 0) toast.success(`Plano alterado · cobrança de ${formatBRL(net)} gerada`);
+    else if (net < 0) toast.success(`Plano alterado · crédito de ${formatBRL(Math.abs(net))} ${changeApplyWallet ? "na carteira" : "registrado"}`);
+    else toast.success("Plano alterado sem diferença");
+    setChangeDialogOpen(false);
+    loadAll();
+  }
+
+  function openHistoryDialog(sub: CustomerSub) {
+    setHistoryTarget(sub);
+    setHistoryDialogOpen(true);
+  }
 
   async function markInvoicePaid(inv: Invoice) {
     const now = new Date().toISOString();
@@ -1037,15 +1112,33 @@ function SubscriptionsPage() {
                             </Button>
                           )}
                           {["active", "pending_payment", "past_due"].includes(s.status) && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => openPauseDialog(s)}
-                              className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs font-bold"
-                            >
-                              <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openChangeDialog(s)}
+                                className="text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 text-xs font-bold"
+                              >
+                                <ArrowRightLeft className="h-3.5 w-3.5 mr-1" /> Trocar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openPauseDialog(s)}
+                                className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs font-bold"
+                              >
+                                <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
+                              </Button>
+                            </>
                           )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openHistoryDialog(s)}
+                            className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-500/10 text-xs font-bold"
+                          >
+                            <History className="h-3.5 w-3.5 mr-1" /> Histórico
+                          </Button>
                           {s.status !== "canceled" && (
                             <Button
                               size="sm"
@@ -2176,6 +2269,199 @@ function SubscriptionsPage() {
               <Pause className="h-4 w-4 mr-2" /> Pausar Assinatura
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CHANGE PLAN DIALOG */}
+      <Dialog open={changeDialogOpen} onOpenChange={setChangeDialogOpen}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-purple-300" /> Trocar Plano
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {changeTarget && (
+              <div className="text-sm text-zinc-400">
+                <span className="text-white font-bold">{changeTarget.customer?.name}</span> · plano atual:{" "}
+                <span className="text-emerald-400 font-bold">{changeTarget.plan?.name}</span> ·{" "}
+                {formatBRL(Number(changeTarget.plan?.monthly_price || 0))}/mês
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Novo plano</Label>
+              <Select
+                value={changeNewPlanId}
+                onValueChange={(v) => {
+                  setChangeNewPlanId(v);
+                  loadChangePreview(v);
+                }}
+              >
+                <SelectTrigger className={inputCls}>
+                  <SelectValue placeholder="Selecione um plano" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0b0f17] border-zinc-800 text-white">
+                  {plans
+                    .filter((p) => p.active && p.id !== changeTarget?.plan_id)
+                    .map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} · {formatBRL(Number(p.monthly_price))}/mês
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {changeLoading && (
+              <div className="text-xs text-zinc-500">Calculando pró-rata...</div>
+            )}
+
+            {changePreview && (
+              <div className="space-y-2 bg-[#05070d] border border-zinc-800 rounded-xl p-4">
+                <Row label="Plano atual" value={`${formatBRL(Number(changePreview.old_price))} /mês`} />
+                <Row label="Plano novo" value={`${formatBRL(Number(changePreview.new_price))} /mês`} />
+                <Row label="Dias restantes" value={`${changePreview.days_remaining} de ${changePreview.days_in_cycle}`} />
+                <Row label="Crédito proporcional (plano atual)" value={formatBRL(Number(changePreview.proration_credit))} />
+                <Row label="Valor proporcional (plano novo)" value={formatBRL(Number(changePreview.proration_charge))} />
+                <div className="border-t border-zinc-800 my-2" />
+                {Number(changePreview.net_amount) > 0 ? (
+                  <div className="flex justify-between items-center">
+                    <span className="text-amber-300 font-bold text-sm">Diferença a cobrar</span>
+                    <span className="text-amber-400 font-black text-lg">
+                      {formatBRL(Number(changePreview.net_amount))}
+                    </span>
+                  </div>
+                ) : Number(changePreview.net_amount) < 0 ? (
+                  <div className="flex justify-between items-center">
+                    <span className="text-emerald-300 font-bold text-sm">Crédito a gerar</span>
+                    <span className="text-emerald-400 font-black text-lg">
+                      {formatBRL(Math.abs(Number(changePreview.net_amount)))}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-center text-zinc-400 text-sm">Sem diferença a cobrar</div>
+                )}
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 text-right mt-1">
+                  Tipo: {changePreview.change_type === "upgrade" ? "Upgrade" : changePreview.change_type === "downgrade" ? "Downgrade" : "Mesmo valor"}
+                </div>
+              </div>
+            )}
+
+            {changePreview && Number(changePreview.net_amount) < 0 && (
+              <div className="flex items-center justify-between bg-[#05070d] border border-zinc-800 rounded-xl px-4 py-3">
+                <span className="text-sm font-bold">Aplicar crédito na carteira do cliente</span>
+                <Switch
+                  checked={changeApplyWallet}
+                  onCheckedChange={setChangeApplyWallet}
+                  className="data-[state=checked]:bg-emerald-500"
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-zinc-400">Observações</Label>
+              <Textarea
+                value={changeNotes}
+                onChange={(e) => setChangeNotes(e.target.value)}
+                placeholder="Motivo / observações internas (opcional)"
+                className="bg-[#05070d] border-zinc-800 text-white min-h-[60px]"
+              />
+            </div>
+
+            <div className="text-[11px] text-zinc-500 bg-purple-500/5 border border-purple-500/20 rounded-lg p-3">
+              O ciclo atual é mantido. Em upgrades, uma cobrança pendente é gerada pelo valor da diferença.
+              Em downgrades, o crédito pode ser aplicado na carteira do cliente.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setChangeDialogOpen(false)} className="text-zinc-400">
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmChangePlan}
+              disabled={!changePreview || !changeNewPlanId}
+              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold disabled:opacity-50"
+            >
+              <ArrowRightLeft className="h-4 w-4 mr-2" /> Confirmar Troca
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* HISTORY DIALOG */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-zinc-300" /> Histórico de Mudanças de Plano
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {(() => {
+              const items = planChanges.filter((c) => !historyTarget || c.subscription_id === historyTarget.id);
+              if (items.length === 0) {
+                return (
+                  <div className="text-center py-8 text-zinc-500 text-sm">
+                    Nenhuma mudança de plano registrada.
+                  </div>
+                );
+              }
+              return items.map((c) => {
+                const oldName = plans.find((p) => p.id === c.old_plan_id)?.name || "—";
+                const newName = plans.find((p) => p.id === c.new_plan_id)?.name || "—";
+                const net = Number(c.net_amount || 0);
+                return (
+                  <div
+                    key={c.id}
+                    className="bg-[#05070d] border border-zinc-800 rounded-xl p-4 space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-bold text-zinc-300">{oldName}</span>
+                        <ArrowRightLeft className="h-3.5 w-3.5 text-zinc-500" />
+                        <span className="font-bold text-emerald-400">{newName}</span>
+                      </div>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-full text-[10px] font-black uppercase",
+                          c.change_type === "upgrade"
+                            ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                            : c.change_type === "downgrade"
+                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                            : "bg-zinc-500/15 text-zinc-400 border border-zinc-500/30"
+                        )}
+                      >
+                        {c.change_type}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      <Row label="De" value={formatBRL(Number(c.old_price))} />
+                      <Row label="Para" value={formatBRL(Number(c.new_price))} />
+                      <Row label="Crédito" value={formatBRL(Number(c.proration_credit))} />
+                      <Row label="Cobrança" value={formatBRL(Number(c.proration_charge))} />
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-zinc-800">
+                      <span className="text-[11px] text-zinc-500">
+                        {new Date(c.created_at).toLocaleString("pt-BR")}
+                        {c.customer?.name ? ` · ${c.customer.name}` : ""}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-black text-sm",
+                          net > 0 ? "text-amber-400" : net < 0 ? "text-emerald-400" : "text-zinc-400"
+                        )}
+                      >
+                        {net > 0 ? `+${formatBRL(net)}` : net < 0 ? `-${formatBRL(Math.abs(net))}` : formatBRL(0)}
+                      </span>
+                    </div>
+                    {c.notes && (
+                      <div className="text-[11px] text-zinc-500 italic">{c.notes}</div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
+          </div>
         </DialogContent>
       </Dialog>
     </AppLayout>
