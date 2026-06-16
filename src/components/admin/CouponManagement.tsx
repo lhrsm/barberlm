@@ -247,7 +247,26 @@ export function CouponManagement() {
         </Button>
       </div>
 
+      {/* TABS: Order coupons vs Subscription coupons */}
+      <div className="flex gap-2 border-b border-[#1f2937]">
+        <button
+          type="button"
+          onClick={() => setActiveTab('order')}
+          className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'order' ? 'text-[#ea580c] border-[#ea580c]' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+        >
+          Serviços / Produtos
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('subscription')}
+          className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors -mb-px border-b-2 ${activeTab === 'subscription' ? 'text-emerald-400 border-emerald-400' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+        >
+          Assinatura
+        </button>
+      </div>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+
         <DialogContent className="sm:max-w-[425px] bg-[#0b0f17] border-[#1f2937] text-white rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase italic tracking-widest flex items-center gap-2">
