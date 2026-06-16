@@ -41,6 +41,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -54,6 +55,7 @@ function ProductsComponent() {
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [products, setProducts] = useState<any[]>([]);
+  const [productsTab, setProductsTab] = useState<string>("inventory");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -474,8 +476,9 @@ function ProductsComponent() {
             </Alert>
           )}
 
-          <Tabs defaultValue="inventory" className="w-full">
-            <TabsList className="bg-[#0b0f17] border border-zinc-800/80 rounded-xl p-1 h-auto inline-flex">
+          <Tabs value={productsTab} onValueChange={setProductsTab} className="w-full">
+            {/* Desktop tabs */}
+            <TabsList className="hidden md:inline-flex bg-[#0b0f17] border border-zinc-800/80 rounded-xl p-1 h-auto">
               <TabsTrigger value="inventory" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f59e0b] data-[state=active]:to-[#ea580c] data-[state=active]:text-white text-zinc-400">
                 <Package size={16} /> Estoque
               </TabsTrigger>
@@ -487,8 +490,47 @@ function ProductsComponent() {
               </TabsTrigger>
             </TabsList>
 
+            {/* Mobile accordion */}
+            <div className="md:hidden">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="tabs" className="border border-zinc-800/80 rounded-xl bg-[#0b0f17] overflow-hidden">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <span className="flex items-center gap-2 text-white font-semibold text-sm">
+                      {productsTab === "inventory" && (<><Package size={16} className="text-[#f59e0b]" /> Estoque</>)}
+                      {productsTab === "billing" && (<><History size={16} className="text-[#f59e0b]" /> Faturamento</>)}
+                      {productsTab === "history" && (<><History size={16} className="text-[#f59e0b]" /> Histórico</>)}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-2 pb-2">
+                    <div className="grid grid-cols-1 gap-1">
+                      {[
+                        { val: "inventory", label: "Estoque", icon: Package },
+                        { val: "billing", label: "Faturamento", icon: History },
+                        { val: "history", label: "Histórico", icon: History },
+                      ].map(({ val, label, icon: Icon }) => (
+                        <Button
+                          key={val}
+                          variant="ghost"
+                          onClick={() => setProductsTab(val)}
+                          className={cn(
+                            "justify-start gap-2 h-11 rounded-lg text-sm font-semibold",
+                            productsTab === val
+                              ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white hover:from-[#fbbf24] hover:to-[#f59e0b] hover:text-white"
+                              : "text-zinc-400 hover:bg-zinc-800/60 hover:text-white"
+                          )}
+                        >
+                          <Icon size={16} /> {label}
+                        </Button>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+
             <TabsContent value="inventory" className="pt-6">
-              <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+              <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5">
                 <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
                   <h3 className="font-bold flex items-center gap-2 text-white">
                     <LayoutGrid className="h-5 w-5 text-[#f59e0b]" />
@@ -520,7 +562,7 @@ function ProductsComponent() {
                         animate={{ opacity: 1, y: 0 }}
                         className="group relative bg-[#05070d] border border-zinc-800 rounded-2xl overflow-hidden hover:border-[#f59e0b]/40 hover:shadow-[0_8px_32px_rgba(245,158,11,0.15)] transition-all duration-300"
                       >
-                        <div className="aspect-square bg-[#0b0f17] relative overflow-hidden">
+                        <div className="aspect-[4/3] sm:aspect-square bg-[#0b0f17] relative overflow-hidden">
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                           ) : (
@@ -578,7 +620,7 @@ function ProductsComponent() {
                           )}
                         </div>
 
-                        <div className="p-5 space-y-4">
+                        <div className="p-4 sm:p-5 space-y-4">
                           <div className="space-y-1">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#f59e0b]">{product.category}</p>
                             <h3 className="font-bold text-lg text-white truncate" title={product.name}>{product.name}</h3>
