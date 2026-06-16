@@ -2232,9 +2232,11 @@ export type Database = {
       coupons: {
         Row: {
           active: boolean | null
+          applies_to: string
           code: string
           created_at: string | null
           expires_at: string | null
+          first_month_only: boolean
           id: string
           max_discount: number | null
           minimum_amount: number | null
@@ -2247,9 +2249,11 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          applies_to?: string
           code: string
           created_at?: string | null
           expires_at?: string | null
+          first_month_only?: boolean
           id?: string
           max_discount?: number | null
           minimum_amount?: number | null
@@ -2262,9 +2266,11 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          applies_to?: string
           code?: string
           created_at?: string | null
           expires_at?: string | null
+          first_month_only?: boolean
           id?: string
           max_discount?: number | null
           minimum_amount?: number | null
@@ -2430,6 +2436,10 @@ export type Database = {
           card_token: string | null
           card_token_issued_at: string | null
           card_token_revoked_at: string | null
+          coupon_code: string | null
+          coupon_discount: number
+          coupon_first_month_only: boolean
+          coupon_id: string | null
           created_at: string
           current_period_end: string
           current_period_start: string
@@ -2458,6 +2468,10 @@ export type Database = {
           card_token?: string | null
           card_token_issued_at?: string | null
           card_token_revoked_at?: string | null
+          coupon_code?: string | null
+          coupon_discount?: number
+          coupon_first_month_only?: boolean
+          coupon_id?: string | null
           created_at?: string
           current_period_end?: string
           current_period_start?: string
@@ -2486,6 +2500,10 @@ export type Database = {
           card_token?: string | null
           card_token_issued_at?: string | null
           card_token_revoked_at?: string | null
+          coupon_code?: string | null
+          coupon_discount?: number
+          coupon_first_month_only?: boolean
+          coupon_id?: string | null
           created_at?: string
           current_period_end?: string
           current_period_start?: string
@@ -2509,6 +2527,13 @@ export type Database = {
           uses_this_period?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "customer_subscriptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "customer_subscriptions_customer_id_fkey"
             columns: ["customer_id"]
@@ -3583,12 +3608,16 @@ export type Database = {
       subscription_invoices: {
         Row: {
           amount: number
+          coupon_code: string | null
+          coupon_id: string | null
           created_at: string
           customer_id: string
+          discount_amount: number
           due_date: string
           external_ref: string | null
           id: string
           metadata: Json
+          original_amount: number | null
           paid_at: string | null
           payment_method: string
           status: string
@@ -3598,12 +3627,16 @@ export type Database = {
         }
         Insert: {
           amount: number
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           customer_id: string
+          discount_amount?: number
           due_date?: string
           external_ref?: string | null
           id?: string
           metadata?: Json
+          original_amount?: number | null
           paid_at?: string | null
           payment_method?: string
           status?: string
@@ -3613,12 +3646,16 @@ export type Database = {
         }
         Update: {
           amount?: number
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           customer_id?: string
+          discount_amount?: number
           due_date?: string
           external_ref?: string | null
           id?: string
           metadata?: Json
+          original_amount?: number | null
           paid_at?: string | null
           payment_method?: string
           status?: string
@@ -3627,6 +3664,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "subscription_invoices_customer_id_fkey"
             columns: ["customer_id"]
@@ -5756,6 +5800,10 @@ export type Database = {
       }
       validate_subscription_card: {
         Args: { p_log?: boolean; p_scanned_by?: string; p_token: string }
+        Returns: Json
+      }
+      validate_subscription_coupon: {
+        Args: { p_code: string; p_plan_price: number; p_tenant_id: string }
         Returns: Json
       }
     }
