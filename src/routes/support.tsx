@@ -1,21 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState } from "react";
-import { 
-  LifeBuoy, 
-  MessageCircle, 
-  Headset, 
+import {
+  LifeBuoy,
+  MessageCircle,
+  Headset,
   Plus,
-  ArrowLeft
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { TicketList } from "@/components/support/TicketList";
 import { CreateTicketModal } from "@/components/support/CreateTicketModal";
 import { TicketDetails } from "@/components/support/TicketDetails";
@@ -26,7 +19,6 @@ export const Route = createFileRoute("/support")({
 });
 
 function SupportPage() {
-  console.log("SupportPage rendering");
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const queryClient = useQueryClient();
@@ -38,76 +30,117 @@ function SupportPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {!selectedTicket ? (
-          <>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <Headset className="h-6 w-6" />
+      <div className="min-h-screen bg-[#05070d] text-white">
+        <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+          {!selectedTicket ? (
+            <>
+              {/* HEADER */}
+              <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-4">
+                  <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+                    <Headset className="h-7 w-7 text-[#f59e0b]" />
                   </div>
-                  <h2 className="text-3xl font-bold tracking-tight">Suporte</h2>
-                </div>
-                <p className="text-muted-foreground">Estamos aqui para ajudar você a ter a melhor experiência com a Barbex.</p>
-              </div>
-              <Button onClick={() => setIsNewTicketOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
-                <Plus size={18} /> Novo Chamado
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="md:col-span-3 space-y-6">
-                <div className="flex items-center justify-between border-b pb-4">
-                  <h3 className="font-bold flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                    Seus Chamados
-                  </h3>
-                </div>
-                <TicketList onSelectTicket={setSelectedTicket} />
-              </div>
-
-              <div className="space-y-6">
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 space-y-4">
-                  <h4 className="font-bold flex items-center gap-2">
-                    <LifeBuoy className="h-4 w-4 text-primary" />
-                    Canais de Atendimento
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-white rounded-xl border-2 border-slate-200 text-sm text-black">
-                      <p className="font-bold mb-1">WhatsApp Oficial</p>
-                      <p className="text-muted-foreground text-xs mb-3">Atendimento de Seg. a Sex. das 09h às 18h.</p>
-                      <Button variant="outline" size="sm" className="w-full text-xs" asChild>
-                        <a href="https://wa.me/5500000000000" target="_blank" rel="noopener noreferrer">Falar agora</a>
-                      </Button>
-                    </div>
-                    <div className="p-3 bg-white rounded-xl border-2 border-slate-200 text-sm text-black">
-                      <p className="font-bold mb-1">E-mail Suporte</p>
-                      <p className="text-muted-foreground text-xs mb-3">suporte@barbex.shop</p>
-                      <Button variant="outline" size="sm" className="w-full text-xs" asChild>
-                        <a href="mailto:suporte@barbex.shop">Enviar e-mail</a>
-                      </Button>
-                    </div>
+                  <div className="min-w-0">
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+                      Suporte
+                    </h1>
+                    <p className="text-sm text-zinc-400 mt-1 truncate">
+                      Estamos aqui para ajudar você a ter a melhor experiência com a Barbex.
+                    </p>
                   </div>
                 </div>
+                <div className="flex shrink-0">
+                  <Button
+                    onClick={() => setIsNewTicketOpen(true)}
+                    className="h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5"
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Novo Chamado
+                  </Button>
+                </div>
+              </header>
+
+              {/* CONTENT GRID */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* TICKETS */}
+                <div className="lg:col-span-3">
+                  <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+                    <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
+                      <h3 className="font-bold flex items-center gap-2 text-white">
+                        <MessageCircle className="h-5 w-5 text-[#f59e0b]" />
+                        Seus Chamados
+                      </h3>
+                    </div>
+                    <TicketList onSelectTicket={setSelectedTicket} />
+                  </div>
+                </div>
+
+                {/* CHANNELS */}
+                <div className="space-y-6">
+                  <div className="p-6 rounded-2xl bg-[#0b0f17] border border-[#f59e0b]/20 space-y-4">
+                    <h4 className="font-bold flex items-center gap-2 text-white">
+                      <LifeBuoy className="h-4 w-4 text-[#f59e0b]" />
+                      Canais de Atendimento
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-[#05070d] rounded-xl border border-zinc-800/80 text-sm">
+                        <p className="font-bold mb-1 text-white flex items-center gap-2">
+                          <MessageCircle className="h-4 w-4 text-emerald-400" />
+                          WhatsApp Oficial
+                        </p>
+                        <p className="text-zinc-400 text-xs mb-3">
+                          Atendimento de Seg. a Sex. das 09h às 18h.
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 text-xs font-semibold transition-all"
+                          asChild
+                        >
+                          <a
+                            href="https://wa.me/5500000000000"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Falar agora
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="p-4 bg-[#05070d] rounded-xl border border-zinc-800/80 text-sm">
+                        <p className="font-bold mb-1 text-white flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-[#f59e0b]" />
+                          E-mail Suporte
+                        </p>
+                        <p className="text-zinc-400 text-xs mb-3">
+                          suporte@barbex.shop
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full h-9 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] hover:bg-[#f59e0b]/20 hover:text-[#fbbf24] text-xs font-semibold transition-all"
+                          asChild
+                        >
+                          <a href="mailto:suporte@barbex.shop">Enviar e-mail</a>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </>
-        ) : (
-          <TicketDetails 
-            ticket={selectedTicket} 
-            onBack={() => {
-              setSelectedTicket(null);
-              queryClient.invalidateQueries({ queryKey: ["tenant-tickets"] });
-            }} 
+            </>
+          ) : (
+            <TicketDetails
+              ticket={selectedTicket}
+              onBack={() => {
+                setSelectedTicket(null);
+                queryClient.invalidateQueries({ queryKey: ["tenant-tickets"] });
+              }}
+            />
+          )}
+
+          <CreateTicketModal
+            isOpen={isNewTicketOpen}
+            onClose={() => setIsNewTicketOpen(false)}
+            onSuccess={handleTicketCreated}
           />
-        )}
-
-        <CreateTicketModal
-          isOpen={isNewTicketOpen}
-          onClose={() => setIsNewTicketOpen(false)}
-          onSuccess={handleTicketCreated}
-        />
+        </div>
       </div>
     </AppLayout>
   );
