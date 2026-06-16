@@ -562,7 +562,7 @@ function ProductsComponent() {
                         animate={{ opacity: 1, y: 0 }}
                         className="group relative bg-[#05070d] border border-zinc-800 rounded-2xl overflow-hidden hover:border-[#f59e0b]/40 hover:shadow-[0_8px_32px_rgba(245,158,11,0.15)] transition-all duration-300"
                       >
-                        <div className="aspect-square bg-[#0b0f17] relative overflow-hidden">
+                        <div className="aspect-[4/3] sm:aspect-square bg-[#0b0f17] relative overflow-hidden">
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                           ) : (
