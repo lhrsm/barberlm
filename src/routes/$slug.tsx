@@ -4096,6 +4096,94 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Premium Success Overlay */}
+      <Dialog open={!!premiumSuccess} onOpenChange={(o) => { if (!o) { setPremiumSuccess(null); navigate({ to: `/${slug}/portal` as any, replace: true }); } }}>
+        <DialogContent className="max-w-md bg-transparent border-none p-0 shadow-none">
+          <DialogTitle className="sr-only">Agendamento Premium Confirmado</DialogTitle>
+          {premiumSuccess && (
+            <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_30px_80px_rgba(212,175,55,0.45)]">
+              <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+
+              <div className="relative flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                  className="h-20 w-20 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center mb-3 shadow-[0_10px_30px_rgba(212,175,55,0.5)]"
+                >
+                  <CheckCircle2 size={44} className="text-black" />
+                </motion.div>
+
+                <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/90 font-black">Agendamento Premium</p>
+                <h3 className="text-2xl font-black uppercase tracking-tight text-white mt-1">Confirmado ✦</h3>
+                <p className="text-[11px] text-gray-400 mt-1">Benefício do plano reservado com sucesso</p>
+              </div>
+
+              <div className="relative mt-5 space-y-2.5">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-[#D4AF37]/20 p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Crown size={14} className="text-[#D4AF37] shrink-0" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Plano</span>
+                  </div>
+                  <span className="text-sm font-black text-white truncate">{premiumSuccess.plan}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-white/5 p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Scissors size={14} className="text-[#D4AF37] shrink-0" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Serviço</span>
+                  </div>
+                  <span className="text-sm font-black text-white truncate">{premiumSuccess.service}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="rounded-xl bg-black/40 border border-white/5 p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Data</p>
+                    <p className="text-sm font-black text-white mt-1">
+                      {(() => { try { return format(parseISO(premiumSuccess.date), "dd 'de' MMM", { locale: ptBR }); } catch { return premiumSuccess.date; } })()}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-black/40 border border-white/5 p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Horário</p>
+                    <p className="text-sm font-black text-white mt-1">{premiumSuccess.time}</p>
+                  </div>
+                </div>
+                {premiumSuccess.barber && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-white/5 p-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <UserIcon size={14} className="text-[#D4AF37] shrink-0" />
+                      <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Profissional</span>
+                    </div>
+                    <span className="text-sm font-black text-white truncate">{premiumSuccess.barber}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-transparent border border-emerald-500/30 p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Gift size={14} className="text-emerald-400 shrink-0" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-300">Benefícios restantes</span>
+                  </div>
+                  <span className="text-base font-black text-emerald-400">
+                    {premiumSuccess.remaining === null ? "Ilimitado" : premiumSuccess.remaining}
+                  </span>
+                </div>
+                {premiumSuccess.nextRenewal && (
+                  <p className="text-[10px] text-center text-gray-500 uppercase tracking-widest font-bold pt-1">
+                    Próxima renovação: {format(parseISO(premiumSuccess.nextRenewal), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                className="relative w-full h-12 mt-5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-black font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg"
+                onClick={() => { setPremiumSuccess(null); navigate({ to: `/${slug}/portal` as any, replace: true }); }}
+              >
+                Ir para o portal
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
