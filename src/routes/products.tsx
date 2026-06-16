@@ -620,7 +620,7 @@ function ProductsComponent() {
                           )}
                         </div>
 
-                        <div className="p-5 space-y-4">
+                        <div className="p-4 sm:p-5 space-y-4">
                           <div className="space-y-1">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#f59e0b]">{product.category}</p>
                             <h3 className="font-bold text-lg text-white truncate" title={product.name}>{product.name}</h3>
