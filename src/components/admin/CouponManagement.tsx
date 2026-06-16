@@ -276,15 +276,49 @@ export function CouponManagement() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
+              <Label className="text-slate-400">Aplica-se a</Label>
+              <Select
+                value={couponForm.applies_to}
+                onValueChange={v => setCouponForm({...couponForm, applies_to: v as 'order' | 'subscription'})}
+              >
+                <SelectTrigger className="bg-[#2a2b2e] border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1b1e] border-slate-800 text-white">
+                  <SelectItem value="order">Serviços / Produtos</SelectItem>
+                  <SelectItem value="subscription">Assinatura</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                {couponForm.applies_to === 'subscription'
+                  ? 'Válido apenas em mensalidades de assinatura.'
+                  : 'Válido em agendamentos e produtos avulsos.'}
+              </p>
+            </div>
+            {couponForm.applies_to === 'subscription' && (
+              <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3">
+                <div>
+                  <Label className="text-emerald-300 font-black uppercase tracking-widest text-[11px]">Apenas Primeira Mensalidade</Label>
+                  <p className="text-[10px] text-slate-500 mt-1">Desconto aplica só no primeiro mês; renovações voltam ao valor normal.</p>
+                </div>
+                <Switch
+                  checked={!!couponForm.first_month_only}
+                  onCheckedChange={v => setCouponForm({...couponForm, first_month_only: v})}
+                  className="data-[state=checked]:bg-emerald-500"
+                />
+              </div>
+            )}
+            <div className="grid gap-2">
               <Label htmlFor="code" className="text-slate-400">Código do Cupom</Label>
               <Input 
                 id="code" 
-                placeholder="EX: VERÃO20" 
+                placeholder={couponForm.applies_to === 'subscription' ? 'EX: PRIMEIROMES' : 'EX: VERÃO20'}
                 value={couponForm.code}
                 onChange={e => setCouponForm({...couponForm, code: e.target.value.toUpperCase()})}
                 className="bg-[#2a2b2e] border-slate-700 text-white placeholder:text-slate-600 focus:ring-[#ea580c]"
               />
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label className="text-slate-400">Tipo</Label>
