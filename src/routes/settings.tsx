@@ -344,7 +344,7 @@ function SettingsComponent() {
 
         <Tabs defaultValue="general" className="space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto">
+            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto gap-1">
               {[
                 { value: "general", icon: Globe, label: "Geral" },
                 { value: "profile", icon: UserRound, label: "Perfil" },
@@ -359,7 +359,7 @@ function SettingsComponent() {
                 <TabsTrigger 
                   key={tab.value}
                   value={tab.value} 
-                  className="gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-black data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
+                  className="gap-2 h-11 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
                 >
                   <tab.icon size={16} /> <span>{tab.label}</span>
                 </TabsTrigger>
@@ -463,7 +463,7 @@ function SettingsComponent() {
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-xl h-10 px-4"
+                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-[10px] h-10 px-[18px] py-3"
                   >
                     <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
                     {isSyncing ? "Sincronizando..." : "Sincronizar"}
@@ -917,18 +917,18 @@ function SettingsComponent() {
                     </div>
                   </div>
                   
-                  <div className="pt-4 border-t border-[#1f2937]/30 flex flex-wrap gap-2">
+                  <div className="pt-4 border-t border-[#1f2937]/30 flex flex-col sm:flex-row gap-3 justify-center items-center">
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-md font-bold uppercase text-[7px] tracking-widest h-6 px-2 transition-all"
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-[10px] font-bold uppercase text-xs tracking-wider h-[42px] px-5 min-w-[180px] max-w-[220px] w-full sm:w-auto transition-all"
                     >
                       Testar Conexão
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-md font-bold uppercase text-[7px] tracking-widest h-6 px-2 transition-all"
+                      className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white rounded-[10px] font-bold uppercase text-xs tracking-wider h-[42px] px-5 min-w-[180px] max-w-[220px] w-full sm:w-auto transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
@@ -1390,16 +1390,16 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <div className="flex justify-end pt-10 pb-20">
+            <div className="flex justify-center pt-10 pb-20">
               <Button 
                 type="submit" 
-                className="gap-1.5 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 active:scale-95 transition-all h-7 px-3 rounded-md font-black uppercase text-[9px] tracking-widest shadow-lg group" 
+                className="gap-2 bg-[#ea580c] text-white hover:bg-[#ea580c]/90 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 h-12 px-8 w-full max-w-[320px] rounded-xl font-black uppercase text-xs tracking-widest shadow-lg group" 
                 disabled={saving}
               >
                 {saving ? (
-                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Save className="h-3 w-3 group-hover:rotate-12 transition-transform" />
+                  <Save className="h-4 w-4 group-hover:rotate-12 transition-transform" />
                 )}
                 {saving ? "Salvando..." : "Salvar Configurações"}
               </Button>
