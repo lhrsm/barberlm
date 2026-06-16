@@ -280,6 +280,9 @@ function SubscriptionsPage() {
   const [newSubCouponCode, setNewSubCouponCode] = useState("");
   const [newSubCoupon, setNewSubCoupon] = useState<any | null>(null);
   const [newSubCouponLoading, setNewSubCouponLoading] = useState(false);
+  const [newSubReferralCode, setNewSubReferralCode] = useState("");
+  const [newSubReferral, setNewSubReferral] = useState<any | null>(null);
+  const [newSubReferralLoading, setNewSubReferralLoading] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [customersList, setCustomersList] = useState<
     { id: string; name: string; phone: string | null; cpf: string | null }[]
