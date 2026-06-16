@@ -1470,6 +1470,13 @@ function ShopPageComponent() {
         return;
       }
 
+      // Subscription-only coupons can NOT be used on product/service orders
+      if ((coupon as any).applies_to === 'subscription') {
+        toast.error("Este cupom é exclusivo para assinaturas e não pode ser usado em agendamentos avulsos.");
+        return;
+      }
+
+
       // Validations
       const now = new Date();
       
