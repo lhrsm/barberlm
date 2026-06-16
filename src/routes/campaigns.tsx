@@ -64,7 +64,10 @@ function CampaignsComponent() {
   });
 
   useEffect(() => {
-    if (tenantId) fetchCampaigns();
+    if (tenantId) {
+      fetchCampaigns();
+      fetchMetrics();
+    }
   }, [tenantId]);
 
   async function fetchCampaigns() {
@@ -76,6 +79,34 @@ function CampaignsComponent() {
       .order("created_at", { ascending: false });
     if (data) setCampaigns(data);
     setLoading(false);
+  }
+
+  async function fetchMetrics() {
+    if (!tenantId) return;
+
+    const { data: logs } = await supabase
+      .from("campaign_logs")
+      .select("status, response")
+      .eq("tenant_id", tenantId);
+
+    const totalSent = logs?.length || 0;
+    const opened = logs?.filter((l: any) =>
+      ["read", "opened", "delivered"].includes((l.status || "").toLowerCase())
+    ).length || 0;
+    const responded = logs?.filter((l: any) => l.response != null && l.response !== "").length || 0;
+
+    const { count: vipCount } = await supabase
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .gt("loyalty_points", 0);
+
+    setMetrics({
+      totalSent,
+      openRate: totalSent > 0 ? (opened / totalSent) * 100 : 0,
+      responseRate: totalSent > 0 ? (responded / totalSent) * 100 : 0,
+      vipCustomers: vipCount || 0,
+    });
   }
 
   async function handleCreateCampaign() {
