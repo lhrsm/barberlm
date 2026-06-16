@@ -155,6 +155,8 @@ function ShopPageComponent() {
   const [activeSubscription, setActiveSubscription] = useState<any>(null);
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
+  const [benefitBalances, setBenefitBalances] = useState<any[]>([]);
+  const [planBenefitServices, setPlanBenefitServices] = useState<any[]>([]); // {service_id, consume_quantity, benefit_key, benefit_name}
   const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
   const [premiumSuccess, setPremiumSuccess] = useState<null | {
     plan: string;
@@ -830,8 +832,28 @@ function ShopPageComponent() {
           .select("*, services(*)")
           .eq("plan_id", data.plan_id);
         setSubPlanServices(planSvcs || []);
+
+        // Load per-category benefit balances and benefit-service links (new system)
+        const [{ data: balances }, { data: linksRaw }] = await Promise.all([
+          (supabase as any).rpc("get_subscription_benefit_balance", { _subscription_id: data.id }),
+          (supabase as any)
+            .from("subscription_plan_benefit_services")
+            .select("service_id, consume_quantity, benefit:subscription_plan_benefits(benefit_key, benefit_name)")
+            .eq("plan_id", data.plan_id)
+            .eq("active", true),
+        ]);
+        setBenefitBalances((balances as any[]) || []);
+        const links = ((linksRaw as any[]) || []).map((r) => ({
+          service_id: r.service_id,
+          consume_quantity: r.consume_quantity,
+          benefit_key: r.benefit?.benefit_key,
+          benefit_name: r.benefit?.benefit_name,
+        }));
+        setPlanBenefitServices(links);
       } else {
         setSubPlanServices([]);
+        setBenefitBalances([]);
+        setPlanBenefitServices([]);
       }
       return data || null;
     } catch (e) {
@@ -1208,13 +1230,26 @@ function ShopPageComponent() {
       // 2.6 Consume subscription benefit for covered appointments
       for (const appt of createdAppointments) {
         if (appt.subscription_id && (appt.payment_method === 'subscription' || appt.payment_method === 'subscription_plus_payment')) {
-          await (supabase as any).rpc('consume_subscription_benefit', {
-            p_appointment_id: appt.id,
-            p_subscription_id: appt.subscription_id,
-            p_service_id: appt.service_id,
-            p_covered_amount: appt.subscription_covered_amount || 0,
-            p_extra_amount: appt.extra_amount || 0,
-          });
+          // Prefer new per-category engine; fall back to legacy RPC if no benefit links configured.
+          const hasNewLinks = planBenefitServices.some((l: any) => l.service_id === appt.service_id);
+          if (hasNewLinks) {
+            const { data: res, error: rpcErr } = await (supabase as any).rpc('consume_subscription_benefits_v2', {
+              _subscription_id: appt.subscription_id,
+              _service_id: appt.service_id,
+              _appointment_id: appt.id,
+            });
+            if (rpcErr || (res && res.success === false)) {
+              console.error('[PREMIUM FLOW] consume_subscription_benefits_v2 error', rpcErr || res);
+            }
+          } else {
+            await (supabase as any).rpc('consume_subscription_benefit', {
+              p_appointment_id: appt.id,
+              p_subscription_id: appt.subscription_id,
+              p_service_id: appt.service_id,
+              p_covered_amount: appt.subscription_covered_amount || 0,
+              p_extra_amount: appt.extra_amount || 0,
+            });
+          }
         }
       }
 
@@ -2527,26 +2562,55 @@ function ShopPageComponent() {
                       </span>
                     </div>
                     <p className="relative text-white text-xl font-black leading-tight">{plan?.name || "Assinatura"}</p>
-                    <div className="relative grid grid-cols-3 gap-2 mt-4">
-                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
-                        <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                    {benefitBalances.length > 0 ? (
+                      <div className="relative space-y-2 mt-4">
+                        {benefitBalances.map((b: any) => {
+                          const pct = b.monthly_limit > 0 ? Math.min(100, (b.used / b.monthly_limit) * 100) : 0;
+                          return (
+                            <div key={b.benefit_key} className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300">{b.benefit_name}</p>
+                                <p className="text-[11px] font-black text-[#D4AF37]">{b.used}/{b.monthly_limit}</p>
+                              </div>
+                              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F]" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div className="flex items-center justify-between text-[10px] uppercase tracking-widest pt-1">
+                          <span className="text-gray-500 font-bold">Renovação</span>
+                          <span className="text-white font-black">
+                            {activeSubscription.next_billing_at
+                              ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                              : activeSubscription.current_period_end
+                                ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                                : "—"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
-                        <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                    ) : (
+                      <div className="relative grid grid-cols-3 gap-2 mt-4">
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
+                          <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                        </div>
+                        <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
+                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
+                          <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                        </div>
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
+                          <p className="text-[11px] font-black text-white mt-0.5">
+                            {activeSubscription.next_billing_at
+                              ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                              : activeSubscription.current_period_end
+                                ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                                : "—"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
-                        <p className="text-[11px] font-black text-white mt-0.5">
-                          {activeSubscription.next_billing_at
-                            ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
-                            : activeSubscription.current_period_end
-                              ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
-                              : "—"}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Como deseja agendar?</h5>
@@ -2660,6 +2724,8 @@ function ShopPageComponent() {
                       const elig = serviceEligibility[s.id];
                       const isCovered = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) === 0);
                       const isPartial = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) > 0);
+                      const consumesFor = planBenefitServices.filter((l: any) => l.service_id === s.id);
+                      const totalConsume = consumesFor.reduce((acc: number, l: any) => acc + Number(l.consume_quantity || 1), 0);
                       return (
                       <motion.div 
                         key={s.id} 
@@ -2695,6 +2761,18 @@ function ShopPageComponent() {
                                </span>
                              )}
                           </div>
+                          {bookingMode === 'benefit' && consumesFor.length > 0 && (
+                            <div className="mt-2 space-y-0.5">
+                              {consumesFor.map((l: any) => (
+                                <p key={l.benefit_key} className="text-[10px] text-zinc-600">
+                                  Consome: <span className="font-bold text-[#8A6D1F]">{l.consume_quantity} utilização de {l.benefit_name}</span>
+                                </p>
+                              ))}
+                              {totalConsume > 1 && (
+                                <p className="text-[10px] font-black uppercase tracking-wider text-[#D4AF37]">Total: {totalConsume} utilizações</p>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="text-right relative z-10">
                           {isCovered ? (
