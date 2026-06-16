@@ -127,7 +127,7 @@ function TutorialsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 w-full md:w-auto">
+            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 w-full md:w-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <Button
                 size="sm"
                 onClick={() => setSelectedCategory(null)}
