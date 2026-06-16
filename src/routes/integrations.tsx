@@ -24,12 +24,12 @@ import {
   Lock,
   Plus,
   Calendar,
-  Instagram as InstagramIcon,
+  Camera,
   Send,
   CreditCard,
   Workflow,
   BarChart3,
-  Facebook as FacebookIcon,
+  Globe,
   Webhook,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
