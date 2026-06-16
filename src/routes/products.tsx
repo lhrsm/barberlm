@@ -241,412 +241,436 @@ function ProductsComponent() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <Tabs defaultValue="inventory" className="w-full">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
-              <TabsTrigger value="inventory" className="gap-2">
-                <Package size={16} /> Estoque
-              </TabsTrigger>
-              <TabsTrigger value="billing" className="gap-2">
-                <History size={16} /> Faturamento
-              </TabsTrigger>
-              <TabsTrigger value="history" className="gap-2">
-                <History size={16} /> Histórico
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="inventory" className="space-y-6 pt-6">
-
-        <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Produtos</h2>
-            <p className="text-muted-foreground text-sm">Gerencie seu estoque de pomadas, balms e outros itens.</p>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-            setIsAddDialogOpen(open);
-            if (!open) setEditingProduct(null);
-          }}>
-            <DialogTrigger asChild>
-              <Button className="gap-2" variant={canAddProduct ? "default" : "secondary"} onClick={() => setEditingProduct(null)}>
-                <Plus size={18} /> Novo Produto
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              {canAddProduct || editingProduct ? (
-                <>
-                  <DialogHeader>
-                    <DialogTitle>{editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleAddProduct} className="space-y-6 pt-4">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="relative w-full aspect-square border-2 border-dashed rounded-2xl flex items-center justify-center overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors">
-                            {(editingProduct?.image_url || newProduct.image_url) ? (
-                              <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="text-center p-4">
-                                <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-2 opacity-20" />
-                                <p className="text-xs text-muted-foreground">Arraste ou clique para enviar</p>
-                              </div>
-                            )}
-                            <Input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleFileUpload}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                              disabled={uploading}
-                            />
+      <div className="min-h-screen bg-[#05070d] text-white">
+        <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+          {/* HEADER */}
+          <header className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+                <ShoppingBag className="h-7 w-7 text-[#f59e0b]" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">Produtos</h1>
+                <p className="text-sm text-zinc-400 mt-1 truncate">
+                  Gerencie seu estoque de pomadas, balms e outros itens premium.
+                </p>
+              </div>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+              setIsAddDialogOpen(open);
+              if (!open) setEditingProduct(null);
+            }}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => setEditingProduct(null)}
+                  className="h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5 w-full sm:w-auto"
+                >
+                  <Plus size={18} className="mr-2" /> Novo Produto
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0b0f17] border-zinc-800 text-white">
+                {canAddProduct || editingProduct ? (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold">{editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleAddProduct} className="space-y-6 pt-4">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className="relative w-full aspect-square border-2 border-dashed border-zinc-800 rounded-2xl flex items-center justify-center overflow-hidden bg-[#05070d] hover:border-[#f59e0b]/40 transition-colors">
+                              {(editingProduct?.image_url || newProduct.image_url) ? (
+                                <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="text-center p-4">
+                                  <ImageIcon className="w-12 h-12 text-zinc-600 mx-auto mb-2" />
+                                  <p className="text-xs text-zinc-400">Arraste ou clique para enviar</p>
+                                </div>
+                              )}
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                disabled={uploading}
+                              />
+                            </div>
+                            <p className="text-[10px] text-zinc-400 mt-2 uppercase font-bold tracking-widest">{uploading ? "Enviando imagem..." : "Imagem Principal"}</p>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-2 uppercase font-black tracking-widest">{uploading ? "Enviando imagem..." : "Imagem Principal"}</p>
-                        </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="category" className="text-xs font-black uppercase tracking-widest text-slate-500">Categoria</Label>
-                          <Select 
-                            value={editingProduct ? editingProduct.category : newProduct.category} 
-                            onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, category: val}) : setNewProduct({...newProduct, category: val})}
-                          >
-                            <SelectTrigger className="rounded-xl h-11">
-                              <SelectValue placeholder="Selecione uma categoria" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Pomadas">Pomadas</SelectItem>
-                              <SelectItem value="Óleos para barba">Óleos para barba</SelectItem>
-                              <SelectItem value="Shampoo">Shampoo</SelectItem>
-                              <SelectItem value="Condicionador">Condicionador</SelectItem>
-                              <SelectItem value="Balm">Balm</SelectItem>
-                              <SelectItem value="Perfumes">Perfumes</SelectItem>
-                              <SelectItem value="Kits">Kits</SelectItem>
-                              <SelectItem value="Acessórios">Acessórios</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="brand" className="text-xs font-black uppercase tracking-widest text-slate-500">Marca</Label>
-                          <Input 
-                            id="brand" 
-                            placeholder="Ex: Reuzel, Suavecito"
-                            value={editingProduct ? editingProduct.brand : newProduct.brand} 
-                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, brand: e.target.value}) : setNewProduct({...newProduct, brand: e.target.value})} 
-                            className="rounded-xl h-11"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">Nome do Produto</Label>
-                          <Input 
-                            id="name" 
-                            placeholder="Pomada Modeladora Efeito Matte"
-                            value={editingProduct ? editingProduct.name : newProduct.name} 
-                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} 
-                            required 
-                            className="rounded-xl h-11"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="price" className="text-xs font-black uppercase tracking-widest text-slate-500">Preço (R$)</Label>
-                            <Input 
-                              id="price" 
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              value={editingProduct ? editingProduct.price : newProduct.price} 
-                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} 
-                              required
-                              className="rounded-xl h-11"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="promo" className="text-xs font-black uppercase tracking-widest text-slate-500">Promo (R$)</Label>
-                            <Input 
-                              id="promo" 
-                              type="number"
-                              step="0.01"
-                              placeholder="Opcional"
-                              value={editingProduct ? editingProduct.promotional_price : newProduct.promotional_price} 
-                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, promotional_price: e.target.value}) : setNewProduct({...newProduct, promotional_price: e.target.value})} 
-                              className="rounded-xl h-11"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="stock" className="text-xs font-black uppercase tracking-widest text-slate-500">Estoque</Label>
-                            <Input 
-                              id="stock" 
-                              type="number"
-                              value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity} 
-                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})} 
-                              required
-                              className="rounded-xl h-11"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="badge" className="text-xs font-black uppercase tracking-widest text-slate-500">Selo (Badge)</Label>
-                            <Select 
-                              value={editingProduct ? editingProduct.badge : newProduct.badge} 
-                              onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, badge: val}) : setNewProduct({...newProduct, badge: val})}
+                            <Label htmlFor="category" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Categoria</Label>
+                            <Select
+                              value={editingProduct ? editingProduct.category : newProduct.category}
+                              onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, category: val}) : setNewProduct({...newProduct, category: val})}
                             >
-                              <SelectTrigger className="rounded-xl h-11">
-                                <SelectValue placeholder="Sem selo" />
+                              <SelectTrigger className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800">
+                                <SelectValue placeholder="Selecione uma categoria" />
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="">Nenhum</SelectItem>
-                                <SelectItem value="Mais vendido">Mais vendido</SelectItem>
-                                <SelectItem value="Novo">Novo</SelectItem>
-                                <SelectItem value="Premium">Premium</SelectItem>
-                                <SelectItem value="Oferta">Oferta</SelectItem>
-                                <SelectItem value="Exclusivo">Exclusivo</SelectItem>
+                              <SelectContent className="bg-[#0b0f17] border-zinc-800 text-white">
+                                <SelectItem value="Pomadas">Pomadas</SelectItem>
+                                <SelectItem value="Óleos para barba">Óleos para barba</SelectItem>
+                                <SelectItem value="Shampoo">Shampoo</SelectItem>
+                                <SelectItem value="Condicionador">Condicionador</SelectItem>
+                                <SelectItem value="Balm">Balm</SelectItem>
+                                <SelectItem value="Perfumes">Perfumes</SelectItem>
+                                <SelectItem value="Kits">Kits</SelectItem>
+                                <SelectItem value="Acessórios">Acessórios</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="brand" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Marca</Label>
+                            <Input
+                              id="brand"
+                              placeholder="Ex: Reuzel, Suavecito"
+                              value={editingProduct ? editingProduct.brand : newProduct.brand}
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, brand: e.target.value}) : setNewProduct({...newProduct, brand: e.target.value})}
+                              className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
+                            />
+                          </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border">
-                          <div className="space-y-0.5">
-                            <Label className="text-sm font-bold">Produto em Destaque</Label>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Aparece no topo da vitrine</p>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Nome do Produto</Label>
+                            <Input
+                              id="name"
+                              placeholder="Pomada Modeladora Efeito Matte"
+                              value={editingProduct ? editingProduct.name : newProduct.name}
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})}
+                              required
+                              className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
+                            />
                           </div>
-                          <Switch 
-                            checked={editingProduct ? editingProduct.featured : newProduct.featured}
-                            onCheckedChange={(val) => editingProduct ? setEditingProduct({...editingProduct, featured: val}) : setNewProduct({...newProduct, featured: val})}
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="price" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Preço (R$)</Label>
+                              <Input
+                                id="price" type="number" step="0.01" placeholder="0.00"
+                                value={editingProduct ? editingProduct.price : newProduct.price}
+                                onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})}
+                                required
+                                className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="promo" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Promo (R$)</Label>
+                              <Input
+                                id="promo" type="number" step="0.01" placeholder="Opcional"
+                                value={editingProduct ? editingProduct.promotional_price : newProduct.promotional_price}
+                                onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, promotional_price: e.target.value}) : setNewProduct({...newProduct, promotional_price: e.target.value})}
+                                className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="stock" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Estoque</Label>
+                              <Input
+                                id="stock" type="number"
+                                value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity}
+                                onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})}
+                                required
+                                className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="badge" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Selo (Badge)</Label>
+                              <Select
+                                value={editingProduct ? editingProduct.badge : newProduct.badge}
+                                onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, badge: val}) : setNewProduct({...newProduct, badge: val})}
+                              >
+                                <SelectTrigger className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800">
+                                  <SelectValue placeholder="Sem selo" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#0b0f17] border-zinc-800 text-white">
+                                  <SelectItem value="Mais vendido">Mais vendido</SelectItem>
+                                  <SelectItem value="Novo">Novo</SelectItem>
+                                  <SelectItem value="Premium">Premium</SelectItem>
+                                  <SelectItem value="Oferta">Oferta</SelectItem>
+                                  <SelectItem value="Exclusivo">Exclusivo</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-[#05070d] rounded-xl border border-zinc-800">
+                            <div className="space-y-0.5">
+                              <Label className="text-sm font-bold text-white">Produto em Destaque</Label>
+                              <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Aparece no topo da vitrine</p>
+                            </div>
+                            <Switch
+                              checked={editingProduct ? editingProduct.featured : newProduct.featured}
+                              onCheckedChange={(val) => editingProduct ? setEditingProduct({...editingProduct, featured: val}) : setNewProduct({...newProduct, featured: val})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="short_desc" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Breve Descrição (Vitrine)</Label>
+                          <Input
+                            id="short_desc"
+                            placeholder="Ex: Fixação forte com brilho natural."
+                            value={editingProduct ? editingProduct.short_description : newProduct.short_description}
+                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, short_description: e.target.value}) : setNewProduct({...newProduct, short_description: e.target.value})}
+                            className="h-[42px] rounded-xl bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="description" className="text-xs font-bold uppercase tracking-widest text-zinc-400">Descrição Detalhada</Label>
+                          <Textarea
+                            id="description"
+                            placeholder="Fale sobre os benefícios, modo de uso e diferenciais do produto..."
+                            value={editingProduct ? editingProduct.description : newProduct.description}
+                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})}
+                            className="rounded-xl min-h-[120px] resize-none bg-[#05070d] border-zinc-800 focus-visible:border-[#f59e0b]/40 focus-visible:ring-[#f59e0b]/20"
                           />
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="short_desc" className="text-xs font-black uppercase tracking-widest text-slate-500">Breve Descrição (Vitrine)</Label>
-                        <Input 
-                          id="short_desc" 
-                          placeholder="Ex: Fixação forte com brilho natural."
-                          value={editingProduct ? editingProduct.short_description : newProduct.short_description} 
-                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, short_description: e.target.value}) : setNewProduct({...newProduct, short_description: e.target.value})} 
-                          className="rounded-xl h-11"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-slate-500">Descrição Detalhada</Label>
-                        <Textarea 
-                          id="description" 
-                          placeholder="Fale sobre os benefícios, modo de uso e diferenciais do produto..."
-                          value={editingProduct ? editingProduct.description : newProduct.description} 
-                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
-                          className="rounded-2xl min-h-[120px] resize-none"
-                        />
-                      </div>
-                    </div>
-
-                    <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-xl hover:scale-[1.01] transition-all" disabled={uploading}>
-                      {editingProduct ? "Salvar Alterações" : "Cadastrar Produto Premium"}
+                      <Button
+                        type="submit"
+                        disabled={uploading}
+                        className="w-full h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all"
+                      >
+                        {editingProduct ? "Salvar Alterações" : "Cadastrar Produto"}
+                      </Button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="space-y-4 py-4">
+                    <Alert className="bg-red-500/10 border-red-500/30 text-red-300">
+                      <AlertTriangle className="h-4 w-4 text-red-400" />
+                      <AlertTitle>Limite Atingido</AlertTitle>
+                      <AlertDescription>
+                        Seu plano atual permite apenas {limits.products} produtos. Faça o upgrade para adicionar mais.
+                      </AlertDescription>
+                    </Alert>
+                    <Button asChild className="w-full h-[42px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white font-bold">
+                      <Link to="/subscription">Ver Planos</Link>
                     </Button>
-                  </form>
-                </>
-              ) : (
-                <div className="space-y-4 py-4">
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Limite Atingido</AlertTitle>
-                    <AlertDescription>
-                      Seu plano atual permite apenas {limits.products} produtos. Faça o upgrade para adicionar mais.
-                    </AlertDescription>
-                  </Alert>
-                  <Button className="w-full h-12 rounded-xl" asChild>
-                    <Link to="/subscription">Ver Planos</Link>
-                  </Button>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {!canAddProduct && (
-          <Alert>
-            <Crown className="h-4 w-4" />
-            <AlertTitle>Limite de Produtos</AlertTitle>
-            <AlertDescription className="flex items-center justify-between">
-              Você atingiu o limite de {limits.products} produtos do seu plano.
-              <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                <Link to="/subscription">Fazer Upgrade</Link>
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.length === 0 ? (
-            <div className="col-span-full text-center py-20 border-2 border-dashed rounded-3xl bg-muted/20 text-muted-foreground">
-              <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border">
-                <ShoppingBag size={40} className="text-muted-foreground/30" />
-              </div>
-              <h3 className="text-2xl font-black uppercase italic tracking-tighter">Sua vitrine está vazia</h3>
-              <p className="max-w-[300px] mx-auto text-sm mt-2 font-medium">Cadastre seus produtos premium para que seus clientes possam vê-los no seu site.</p>
-              <Button className="mt-8 rounded-full h-11 px-8 gap-2" onClick={() => setIsAddDialogOpen(true)}>
-                <Plus size={18} /> Adicionar Primeiro Produto
-              </Button>
-            </div>
-          ) : (
-            products.map((product) => (
-              <motion.div 
-                key={product.id} 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="group relative border-2 border-slate-200 rounded-[2rem] md:rounded-[2.5rem] bg-white overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 text-black"
-              >
-                <div className="aspect-square bg-muted/20 relative overflow-hidden">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted">
-                      <Package className="w-20 h-20 text-muted-foreground/10" />
-                    </div>
-                  )}
-                  
-                  {product.badge && (
-                    <div className="absolute top-4 left-4 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg z-10">
-                      {product.badge}
-                    </div>
-                  )}
-
-                  {product.featured && (
-                    <div className="absolute top-4 right-4 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg z-10 flex items-center gap-1">
-                      <Star size={10} fill="currentColor" /> Destaque
-                    </div>
-                  )}
-
-                    <div className="absolute inset-0 bg-black/40 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
-                      <Button 
-                        variant="secondary" 
-                        size="icon" 
-                        className="h-12 w-12 rounded-full bg-white text-black hover:bg-white/90 shadow-2xl scale-100 md:scale-90 group-hover:scale-100 transition-transform duration-500"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsAddDialogOpen(true);
-                        }}
-                      >
-                        <Edit size={20} />
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="icon" 
-                        className="h-12 w-12 rounded-full shadow-2xl scale-100 md:scale-90 group-hover:scale-100 transition-transform duration-500"
-                        onClick={() => handleDeleteProduct(product.id)}
-                      >
-                        <Trash2 size={20} />
-                      </Button>
-                    </div>
-
-                  {product.stock_quantity <= 5 && (
-                    <div className="absolute bottom-4 left-4 right-4 bg-red-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest py-1.5 rounded-full text-center shadow-lg border border-white/20">
-                      Estoque Crítico: {product.stock_quantity}
-                    </div>
-                  )}
-                </div>
-                <div className="p-6 space-y-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category}</p>
-                    <h3 className="font-black text-xl uppercase italic tracking-tighter truncate" title={product.name}>{product.name}</h3>
-                    {product.brand && <p className="text-xs font-bold text-slate-500">{product.brand}</p>}
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <div className="flex items-baseline gap-2">
-                         <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
-                         {product.promotional_price && (
-                           <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
-                         )}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
-                        <Package size={10} />
-                        <span>{product.stock_quantity} un.</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button 
-                        size="sm" 
-                        className="gap-2 rounded-full h-10 md:h-9 px-4 w-full sm:w-auto"
-                        onClick={async () => {
-                          if (!user) return;
-                          if (product.stock_quantity <= 0) {
-                            toast.error("Produto sem estoque!");
-                            return;
-                          }
-                          try {
-                            // Encontrar um barbeiro para associar a venda (o tenant_admin ou o primeiro disponível)
-                            const { data: barberData } = await supabase.from('barbers').select('id').eq('user_id', user.id).eq('active', true).limit(1).maybeSingle();
-                            const barberId = role === 'barber' ? user.id : barberData?.id;
+                )}
+              </DialogContent>
+            </Dialog>
+          </header>
 
-                            if (!barberId) {
-                              toast.error("Não foi possível identificar um profissional para esta venda.");
-                              return;
-                            }
-
-                            const { error: saleError } = await supabase.from("product_sales").insert([{
-                              user_id: user.id,
-                              barber_id: barberId,
-                              items: [{ id: product.id, name: product.name, quantity: 1, price: product.price }],
-                              total_amount: product.price,
-                              status: 'completed' as "completed"
-                            }]);
-
-                            if (saleError) throw saleError;
-
-                            const { error: stockError } = await supabase
-                              .from("products")
-                              .update({ stock_quantity: product.stock_quantity - 1 })
-                              .eq("id", product.id);
-
-                            if (stockError) throw stockError;
-                            
-                            // Adicionar ao financeiro
-                            await supabase.from("transactions").insert([{
-                              user_id: user.id,
-                              barber_id: barberId,
-                              amount: product.price,
-                              type: "income",
-                              category: "Venda de Produto",
-                              description: `Venda: ${product.name}`,
-                              date: new Date().toISOString().split('T')[0]
-                            }]);
-
-                            toast.success(`Venda de ${product.name} realizada!`);
-                            fetchProducts();
-                          } catch (error) {
-                            toast.error("Erro ao realizar venda");
-                          }
-                        }}
-                      >
-                        <ShoppingBag size={16} /> Vender
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))
+          {!canAddProduct && (
+            <Alert className="bg-[#0b0f17] border-[#f59e0b]/30 text-zinc-300">
+              <Crown className="h-4 w-4 text-[#f59e0b]" />
+              <AlertTitle className="text-white">Limite de Produtos</AlertTitle>
+              <AlertDescription className="flex items-center justify-between">
+                Você atingiu o limite de {limits.products} produtos do seu plano.
+                <Button variant="link" size="sm" asChild className="p-0 h-auto text-[#f59e0b] hover:text-[#fbbf24]">
+                  <Link to="/subscription">Fazer Upgrade</Link>
+                </Button>
+              </AlertDescription>
+            </Alert>
           )}
+
+          <Tabs defaultValue="inventory" className="w-full">
+            <TabsList className="bg-[#0b0f17] border border-zinc-800/80 rounded-xl p-1 h-auto inline-flex">
+              <TabsTrigger value="inventory" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f59e0b] data-[state=active]:to-[#ea580c] data-[state=active]:text-white text-zinc-400">
+                <Package size={16} /> Estoque
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f59e0b] data-[state=active]:to-[#ea580c] data-[state=active]:text-white text-zinc-400">
+                <History size={16} /> Faturamento
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f59e0b] data-[state=active]:to-[#ea580c] data-[state=active]:text-white text-zinc-400">
+                <History size={16} /> Histórico
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="inventory" className="pt-6">
+              <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
+                  <h3 className="font-bold flex items-center gap-2 text-white">
+                    <LayoutGrid className="h-5 w-5 text-[#f59e0b]" />
+                    Vitrine de Produtos
+                  </h3>
+                  <span className="text-xs text-zinc-400">{products.length} {products.length === 1 ? "produto" : "produtos"}</span>
+                </div>
+
+                {products.length === 0 ? (
+                  <div className="text-center py-20 border-2 border-dashed rounded-2xl bg-[#05070d] border-zinc-800">
+                    <ShoppingBag className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                    <h4 className="text-lg font-bold">Sua vitrine está vazia</h4>
+                    <p className="text-zinc-400 text-sm max-w-xs mx-auto mt-2">
+                      Cadastre seus produtos premium para que seus clientes possam vê-los.
+                    </p>
+                    <Button
+                      onClick={() => setIsAddDialogOpen(true)}
+                      className="mt-6 h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)]"
+                    >
+                      <Plus size={18} className="mr-2" /> Adicionar Primeiro Produto
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {products.map((product) => (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="group relative bg-[#05070d] border border-zinc-800 rounded-2xl overflow-hidden hover:border-[#f59e0b]/40 hover:shadow-[0_8px_32px_rgba(245,158,11,0.15)] transition-all duration-300"
+                      >
+                        <div className="aspect-square bg-[#0b0f17] relative overflow-hidden">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-20 h-20 text-zinc-700" />
+                            </div>
+                          )}
+
+                          {product.badge && (
+                            <div className="absolute top-3 left-3 bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg z-10">
+                              {product.badge}
+                            </div>
+                          )}
+
+                          {product.featured && (
+                            <div className="absolute top-3 right-3 bg-[#f59e0b]/15 text-[#f59e0b] border border-[#f59e0b]/30 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full backdrop-blur-md z-10 flex items-center gap-1">
+                              <Star size={10} fill="currentColor" /> Destaque
+                            </div>
+                          )}
+
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                            <Button
+                              size="icon"
+                              className="h-11 w-11 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md"
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setIsAddDialogOpen(true);
+                              }}
+                              title="Editar"
+                            >
+                              <Edit size={18} />
+                            </Button>
+                            <Button
+                              size="icon"
+                              className="h-11 w-11 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 text-[#f59e0b] border border-[#f59e0b]/40 backdrop-blur-md"
+                              onClick={() => handleDuplicateProduct(product)}
+                              title="Duplicar"
+                            >
+                              <Copy size={18} />
+                            </Button>
+                            <Button
+                              size="icon"
+                              className="h-11 w-11 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 backdrop-blur-md"
+                              onClick={() => handleDeleteProduct(product.id)}
+                              title="Excluir"
+                            >
+                              <Trash2 size={18} />
+                            </Button>
+                          </div>
+
+                          {product.stock_quantity <= 5 && (
+                            <div className="absolute bottom-3 left-3 right-3 bg-red-500/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest py-1.5 rounded-lg text-center shadow-lg">
+                              Estoque Crítico: {product.stock_quantity}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-5 space-y-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#f59e0b]">{product.category}</p>
+                            <h3 className="font-bold text-lg text-white truncate" title={product.name}>{product.name}</h3>
+                            {product.brand && <p className="text-xs font-medium text-zinc-500">{product.brand}</p>}
+                          </div>
+
+                          <div className="flex items-end justify-between gap-3">
+                            <div className="flex flex-col min-w-0">
+                              <div className="flex items-baseline gap-2 flex-wrap">
+                                <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                                {product.promotional_price && (
+                                  <span className="text-xs text-zinc-500 line-through font-medium">R$ {Number(product.promotional_price).toFixed(2)}</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 mt-1">
+                                <Package size={10} />
+                                <span>{product.stock_quantity} un.</span>
+                              </div>
+                            </div>
+
+                            <Button
+                              size="sm"
+                              className="h-[42px] px-4 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] gap-2 shrink-0"
+                              onClick={async () => {
+                                if (!user) return;
+                                if (product.stock_quantity <= 0) {
+                                  toast.error("Produto sem estoque!");
+                                  return;
+                                }
+                                try {
+                                  const { data: barberData } = await supabase.from('barbers').select('id').eq('user_id', user.id).eq('active', true).limit(1).maybeSingle();
+                                  const barberId = role === 'barber' ? user.id : barberData?.id;
+
+                                  if (!barberId) {
+                                    toast.error("Não foi possível identificar um profissional para esta venda.");
+                                    return;
+                                  }
+
+                                  const { error: saleError } = await supabase.from("product_sales").insert([{
+                                    user_id: user.id,
+                                    barber_id: barberId,
+                                    items: [{ id: product.id, name: product.name, quantity: 1, price: product.price }],
+                                    total_amount: product.price,
+                                    status: 'completed' as "completed"
+                                  }]);
+
+                                  if (saleError) throw saleError;
+
+                                  const { error: stockError } = await supabase
+                                    .from("products")
+                                    .update({ stock_quantity: product.stock_quantity - 1 })
+                                    .eq("id", product.id);
+
+                                  if (stockError) throw stockError;
+
+                                  await supabase.from("transactions").insert([{
+                                    user_id: user.id,
+                                    barber_id: barberId,
+                                    amount: product.price,
+                                    type: "income",
+                                    category: "Venda de Produto",
+                                    description: `Venda: ${product.name}`,
+                                    date: new Date().toISOString().split('T')[0]
+                                  }]);
+
+                                  toast.success(`Venda de ${product.name} realizada!`);
+                                  fetchProducts();
+                                } catch (error) {
+                                  toast.error("Erro ao realizar venda");
+                                }
+                              }}
+                            >
+                              <ShoppingBag size={16} /> Vender
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="billing" className="pt-6">
+              <SalesHistory user={user} onStatusChange={fetchProducts} onlyCompleted={true} />
+            </TabsContent>
+
+            <TabsContent value="history" className="pt-6">
+              <SalesHistory user={user} onStatusChange={fetchProducts} />
+            </TabsContent>
+          </Tabs>
         </div>
-          </TabsContent>
-
-          <TabsContent value="billing" className="pt-6">
-            <SalesHistory user={user} onStatusChange={fetchProducts} onlyCompleted={true} />
-          </TabsContent>
-
-          <TabsContent value="history" className="pt-6">
-            <SalesHistory user={user} onStatusChange={fetchProducts} />
-          </TabsContent>
-        </Tabs>
       </div>
     </AppLayout>
   );
