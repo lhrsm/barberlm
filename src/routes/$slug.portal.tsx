@@ -2097,6 +2097,201 @@ function ClientPortalComponent() {
           </TabsContent>
           )}
 
+          {mySubscription && (
+          <TabsContent value="card" className="pt-6">
+            {(() => {
+              const status = mySubscription.status as string;
+              const isActive = status === "active";
+              const isPaused = status === "paused";
+              const statusLabel = isActive ? "ATIVO" : isPaused ? "PAUSADO" : status === "canceled" ? "CANCELADO" : "INATIVO";
+              const statusColor = isActive ? "bg-emerald-500 text-black" : isPaused ? "bg-blue-400 text-black" : "bg-red-500 text-white";
+              const origin = typeof window !== "undefined" ? window.location.origin : "";
+              const qrUrl = mySubscription.card_token ? `${origin}/subscription-card/validate/${mySubscription.card_token}` : "";
+              const planName = mySubscription.plan?.name ?? "Assinatura Premium";
+              const validUntil = mySubscription.current_period_end
+                ? new Date(mySubscription.current_period_end).toLocaleDateString("pt-BR")
+                : "—";
+              return (
+                <div className="max-w-sm mx-auto">
+                  <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
+                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+                      style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                    <div className="relative flex items-start justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/80 font-black">Carteirinha Premium</p>
+                        <p className="text-xs text-gray-400 mt-1">{planName}</p>
+                      </div>
+                      <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest", statusColor)}>
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <div className="relative flex items-center gap-3 mt-5">
+                      <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-[#D4AF37]">
+                        {client?.avatar_url ? (
+                          <img src={client.avatar_url} alt={client?.name} className="h-full w-full object-cover" />
+                        ) : (
+                          (client?.name || "?").charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-white font-black text-lg truncate">{client?.name || "Cliente"}</p>
+                        <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-widest">Assinante Premium</p>
+                      </div>
+                    </div>
+                    {qrUrl ? (
+                      <div className="relative mt-6 bg-white rounded-2xl p-4 grid place-items-center">
+                        <QRCodeSVG value={qrUrl} size={200} level="H" bgColor="#ffffff" fgColor="#0a0a0a" />
+                      </div>
+                    ) : (
+                      <div className="relative mt-6 bg-white/5 border border-white/10 rounded-2xl p-6 text-center text-xs text-gray-400">
+                        QR Code indisponível para esta assinatura.
+                      </div>
+                    )}
+                    <div className="relative mt-4 grid grid-cols-2 gap-3 text-[11px]">
+                      <div>
+                        <p className="text-gray-500 uppercase tracking-widest">Válido até</p>
+                        <p className="text-white font-bold">{validUntil}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-gray-500 uppercase tracking-widest">Usos no mês</p>
+                        <p className="text-white font-bold">
+                          {mySubscription.uses_this_period || 0}
+                          {mySubscription.plan?.max_uses_per_month ? `/${mySubscription.plan.max_uses_per_month}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="relative mt-4 text-center text-[10px] text-gray-500">
+                      Apresente este QR Code na barbearia para validar seus benefícios.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+          </TabsContent>
+          )}
+
+          {mySubscription && (
+          <TabsContent value="vip" className="pt-6">
+            {(() => {
+              const plan = mySubscription.plan;
+              const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
+              const monthsActive = Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+              const totalCovered = subUsageLogs.reduce((s: number, l: any) => s + Number(l.covered_amount || 0), 0);
+              const redeemedCount = subRewardsHistory.filter((h: any) => h.status === "redeemed").length;
+              const referralsConverted = myReferrals.filter((r: any) => r.status === "converted" || r.converted_at).length;
+              return (
+                <div className="space-y-6">
+                  <Card className="bg-gradient-to-br from-[#D4AF37]/20 via-[#1a1408] to-black border-[#D4AF37]/40 shadow-[0_20px_60px_rgba(212,175,55,0.2)] overflow-hidden relative">
+                    <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                      style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                    <CardHeader className="relative">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black">
+                          <Gift size={22} />
+                        </div>
+                        <div>
+                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Clube VIP</CardDescription>
+                          <CardTitle className="text-white text-2xl">Bem-vindo, {client?.name?.split(" ")[0] || "Assinante"}</CardTitle>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="relative">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Tempo VIP</p>
+                          <p className="text-xl font-black text-white mt-1">{monthsActive}<span className="text-xs text-gray-400 font-normal"> {monthsActive === 1 ? "mês" : "meses"}</span></p>
+                        </div>
+                        <div className="bg-black/40 border border-emerald-500/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Economia</p>
+                          <p className="text-xl font-black text-emerald-400 mt-1">R$ {totalCovered.toFixed(0)}</p>
+                        </div>
+                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Recompensas</p>
+                          <p className="text-xl font-black text-white mt-1">{redeemedCount}</p>
+                        </div>
+                        <div className="bg-black/40 border border-purple-500/20 rounded-xl p-3">
+                          <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Indicações</p>
+                          <p className="text-xl font-black text-white mt-1">{referralsConverted}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/5 border-white/10 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <CheckCircle2 className="text-[#D4AF37]" size={20} />
+                        Vantagens Exclusivas
+                      </CardTitle>
+                      <CardDescription className="text-gray-400">Benefícios que só assinantes têm acesso</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-300">
+                        {plan?.agenda_priority && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Prioridade na agenda</li>
+                        )}
+                        {plan?.exclusive_hours && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Horários exclusivos</li>
+                        )}
+                        {plan?.exclusive_days && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Dias exclusivos</li>
+                        )}
+                        {plan?.preferential_service && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Atendimento preferencial</li>
+                        )}
+                        {plan?.allows_product_discount && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Desconto em produtos</li>
+                        )}
+                        {plan?.accumulates_premium_loyalty && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Acumula recompensas premium</li>
+                        )}
+                        {plan?.participates_cashback && (
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Cashback em compras</li>
+                        )}
+                        {!plan?.agenda_priority && !plan?.exclusive_hours && !plan?.exclusive_days && !plan?.preferential_service && !plan?.allows_product_discount && (
+                          <li className="text-gray-500 italic text-xs col-span-2">Consulte sua barbearia sobre vantagens adicionais do seu plano.</li>
+                        )}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  {mySubscription.referral_code && (
+                    <Card className="bg-gradient-to-br from-purple-500/10 to-[#D4AF37]/5 border-purple-500/30 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="text-white">Indique e ganhe</CardTitle>
+                        <CardDescription className="text-gray-400">Compartilhe seu código VIP e ganhe vantagens</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between gap-3 p-4 bg-black/40 border border-[#D4AF37]/30 rounded-xl">
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Seu código</p>
+                            <p className="text-2xl font-black text-[#D4AF37] tracking-widest">{mySubscription.referral_code}</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(mySubscription.referral_code);
+                              toast.success("Código copiado!");
+                            }}
+                            className="bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold"
+                          >
+                            Copiar
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-3 uppercase tracking-wider">
+                          {referralsConverted} indicação(ões) convertida(s)
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              );
+            })()}
+          </TabsContent>
+          )}
+
+
+
           <TabsContent value="finances" className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="bg-white/5 border-white/10 shadow-lg">
