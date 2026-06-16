@@ -1268,11 +1268,44 @@ function ShopPageComponent() {
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
       console.log('DEBUG: Persisted session before portal redirect', sessionData);
 
+      // Premium success screen — when client used the subscription benefit
+      const usedBenefit = createdAppointments.some(
+        (a: any) => a.subscription_id && (a.payment_method === 'subscription' || a.payment_method === 'subscription_plus_payment')
+      );
+      if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
+        const appt = createdAppointments[0] as any;
+        const item = finalCart.find((i) => i.service_id === appt.service_id) || finalCart[0];
+        const max = activeSubscription.plan?.max_uses_per_month;
+        const used = (activeSubscription.uses_this_period || 0) + 1;
+        const remaining = max ? Math.max(0, max - used) : null;
+        setPremiumSuccess({
+          plan: activeSubscription.plan?.name || "Assinatura",
+          service: item?.service_name || "Serviço",
+          date: item?.date || format(new Date(), "yyyy-MM-dd"),
+          time: item?.start_time || "",
+          barber: item?.barber_name || "",
+          remaining,
+          nextRenewal: activeSubscription.next_billing_at || activeSubscription.current_period_end || null,
+        });
+        // Soft-reset booking flow but keep modal-free overlay visible
+        setBookingCart([]);
+        setSelectedProducts([]);
+        setIsBookingOpen(false);
+        setBookingStep(1);
+        setBookingMode(null);
+        setAppliedCoupon(null);
+        setUseCashback(false);
+        setUseCredits(false);
+        setPaymentMethod(null);
+        return;
+      }
+
       // Reset and redirect
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
       setBookingStep(1);
+      setBookingMode(null);
       setAppliedCoupon(null);
       setUseCashback(false);
       setUseCredits(false);
