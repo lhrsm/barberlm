@@ -82,6 +82,8 @@ function FinancesComponent() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [financeTab, setFinanceTab] = useState<string>("transactions");
+
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
