@@ -845,9 +845,10 @@ function FinancesComponent() {
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus size={18} /> Nova Transação
+              <Button className="gap-2 bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black rounded-xl shadow-[0_8px_24px_rgba(245,197,66,0.3)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0">
+                <Plus size={18} strokeWidth={3} /> Nova Transação
               </Button>
+
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
