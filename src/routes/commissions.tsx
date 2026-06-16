@@ -448,8 +448,8 @@ function CommissionsPage() {
           </div>
 
           {/* TABS */}
-          <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 flex flex-wrap">
+          <Tabs value={commTab} onValueChange={setCommTab} className="w-full">
+            <TabsList className="hidden md:flex bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 flex-wrap">
               {[
                 { v: "dashboard", label: "Dashboard", icon: TrendingUp },
                 { v: "ranking", label: "Ranking", icon: Trophy },
@@ -465,6 +465,53 @@ function CommissionsPage() {
                 </TabsTrigger>
               ))}
             </TabsList>
+
+            {/* Mobile accordion */}
+            <div className="md:hidden">
+              <Accordion type="single" collapsible className="border border-zinc-800/80 bg-[#0b0f17] rounded-2xl">
+                <AccordionItem value="nav" className="border-0">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <span className="flex items-center gap-2 text-sm font-bold text-white">
+                      {(() => {
+                        const map: Record<string, { icon: any; label: string }> = {
+                          dashboard: { icon: TrendingUp, label: "Dashboard" },
+                          ranking: { icon: Trophy, label: "Ranking" },
+                          reports: { icon: Receipt, label: "Relatórios" },
+                          closings: { icon: Wallet, label: "Fechamentos" },
+                        };
+                        const cur = map[commTab] || map.dashboard;
+                        const Icon = cur.icon;
+                        return (<><Icon size={16} className="text-emerald-400" /> {cur.label}</>);
+                      })()}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-2 pb-2">
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {[
+                        { v: "dashboard", icon: TrendingUp, label: "Dashboard" },
+                        { v: "ranking", icon: Trophy, label: "Ranking" },
+                        { v: "reports", icon: Receipt, label: "Relatórios" },
+                        { v: "closings", icon: Wallet, label: "Fechamentos" },
+                      ].map(({ v, icon: Icon, label }) => (
+                        <Button
+                          key={v}
+                          variant="ghost"
+                          onClick={() => setCommTab(v)}
+                          className={cn(
+                            "justify-start gap-2 rounded-lg h-10 font-bold",
+                            commTab === v
+                              ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20"
+                              : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                          )}
+                        >
+                          <Icon size={16} /> {label}
+                        </Button>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
 
             {/* DASHBOARD */}
             <TabsContent value="dashboard" className="mt-6 space-y-4">
