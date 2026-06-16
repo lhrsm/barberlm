@@ -344,7 +344,7 @@ function SettingsComponent() {
 
         <Tabs defaultValue="general" className="space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto">
+            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto gap-1">
               {[
                 { value: "general", icon: Globe, label: "Geral" },
                 { value: "profile", icon: UserRound, label: "Perfil" },
@@ -359,7 +359,7 @@ function SettingsComponent() {
                 <TabsTrigger 
                   key={tab.value}
                   value={tab.value} 
-                  className="gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-black data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
+                  className="gap-2 h-11 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
                 >
                   <tab.icon size={16} /> <span>{tab.label}</span>
                 </TabsTrigger>
