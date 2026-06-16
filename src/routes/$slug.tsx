@@ -832,8 +832,28 @@ function ShopPageComponent() {
           .select("*, services(*)")
           .eq("plan_id", data.plan_id);
         setSubPlanServices(planSvcs || []);
+
+        // Load per-category benefit balances and benefit-service links (new system)
+        const [{ data: balances }, { data: linksRaw }] = await Promise.all([
+          (supabase as any).rpc("get_subscription_benefit_balance", { _subscription_id: data.id }),
+          (supabase as any)
+            .from("subscription_plan_benefit_services")
+            .select("service_id, consume_quantity, benefit:subscription_plan_benefits(benefit_key, benefit_name)")
+            .eq("plan_id", data.plan_id)
+            .eq("active", true),
+        ]);
+        setBenefitBalances((balances as any[]) || []);
+        const links = ((linksRaw as any[]) || []).map((r) => ({
+          service_id: r.service_id,
+          consume_quantity: r.consume_quantity,
+          benefit_key: r.benefit?.benefit_key,
+          benefit_name: r.benefit?.benefit_name,
+        }));
+        setPlanBenefitServices(links);
       } else {
         setSubPlanServices([]);
+        setBenefitBalances([]);
+        setPlanBenefitServices([]);
       }
       return data || null;
     } catch (e) {
