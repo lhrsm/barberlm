@@ -333,24 +333,24 @@ function CommissionsPage() {
       <div className="min-h-screen bg-[#05070d] text-white">
         <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
           {/* HEADER */}
-          <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
-                <CircleDollarSign className="h-7 w-7 text-emerald-400" />
+          <header className="flex flex-col gap-3 p-4 md:p-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0">
+              <div className="shrink-0 h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <CircleDollarSign className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight leading-tight break-words">
                   Comissões
                 </h1>
-                <p className="text-sm text-zinc-400 mt-1 truncate">
+                <p className="text-sm text-zinc-400 mt-1 leading-snug break-words">
                   Produção, fechamento e ranking dos barbeiros
                 </p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <div className="flex w-full sm:w-auto shrink-0">
               <Button
                 onClick={recalc}
-                className="bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold transition-all hover:-translate-y-0.5"
+                className="w-full sm:w-auto h-[42px] bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold transition-all hover:-translate-y-0.5"
               >
                 <RefreshCcw className="h-4 w-4 mr-2" /> Recalcular
               </Button>
