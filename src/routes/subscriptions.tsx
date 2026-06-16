@@ -636,8 +636,8 @@ function SubscriptionsPage() {
     } as any);
 
     if (newSubCoupon?.valid && newSubCoupon.coupon_id) {
-      await supabase.rpc("increment" as any, {}).then(() => {}).catch(() => {});
       // Best-effort increment of used_count
+
       const { data: cpRow } = await supabase
         .from("coupons")
         .select("used_count")
