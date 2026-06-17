@@ -45,9 +45,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/products")({
-  component: ProductsComponent,
+  component: withModule("products", "Loja / Produtos", ProductsComponent),
 });
 
 function ProductsComponent() {

@@ -14,9 +14,10 @@ import { CreateTicketModal } from "@/components/support/CreateTicketModal";
 import { TicketDetails } from "@/components/support/TicketDetails";
 import { EmailContactModal } from "@/components/support/EmailContactModal";
 import { useQueryClient } from "@tanstack/react-query";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/support")({
-  component: SupportPage,
+  component: withModule("support", "Suporte", SupportPage),
 });
 
 function SupportPage() {

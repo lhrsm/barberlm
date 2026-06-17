@@ -18,6 +18,7 @@ import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import {
+import { withModule } from "@/components/modules/withModule";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -44,7 +45,7 @@ const PLAN_PRICE_IDS = {
 
 
 export const Route = createFileRoute("/subscription")({
-  component: SubscriptionComponent,
+  component: withModule("subscriptions", "Assinaturas", SubscriptionComponent),
 });
 
 function SubscriptionComponent() {

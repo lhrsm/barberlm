@@ -25,6 +25,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
+import { withModule } from "@/components/modules/withModule";
   Crown,
   Plus,
   Pencil,
@@ -40,7 +41,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/subscription-rewards")({
-  component: SubscriptionRewardsPage,
+  component: withModule("subscriptions", "Fidelidade Premium", SubscriptionRewardsPage),
 });
 
 type RewardType = "free_service" | "cashback" | "credit" | "product" | "discount" | "custom";

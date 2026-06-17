@@ -35,6 +35,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
+import { withModule } from "@/components/modules/withModule";
   Trophy,
   DollarSign,
   Users,
@@ -50,7 +51,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/commissions")({
-  component: CommissionsPage,
+  component: withModule("commissions", "Comissões", CommissionsPage),
 });
 
 type Entry = {
