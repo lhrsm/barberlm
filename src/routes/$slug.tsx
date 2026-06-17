@@ -1946,26 +1946,42 @@ function ShopPageComponent() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-4"
+              className="space-y-5 flex flex-col items-center"
             >
-              <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-none">
-                Seu estilo <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px #D4AF37` }}>começa aqui.</span>
+              {shop?.logo_url && (
+                <img
+                  src={shop.logo_url}
+                  alt={shop.business_name}
+                  className="h-20 w-20 md:h-24 md:w-24 rounded-2xl object-contain bg-black/40 backdrop-blur-md border border-[#D4AF37]/30 p-2 shadow-2xl"
+                />
+              )}
+              <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs md:text-sm">
+                Bem-vindo à
+              </span>
+              <h2 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase italic leading-none">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px #D4AF37` }}>
+                  {shop?.business_name || 'Barbearia Premium'}
+                </span>
               </h2>
-              <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-medium">
-                Cortes premium, barbeiros especialistas e agendamento online em segundos.
+              <p className="text-base md:text-xl text-slate-300 max-w-2xl mx-auto font-medium px-4">
+                Agende seu horário com praticidade, escolha seu barbeiro favorito e acompanhe tudo pelo seu portal.
               </p>
+              {shop?.address && (
+                <p className="text-xs md:text-sm text-slate-400 font-medium flex items-center gap-2">
+                  <MapPin size={14} className="text-[#D4AF37]" /> {shop.address}
+                </p>
+              )}
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 flex-wrap"
             >
               <Button 
                 size="lg" 
-                className="h-14 px-10 text-lg font-black bg-black text-white border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all w-full sm:w-auto uppercase tracking-tighter"
+                className="h-14 px-10 text-lg font-black bg-[#D4AF37] text-black border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37]/90 transition-all w-full sm:w-auto uppercase tracking-tighter"
                 onClick={handleBookingAction}
               >
                 Agendar Agora
@@ -1973,11 +1989,31 @@ function ShopPageComponent() {
               <Button 
                 variant="outline"
                 size="lg" 
-                className="h-14 px-10 text-lg font-bold rounded-full border-white/20 hover:bg-white/10 transition-all w-full sm:w-auto backdrop-blur-md"
+                className="h-14 px-10 text-lg font-bold rounded-full border-white/20 hover:bg-white/10 hover:text-white transition-all w-full sm:w-auto backdrop-blur-md text-white"
                 onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Conhecer Serviços
+                Ver serviços
               </Button>
+              {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="h-14 px-8 text-base font-bold rounded-full text-[#D4AF37] hover:bg-[#D4AF37]/10 w-full sm:w-auto uppercase tracking-tighter"
+                  onClick={() => document.getElementById('clube')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <Crown size={16} className="mr-2" /> Conhecer planos
+                </Button>
+              )}
+              {productsEnabled && products.length > 0 && (
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="h-14 px-8 text-base font-bold rounded-full text-white/80 hover:bg-white/10 w-full sm:w-auto uppercase tracking-tighter"
+                  onClick={() => document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <ShoppingBag size={16} className="mr-2" /> Ver produtos
+                </Button>
+              )}
             </motion.div>
           </div>
 
