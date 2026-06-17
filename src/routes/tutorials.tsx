@@ -140,8 +140,55 @@ function TutorialsPage() {
             </div>
           )}
 
-          {/* Filters & Search */}
-          <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+          {/* MOBILE — Premium tabs (Mercado Pago style) */}
+          <div className="md:hidden">
+            <PremiumTabs defaultValue="primeiros">
+              <PremiumTabsList tabs={MOBILE_TABS} />
+              <PremiumTabsBody>
+                {MOBILE_TABS.map((tab) => {
+                  const items = tutorials?.filter((t) => matchesTab(t, tab.value)) || [];
+                  return (
+                    <PremiumTabsContent key={tab.value} value={tab.value}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-white flex items-center gap-2 text-sm">
+                          <tab.icon size={16} className="text-[#f59e0b]" />
+                          {tab.label}
+                        </h3>
+                        <span className="text-xs text-zinc-400">{items.length} tutoriais</span>
+                      </div>
+                      {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-3">
+                          <Loader2 className="h-8 w-8 animate-spin text-[#f59e0b]" />
+                          <p className="text-zinc-400 text-sm">Buscando conteúdo...</p>
+                        </div>
+                      ) : items.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-4">
+                          {items.map((tutorial) => (
+                            <TutorialCard
+                              key={tutorial.id}
+                              tutorial={tutorial}
+                              onClick={setSelectedTutorial}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 border-2 border-dashed rounded-2xl bg-[#05070d] border-zinc-800">
+                          <BookOpen className="h-10 w-10 text-zinc-600 mx-auto mb-3" />
+                          <h4 className="text-sm font-bold text-white">Nenhum tutorial nesta categoria</h4>
+                          <p className="text-zinc-400 text-xs max-w-xs mx-auto mt-1">
+                            Em breve novos conteúdos serão adicionados aqui.
+                          </p>
+                        </div>
+                      )}
+                    </PremiumTabsContent>
+                  );
+                })}
+              </PremiumTabsBody>
+            </PremiumTabs>
+          </div>
+
+          {/* DESKTOP — Filters & Search */}
+          <div className="hidden md:flex bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5 flex-col md:flex-row gap-4 items-stretch md:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 h-4 w-4" />
               <Input
@@ -180,8 +227,8 @@ function TutorialsPage() {
             </div>
           </div>
 
-          {/* Tutorials Grid */}
-          <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+          {/* DESKTOP — Tutorials Grid */}
+          <div className="hidden md:block bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <h3 className="font-bold flex items-center gap-2 text-white">
                 <BookOpen className="h-5 w-5 text-[#f59e0b]" />
