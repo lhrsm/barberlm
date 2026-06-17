@@ -357,8 +357,8 @@ function SubscriptionComponent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-zinc-800/80">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
-                  {plan === 'elite' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
-                   plan === 'pro' ? <Crown className="h-5 w-5 text-emerald-400" /> :
+                  {plan === 'elite' || (plan as any) === 'enterprise' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
+                   (plan === 'pro' || (plan as any) === 'professional') ? <Crown className="h-5 w-5 text-emerald-400" /> :
                    plan === 'starter' ? <Zap className="h-5 w-5 text-emerald-400" /> :
                    <Star className="h-5 w-5 text-emerald-400" />}
                 </div>
