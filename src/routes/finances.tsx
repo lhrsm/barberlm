@@ -801,10 +801,10 @@ function FinancesComponent() {
           </div>
           <div className="flex flex-col gap-3">
             {role !== 'barber' && (
-              <div className="flex gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex flex-col md:flex-row gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
                 <Button 
                   variant="outline" 
-                  className="gap-2 whitespace-nowrap" 
+                  className="gap-2 whitespace-nowrap w-full md:w-auto" 
                   onClick={() => {
                     if (plan === 'free') {
                       toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
@@ -818,14 +818,14 @@ function FinancesComponent() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="gap-2 whitespace-nowrap border-primary/30 text-primary" 
+                  className="gap-2 whitespace-nowrap border-primary/30 text-primary w-full md:w-auto" 
                   onClick={() => fetchRefundRequests()}
                 >
                   <RefreshCcw size={18} /> Sincronizar Tudo
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500" 
+                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500 w-full md:w-auto" 
                   onClick={async () => {
                     const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
                     if (customers) {
