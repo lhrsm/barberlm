@@ -407,7 +407,7 @@ function SubscriptionComponent() {
               <div className="h-px flex-1 bg-zinc-800" />
             </div>
 
-            <div className="grid gap-5 grid-cols-1 md:grid-cols-3 pt-4">
+            <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 pt-4">
               {planConfigs.map((config) => {
                 let isCurrentPlan = false;
                 let isUpgrade = false;
