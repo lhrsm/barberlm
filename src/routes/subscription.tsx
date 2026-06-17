@@ -509,10 +509,10 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
   const max = isInf ? 100 : (limit ?? 0);
   const pct = isInf ? 100 : Math.min((used / (max || 1)) * 100, 100);
   return (
-    <div className="bg-[#05070d]/60 border border-zinc-800/60 rounded-xl p-3">
-      <div className="flex justify-between items-baseline mb-2">
-        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</span>
-        <span className="text-xs font-black text-emerald-400">
+    <div className="bg-[#05070d]/60 border border-zinc-800/60 rounded-2xl min-h-[92px] p-[14px] flex flex-col justify-between">
+      <div className="flex justify-between items-baseline mb-2 gap-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 truncate">{label}</span>
+        <span className="text-xs font-black text-emerald-400 whitespace-nowrap shrink-0">
           {used} / {isInf ? "∞" : max}
         </span>
       </div>
