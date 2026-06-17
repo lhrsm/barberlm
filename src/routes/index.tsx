@@ -783,3 +783,123 @@ function FaqItem({ value, question, answer }: { value: string, question: string,
     </AccordionItem>
   );
 }
+
+type FaqEntry = {
+  q: string;
+  a: string;
+  category:
+    | "Planos"
+    | "Cashback"
+    | "Financeiro"
+    | "WhatsApp"
+    | "Assinaturas"
+    | "Loja Virtual"
+    | "Clientes"
+    | "Comissões";
+};
+
+const FAQ_DATA: FaqEntry[] = [
+  { category: "Planos", q: "O teste de 15 dias é grátis mesmo?", a: "Sim! Você terá acesso a 100% das funcionalidades do plano Pro por 15 dias sem pagar nada e sem precisar cadastrar cartão." },
+  { category: "Planos", q: "Consigo usar no celular?", a: "Com certeza. O Barbex é feito para ser usado no seu dia a dia, direto do celular, tablet ou computador." },
+  { category: "WhatsApp", q: "Como funciona o WhatsApp?", a: "O sistema envia mensagens automáticas de confirmação, lembrete e marketing usando sua própria conta de WhatsApp conectada." },
+  { category: "Planos", q: "Tem multa se eu quiser cancelar?", a: "Não. Nossos planos não possuem fidelidade. Você pode cancelar quando quiser sem qualquer taxa adicional." },
+  { category: "Cashback", q: "O Cashback Premium está incluso em todos os planos?", a: "Não.\n\nO módulo Cashback Premium pode ser contratado separadamente por R$ 19,90/mês ou está incluso gratuitamente no plano Elite." },
+  { category: "Cashback", q: "Como funciona o cashback?", a: "A barbearia define a porcentagem e as regras de concessão.\n\nExemplo:\nServiço: R$ 50\nCashback: 10%\n\nO cliente recebe R$ 5 de saldo para utilizar em futuros agendamentos." },
+  { category: "Financeiro", q: "O cliente pode pagar apenas com cashback?", a: "Sim.\n\nO sistema aceita:\n• Cashback\n• Créditos\n• PIX\n• Dinheiro\n• Cartão\n• Pagamentos mistos\n\nExemplo: Serviço de R$ 50 → R$ 10 em cashback + R$ 15 em créditos + R$ 25 em PIX." },
+  { category: "WhatsApp", q: "Preciso contratar uma plataforma de WhatsApp?", a: "Sim.\n\nAs automações utilizam plataformas externas como:\n• Z-API\n• Evolution API\n• Outras integrações compatíveis\n\nImportante: o valor dessas plataformas é contratado diretamente pelo cliente." },
+  { category: "Assinaturas", q: "Posso vender planos de assinatura?", a: "Sim.\n\nO módulo Assinaturas permite:\n• Planos semanais\n• Planos quinzenais\n• Planos mensais\n• Benefícios exclusivos\n• Controle de utilização\n• Renovação automática\n• Fidelidade Premium" },
+  { category: "Planos", q: "Posso utilizar apenas agendamento sem loja e sem assinaturas?", a: "Sim. Os módulos são independentes.\n\nVocê pode ativar apenas:\n• Agenda\n• Clientes\n• Financeiro\n• WhatsApp\n\nE habilitar outros módulos futuramente." },
+  { category: "Loja Virtual", q: "A loja virtual é obrigatória?", a: "Não. A loja é um módulo opcional.\n\nQuando estiver desativada:\n• O menu não aparece no painel\n• Não aparece no frontend\n• Nenhuma funcionalidade relacionada é carregada" },
+  { category: "Comissões", q: "O sistema controla comissões dos barbeiros?", a: "Sim.\n\nO módulo de comissões permite:\n• Comissão por serviço\n• Comissão percentual\n• Comissão fixa\n• Relatórios por período\n• Histórico de pagamentos" },
+  { category: "Clientes", q: "Os clientes possuem painel próprio?", a: "Sim.\n\nCada cliente pode acessar:\n• Histórico de atendimentos\n• Créditos\n• Cashback\n• Assinaturas\n• Fidelidade\n• Agendamentos futuros" },
+  { category: "Planos", q: "Posso começar pequeno e evoluir depois?", a: "Sim. O Barbex foi desenvolvido de forma modular.\n\nVocê pode iniciar apenas com:\n• Agenda\n• Clientes\n• Financeiro\n\nE posteriormente habilitar:\n• Loja Virtual\n• Assinaturas\n• Cashback Premium\n• Fidelidade Premium\n• WhatsApp\n• Automações\n• Programa de Indicação" },
+];
+
+const FAQ_CATEGORIES: { name: string; icon: React.ReactNode }[] = [
+  { name: "Todos", icon: <Sparkles className="h-3.5 w-3.5" /> },
+  { name: "Planos", icon: <Tag className="h-3.5 w-3.5" /> },
+  { name: "Cashback", icon: <Percent className="h-3.5 w-3.5" /> },
+  { name: "Financeiro", icon: <CircleDollarSign className="h-3.5 w-3.5" /> },
+  { name: "WhatsApp", icon: <MessageSquare className="h-3.5 w-3.5" /> },
+  { name: "Assinaturas", icon: <Repeat className="h-3.5 w-3.5" /> },
+  { name: "Loja Virtual", icon: <ShoppingBag className="h-3.5 w-3.5" /> },
+  { name: "Clientes", icon: <UserCircle className="h-3.5 w-3.5" /> },
+  { name: "Comissões", icon: <Briefcase className="h-3.5 w-3.5" /> },
+];
+
+function FaqExplorer() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("Todos");
+
+  const filtered = FAQ_DATA.filter((f) => {
+    const matchCat = category === "Todos" || f.category === category;
+    const q = query.trim().toLowerCase();
+    const matchQ = !q || f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  return (
+    <div>
+      <div className="relative mb-5">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar nas perguntas..."
+          className="w-full h-14 pl-11 pr-4 rounded-2xl bg-zinc-900/70 border border-white/10 text-white placeholder:text-white/30 font-bold focus:outline-none focus:border-primary/60 transition-colors"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-8">
+        {FAQ_CATEGORIES.map((c) => {
+          const active = category === c.name;
+          return (
+            <button
+              key={c.name}
+              onClick={() => setCategory(c.name)}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all",
+                active
+                  ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black border-transparent shadow-lg"
+                  : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/25"
+              )}
+            >
+              {c.icon}
+              {c.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-16 rounded-3xl border border-white/5 bg-zinc-900/40">
+          <p className="text-white/60 font-bold">Nenhuma pergunta encontrada.</p>
+          <p className="text-white/30 text-sm mt-1">Tente outro termo ou categoria.</p>
+        </div>
+      ) : (
+        <Accordion type="single" collapsible className="w-full space-y-3">
+          {filtered.map((f, idx) => (
+            <AccordionItem
+              key={`${f.category}-${idx}`}
+              value={`faq-${idx}`}
+              className="border border-white/5 bg-zinc-900/50 rounded-2xl px-6 hover:border-primary/20 transition-colors"
+            >
+              <AccordionTrigger className="text-left hover:no-underline py-6">
+                <div className="flex items-start gap-3 pr-4">
+                  <span className="mt-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-primary font-black uppercase tracking-widest shrink-0">
+                    {f.category}
+                  </span>
+                  <span className="text-base lg:text-lg font-black text-white">{f.q}</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-white/60 text-base font-medium leading-relaxed pb-6 whitespace-pre-line">
+                {f.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
+    </div>
+  );
+}
