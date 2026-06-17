@@ -505,43 +505,37 @@ function ProductsComponent() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Mobile accordion */}
-            <div className="md:hidden">
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="tabs" className="border border-zinc-800/80 rounded-xl bg-[#0b0f17] overflow-hidden">
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                    <span className="flex items-center gap-2 text-white font-semibold text-sm">
-                      {productsTab === "inventory" && (<><Package size={16} className="text-[#f59e0b]" /> Estoque</>)}
-                      {productsTab === "billing" && (<><History size={16} className="text-[#f59e0b]" /> Faturamento</>)}
-                      {productsTab === "history" && (<><History size={16} className="text-[#f59e0b]" /> Histórico</>)}
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-2 pb-2">
-                    <div className="grid grid-cols-1 gap-1">
-                      {[
-                        { val: "inventory", label: "Estoque", icon: Package },
-                        { val: "billing", label: "Faturamento", icon: History },
-                        { val: "history", label: "Histórico", icon: History },
-                      ].map(({ val, label, icon: Icon }) => (
-                        <Button
-                          key={val}
-                          variant="ghost"
-                          onClick={() => setProductsTab(val)}
-                          className={cn(
-                            "justify-start gap-2 h-11 rounded-lg text-sm font-semibold",
-                            productsTab === val
-                              ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-white hover:from-[#fbbf24] hover:to-[#f59e0b] hover:text-white"
-                              : "text-zinc-400 hover:bg-zinc-800/60 hover:text-white"
-                          )}
-                        >
-                          <Icon size={16} /> {label}
-                        </Button>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+            {/* Mobile premium tabs (Mercado Pago style) */}
+            <div className="md:hidden rounded-[24px] border border-[rgba(245,158,11,0.2)] bg-[#0A1020] overflow-hidden">
+              <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
+                <div className="flex w-max min-w-full items-end gap-1">
+                  {[
+                    { val: "inventory", label: "Estoque", icon: Package },
+                    { val: "billing", label: "Faturamento", icon: History },
+                    { val: "history", label: "Histórico", icon: History },
+                  ].map(({ val, label, icon: Icon }) => {
+                    const active = productsTab === val;
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setProductsTab(val)}
+                        className={cn(
+                          "group relative inline-flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[12px] font-semibold uppercase tracking-wider transition-all duration-300 rounded-t-[22px] focus-visible:outline-none",
+                          active
+                            ? "bg-white text-[#111111] font-bold shadow-[0_-2px_12px_rgba(0,0,0,.15)]"
+                            : "text-white/70 hover:text-white"
+                        )}
+                      >
+                        <Icon size={15} className="opacity-90" />
+                        <span>{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+
 
 
             <TabsContent value="inventory" className="pt-6">
