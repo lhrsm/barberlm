@@ -468,68 +468,128 @@ function LandingPageComponent() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-stretch">
             {/* Starter */}
-            <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
-              <h4 className="text-xl font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Para quem está começando.</p>
-              <div className="text-4xl font-black text-white mb-8">R$ 49,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
-              <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Agenda inteligente" />
-                <PricingItem text="Cadastro de clientes" />
+            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
+              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias iniciantes.</p>
+              <div className="text-3xl font-black text-white mb-1">R$ 49,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <p className="text-[11px] text-white/40 mb-6">Até 3 barbeiros</p>
+              <ul className="space-y-3 mb-8 flex-1">
+                <PricingItem text="Agenda online" />
+                <PricingItem text="Clientes & barbeiros" />
                 <PricingItem text="Serviços" />
-                <PricingItem text="Barbeiros" />
                 <PricingItem text="Financeiro básico" />
+                <PricingItem text="Portal do cliente" />
+                <PricingItem text="Relatórios básicos" />
               </ul>
-              <Button 
-                className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
+              <Button
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Começar agora
               </Button>
             </div>
 
-            {/* Professional */}
-            <div className="p-12 rounded-[3rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)] lg:scale-110 z-10">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Mais Vendido</div>
-              <h4 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Para barbearias em expansão.</p>
-              <div className="text-6xl font-black text-white mb-8">R$ 89,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
-              <ul className="space-y-4 mb-10 flex-1">
+            {/* Professional — destaque */}
+            <div className="p-8 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)] z-10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">Mais Popular</div>
+              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias em crescimento.</p>
+              <div className="text-3xl font-black text-white mb-1">R$ 99,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <p className="text-[11px] text-white/40 mb-6">Até 10 barbeiros</p>
+              <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Starter" />
-                <PricingItem text="Comissões dos barbeiros" />
-                <PricingItem text="Fidelidade" />
-                <PricingItem text="Cupons" />
+                <PricingItem text="Comissões automáticas" />
+                <PricingItem text="Fidelidade & Cupons" />
                 <PricingItem text="WhatsApp" />
                 <PricingItem text="Campanhas" />
+                <PricingItem text="Relatórios avançados" />
               </ul>
-              <Button 
-                className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
+              <Button
+                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-sm shadow-xl italic uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-95"
                 onClick={() => setShowSignupModal(true)}
               >
-                Começar teste grátis
+                Teste 15 dias grátis
               </Button>
             </div>
 
             {/* Elite */}
-            <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
-              <h4 className="text-xl font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Gestão modular sem limites.</p>
-              <div className="text-4xl font-black text-white mb-8">R$ 149,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
-              <ul className="space-y-4 mb-10 flex-1">
+            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
+              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Premium — recorrência e crescimento.</p>
+              <div className="text-3xl font-black text-white mb-1">R$ 149,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <p className="text-[11px] text-white/40 mb-6">Barbeiros ilimitados</p>
+              <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Professional" />
                 <PricingItem text="Assinaturas / Clube Premium" />
-                <PricingItem text="Loja de produtos" />
                 <PricingItem text="Cashback" />
-                <PricingItem text="Automações avançadas" />
-                <PricingItem text="Relatórios premium" />
+                <PricingItem text="Loja online" />
+                <PricingItem text="Automações" />
+                <PricingItem text="Portal Premium & Relatórios premium" />
               </ul>
-              <Button 
-                className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
+              <Button
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Assinar Elite
               </Button>
+            </div>
+
+            {/* Enterprise */}
+            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-white/10 flex flex-col h-full">
+              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Enterprise</h4>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Para redes de barbearias.</p>
+              <div className="text-3xl font-black text-white mb-1">R$ 249,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <p className="text-[11px] text-white/40 mb-6">Usuários ilimitados</p>
+              <ul className="space-y-3 mb-8 flex-1">
+                <PricingItem text="Tudo do Elite" />
+                <PricingItem text="Múltiplas unidades" />
+                <PricingItem text="Dashboard consolidado" />
+                <PricingItem text="White Label & API" />
+                <PricingItem text="Relatórios corporativos" />
+                <PricingItem text="Gerente de conta dedicado" />
+              </ul>
+              <Button
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                onClick={() => setShowSignupModal(true)}
+              >
+                Falar com vendas
+              </Button>
+            </div>
+          </div>
+
+          {/* Trial bar */}
+          <div className="mt-12 max-w-4xl mx-auto p-6 rounded-2xl bg-primary/5 border border-primary/20 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm text-white/70">
+            <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> 15 dias grátis</span>
+            <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Sem cartão de crédito</span>
+            <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Configuração gratuita</span>
+            <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Migração gratuita</span>
+            <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Cancele quando quiser</span>
+          </div>
+
+          {/* Upsells */}
+          <div className="mt-24">
+            <div className="text-center mb-12">
+              <h3 className="text-primary font-black uppercase tracking-widest text-xs mb-3">Recursos adicionais</h3>
+              <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Turbine seu plano com IA</h4>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+              {[
+                { name: "IA Agendadora", price: "R$ 39,90", desc: "Confirma, reagenda, cancela e responde dúvidas no WhatsApp 24/7." },
+                { name: "IA Comercial", price: "R$ 49,90", desc: "Recupera inativos, cria campanhas, ofertas inteligentes e pós-venda." },
+                { name: "Loja Premium", price: "R$ 19,90", desc: "Vitrine completa para venda de produtos.", free: "Grátis no Elite" },
+                { name: "Cashback Premium", price: "R$ 19,90", desc: "Programa avançado de cashback com regras personalizadas.", free: "Grátis no Elite" },
+              ].map((u) => (
+                <div key={u.name} className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-primary/30 transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <h5 className="text-sm font-black text-white uppercase italic tracking-tight">{u.name}</h5>
+                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold">{u.free}</span>}
+                  </div>
+                  <div className="text-2xl font-black text-white mb-2">{u.price}<span className="text-xs text-white/40 font-bold">/mês</span></div>
+                  <p className="text-xs text-white/50 leading-relaxed">{u.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

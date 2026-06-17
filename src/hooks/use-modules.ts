@@ -16,9 +16,14 @@ export type ModuleKey =
   | "support"
   | "coupons"
   | "whatsapp"
-  | "pix_key";
+  | "pix_key"
+  | "subscription_rewards"
+  | "multi_units"
+  | "white_label"
+  | "api_access"
+  | "corporate_reports";
 
-// Módulos sempre habilitados (essenciais)
+// Módulos sempre habilitados (essenciais do core)
 const ALWAYS_ON: string[] = [
   "dashboard",
   "calendar",
@@ -29,8 +34,7 @@ const ALWAYS_ON: string[] = [
   "settings",
 ];
 
-// Padrões para novas barbearias (somente essenciais ativos)
-export const DEFAULT_MODULES: Record<ModuleKey, boolean> = {
+export const DEFAULT_MODULES: Record<string, boolean> = {
   products: false,
   subscriptions: false,
   loyalty: false,
@@ -44,13 +48,23 @@ export const DEFAULT_MODULES: Record<ModuleKey, boolean> = {
   coupons: false,
   whatsapp: false,
   pix_key: false,
+  subscription_rewards: false,
 };
+
+export interface PlanInfo {
+  id: string;
+  slug: string;
+  name: string;
+  tier: number;
+  allowed_modules: string[];
+  price_monthly: number;
+}
 
 export function useModules() {
   const { tenantId } = useTenant();
   const qc = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data: modulesData, isLoading: loadingModules } = useQuery({
     queryKey: ["barbershop-modules", tenantId],
     queryFn: async () => {
       if (!tenantId) return {} as Record<string, boolean>;
@@ -69,16 +83,54 @@ export function useModules() {
     staleTime: 60_000,
   });
 
-  const modules = { ...DEFAULT_MODULES, ...(data || {}) } as Record<ModuleKey, boolean>;
+  const { data: plan, isLoading: loadingPlan } = useQuery({
+    queryKey: ["barbershop-plan", tenantId],
+    queryFn: async (): Promise<PlanInfo | null> => {
+      if (!tenantId) return null;
+      const { data, error } = await supabase
+        .from("barbershops" as any)
+        .select("plan_id, plans:plan_id(id, slug, name, tier, allowed_modules, price_monthly)")
+        .eq("id", tenantId)
+        .maybeSingle();
+      if (error) throw error;
+      const p = (data as any)?.plans;
+      if (!p) return null;
+      return {
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        tier: p.tier ?? 0,
+        allowed_modules: Array.isArray(p.allowed_modules) ? p.allowed_modules : [],
+        price_monthly: Number(p.price_monthly ?? 0),
+      };
+    },
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  });
 
-  const isEnabled = (key: ModuleKey | string): boolean => {
+  const modules = { ...DEFAULT_MODULES, ...(modulesData || {}) } as Record<string, boolean>;
+  const allowedModules = new Set<string>([
+    ...ALWAYS_ON,
+    ...(plan?.allowed_modules || []),
+  ]);
+
+  const isAllowed = (key: string): boolean => {
     if (ALWAYS_ON.includes(key)) return true;
-    return !!modules[key as ModuleKey];
+    // If plan info hasn't loaded yet, be permissive to avoid flicker; UI gates re-render once loaded
+    if (!plan) return true;
+    return allowedModules.has(key);
+  };
+
+  const isEnabled = (key: string): boolean => {
+    if (ALWAYS_ON.includes(key)) return true;
+    if (!isAllowed(key)) return false;
+    return !!modules[key];
   };
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ key, enabled }: { key: ModuleKey; enabled: boolean }) => {
+    mutationFn: async ({ key, enabled }: { key: ModuleKey | string; enabled: boolean }) => {
       if (!tenantId) throw new Error("Sem barbearia");
+      if (!isAllowed(key)) throw new Error("Módulo não incluso no seu plano");
       const { error } = await supabase
         .from("barbershop_modules" as any)
         .upsert(
@@ -96,9 +148,13 @@ export function useModules() {
 
   return {
     modules,
+    plan,
+    allowedModules,
+    isAllowed,
     isEnabled,
-    isLoading,
-    toggleModule: (key: ModuleKey, enabled: boolean) => toggleMutation.mutate({ key, enabled }),
+    isLoading: loadingModules || loadingPlan,
+    toggleModule: (key: ModuleKey | string, enabled: boolean) =>
+      toggleMutation.mutate({ key, enabled }),
     isToggling: toggleMutation.isPending,
   };
 }
