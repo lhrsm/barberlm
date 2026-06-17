@@ -1865,6 +1865,63 @@ export type Database = {
           },
         ]
       }
+      barbershop_module_logs: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          module_key: string
+          new_value: boolean
+          old_value: boolean | null
+          tenant_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          module_key: string
+          new_value: boolean
+          old_value?: boolean | null
+          tenant_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          module_key?: string
+          new_value?: boolean
+          old_value?: boolean | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      barbershop_modules: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          module_key: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_key: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_key?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       barbershop_settings: {
         Row: {
           barber_id: string
@@ -5948,6 +6005,10 @@ export type Database = {
       grant_subscription_rewards: { Args: never; Returns: number }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
+        Returns: boolean
+      }
+      has_module: {
+        Args: { _module_key: string; _tenant_id: string }
         Returns: boolean
       }
       has_role: {
