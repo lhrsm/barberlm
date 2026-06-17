@@ -342,30 +342,33 @@ function SettingsComponent() {
           )}
         </div>
 
-        <Tabs defaultValue="general" className="space-y-6">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto gap-1">
+        <Tabs defaultValue="general" className="space-y-0">
+          <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2 -mx-4 sm:mx-0 rounded-t-[24px]">
+            <TabsList className="flex w-max min-w-full items-end gap-1 bg-transparent p-0 h-auto">
               {[
                 { value: "general", icon: Globe, label: "Geral" },
                 { value: "profile", icon: UserRound, label: "Perfil" },
                 { value: "appearance", icon: Palette, label: "Aparência" },
-                { value: "scheduling", icon: Calendar, label: "Agendamento" },
+                { value: "scheduling", icon: Calendar, label: "Agenda" },
                 { value: "coupons", icon: Gift, label: "Cupons" },
                 { value: "whatsapp", icon: MessageSquare, label: "WhatsApp" },
                 { value: "payments", icon: CreditCard, label: "Pagamentos" },
                 { value: "loyalty", icon: Gift, label: "Fidelidade" },
-                { value: "pix", icon: QrCode, label: "Chave PIX" },
+                { value: "pix", icon: QrCode, label: "PIX" },
               ].map((tab) => (
-                <TabsTrigger 
+                <TabsTrigger
                   key={tab.value}
-                  value={tab.value} 
-                  className="gap-2 h-11 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
+                  value={tab.value}
+                  className="gap-2 h-11 px-5 rounded-t-[22px] rounded-b-none text-[12px] sm:text-[13px] font-semibold uppercase tracking-wider whitespace-nowrap transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-[#111111] data-[state=active]:font-bold data-[state=active]:shadow-[0_-2px_12px_rgba(0,0,0,.15)] data-[state=inactive]:bg-transparent data-[state=inactive]:text-white/70 data-[state=inactive]:hover:text-white"
                 >
-                  <tab.icon size={16} /> <span>{tab.label}</span>
+                  <tab.icon size={15} /> <span>{tab.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
           </div>
+
+          <div className="rounded-b-[24px] sm:rounded-[24px] sm:rounded-tl-none border border-[rgba(255,184,0,0.15)] bg-[#0A1020] p-4 md:p-6 -mx-4 sm:mx-0">
+
 
           <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">
