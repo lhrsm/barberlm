@@ -251,6 +251,7 @@ function SettingsComponent() {
       .from("profiles")
       .update({
         business_name: profileUpdateData.business_name,
+        responsible_name: profileUpdateData.responsible_name,
         slug: profileUpdateData.slug,
         whatsapp_enabled: profileUpdateData.whatsapp_enabled,
         scheduling_mode: profileUpdateData.scheduling_mode,
