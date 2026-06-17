@@ -1163,6 +1163,7 @@ function ClientPortalComponent() {
               </div>
             </CardHeader>
           </Card>
+          {cashbackEnabled && (
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-[#D4AF37]/30 transition-all duration-300">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CASHBACK</CardDescription>
@@ -1173,6 +1174,7 @@ function ClientPortalComponent() {
               </div>
             </CardHeader>
           </Card>
+          )}
 
           {mySubscription && (() => {
             const isPaused = mySubscription.status === "paused";
