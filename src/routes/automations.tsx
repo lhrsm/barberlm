@@ -48,6 +48,13 @@ import {
   MousePointer2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PremiumTabs,
+  PremiumTabsList,
+  PremiumTabsBody,
+  PremiumTabsContent,
+} from "@/components/ui/premium-tabs";
+import { BarChart3, ListChecks } from "lucide-react";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
 import { AutomationTestModal } from "@/components/admin/automations/AutomationTestModal";
 import {
