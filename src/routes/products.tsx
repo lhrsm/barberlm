@@ -59,6 +59,21 @@ function ProductsComponent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeProductId) return;
+    const close = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest?.('[data-product-card]')) setActiveProductId(null);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('touchstart', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('touchstart', close);
+    };
+  }, [activeProductId]);
   const [newProduct, setNewProduct] = useState({ 
     name: "", 
     price: "", 
