@@ -370,7 +370,7 @@ function LandingPageComponent() {
       </section>
 
       {/* Modular Section */}
-      <section id="modulos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
+      <section id="módulos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-primary/5 blur-[140px] -z-10 rounded-full" />
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 lg:mb-24">
