@@ -1000,24 +1000,26 @@ function SubscriptionsPage() {
 
           {/* TABS */}
           <Tabs defaultValue="plans" className="w-full">
-            <TabsList className="bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 flex flex-wrap">
-              {[
-                { v: "plans", label: "Planos", icon: Crown },
-                { v: "subscribers", label: "Assinantes", icon: Users },
-                { v: "invoices", label: "Cobranças", icon: Receipt },
-                { v: "usage", label: "Uso", icon: Activity },
-                { v: "reports", label: "Relatórios", icon: TrendingUp },
-                { v: "settings", label: "Configurações", icon: Wallet },
-              ].map((t) => (
-                <TabsTrigger
-                  key={t.v}
-                  value={t.v}
-                  className="gap-2 px-5 py-2.5 rounded-xl text-zinc-400 font-bold text-xs uppercase tracking-wider transition-all hover:text-emerald-400 hover:bg-emerald-500/5 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-400 data-[state=active]:shadow-[inset_0_-2px_0_0_rgb(16,185,129)]"
-                >
-                  <t.icon className="h-4 w-4" /> {t.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="-mx-4 md:mx-0 px-4 md:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <TabsList className="bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 inline-flex w-max md:w-auto md:flex md:flex-wrap whitespace-nowrap">
+                {[
+                  { v: "plans", label: "Planos", icon: Crown },
+                  { v: "subscribers", label: "Assinantes", icon: Users },
+                  { v: "invoices", label: "Cobranças", icon: Receipt },
+                  { v: "usage", label: "Uso", icon: Activity },
+                  { v: "reports", label: "Relatórios", icon: TrendingUp },
+                  { v: "settings", label: "Configurações", icon: Wallet },
+                ].map((t) => (
+                  <TabsTrigger
+                    key={t.v}
+                    value={t.v}
+                    className="shrink-0 gap-2 px-4 md:px-5 h-10 md:h-auto md:py-2.5 rounded-full md:rounded-xl text-zinc-400 font-bold text-xs uppercase tracking-wider transition-all hover:text-emerald-400 hover:bg-emerald-500/5 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 data-[state=active]:border data-[state=active]:border-emerald-500/40 md:data-[state=active]:border-0 md:data-[state=active]:shadow-[inset_0_-2px_0_0_rgb(16,185,129)]"
+                  >
+                    <t.icon className="h-4 w-4" /> {t.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
             {/* === PLANS === */}
             <TabsContent value="plans" className="mt-6 space-y-6">
