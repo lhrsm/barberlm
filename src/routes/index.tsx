@@ -369,6 +369,59 @@ function LandingPageComponent() {
         </div>
       </section>
 
+      {/* Modular Section */}
+      <section id="modulos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-primary/5 blur-[140px] -z-10 rounded-full" />
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 lg:mb-24">
+            <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">Modular</h2>
+            <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight mb-6">
+              Escolha os módulos que <br />
+              <span className="text-primary italic">sua barbearia precisa.</span>
+            </h3>
+            <p className="text-lg lg:text-xl text-white/50 max-w-2xl mx-auto font-bold leading-relaxed">
+              O Barbex se adapta ao modelo da sua barbearia. Ative apenas os módulos que fazem sentido para o seu negócio.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
+            {[
+              { title: "Agenda", icon: <Calendar />, desc: "Agendamentos online 24/7" },
+              { title: "Financeiro", icon: <CircleDollarSign />, desc: "Fluxo de caixa e DRE" },
+              { title: "Clientes", icon: <Users />, desc: "CRM com histórico completo" },
+              { title: "Barbeiros", icon: <Scissors />, desc: "Painel individual por barbeiro" },
+              { title: "Loja", icon: <Briefcase />, desc: "Venda de produtos e estoque" },
+              { title: "Assinaturas", icon: <CreditCard />, desc: "Clube premium recorrente" },
+              { title: "Fidelidade", icon: <Star />, desc: "Pontos e recompensas" },
+              { title: "Cashback", icon: <TrendingUp />, desc: "Saldo a cada visita" },
+              { title: "Automações", icon: <Zap />, desc: "WhatsApp no piloto automático" },
+              { title: "Comissões", icon: <BarChart3 />, desc: "Cálculo automático por barbeiro" },
+            ].map((mod, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.04 }}
+                whileHover={{ y: -4 }}
+                className="p-5 lg:p-6 rounded-3xl bg-zinc-900/60 border border-white/5 hover:border-primary/30 hover:bg-zinc-900 transition-all group"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                  {mod.icon}
+                </div>
+                <h4 className="text-base font-black text-white mb-1">{mod.title}</h4>
+                <p className="text-xs text-white/40 font-bold leading-snug">{mod.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-12 flex items-center justify-center gap-2 text-sm font-bold text-white/40">
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+            <span>Ative ou desative qualquer módulo a qualquer momento.</span>
+          </div>
+        </div>
+      </section>
+
       {/* Automation Flow Section */}
       <section id="automações" className="py-24 lg:py-40 px-6 bg-zinc-950/40 relative">
         <div className="max-w-7xl mx-auto">
