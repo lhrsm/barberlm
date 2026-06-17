@@ -804,7 +804,7 @@ function FinancesComponent() {
               <div className="flex flex-col md:flex-row gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
                 <Button 
                   variant="outline" 
-                  className="gap-2 whitespace-nowrap w-full md:w-auto" 
+                  className="gap-2 whitespace-nowrap w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-accent hover:border-primary/40" 
                   onClick={() => {
                     if (plan === 'free') {
                       toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
@@ -818,14 +818,14 @@ function FinancesComponent() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="gap-2 whitespace-nowrap border-primary/30 text-primary w-full md:w-auto" 
+                  className="gap-2 whitespace-nowrap border-primary/30 text-primary w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-primary/10 hover:border-primary/60" 
                   onClick={() => fetchRefundRequests()}
                 >
                   <RefreshCcw size={18} /> Sincronizar Tudo
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500 w-full md:w-auto" 
+                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500 w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-amber-500/10 hover:border-amber-500/60" 
                   onClick={async () => {
                     const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
                     if (customers) {
@@ -845,6 +845,7 @@ function FinancesComponent() {
                 >
                   <RefreshCcw size={18} /> Recalcular Saldos
                 </Button>
+
               </div>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
