@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
+import { usePublicModules } from "@/hooks/use-public-modules";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
