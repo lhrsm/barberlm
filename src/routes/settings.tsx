@@ -348,6 +348,7 @@ function SettingsComponent() {
               {[
                 { value: "general", icon: Globe, label: "Geral" },
                 { value: "profile", icon: UserRound, label: "Perfil" },
+                { value: "modules", icon: Layout, label: "Módulos" },
                 { value: "appearance", icon: Palette, label: "Aparência" },
                 { value: "scheduling", icon: Calendar, label: "Agenda" },
                 { value: "coupons", icon: Gift, label: "Cupons" },
