@@ -3192,6 +3192,7 @@ function ShopPageComponent() {
                     </div>
                   )}
                 </div>
+                )}
 
 
 
