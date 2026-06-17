@@ -436,27 +436,32 @@ export function PaymentsSettings() {
   const primaryGateway = gateways.find(g => g.is_primary);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-[1280px] space-y-6 p-4 sm:p-6">
       {/* HEADER */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="text-2xl sm:text-3xl font-black uppercase italic tracking-tighter text-white truncate">
-            Gateways de Pagamento
-          </h2>
-          <p className="text-sm text-slate-400 mt-1">
-            Configure os meios de pagamento aceitos pela sua barbearia.
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="hidden sm:grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#ea580c]/10 border border-[#ea580c]/20">
+            <Wallet className="h-5 w-5 text-[#ea580c]" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter text-white">
+              Gateways de Pagamento
+            </h2>
+            <p className="text-sm text-slate-400 mt-1 leading-snug">
+              Configure os meios de pagamento aceitos pela sua barbearia.
+            </p>
+          </div>
         </div>
         <Button
           onClick={openNew}
-          className="shrink-0 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white font-bold rounded-xl h-11 px-5 shadow-lg shadow-orange-500/20"
+          className="w-full sm:w-auto sm:min-w-[180px] sm:max-w-[220px] h-11 sm:h-[42px] rounded-xl bg-[#ea580c] hover:bg-[#ea580c]/90 text-white font-bold shadow-lg shadow-orange-500/20"
         >
           <Plus className="mr-2 h-4 w-4" /> Novo Gateway
         </Button>
       </div>
 
       {/* METRICS */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <MetricCard label="Transações hoje" value={metrics.todayCount} icon={Activity} color="text-blue-400" />
         <MetricCard label="Receita hoje" value={`R$ ${metrics.todayRevenue.toFixed(2)}`} icon={TrendingUp} color="text-emerald-400" />
         <MetricCard label="PIX recebidos" value={metrics.pixCount} icon={QrCode} color="text-[#ea580c]" />
@@ -465,38 +470,44 @@ export function PaymentsSettings() {
       </div>
 
       <Tabs defaultValue="gateways" className="space-y-4">
-        <TabsList className="bg-[#0b0f17] border border-[#1f2937] rounded-xl p-1">
-          <TabsTrigger value="gateways" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold">
-            <Wallet className="h-4 w-4 mr-2" /> Gateways
-          </TabsTrigger>
-          <TabsTrigger value="pix" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold">
-            <QrCode className="h-4 w-4 mr-2" /> PIX
-          </TabsTrigger>
-          <TabsTrigger value="webhooks" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold">
-            <Zap className="h-4 w-4 mr-2" /> Webhooks
-          </TabsTrigger>
-          <TabsTrigger value="logs" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold">
-            <Activity className="h-4 w-4 mr-2" /> Logs
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 overflow-x-auto">
+          <TabsList className="inline-flex w-auto bg-[#0b0f17] border border-[#1f2937] rounded-xl p-1">
+            <TabsTrigger value="gateways" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold whitespace-nowrap">
+              <Wallet className="h-4 w-4 mr-2" /> Gateways
+            </TabsTrigger>
+            <TabsTrigger value="pix" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold whitespace-nowrap">
+              <QrCode className="h-4 w-4 mr-2" /> PIX
+            </TabsTrigger>
+            <TabsTrigger value="webhooks" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold whitespace-nowrap">
+              <Zap className="h-4 w-4 mr-2" /> Webhooks
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="rounded-lg data-[state=active]:bg-[#ea580c] data-[state=active]:text-white font-bold whitespace-nowrap">
+              <Activity className="h-4 w-4 mr-2" /> Logs
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* GATEWAYS TAB */}
         <TabsContent value="gateways" className="space-y-3">
           {loading ? (
             <Card className="bg-[#050B18] border-[#1f2937] p-10 text-center text-slate-500">Carregando...</Card>
           ) : gateways.length === 0 ? (
-            <Card className="bg-[#050B18] border-dashed border-2 border-[#1f2937] p-12 text-center">
-              <div className="mx-auto w-14 h-14 rounded-2xl bg-[#ea580c]/10 flex items-center justify-center mb-4">
-                <Wallet className="h-7 w-7 text-[#ea580c]" />
+            <Card className="bg-[#050B18] border-dashed border-2 border-[#1f2937] rounded-[20px] px-8 py-12 text-center">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-[#ea580c]/10 flex items-center justify-center mb-4">
+                <Wallet className="h-6 w-6 text-[#ea580c]" />
               </div>
-              <h3 className="text-lg font-black uppercase text-white tracking-tight mb-2">Nenhum gateway configurado</h3>
-              <p className="text-sm text-slate-400 mb-6 max-w-md mx-auto">
-                Adicione seu primeiro gateway para começar a receber pagamentos via PIX, cartão ou link.
+              <h3 className="text-base font-black uppercase text-white tracking-tight mb-2">Nenhum gateway configurado</h3>
+              <p className="text-sm text-slate-400 mb-6 max-w-sm mx-auto leading-relaxed">
+                Adicione seu primeiro gateway para receber pagamentos via PIX, cartão ou link.
               </p>
-              <Button onClick={openNew} className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-white font-bold rounded-xl">
+              <Button
+                onClick={openNew}
+                className="w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px] h-11 rounded-xl bg-[#ea580c] hover:bg-[#ea580c]/90 text-white font-bold mx-auto"
+              >
                 <Plus className="mr-2 h-4 w-4" /> Adicionar primeiro gateway
               </Button>
             </Card>
+
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {gateways.map(gw => (
