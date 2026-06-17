@@ -218,13 +218,13 @@ function SubscriptionRewardsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#05070d] p-6">
+      <div className="min-h-screen bg-[#05070d] p-4 md:p-6 max-w-full overflow-x-hidden">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:flex-wrap">
+            <div className="min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 flex items-center justify-center">
+                <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 flex items-center justify-center">
                   <Crown className="w-5 h-5 text-amber-400" />
                 </div>
                 <h1 className="text-2xl font-bold text-white">Fidelidade Premium</h1>
@@ -233,24 +233,25 @@ function SubscriptionRewardsPage() {
                 Recompensas exclusivas para assinantes baseadas no <strong className="text-amber-400">tempo de assinatura</strong>. Diferente da fidelidade tradicional, aqui o cliente acumula meses — não atendimentos.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-3 w-full md:flex-row md:w-auto md:gap-2">
               <Button
                 onClick={syncRewards}
                 disabled={syncing}
                 variant="outline"
-                className="border-amber-500/40 bg-amber-500/5 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 hover:border-amber-400"
+                className="w-full md:w-auto h-11 md:h-10 rounded-[14px] md:rounded-md border-amber-500/40 bg-amber-500/5 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 hover:border-amber-400"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
                 {syncing ? "Sincronizando…" : "Sincronizar recompensas"}
               </Button>
               <Button
                 onClick={openNew}
-                className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold"
+                className="w-full md:w-auto h-11 md:h-10 rounded-[14px] md:rounded-md bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold"
               >
                 <Plus className="w-4 h-4 mr-2" /> Nova recompensa
               </Button>
             </div>
           </div>
+
 
           {/* KPIs da automação */}
           {(() => {
@@ -262,7 +263,7 @@ function SubscriptionRewardsPage() {
             const failures = history.filter((h: any) => h.notification_error).length;
             const notified = history.filter((h: any) => h.notification_sent).length;
             return (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
                   <div className="flex items-center gap-2 mb-1"><Sparkles className="w-4 h-4 text-amber-400" /><span className="text-[10px] uppercase tracking-widest text-amber-300 font-bold">Liberadas hoje</span></div>
                   <p className="text-2xl font-black text-white">{grantedToday}</p>
@@ -371,13 +372,14 @@ function SubscriptionRewardsPage() {
 
           {/* Histórico de recompensas concedidas */}
           <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-950 to-zinc-900/40 p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <History className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg font-bold text-white">Recompensas Concedidas</h2>
-              <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 ml-auto" variant="outline">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <History className="w-5 h-5 shrink-0 text-amber-400" />
+              <h2 className="text-lg font-bold text-white break-words">Recompensas Concedidas</h2>
+              <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 md:ml-auto" variant="outline">
                 {history.filter((h) => h.status === "granted").length} pendentes
               </Badge>
             </div>
+
             {history.length === 0 ? (
               <p className="text-sm text-zinc-500 text-center py-8">
                 Nenhuma recompensa concedida ainda. Clique em <strong className="text-amber-400">Sincronizar</strong> para processar assinantes.
