@@ -94,8 +94,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const slug = tenantProfile?.slug || authProfile?.slug || "general";
 
-  const navItems = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
-  
+  const { isEnabled: isModuleEnabled } = useModules();
+  const rawNav = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
+  const navItems = rawNav.filter((item: any) => !item.module || isModuleEnabled(item.module));
+
   if (role === 'super_admin' || role === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
