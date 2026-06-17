@@ -1408,6 +1408,7 @@ function SettingsComponent() {
               </Button>
             </div>
           </form>
+          </div>
         </Tabs>
       </div>
     </AppLayout>
