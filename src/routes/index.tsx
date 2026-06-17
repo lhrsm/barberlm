@@ -29,7 +29,14 @@ import {
   Megaphone,
   CreditCard,
   Briefcase,
-  Menu
+  Menu,
+  Search,
+  Sparkles,
+  ShoppingBag,
+  Repeat,
+  UserCircle,
+  Percent,
+  Tag,
 } from "lucide-react";
 import {
   Accordion,
