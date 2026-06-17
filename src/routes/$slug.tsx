@@ -3075,7 +3075,7 @@ function ShopPageComponent() {
 
                 {/* Highlight Cards for Balance */}
                 <div className="space-y-3">
-                  {shop.cashback_enabled && customerCashback > 0 && (
+                  {cashbackEnabled && shop.cashback_enabled && customerCashback > 0 && (
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
