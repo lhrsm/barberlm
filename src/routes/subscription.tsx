@@ -467,7 +467,7 @@ function SubscriptionComponent() {
                       )}
                     >
                       {updating && !isCurrentPlan ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                      {isCurrentPlan ? "✓ Plano Ativo" : isUpgrade ? `Fazer Upgrade` : `Mudar para ${config.name}`}
+                      {isCurrentPlan ? "✓ Plano Ativo" : isUpgrade ? `Fazer Upgrade para ${config.name}` : `Fazer Downgrade para ${config.name}`}
                     </Button>
                   </div>
                 );
