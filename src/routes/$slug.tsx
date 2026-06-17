@@ -808,7 +808,7 @@ function ShopPageComponent() {
         };
         setOg('og:title', `${currentShop.business_name} | Agende online`);
         setOg('og:description', descContent);
-        if (currentShop.logo_url) setOg('og:image', currentShop.logo_url);
+        if (currentShop.barbershop_logo_url) setOg('og:image', currentShop.barbershop_logo_url);
       }
     } catch (error) {
       console.error("Error fetching shop data:", error);
@@ -1910,9 +1910,9 @@ function ShopPageComponent() {
               >
                 {/* Logo */}
                 <a href="#inicio" className="flex items-center shrink-0 group">
-                  {shop.logo_url ? (
+                  {shop.barbershop_logo_url ? (
                     <img
-                      src={shop.logo_url}
+                      src={shop.barbershop_logo_url}
                       alt={shop.business_name}
                       className={cn(
                         "rounded-full object-cover ring-1 ring-white/10 transition-all duration-500 group-hover:ring-[#D4AF37]/40",
@@ -1974,8 +1974,8 @@ function ShopPageComponent() {
                     </SheetTrigger>
                     <SheetContent side="right" className="bg-[#05070d] border-l border-white/10 text-white w-[280px] p-0">
                       <div className="flex items-center gap-3 p-6 border-b border-white/10">
-                        {shop.logo_url ? (
-                          <img src={shop.logo_url} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
+                        {shop.barbershop_logo_url ? (
+                          <img src={shop.barbershop_logo_url} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
                         ) : (
                           <div className="h-10 w-10 rounded-full grid place-items-center bg-[#0B1324] border border-[rgba(255,184,0,0.25)]">
                             <Scissors className="h-5 w-5 text-[#D4AF37]" />
@@ -2027,9 +2027,9 @@ function ShopPageComponent() {
               transition={{ duration: 0.8 }}
               className="space-y-5 flex flex-col items-center"
             >
-              {shop?.logo_url && (
+              {shop?.barbershop_logo_url && (
                 <img
-                  src={shop.logo_url}
+                  src={shop.barbershop_logo_url}
                   alt={shop.business_name}
                   className="h-20 w-20 md:h-24 md:w-24 rounded-2xl object-contain bg-black/40 backdrop-blur-md border border-[#D4AF37]/30 p-2 shadow-2xl"
                 />
@@ -2615,8 +2615,8 @@ function ShopPageComponent() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                   {shop.logo_url ? (
-                    <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
+                   {shop.barbershop_logo_url ? (
+                    <img src={shop.barbershop_logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
                       <Scissors className="h-6 w-6 text-[#D4AF37]" />
@@ -2809,7 +2809,7 @@ function ShopPageComponent() {
                 {/* Coluna esquerda: imagem premium */}
                 <div className="relative h-[180px] md:h-auto md:min-h-[560px] overflow-hidden md:rounded-l-[2.25rem]">
                   <img
-                    src={shop.logo_url || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"}
+                    src={shop.barbershop_logo_url || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"}
                     alt={shop.business_name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
