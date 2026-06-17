@@ -235,19 +235,19 @@ function SubscriptionComponent() {
   return (
     <AppLayout>
       <PaymentTestModeBanner />
-      <div className="min-h-screen bg-[#05070d] text-white">
+      <div className="min-h-screen bg-[#05070d] text-white max-w-full overflow-x-hidden">
         <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto animate-in fade-in duration-500">
           {/* HEADER */}
-          <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
-                <CreditCard className="h-7 w-7 text-emerald-400" />
+          <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start sm:items-center gap-4">
+              <div className="shrink-0 h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <CreditCard className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight break-words sm:truncate">
                   Minha Assinatura
                 </h1>
-                <p className="text-sm text-zinc-400 mt-1 truncate">
+                <p className="text-sm text-zinc-400 mt-1 break-words sm:truncate">
                   Gerencie seu plano e limites do sistema
                 </p>
               </div>
@@ -257,7 +257,7 @@ function SubscriptionComponent() {
                 size="sm"
                 onClick={handleManageSubscription}
                 disabled={updating}
-                className="shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-9 px-3 transition-all"
+                className="w-full sm:w-auto shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-11 sm:h-9 rounded-[14px] sm:rounded-md px-3 transition-all"
               >
                 {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
                 Gerenciar
@@ -329,7 +329,7 @@ function SubscriptionComponent() {
                 </div>
               </div>
               <div className={cn(
-                "px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest",
+                "w-full sm:w-auto h-[34px] sm:h-auto px-3 py-1.5 rounded-xl sm:rounded-lg border text-[10px] font-black uppercase tracking-widest grid place-items-center text-center",
                 subscription?.status === 'active' || (!subscription?.status && plan !== 'free') ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" :
                 subscription?.status === 'trialing' ? "bg-sky-500/10 text-sky-400 border-sky-500/30" :
                 subscription?.status === 'past_due' ? "bg-amber-500/10 text-amber-400 border-amber-500/30" :
@@ -345,7 +345,7 @@ function SubscriptionComponent() {
               </div>
             </div>
 
-            <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-5">
               <UsageBar label="Profissionais" used={usage?.barbers ?? 0} limit={limits?.barbers} />
               <UsageBar label="Serviços" used={usage?.services ?? 0} limit={limits?.services} />
               <UsageBar label="Produtos" used={usage?.products ?? 0} limit={limits?.products} />
@@ -509,10 +509,10 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
   const max = isInf ? 100 : (limit ?? 0);
   const pct = isInf ? 100 : Math.min((used / (max || 1)) * 100, 100);
   return (
-    <div className="bg-[#05070d]/60 border border-zinc-800/60 rounded-xl p-3">
-      <div className="flex justify-between items-baseline mb-2">
-        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</span>
-        <span className="text-xs font-black text-emerald-400">
+    <div className="bg-[#05070d]/60 border border-zinc-800/60 rounded-2xl min-h-[92px] p-[14px] flex flex-col justify-between">
+      <div className="flex justify-between items-baseline mb-2 gap-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 truncate">{label}</span>
+        <span className="text-xs font-black text-emerald-400 whitespace-nowrap shrink-0">
           {used} / {isInf ? "∞" : max}
         </span>
       </div>
