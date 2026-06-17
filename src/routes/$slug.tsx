@@ -2688,7 +2688,7 @@ function ShopPageComponent() {
         }
       }}>
 
-        <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
+        <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl [&>button.absolute]:right-4 [&>button.absolute]:top-4 [&>button.absolute]:h-9 [&>button.absolute]:w-9 [&>button.absolute]:rounded-full [&>button.absolute]:bg-black [&>button.absolute]:text-white [&>button.absolute]:opacity-100 [&>button.absolute]:flex [&>button.absolute]:items-center [&>button.absolute]:justify-center [&>button.absolute]:shadow-lg [&>button.absolute]:hover:bg-[#D4AF37] [&>button.absolute]:hover:text-black [&>button.absolute>svg]:h-4 [&>button.absolute>svg]:w-4 [&>button.absolute]:z-50", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
           {!isEmbedded && (
             <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
