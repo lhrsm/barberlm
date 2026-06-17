@@ -754,10 +754,59 @@ function ShopPageComponent() {
       setServices(servicesRes.data || []);
       setBarbers(barbersRes.data || []);
       setProducts(productsRes.data || []);
-      
-      // Atualizar o título da página dinamicamente
+
+      // Public extras: subscription plans, loyalty settings, active coupons
+      // These are best-effort — failures (e.g. RLS) are silently ignored so the page still renders.
+      try {
+        const [plansRes, loyaltyRes, couponsRes] = await Promise.all([
+          supabase
+            .from("subscription_plans")
+            .select("id, name, description, price, billing_cycle, max_uses_per_month, benefits, is_active, display_order")
+            .eq("user_id", currentShop.id)
+            .eq("is_active", true)
+            .order("display_order", { ascending: true }),
+          supabase
+            .from("loyalty_settings")
+            .select("*")
+            .eq("user_id", currentShop.id)
+            .maybeSingle(),
+          supabase
+            .from("coupons")
+            .select("id, code, discount_type, discount_value, valid_until, description, active, applies_to")
+            .eq("user_id", currentShop.id)
+            .eq("active", true)
+            .limit(6),
+        ]);
+        setPublicSubscriptionPlans(plansRes.data || []);
+        setPublicLoyaltySettings(loyaltyRes.data || null);
+        setPublicActiveCoupons(couponsRes.data || []);
+      } catch (e) {
+        console.warn("Public extras fetch failed (non-blocking):", e);
+      }
+
+      // SEO dinâmico
       if (typeof document !== 'undefined') {
-        document.title = `${currentShop.business_name} | Barbearia Premium`;
+        document.title = `${currentShop.business_name} | Agende online`;
+        const descContent = `Agende seu horário na ${currentShop.business_name} de forma rápida e fácil. Cortes premium, profissionais qualificados e atendimento de excelência.`;
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.setAttribute('name', 'description');
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.setAttribute('content', descContent);
+        const setOg = (prop: string, content: string) => {
+          let el = document.querySelector(`meta[property="${prop}"]`);
+          if (!el) {
+            el = document.createElement('meta');
+            el.setAttribute('property', prop);
+            document.head.appendChild(el);
+          }
+          el.setAttribute('content', content);
+        };
+        setOg('og:title', `${currentShop.business_name} | Agende online`);
+        setOg('og:description', descContent);
+        if (currentShop.logo_url) setOg('og:image', currentShop.logo_url);
       }
     } catch (error) {
       console.error("Error fetching shop data:", error);
