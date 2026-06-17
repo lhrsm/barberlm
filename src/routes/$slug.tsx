@@ -2809,8 +2809,8 @@ function ShopPageComponent() {
                 {/* Coluna esquerda: imagem premium */}
                 <div className="relative h-[180px] md:h-auto md:min-h-[560px] overflow-hidden md:rounded-l-[2.25rem]">
                   <img
-                    src={shop.barbershop_logo_url || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"}
-                    alt={shop.business_name}
+                    src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1200&q=80"
+                    alt="Barbearia"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
