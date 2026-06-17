@@ -1932,7 +1932,7 @@ function ShopPageComponent() {
           )}
 
 
-      <main className={cn("space-y-0", isEmbedded && "py-0")}>
+      <main className={cn("space-y-0 pb-24 md:pb-0", isEmbedded && "py-0 pb-0")}>
         {/* Hero Section */}
         <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
           {/* Background Image with Parallax effect could be added here */}
