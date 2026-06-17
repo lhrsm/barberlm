@@ -458,7 +458,7 @@ function SubscriptionComponent() {
 
                     <Button
                       disabled={isCurrentPlan || updating}
-                      onClick={() => handlePlanChange(config.id)}
+                      onClick={() => requestPlanChange(config.id)}
                       className={cn(
                         "w-full h-11 rounded-xl font-bold text-sm transition-all",
                         isCurrentPlan
