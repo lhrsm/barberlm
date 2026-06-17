@@ -84,7 +84,8 @@ export function ModulesSettings() {
                     checked={enabled}
                     disabled={isToggling}
                     onCheckedChange={(v) => toggleModule(mod.key, v)}
-                    className="data-[state=checked]:bg-amber-500"
+                    className="h-6 w-11 border-white/20 data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-white/15"
+                    thumbClassName="h-5 w-5 bg-white shadow-md data-[state=checked]:translate-x-5"
                   />
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[11px]">
