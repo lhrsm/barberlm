@@ -54,6 +54,9 @@ function ShopPageComponent() {
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [publicSubscriptionPlans, setPublicSubscriptionPlans] = useState<any[]>([]);
+  const [publicLoyaltySettings, setPublicLoyaltySettings] = useState<any>(null);
+  const [publicActiveCoupons, setPublicActiveCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
