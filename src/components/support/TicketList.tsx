@@ -62,21 +62,23 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
   }, [tenantId, queryClient]);
 
   const getStatusBadge = (status: string) => {
+    const base = "text-[10px] px-2 py-0.5 rounded-md font-semibold border";
     switch (status) {
-      case 'open': 
-        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Aberto</Badge>;
-      case 'in_progress': 
-        return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">Em andamento</Badge>;
-      case 'responded': 
-        return <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20">Respondido</Badge>;
-      case 'resolved': 
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Resolvido</Badge>;
-      case 'closed': 
-        return <Badge variant="secondary" className="opacity-70">Fechado</Badge>;
-      default: 
-        return <Badge variant="outline">{status}</Badge>;
+      case 'open':
+        return <Badge className={`${base} bg-emerald-500/10 text-emerald-400 border-emerald-500/30`}>Aberto</Badge>;
+      case 'in_progress':
+        return <Badge className={`${base} bg-amber-500/10 text-amber-400 border-amber-500/30`}>Em análise</Badge>;
+      case 'responded':
+        return <Badge className={`${base} bg-purple-500/10 text-purple-400 border-purple-500/30`}>Respondido</Badge>;
+      case 'resolved':
+        return <Badge className={`${base} bg-emerald-500/10 text-emerald-400 border-emerald-500/30`}>Resolvido</Badge>;
+      case 'closed':
+        return <Badge className={`${base} bg-zinc-500/10 text-zinc-400 border-zinc-500/30`}>Fechado</Badge>;
+      default:
+        return <Badge variant="outline" className={base}>{status}</Badge>;
     }
   };
+
 
   const getPriorityIcon = (priority: string | null) => {
     switch (priority) {
