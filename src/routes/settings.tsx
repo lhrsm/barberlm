@@ -34,8 +34,10 @@ import {
   ExternalLink,
   UserRound,
   History,
-  Info
+  Info,
+  Layout
 } from "lucide-react";
+import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { CouponManagement } from "@/components/admin/CouponManagement";
 
