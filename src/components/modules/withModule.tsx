@@ -14,7 +14,7 @@ export function withModule<P extends object>(
   Component: ComponentType<P>,
 ) {
   return function GuardedRoute(props: P) {
-    const { isEnabled, isLoading } = useModules();
+    const { isAllowed, isEnabled, isLoading } = useModules();
 
     if (isLoading) {
       return (
@@ -26,7 +26,7 @@ export function withModule<P extends object>(
       );
     }
 
-    if (!isEnabled(module)) {
+    if (!isAllowed(module) || !isEnabled(module)) {
       return (
         <AppLayout>
           <ModuleGuard module={module} title={title}>
