@@ -6,7 +6,7 @@ import { usePlanLimits, PLAN_LIMITS, PlanType } from "@/hooks/use-plan-limits";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2, AlertCircle, AlertTriangle, CreditCard } from "lucide-react";
+import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2, AlertCircle, AlertTriangle, CreditCard, Scale, X, ArrowDownCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { withModule } from "@/components/modules/withModule";
+
 
 const PLAN_PRICE_IDS = {
   sandbox: {
@@ -45,7 +45,7 @@ const PLAN_PRICE_IDS = {
 
 
 export const Route = createFileRoute("/subscription")({
-  component: withModule("subscriptions", "Assinaturas", SubscriptionComponent),
+  component: SubscriptionComponent,
 });
 
 function SubscriptionComponent() {
@@ -72,6 +72,22 @@ function SubscriptionComponent() {
 
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [downgradeTarget, setDowngradeTarget] = useState<PlanType | null>(null);
+
+  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, elite: 3 };
+
+  const requestPlanChange = (newPlan: PlanType) => {
+    const current = planRank[plan ?? 'free'] ?? 0;
+    const target = planRank[newPlan] ?? 0;
+    if (target < current) {
+      setDowngradeTarget(newPlan);
+      return;
+    }
+    handlePlanChange(newPlan);
+  };
+
+
 
   const handlePlanChange = async (newPlan: PlanType) => {
     console.log("[Subscription] 👆 Clique em handlePlanChange:", { newPlan, currentPlan: plan });
@@ -253,17 +269,27 @@ function SubscriptionComponent() {
                 </p>
               </div>
             </div>
-            {plan !== 'free' && (
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button
                 size="sm"
-                onClick={handleManageSubscription}
-                disabled={updating}
+                onClick={() => setCompareOpen(true)}
                 className="w-full sm:w-auto shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-11 sm:h-9 rounded-[14px] sm:rounded-md px-3 transition-all"
               >
-                {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
-                Gerenciar
+                <Scale className="w-3.5 h-3.5 mr-1.5" /> Ver Comparativo
               </Button>
-            )}
+              {plan !== 'free' && (
+                <Button
+                  size="sm"
+                  onClick={handleManageSubscription}
+                  disabled={updating}
+                  className="w-full sm:w-auto shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-11 sm:h-9 rounded-[14px] sm:rounded-md px-3 transition-all"
+                >
+                  {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
+                  Gerenciar Assinatura
+                </Button>
+              )}
+            </div>
+
           </header>
 
           {/* Status Alerts */}
@@ -432,7 +458,7 @@ function SubscriptionComponent() {
 
                     <Button
                       disabled={isCurrentPlan || updating}
-                      onClick={() => handlePlanChange(config.id)}
+                      onClick={() => requestPlanChange(config.id)}
                       className={cn(
                         "w-full h-11 rounded-xl font-bold text-sm transition-all",
                         isCurrentPlan
@@ -441,7 +467,7 @@ function SubscriptionComponent() {
                       )}
                     >
                       {updating && !isCurrentPlan ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                      {isCurrentPlan ? "✓ Plano Ativo" : isUpgrade ? `Fazer Upgrade` : `Mudar para ${config.name}`}
+                      {isCurrentPlan ? "✓ Plano Ativo" : isUpgrade ? `Fazer Upgrade para ${config.name}` : `Fazer Downgrade para ${config.name}`}
                     </Button>
                   </div>
                 );
@@ -466,7 +492,93 @@ function SubscriptionComponent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* COMPARATIVO DE PLANOS */}
+      <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-[#0b0f17] border-zinc-800 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Scale className="h-5 w-5 text-emerald-400" /> Comparativo de Planos
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-800">
+                  <th className="text-left py-3 px-3 font-bold text-zinc-400 text-xs uppercase tracking-wider">Recurso</th>
+                  <th className="text-center py-3 px-3 font-black text-white">Starter</th>
+                  <th className="text-center py-3 px-3 font-black text-emerald-400">Pro</th>
+                  <th className="text-center py-3 px-3 font-black text-white">Elite</th>
+                </tr>
+              </thead>
+              <tbody className="[&>tr]:border-b [&>tr]:border-zinc-800/60">
+                <tr><td className="py-3 px-3 text-zinc-300">Preço mensal</td><td className="text-center font-bold">R$ 19,90</td><td className="text-center font-bold text-emerald-400">R$ 39,90</td><td className="text-center font-bold">R$ 59,90</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Profissionais</td><td className="text-center">{PLAN_LIMITS.starter.barbers}</td><td className="text-center text-emerald-400">{PLAN_LIMITS.pro.barbers}</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Serviços</td><td className="text-center">∞</td><td className="text-center text-emerald-400">∞</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Produtos</td><td className="text-center">∞</td><td className="text-center text-emerald-400">∞</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Agendamentos</td><td className="text-center">∞</td><td className="text-center text-emerald-400">∞</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Conexões WhatsApp</td><td className="text-center">1</td><td className="text-center text-emerald-400">2</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Financeiro Completo</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Automações WhatsApp</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Programa de Fidelidade</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Assinaturas / Clube</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Relatórios Avançados</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Suporte Prioritário</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DOWNGRADE CONFIRMATION */}
+      <AlertDialog open={!!downgradeTarget} onOpenChange={(o) => { if (!o) setDowngradeTarget(null); }}>
+        <AlertDialogContent className="bg-[#0b0f17] border-amber-500/30 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-white">
+              <ArrowDownCircle className="h-5 w-5 text-amber-400" />
+              Confirmar Downgrade
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400 space-y-3">
+              <span className="block">Você está prestes a mudar para um plano inferior ({downgradeTarget?.toUpperCase()}). Ao confirmar, você perderá acesso aos seguintes recursos:</span>
+              <ul className="list-disc list-inside text-amber-300/90 space-y-1 text-sm">
+                {downgradeTarget === 'starter' && (
+                  <>
+                    <li>Financeiro completo, comissões e fechamentos</li>
+                    <li>Automações de WhatsApp e campanhas</li>
+                    <li>Programa de fidelidade</li>
+                    <li>Múltiplos profissionais (limite de 1)</li>
+                    <li>Relatórios avançados</li>
+                  </>
+                )}
+                {downgradeTarget === 'pro' && (
+                  <>
+                    <li>Clube de assinaturas / planos recorrentes para clientes</li>
+                    <li>Profissionais ilimitados (limite de {PLAN_LIMITS.pro.barbers})</li>
+                    <li>Conexões WhatsApp ilimitadas (limite de 2)</li>
+                    <li>Suporte prioritário</li>
+                  </>
+                )}
+              </ul>
+              <span className="block text-xs text-zinc-500">Dados existentes não serão apagados, mas funcionalidades premium ficarão bloqueadas.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-zinc-700 text-white hover:bg-zinc-800 hover:text-white">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const target = downgradeTarget;
+                setDowngradeTarget(null);
+                if (target) handlePlanChange(target);
+              }}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            >
+              Confirmar Downgrade
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
+
   );
 }
 
