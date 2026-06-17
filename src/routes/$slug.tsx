@@ -1987,12 +1987,11 @@ function ShopPageComponent() {
                 Agendar Agora
               </Button>
               <Button 
-                variant="outline"
                 size="lg" 
-                className="h-14 px-10 text-lg font-bold rounded-full border-white/20 hover:bg-white/10 hover:text-white transition-all w-full sm:w-auto backdrop-blur-md text-white"
+                className="h-14 px-10 text-lg font-bold rounded-full border-2 border-white/30 bg-white/5 text-white hover:bg-white/15 hover:border-white/60 transition-all w-full sm:w-auto backdrop-blur-md uppercase tracking-tighter"
                 onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Ver serviços
+                <Scissors size={16} className="mr-2" /> Ver serviços
               </Button>
               {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
                 <Button
