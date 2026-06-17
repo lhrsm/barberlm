@@ -62,21 +62,23 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
   }, [tenantId, queryClient]);
 
   const getStatusBadge = (status: string) => {
+    const base = "text-[10px] px-2 py-0.5 rounded-md font-semibold border";
     switch (status) {
-      case 'open': 
-        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Aberto</Badge>;
-      case 'in_progress': 
-        return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">Em andamento</Badge>;
-      case 'responded': 
-        return <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20">Respondido</Badge>;
-      case 'resolved': 
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Resolvido</Badge>;
-      case 'closed': 
-        return <Badge variant="secondary" className="opacity-70">Fechado</Badge>;
-      default: 
-        return <Badge variant="outline">{status}</Badge>;
+      case 'open':
+        return <Badge className={`${base} bg-emerald-500/10 text-emerald-400 border-emerald-500/30`}>Aberto</Badge>;
+      case 'in_progress':
+        return <Badge className={`${base} bg-amber-500/10 text-amber-400 border-amber-500/30`}>Em análise</Badge>;
+      case 'responded':
+        return <Badge className={`${base} bg-purple-500/10 text-purple-400 border-purple-500/30`}>Respondido</Badge>;
+      case 'resolved':
+        return <Badge className={`${base} bg-emerald-500/10 text-emerald-400 border-emerald-500/30`}>Resolvido</Badge>;
+      case 'closed':
+        return <Badge className={`${base} bg-zinc-500/10 text-zinc-400 border-zinc-500/30`}>Fechado</Badge>;
+      default:
+        return <Badge variant="outline" className={base}>{status}</Badge>;
     }
   };
+
 
   const getPriorityIcon = (priority: string | null) => {
     switch (priority) {
@@ -115,62 +117,62 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
         <button
           key={ticket.id}
           onClick={() => onSelectTicket(ticket)}
-          className="group relative flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border bg-card hover:bg-accent/50 transition-all border-white/5 hover:border-primary/20 shadow-lg hover:shadow-primary/5 text-left"
+          className="group relative flex flex-col gap-3 p-4 md:p-5 rounded-2xl border bg-card hover:bg-accent/50 transition-all border-white/5 hover:border-primary/20 shadow-lg hover:shadow-primary/5 text-left w-full"
         >
           {/* Status color indicator stripe */}
           <div className={cn(
             "absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl",
-            ticket.status === 'open' && "bg-blue-500",
+            ticket.status === 'open' && "bg-emerald-500",
             ticket.status === 'in_progress' && "bg-amber-500",
             ticket.status === 'responded' && "bg-purple-500",
-            ticket.status === 'resolved' && "bg-green-500",
-            ticket.status === 'closed' && "bg-gray-500"
+            ticket.status === 'resolved' && "bg-emerald-500",
+            ticket.status === 'closed' && "bg-zinc-500"
           )} />
 
-          <div className="flex flex-col gap-3 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
-                {ticket.title}
-              </span>
-              {getStatusBadge(ticket.status || 'open')}
-              {getPriorityIcon(ticket.priority)}
-            </div>
-
-            <p className="text-sm text-muted-foreground line-clamp-1 max-w-2xl">
-              {ticket.description}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Clock size={14} className="text-primary/70" /> 
-                {(() => {
-                  try {
-                    return ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Data não disponível";
-                  } catch (e) {
-                    return "Data inválida";
-                  }
-                })()}
-              </span>
-              <span className="h-1 w-1 rounded-full bg-border hidden md:block" />
-              <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-accent/30 border-white/10">
-                {ticket.category}
-              </Badge>
-            </div>
+          {/* Title + status */}
+          <div className="flex flex-wrap items-center gap-2 pl-2">
+            <span className="text-base md:text-lg font-bold text-foreground group-hover:text-primary transition-colors flex-1 min-w-0 break-words">
+              {ticket.title}
+            </span>
+            {getStatusBadge(ticket.status || 'open')}
+            {getPriorityIcon(ticket.priority)}
           </div>
 
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
-            <div className="hidden md:flex flex-col items-end gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Protocolo</span>
-              <span className="text-xs font-mono bg-accent px-2 py-0.5 rounded border border-white/5">
-                #{ticket.id.split('-')[0].toUpperCase()}
-              </span>
-            </div>
-            <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-primary/40 group-hover:text-primary group-hover:bg-primary/10 transition-all border border-transparent group-hover:border-primary/20">
-              <ChevronRight size={20} />
-            </div>
+          {/* Description */}
+          <p className="text-[13px] text-muted-foreground line-clamp-2 pl-2">
+            {ticket.description}
+          </p>
+
+          {/* Meta: date + category */}
+          <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-muted-foreground pl-2">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Clock size={14} className="text-primary/70" />
+              {(() => {
+                try {
+                  return ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Data não disponível";
+                } catch (e) {
+                  return "Data inválida";
+                }
+              })()}
+            </span>
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-accent/30 border-white/10">
+              {ticket.category}
+            </Badge>
+            <span className="hidden md:inline text-[10px] font-mono bg-accent px-2 py-0.5 rounded border border-white/5 ml-auto">
+              #{ticket.id.split('-')[0].toUpperCase()}
+            </span>
+          </div>
+
+          {/* Action button */}
+          <div className="pl-2 pt-1">
+            <span className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[10px] bg-primary/10 border border-primary/30 text-primary text-xs font-semibold group-hover:bg-primary/20 transition-all">
+              Ver Chamado
+              <ChevronRight size={14} />
+            </span>
           </div>
         </button>
       ))}
     </div>
   );
 }
+
