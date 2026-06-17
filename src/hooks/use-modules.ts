@@ -87,26 +87,57 @@ export function useModules() {
     queryKey: ["barbershop-plan", tenantId],
     queryFn: async (): Promise<PlanInfo | null> => {
       if (!tenantId) return null;
-      const { data, error } = await supabase
-        .from("barbershops" as any)
-        .select("plan_id, plans:plan_id(id, slug, name, tier, allowed_modules, price_monthly)")
+
+      // 1) Tenta resolver pelo profile (plan/effective_plan), com mapping legacy.
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("plan, effective_plan, trial_end")
         .eq("id", tenantId)
         .maybeSingle();
-      if (error) throw error;
-      const p = (data as any)?.plans;
-      if (!p) return null;
+
+      let slug: string | null = null;
+      const trialActive = prof?.trial_end && new Date(prof.trial_end as any) > new Date();
+      if (trialActive) {
+        slug = "professional"; // trial dá acesso ao nível pro/professional
+      } else {
+        const raw = ((prof?.effective_plan as string) || (prof?.plan as string) || "").toLowerCase();
+        if (raw && raw !== "free") slug = raw === "pro" ? "professional" : raw;
+      }
+
+      let planRow: any = null;
+      if (slug) {
+        const { data } = await supabase
+          .from("plans")
+          .select("id, slug, name, tier, allowed_modules, price_monthly")
+          .eq("slug", slug)
+          .maybeSingle();
+        planRow = data;
+      }
+
+      // 2) Fallback: barbershops.plan_id (legado)
+      if (!planRow) {
+        const { data: bsh } = await supabase
+          .from("barbershops" as any)
+          .select("plan_id, plans:plan_id(id, slug, name, tier, allowed_modules, price_monthly)")
+          .eq("id", tenantId)
+          .maybeSingle();
+        planRow = (bsh as any)?.plans;
+      }
+
+      if (!planRow) return null;
       return {
-        id: p.id,
-        slug: p.slug,
-        name: p.name,
-        tier: p.tier ?? 0,
-        allowed_modules: Array.isArray(p.allowed_modules) ? p.allowed_modules : [],
-        price_monthly: Number(p.price_monthly ?? 0),
+        id: planRow.id,
+        slug: planRow.slug,
+        name: planRow.name,
+        tier: planRow.tier ?? 0,
+        allowed_modules: Array.isArray(planRow.allowed_modules) ? planRow.allowed_modules : [],
+        price_monthly: Number(planRow.price_monthly ?? 0),
       };
     },
     enabled: !!tenantId,
     staleTime: 60_000,
   });
+
 
   const modules = { ...DEFAULT_MODULES, ...(modulesData || {}) } as Record<string, boolean>;
   const allowedModules = new Set<string>([

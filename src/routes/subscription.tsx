@@ -30,16 +30,20 @@ import {
 } from "@/components/ui/alert-dialog";
 
 
-const PLAN_PRICE_IDS = {
+// IDs reais dos preços no Stripe (cadastrados na sua conta).
+// Sandbox: usamos lookup keys; Live: usamos os price IDs reais.
+const PLAN_PRICE_IDS: Record<'sandbox' | 'live', Record<string, string>> = {
   sandbox: {
-    starter: "starter_monthly", // Lookup keys para ambiente de teste
-    pro: "pro_monthly",
+    starter: "starter_monthly",
+    professional: "professional_monthly",
     elite: "elite_monthly",
+    enterprise: "enterprise_monthly",
   },
   live: {
     starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
-    pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
+    professional: "price_1TVtOVPKG6q10Ujre6zMGYpk",
     elite: "price_1TVtgWPKG6q10UjrxRUCnyg1",
+    enterprise: "",
   }
 };
 
@@ -75,7 +79,7 @@ function SubscriptionComponent() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<PlanType | null>(null);
 
-  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, elite: 3 };
+  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, professional: 2, elite: 3, enterprise: 4 };
 
   const requestPlanChange = (newPlan: PlanType) => {
     const current = planRank[plan ?? 'free'] ?? 0;
@@ -111,7 +115,8 @@ function SubscriptionComponent() {
       const forcedTestMode = systemSettings?.payments_test_mode;
 
       const env = forcedTestMode ? 'sandbox' : getStripeEnvironment();
-      const planKey = newPlan as keyof typeof PLAN_PRICE_IDS['live'];
+      // Mapeia legado: 'pro' -> 'professional'
+      const planKey = (newPlan === 'pro' ? 'professional' : newPlan) as string;
       const priceId = PLAN_PRICE_IDS[env][planKey];
       
       console.log("[Subscription] 🆔 Configuração de checkout:", { 
@@ -196,58 +201,70 @@ function SubscriptionComponent() {
     return null;
   }
 
+  // Valores reais dos planos (sincronizados com a tabela `plans`).
   const planConfigs = [
     {
       id: "starter" as PlanType,
       name: "Starter",
-      price: "19,90",
+      price: "49,90",
       description: "Ideal para profissionais individuais.",
       icon: <Zap className="text-amber-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.starter.barbers} Profissional`,
-        `Serviços Ilimitados`,
-        `Produtos Ilimitados`,
-        `Agendamentos Ilimitados`,
-        "1 Conexão WhatsApp",
+        "1 Profissional",
+        "Serviços Ilimitados",
+        "Agenda completa",
+        "Cadastro de clientes",
+        "Financeiro básico",
       ],
-      buttonText: "Assinar Starter",
-      color: "amber"
+      highlight: false,
     },
     {
-      id: "pro" as PlanType,
-      name: "Pro",
-      price: "39,90",
-      description: "Perfeito para barbearias em crescimento.",
+      id: "professional" as PlanType,
+      name: "Professional",
+      price: "99,90",
+      description: "Para barbearias em crescimento.",
       icon: <Crown className="text-amber-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.pro.barbers} Profissionais`,
-        `Serviços Ilimitados`,
-        `Produtos Ilimitados`,
-        `Agendamentos Ilimitados`,
-        "2 Conexões WhatsApp",
-        "Financeiro Completo",
+        "Até 5 Profissionais",
+        "Comissões e fechamentos",
+        "Programa de Fidelidade",
+        "Campanhas e Cupons",
+        "WhatsApp integrado",
       ],
-      buttonText: "Assinar Pro",
-      color: "amber"
+      highlight: true,
     },
     {
       id: "elite" as PlanType,
       name: "Elite",
-      price: "59,90",
-      description: "A solução definitiva sem limites.",
+      price: "149,90",
+      description: "Operação completa, sem limites.",
       icon: <Rocket className="text-amber-500 w-5 h-5" />,
       features: [
         "Profissionais Ilimitados",
-        "Serviços Ilimitados",
-        "Produtos Ilimitados",
-        "Agendamentos Ilimitados",
-        "Conexões WhatsApp Ilimitadas",
-        "Suporte Prioritário",
+        "Clube de Assinaturas",
+        "Cashback e Produtos",
+        "Automações WhatsApp",
+        "Integrações + PIX",
       ],
-      buttonText: "Assinar Elite",
-      color: "amber"
-    }
+      highlight: false,
+    },
+    {
+      id: "enterprise" as PlanType,
+      name: "Enterprise",
+      price: "249,90",
+      description: "Multi-unidade e white-label.",
+      icon: <Crown className="text-amber-500 w-5 h-5" />,
+      features: [
+        "Tudo do Elite",
+        "Multi-unidades",
+        "White-label",
+        "Acesso à API",
+        "Relatórios corporativos",
+      ],
+      highlight: false,
+    },
   ];
+
 
   return (
     <AppLayout>
@@ -340,8 +357,8 @@ function SubscriptionComponent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-zinc-800/80">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
-                  {plan === 'elite' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
-                   plan === 'pro' ? <Crown className="h-5 w-5 text-emerald-400" /> :
+                  {plan === 'elite' || (plan as any) === 'enterprise' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
+                   (plan === 'pro' || (plan as any) === 'professional') ? <Crown className="h-5 w-5 text-emerald-400" /> :
                    plan === 'starter' ? <Zap className="h-5 w-5 text-emerald-400" /> :
                    <Star className="h-5 w-5 text-emerald-400" />}
                 </div>
@@ -349,8 +366,9 @@ function SubscriptionComponent() {
                   <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Plano Atual</div>
                   <div className="text-xl font-black text-white">
                     {plan === 'starter' ? 'Starter' :
-                     plan === 'pro' ? 'Pro' :
+                     (plan === 'pro' || (plan as any) === 'professional') ? 'Professional' :
                      plan === 'elite' ? 'Elite' :
+                     (plan as any) === 'enterprise' ? 'Enterprise' :
                      (!plan || plan === 'free') ? 'Grátis' : plan}
                   </div>
                 </div>
@@ -389,7 +407,7 @@ function SubscriptionComponent() {
               <div className="h-px flex-1 bg-zinc-800" />
             </div>
 
-            <div className="grid gap-5 grid-cols-1 md:grid-cols-3 pt-4">
+            <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 pt-4">
               {planConfigs.map((config) => {
                 let isCurrentPlan = false;
                 let isUpgrade = false;
