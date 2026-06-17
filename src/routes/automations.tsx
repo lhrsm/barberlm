@@ -48,6 +48,13 @@ import {
   MousePointer2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PremiumTabs,
+  PremiumTabsList,
+  PremiumTabsBody,
+  PremiumTabsContent,
+} from "@/components/ui/premium-tabs";
+import { BarChart3, ListChecks } from "lucide-react";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
 import { AutomationTestModal } from "@/components/admin/automations/AutomationTestModal";
 import {
@@ -262,48 +269,72 @@ function AutomationsComponent() {
           </Card>
         </div>
 
-        <Tabs defaultValue="automations">
-          <TabsList className="bg-[#0F172A] border-white/5">
-            <TabsTrigger value="automations">Configurações</TabsTrigger>
-            <TabsTrigger value="logs">Histórico</TabsTrigger>
-          </TabsList>
           
-          <TabsContent value="automations" className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {automations.map(auto => (
-                <Card key={auto.id} className="bg-[#0F172A] border-white/5 overflow-hidden">
-                  <div className="p-6 border-b border-white/5 flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-black text-white uppercase tracking-tighter">{auto.name}</h3>
-                      <Badge className={auto.active ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-500/10 text-slate-500"}>
-                        {auto.active ? "Ativo" : "Inativo"}
-                      </Badge>
+        <PremiumTabs defaultValue="active" className="space-y-0">
+          <PremiumTabsList
+            tabs={[
+              { value: "active", label: "Ativas", icon: Zap },
+              { value: "history", label: "Histórico", icon: History },
+              { value: "logs", label: "Logs", icon: Terminal },
+              { value: "stats", label: "Estatísticas", icon: BarChart3 },
+            ]}
+          />
+          <PremiumTabsBody>
+            <PremiumTabsContent value="active">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {automations.map((auto) => (
+                  <Card key={auto.id} className="bg-[#0F172A] border-white/5 overflow-hidden">
+                    <div className="p-6 border-b border-white/5 flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-black text-white uppercase tracking-tighter">{auto.name}</h3>
+                        <Badge className={auto.active ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-500/10 text-slate-500"}>
+                          {auto.active ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                  <CardContent className="p-6">
-                    <p className="text-xs text-slate-400 line-clamp-3 italic mb-6">"{auto.template}"</p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1" onClick={() => { setSelectedAutomation(auto); setIsEditOpen(true); }}>
-                        <Settings2 className="mr-2 h-4 w-4" /> Editar
-                      </Button>
-                      <Button className="flex-1 bg-amber-500 text-black hover:bg-amber-600" onClick={() => { setSelectedAutomation(auto); setIsTestOpen(true); }}>
-                        <Play className="mr-2 h-4 w-4" /> Testar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                    <CardContent className="p-6">
+                      <p className="text-xs text-slate-400 line-clamp-3 italic mb-6">"{auto.template}"</p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="flex-1" onClick={() => { setSelectedAutomation(auto); setIsEditOpen(true); }}>
+                          <Settings2 className="mr-2 h-4 w-4" /> Editar
+                        </Button>
+                        <Button className="flex-1 bg-amber-500 text-black hover:bg-amber-600" onClick={() => { setSelectedAutomation(auto); setIsTestOpen(true); }}>
+                          <Play className="mr-2 h-4 w-4" /> Testar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </PremiumTabsContent>
 
-          <TabsContent value="logs" className="pt-6">
-             <Card className="bg-[#0F172A] border-white/5">
+            <PremiumTabsContent value="history">
+              <div className="space-y-3">
+                {logs.slice(0, 20).map((log) => (
+                  <div key={log.id} className="flex items-center justify-between gap-4 rounded-2xl bg-[#0F172A] border border-white/5 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-white truncate">{log.customer_name || log.phone}</p>
+                      <p className="text-xs text-slate-500">{new Date(log.sent_at || log.created_at).toLocaleString()}</p>
+                    </div>
+                    <Badge className={log.status === 'sent' ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"}>
+                      {log.status}
+                    </Badge>
+                  </div>
+                ))}
+                {logs.length === 0 && (
+                  <p className="text-center text-slate-500 py-12">Sem execuções registradas ainda.</p>
+                )}
+              </div>
+            </PremiumTabsContent>
+
+            <PremiumTabsContent value="logs">
+              <Card className="bg-[#0F172A] border-white/5">
                 <div className="p-4 border-b border-white/5 flex gap-4 overflow-x-auto">
-                  <Input 
-                    placeholder="Buscar destinatário..." 
-                    className="max-w-xs" 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
+                  <Input
+                    placeholder="Buscar destinatário..."
+                    className="max-w-xs"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
                   />
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
@@ -343,9 +374,47 @@ function AutomationsComponent() {
                     </tbody>
                   </table>
                 </div>
-             </Card>
-          </TabsContent>
-        </Tabs>
+              </Card>
+            </PremiumTabsContent>
+
+            <PremiumTabsContent value="stats">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="bg-[#0F172A] border-white/5 p-5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Sucessos</p>
+                  <p className="text-3xl font-black text-emerald-500">{logStats.success}</p>
+                </Card>
+                <Card className="bg-[#0F172A] border-white/5 p-5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Falhas</p>
+                  <p className="text-3xl font-black text-rose-500">{logStats.failed}</p>
+                </Card>
+                <Card className="bg-[#0F172A] border-white/5 p-5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Pendentes</p>
+                  <p className="text-3xl font-black text-amber-500">{queueStats.pending}</p>
+                </Card>
+                <Card className="bg-[#0F172A] border-white/5 p-5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Bloqueados</p>
+                  <p className="text-3xl font-black text-white">{logStats.duplicateBlocked}</p>
+                </Card>
+              </div>
+              <div className="mt-6 rounded-2xl bg-[#0F172A] border border-white/5 p-6">
+                <p className="text-xs uppercase font-bold text-slate-500 mb-2">Taxa de sucesso</p>
+                <div className="h-3 w-full rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 transition-all"
+                    style={{
+                      width: `${
+                        logStats.success + logStats.failed > 0
+                          ? Math.round((logStats.success / (logStats.success + logStats.failed)) * 100)
+                          : 0
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </PremiumTabsContent>
+          </PremiumTabsBody>
+        </PremiumTabs>
+
 
         {isEditOpen && selectedAutomation && (
           <AutomationEditModal 

@@ -211,6 +211,26 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  .premium-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .premium-tabs-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  @keyframes premium-tab-in {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .animate-premium-tab-in {
+    animation: premium-tab-in 300ms ease-out;
+  }
 }
 
 /* Quantum Lovable - watermark removal */
