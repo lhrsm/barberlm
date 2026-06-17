@@ -115,7 +115,8 @@ function SubscriptionComponent() {
       const forcedTestMode = systemSettings?.payments_test_mode;
 
       const env = forcedTestMode ? 'sandbox' : getStripeEnvironment();
-      const planKey = newPlan as keyof typeof PLAN_PRICE_IDS['live'];
+      // Mapeia legado: 'pro' -> 'professional'
+      const planKey = (newPlan === 'pro' ? 'professional' : newPlan) as string;
       const priceId = PLAN_PRICE_IDS[env][planKey];
       
       console.log("[Subscription] 🆔 Configuração de checkout:", { 
