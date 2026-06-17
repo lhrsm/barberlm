@@ -45,7 +45,7 @@ const PLAN_PRICE_IDS = {
 
 
 export const Route = createFileRoute("/subscription")({
-  component: withModule("subscriptions", "Assinaturas", SubscriptionComponent),
+  component: SubscriptionComponent,
 });
 
 function SubscriptionComponent() {
