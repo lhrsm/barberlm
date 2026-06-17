@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Lock, Settings } from "lucide-react";
+import { Lock, Settings, Crown, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModules, type ModuleKey } from "@/hooks/use-modules";
 import { ReactNode } from "react";
@@ -10,8 +10,29 @@ interface ModuleGuardProps {
   children: ReactNode;
 }
 
+// Mapeamento de módulo → plano mínimo necessário
+const MODULE_REQUIRED_PLAN: Record<string, { slug: string; name: string }> = {
+  commissions: { slug: "professional", name: "Professional" },
+  loyalty: { slug: "professional", name: "Professional" },
+  campaigns: { slug: "professional", name: "Professional" },
+  coupons: { slug: "professional", name: "Professional" },
+  whatsapp: { slug: "professional", name: "Professional" },
+  subscriptions: { slug: "elite", name: "Elite" },
+  cashback: { slug: "elite", name: "Elite" },
+  products: { slug: "elite", name: "Elite" },
+  automations: { slug: "elite", name: "Elite" },
+  subscription_rewards: { slug: "elite", name: "Elite" },
+  integrations: { slug: "elite", name: "Elite" },
+  tutorials: { slug: "elite", name: "Elite" },
+  pix_key: { slug: "elite", name: "Elite" },
+  multi_units: { slug: "enterprise", name: "Enterprise" },
+  white_label: { slug: "enterprise", name: "Enterprise" },
+  api_access: { slug: "enterprise", name: "Enterprise" },
+  corporate_reports: { slug: "enterprise", name: "Enterprise" },
+};
+
 export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
-  const { isEnabled, isLoading } = useModules();
+  const { isAllowed, isEnabled, plan, isLoading } = useModules();
 
   if (isLoading) {
     return (
@@ -21,7 +42,50 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
     );
   }
 
-  if (!isEnabled(module)) {
+  const allowedByPlan = isAllowed(module);
+  const enabledByTenant = isEnabled(module);
+
+  // Caso 1: não incluso no plano → tela de upgrade
+  if (!allowedByPlan) {
+    const required = MODULE_REQUIRED_PLAN[module];
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="max-w-lg w-full text-center bg-gradient-to-br from-[#0A1020] to-[#0B1426] border border-amber-500/30 rounded-2xl p-8 shadow-2xl">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-amber-500/25 to-transparent border border-amber-500/40 flex items-center justify-center">
+            <Crown className="w-8 h-8 text-amber-400" />
+          </div>
+          <span className="inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 uppercase tracking-wider mb-3">
+            Recurso Premium
+          </span>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {title || "Este recurso"} faz parte do plano {required?.name || "superior"}
+          </h2>
+          <p className="text-sm text-white/60 mb-2">
+            Seu plano atual é <strong className="text-white/80">{plan?.name ?? "—"}</strong>.
+          </p>
+          <p className="text-sm text-white/60 mb-6">
+            Faça upgrade para o plano <strong className="text-amber-300">{required?.name || "superior"}</strong> e desbloqueie este e outros recursos premium.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link to="/subscription" className="flex-1">
+              <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold rounded-xl h-11">
+                Fazer Upgrade
+                <ArrowUpRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+            <Link to="/subscription" className="flex-1">
+              <Button variant="outline" className="w-full border-white/15 bg-white/5 hover:bg-white/10 text-white rounded-xl h-11">
+                Ver Comparativo
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Caso 2: incluso no plano, mas desativado pela barbearia → CTA para ativar
+  if (!enabledByTenant) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] px-4">
         <div className="max-w-md w-full text-center bg-gradient-to-br from-[#0A1020] to-[#0B1426] border border-[rgba(255,184,0,.18)] rounded-2xl p-8 shadow-xl">
@@ -32,7 +96,7 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
             {title ? `${title} desativado` : "Este módulo está desativado"}
           </h2>
           <p className="text-sm text-white/60 mb-6">
-            Este recurso não está habilitado para sua barbearia. Você pode ativá-lo a qualquer momento nas configurações.
+            Este recurso está incluso no seu plano, mas não está ativo. Ative-o nas configurações quando quiser usar.
           </p>
           <Link to="/settings">
             <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold rounded-xl h-11">
