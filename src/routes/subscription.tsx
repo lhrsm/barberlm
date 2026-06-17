@@ -18,7 +18,6 @@ import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import {
-import { withModule } from "@/components/modules/withModule";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,6 +28,7 @@ import { withModule } from "@/components/modules/withModule";
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { withModule } from "@/components/modules/withModule";
 
 const PLAN_PRICE_IDS = {
   sandbox: {

@@ -35,7 +35,6 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-import { withModule } from "@/components/modules/withModule";
   Trophy,
   DollarSign,
   Users,
@@ -49,6 +48,7 @@ import { withModule } from "@/components/modules/withModule";
   Medal,
   Award,
 } from "lucide-react";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/commissions")({
   component: withModule("commissions", "Comissões", CommissionsPage),
