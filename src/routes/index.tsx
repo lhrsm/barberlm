@@ -81,7 +81,7 @@ function LandingPageComponent() {
           </div>
           
           <div className="hidden lg:flex items-center gap-8">
-            {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
+            {["Recursos", "Módulos", "Automações", "Planos", "FAQ"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-bold text-white/60 hover:text-primary transition-colors">
                 {item}
               </a>
@@ -122,7 +122,7 @@ function LandingPageComponent() {
               className="lg:hidden bg-zinc-950 border-b border-white/5 overflow-hidden"
             >
               <div className="flex flex-col p-6 gap-4">
-                {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
+                {["Recursos", "Módulos", "Automações", "Planos", "FAQ"].map((item) => (
                   <a 
                     key={item} 
                     href={`#${item.toLowerCase()}`} 
