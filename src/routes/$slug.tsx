@@ -3466,7 +3466,7 @@ function ShopPageComponent() {
 
 
                   
-                  {shop.cashback_enabled && (
+                  {cashbackEnabled && shop.cashback_enabled && (
                     <div className="bg-emerald-50 p-3 rounded-xl text-[11px] text-center mt-3 border border-emerald-100">
                       <span className="text-zinc-600 font-medium">Você receberá </span>
                       <span className="text-emerald-700 font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
