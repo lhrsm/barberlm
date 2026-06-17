@@ -187,7 +187,7 @@ function LandingPageComponent() {
               transition={{ delay: 0.2 }}
               className="text-lg lg:text-xl text-white/50 max-w-2xl mb-12 font-bold leading-relaxed"
             >
-              Agendamentos online, automações inteligentes, WhatsApp, campanhas e gestão completa em uma única plataforma premium.
+              A plataforma <span className="text-primary">modular</span> para barbearias. Agenda, financeiro, comissões, assinaturas, fidelidade, cashback, loja e automações de WhatsApp — ative apenas os módulos que você precisa.
             </motion.p>
 
             <motion.div 
