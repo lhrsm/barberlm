@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
+import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
 import { CouponManagement } from "@/components/admin/CouponManagement";
 
 import {
