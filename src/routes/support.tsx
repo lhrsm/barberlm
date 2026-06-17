@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { TicketList } from "@/components/support/TicketList";
 import { CreateTicketModal } from "@/components/support/CreateTicketModal";
 import { TicketDetails } from "@/components/support/TicketDetails";
+import { EmailContactModal } from "@/components/support/EmailContactModal";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/support")({
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/support")({
 
 function SupportPage() {
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [isEmailOpen, setIsEmailOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const queryClient = useQueryClient();
 
@@ -114,10 +116,10 @@ function SupportPage() {
                         </p>
                         <Button
                           size="sm"
+                          onClick={() => setIsEmailOpen(true)}
                           className="w-full h-9 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] hover:bg-[#f59e0b]/20 hover:text-[#fbbf24] text-xs font-semibold transition-all"
-                          asChild
                         >
-                          <a href="mailto:suporte@barbex.shop">Enviar e-mail</a>
+                          Enviar e-mail
                         </Button>
                       </div>
                     </div>
@@ -140,6 +142,11 @@ function SupportPage() {
             isOpen={isNewTicketOpen}
             onClose={() => setIsNewTicketOpen(false)}
             onSuccess={handleTicketCreated}
+          />
+
+          <EmailContactModal
+            isOpen={isEmailOpen}
+            onClose={() => setIsEmailOpen(false)}
           />
         </div>
       </div>
