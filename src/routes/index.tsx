@@ -349,7 +349,11 @@ function LandingPageComponent() {
                 ))}
               </div>
 
-              <Button size="lg" className="h-16 px-10 text-lg font-black bg-white text-black hover:bg-zinc-200 rounded-2xl group mt-8">
+              <Button
+                size="lg"
+                className="h-16 px-10 text-lg font-black bg-white text-black hover:bg-zinc-200 rounded-2xl group mt-8"
+                onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
+              >
                 Explorar todos os recursos
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
