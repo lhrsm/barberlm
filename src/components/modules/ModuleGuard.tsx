@@ -34,7 +34,7 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
           <p className="text-sm text-white/60 mb-6">
             Este recurso não está habilitado para sua barbearia. Você pode ativá-lo a qualquer momento nas configurações.
           </p>
-          <Link to="/settings" search={{ tab: "modules" } as any}>
+          <Link to="/settings">
             <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold rounded-xl h-11">
               <Settings className="w-4 h-4 mr-2" />
               Ativar em Configurações
