@@ -449,9 +449,9 @@ function SettingsComponent() {
                         <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
                         <Input 
                           id="profile_name" 
-                          value={formData.business_name} 
-                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                          placeholder="Seu nome"
+                          value={formData.responsible_name} 
+                          onChange={(e) => setFormData({ ...formData, responsible_name: e.target.value })}
+                          placeholder="Seu nome (administrador)"
                           className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>
