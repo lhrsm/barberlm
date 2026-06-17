@@ -53,11 +53,11 @@ export function SaasMetricsCards() {
     queryFn: async () => {
       const [{ data: plans }, { data: shops }] = await Promise.all([
         supabase.from("plans").select("id, slug, name, price_monthly, tier"),
-        supabase.from("barbershops" as any).select("id, plan_id, created_at"),
+        supabase.from("barbershops" as any).select("id, plan_id, created_at") as any,
       ]);
 
-      const plansList = (plans || []) as PlanRow[];
-      const shopsList = (shops || []) as BarbershopRow[];
+      const plansList = (plans || []) as unknown as PlanRow[];
+      const shopsList = (shops || []) as unknown as BarbershopRow[];
       const planById = new Map(plansList.map((p) => [p.id, p]));
 
       let mrr = 0;
