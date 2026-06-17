@@ -3142,6 +3142,7 @@ function ShopPageComponent() {
                   )}
                 </div>
 
+                {couponsEnabled && (
                 <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-lg">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
