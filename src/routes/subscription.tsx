@@ -201,58 +201,70 @@ function SubscriptionComponent() {
     return null;
   }
 
+  // Valores reais dos planos (sincronizados com a tabela `plans`).
   const planConfigs = [
     {
       id: "starter" as PlanType,
       name: "Starter",
-      price: "19,90",
+      price: "49,90",
       description: "Ideal para profissionais individuais.",
       icon: <Zap className="text-amber-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.starter.barbers} Profissional`,
-        `Serviços Ilimitados`,
-        `Produtos Ilimitados`,
-        `Agendamentos Ilimitados`,
-        "1 Conexão WhatsApp",
+        "1 Profissional",
+        "Serviços Ilimitados",
+        "Agenda completa",
+        "Cadastro de clientes",
+        "Financeiro básico",
       ],
-      buttonText: "Assinar Starter",
-      color: "amber"
+      highlight: false,
     },
     {
-      id: "pro" as PlanType,
-      name: "Pro",
-      price: "39,90",
-      description: "Perfeito para barbearias em crescimento.",
+      id: "professional" as PlanType,
+      name: "Professional",
+      price: "99,90",
+      description: "Para barbearias em crescimento.",
       icon: <Crown className="text-amber-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.pro.barbers} Profissionais`,
-        `Serviços Ilimitados`,
-        `Produtos Ilimitados`,
-        `Agendamentos Ilimitados`,
-        "2 Conexões WhatsApp",
-        "Financeiro Completo",
+        "Até 5 Profissionais",
+        "Comissões e fechamentos",
+        "Programa de Fidelidade",
+        "Campanhas e Cupons",
+        "WhatsApp integrado",
       ],
-      buttonText: "Assinar Pro",
-      color: "amber"
+      highlight: true,
     },
     {
       id: "elite" as PlanType,
       name: "Elite",
-      price: "59,90",
-      description: "A solução definitiva sem limites.",
+      price: "149,90",
+      description: "Operação completa, sem limites.",
       icon: <Rocket className="text-amber-500 w-5 h-5" />,
       features: [
         "Profissionais Ilimitados",
-        "Serviços Ilimitados",
-        "Produtos Ilimitados",
-        "Agendamentos Ilimitados",
-        "Conexões WhatsApp Ilimitadas",
-        "Suporte Prioritário",
+        "Clube de Assinaturas",
+        "Cashback e Produtos",
+        "Automações WhatsApp",
+        "Integrações + PIX",
       ],
-      buttonText: "Assinar Elite",
-      color: "amber"
-    }
+      highlight: false,
+    },
+    {
+      id: "enterprise" as PlanType,
+      name: "Enterprise",
+      price: "249,90",
+      description: "Multi-unidade e white-label.",
+      icon: <Crown className="text-amber-500 w-5 h-5" />,
+      features: [
+        "Tudo do Elite",
+        "Multi-unidades",
+        "White-label",
+        "Acesso à API",
+        "Relatórios corporativos",
+      ],
+      highlight: false,
+    },
   ];
+
 
   return (
     <AppLayout>
