@@ -204,7 +204,7 @@ function LandingPageComponent() {
                 Começar teste grátis
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button size="lg" variant="ghost" className="h-16 px-10 text-lg font-bold text-white hover:bg-white/5 group">
+              <Button size="lg" variant="ghost" className="h-16 px-10 text-lg font-bold text-white border border-white/20 rounded-2xl bg-white/5 hover:bg-white/10 hover:border-primary/60 hover:text-primary hover:shadow-[0_10px_30px_-15px_rgba(234,179,8,0.4)] transition-all duration-300 group">
                 Ver demonstração
                 <Play className="ml-2 h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
               </Button>
