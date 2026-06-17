@@ -466,52 +466,38 @@ function CommissionsPage() {
               ))}
             </TabsList>
 
-            {/* Mobile accordion */}
-            <div className="md:hidden">
-              <Accordion type="single" collapsible className="border border-zinc-800/80 bg-[#0b0f17] rounded-2xl">
-                <AccordionItem value="nav" className="border-0">
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                    <span className="flex items-center gap-2 text-sm font-bold text-white">
-                      {(() => {
-                        const map: Record<string, { icon: any; label: string }> = {
-                          dashboard: { icon: TrendingUp, label: "Dashboard" },
-                          ranking: { icon: Trophy, label: "Ranking" },
-                          reports: { icon: Receipt, label: "Relatórios" },
-                          closings: { icon: Wallet, label: "Fechamentos" },
-                        };
-                        const cur = map[commTab] || map.dashboard;
-                        const Icon = cur.icon;
-                        return (<><Icon size={16} className="text-emerald-400" /> {cur.label}</>);
-                      })()}
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-2 pb-2">
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {[
-                        { v: "dashboard", icon: TrendingUp, label: "Dashboard" },
-                        { v: "ranking", icon: Trophy, label: "Ranking" },
-                        { v: "reports", icon: Receipt, label: "Relatórios" },
-                        { v: "closings", icon: Wallet, label: "Fechamentos" },
-                      ].map(({ v, icon: Icon, label }) => (
-                        <Button
-                          key={v}
-                          variant="ghost"
-                          onClick={() => setCommTab(v)}
-                          className={cn(
-                            "justify-start gap-2 rounded-lg h-10 font-bold",
-                            commTab === v
-                              ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20"
-                              : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                          )}
-                        >
-                          <Icon size={16} /> {label}
-                        </Button>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+            {/* Mobile premium tabs (Mercado Pago style) */}
+            <div className="md:hidden rounded-[24px] border border-emerald-500/15 bg-[#0A1020] overflow-hidden">
+              <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
+                <div className="flex w-max min-w-full items-end gap-1">
+                  {[
+                    { v: "dashboard", icon: TrendingUp, label: "Dashboard" },
+                    { v: "ranking", icon: Trophy, label: "Ranking" },
+                    { v: "reports", icon: Receipt, label: "Relatórios" },
+                    { v: "closings", icon: Wallet, label: "Fechamentos" },
+                  ].map(({ v, icon: Icon, label }) => {
+                    const active = commTab === v;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setCommTab(v)}
+                        className={cn(
+                          "group relative inline-flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[12px] font-semibold uppercase tracking-wider transition-all duration-300 rounded-t-[22px] focus-visible:outline-none",
+                          active
+                            ? "bg-white text-[#111111] font-bold shadow-[0_-2px_12px_rgba(0,0,0,.15)]"
+                            : "text-white/70 hover:text-white"
+                        )}
+                      >
+                        <Icon size={15} className="opacity-90" />
+                        <span>{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+
 
             {/* DASHBOARD */}
             <TabsContent value="dashboard" className="mt-6 space-y-4">
