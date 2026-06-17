@@ -269,17 +269,27 @@ function SubscriptionComponent() {
                 </p>
               </div>
             </div>
-            {plan !== 'free' && (
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button
                 size="sm"
-                onClick={handleManageSubscription}
-                disabled={updating}
+                onClick={() => setCompareOpen(true)}
                 className="w-full sm:w-auto shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-11 sm:h-9 rounded-[14px] sm:rounded-md px-3 transition-all"
               >
-                {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
-                Gerenciar
+                <Scale className="w-3.5 h-3.5 mr-1.5" /> Ver Comparativo
               </Button>
-            )}
+              {plan !== 'free' && (
+                <Button
+                  size="sm"
+                  onClick={handleManageSubscription}
+                  disabled={updating}
+                  className="w-full sm:w-auto shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-11 sm:h-9 rounded-[14px] sm:rounded-md px-3 transition-all"
+                >
+                  {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
+                  Gerenciar Assinatura
+                </Button>
+              )}
+            </div>
+
           </header>
 
           {/* Status Alerts */}
