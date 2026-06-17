@@ -72,6 +72,22 @@ function SubscriptionComponent() {
 
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [downgradeTarget, setDowngradeTarget] = useState<PlanType | null>(null);
+
+  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, elite: 3 };
+
+  const requestPlanChange = (newPlan: PlanType) => {
+    const current = planRank[plan ?? 'free'] ?? 0;
+    const target = planRank[newPlan] ?? 0;
+    if (target < current) {
+      setDowngradeTarget(newPlan);
+      return;
+    }
+    handlePlanChange(newPlan);
+  };
+
+
 
   const handlePlanChange = async (newPlan: PlanType) => {
     console.log("[Subscription] 👆 Clique em handlePlanChange:", { newPlan, currentPlan: plan });
