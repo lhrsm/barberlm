@@ -269,11 +269,6 @@ function AutomationsComponent() {
           </Card>
         </div>
 
-        <Tabs defaultValue="automations">
-          <TabsList className="bg-[#0F172A] border-white/5">
-            <TabsTrigger value="automations">Configurações</TabsTrigger>
-            <TabsTrigger value="logs">Histórico</TabsTrigger>
-          </TabsList>
           
         <PremiumTabs defaultValue="active" className="space-y-0">
           <PremiumTabsList
