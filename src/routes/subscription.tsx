@@ -79,7 +79,7 @@ function SubscriptionComponent() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<PlanType | null>(null);
 
-  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, elite: 3 };
+  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, professional: 2, elite: 3, enterprise: 4 };
 
   const requestPlanChange = (newPlan: PlanType) => {
     const current = planRank[plan ?? 'free'] ?? 0;
