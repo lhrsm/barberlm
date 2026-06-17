@@ -761,19 +761,19 @@ function ShopPageComponent() {
         const [plansRes, loyaltyRes, couponsRes] = await Promise.all([
           supabase
             .from("subscription_plans")
-            .select("id, name, description, price, billing_cycle, max_uses_per_month, benefits, is_active, display_order")
-            .eq("user_id", currentShop.id)
-            .eq("is_active", true)
+            .select("id, name, description, monthly_price, max_uses_per_month, benefits, included_benefits, active, display_order")
+            .eq("tenant_id", currentShop.id)
+            .eq("active", true)
             .order("display_order", { ascending: true }),
           supabase
             .from("loyalty_settings")
             .select("*")
-            .eq("user_id", currentShop.id)
+            .eq("tenant_id", currentShop.id)
             .maybeSingle(),
           supabase
             .from("coupons")
-            .select("id, code, discount_type, discount_value, valid_until, description, active, applies_to")
-            .eq("user_id", currentShop.id)
+            .select("id, code, type, value, expires_at, applies_to, active")
+            .eq("tenant_id", currentShop.id)
             .eq("active", true)
             .limit(6),
         ]);
