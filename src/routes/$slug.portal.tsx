@@ -85,7 +85,8 @@ function ClientPortalComponent() {
   const [customerData, setCustomerData] = useState<any>(null);
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [loyaltyRewards, setLoyaltyRewards] = useState<any[]>([]);
-  const [mySubscription, setMySubscription] = useState<any>(null);
+  const [_mySubscription, setMySubscription] = useState<any>(null);
+  const mySubscription = subscriptionsEnabled ? _mySubscription : null;
   const [cardOpen, setCardOpen] = useState(false);
   const [subRewards, setSubRewards] = useState<any[]>([]);
   const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
