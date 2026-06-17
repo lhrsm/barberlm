@@ -1890,47 +1890,124 @@ function ShopPageComponent() {
         <>
           {/* Header */}
           {!isEmbedded && (
-            <header className={cn(
-              "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
-              scrolled ? "py-2" : "py-6"
-            )}>
-              <motion.div 
-                initial={{ y: -100, opacity: 0 }}
+            <header
+              className={cn(
+                "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+                "backdrop-blur-xl border-b",
+                scrolled
+                  ? "bg-[rgba(5,11,24,0.92)] border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+                  : "bg-[rgba(5,11,24,0.65)] border-white/[0.06] shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+              )}
+            >
+              <motion.div
+                initial={{ y: -40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 className={cn(
-                  "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
-                  scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
+                  "mx-auto max-w-7xl flex items-center justify-between gap-4 px-4 sm:px-6 transition-all duration-500",
+                  scrolled ? "h-16" : "h-20"
                 )}
               >
-                <div className="flex items-center gap-3">
+                {/* Logo */}
+                <a href="#inicio" className="flex items-center shrink-0 group">
                   {shop.logo_url ? (
-                    <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
+                    <img
+                      src={shop.logo_url}
+                      alt={shop.business_name}
+                      className={cn(
+                        "rounded-full object-cover ring-1 ring-white/10 transition-all duration-500 group-hover:ring-[#D4AF37]/40",
+                        scrolled ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14"
+                      )}
+                    />
                   ) : (
-                    <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
-                      <Scissors className="h-5 w-5 text-[#D4AF37]" />
+                    <div
+                      className={cn(
+                        "rounded-full grid place-items-center bg-[#0B1324] border border-[rgba(255,184,0,0.25)] transition-all duration-500 group-hover:border-[#D4AF37]/60 group-hover:shadow-[0_0_24px_rgba(212,175,55,0.25)]",
+                        scrolled ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14"
+                      )}
+                    >
+                      <Scissors className={cn("text-[#D4AF37] transition-all", scrolled ? "h-5 w-5" : "h-6 w-6")} />
                     </div>
                   )}
-                  <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
-                </div>
+                </a>
 
-                <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
-                  <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
-                  <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
-                  {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (<a href="#clube" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Clube</a>)}
-                  {productsEnabled && (<a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>)}
-                  <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
-                  <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
+                {/* Nav desktop centralizado */}
+                <nav className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 absolute left-1/2 -translate-x-1/2">
+                  {[
+                    { href: "#inicio", label: "Início" },
+                    { href: "#servicos", label: "Serviços" },
+                    ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Clube" }] : []),
+                    ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+                    { href: "#profissionais", label: "Profissionais" },
+                    { href: "#contato", label: "Contato" },
+                  ].map((it) => (
+                    <a
+                      key={it.href}
+                      href={it.href}
+                      className="relative py-1 transition-colors hover:text-[#D4AF37] after:absolute after:left-1/2 after:-bottom-1 after:h-px after:w-0 after:-translate-x-1/2 after:bg-[#D4AF37] after:transition-all hover:after:w-full"
+                    >
+                      {it.label}
+                    </a>
+                  ))}
                 </nav>
 
-                <Button 
-                  className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
-                  onClick={handleBookingAction}
-                >
-                  {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
-                </Button>
+                {/* Ações direita */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    onClick={handleBookingAction}
+                    className="rounded-full bg-[#D4AF37] text-black hover:bg-[#e6c558] transition-all font-bold tracking-wide h-11 px-6 md:h-12 md:px-8 shadow-[0_6px_20px_rgba(212,175,55,0.25)]"
+                  >
+                    {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
+                  </Button>
+
+                  {/* Hambúrguer mobile */}
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden h-11 w-11 rounded-full text-white hover:bg-white/10 hover:text-[#D4AF37]"
+                        aria-label="Abrir menu"
+                      >
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="bg-[#05070d] border-l border-white/10 text-white w-[280px] p-0">
+                      <div className="flex items-center gap-3 p-6 border-b border-white/10">
+                        {shop.logo_url ? (
+                          <img src={shop.logo_url} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full grid place-items-center bg-[#0B1324] border border-[rgba(255,184,0,0.25)]">
+                            <Scissors className="h-5 w-5 text-[#D4AF37]" />
+                          </div>
+                        )}
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Menu</span>
+                      </div>
+                      <nav className="flex flex-col p-2">
+                        {[
+                          { href: "#inicio", label: "Início" },
+                          { href: "#servicos", label: "Serviços" },
+                          ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Clube" }] : []),
+                          ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+                          { href: "#profissionais", label: "Profissionais" },
+                          { href: "#contato", label: "Contato" },
+                        ].map((it) => (
+                          <a
+                            key={it.href}
+                            href={it.href}
+                            className="px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-[0.15em] text-white/80 hover:bg-white/5 hover:text-[#D4AF37] transition-colors"
+                          >
+                            {it.label}
+                          </a>
+                        ))}
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
+                </div>
               </motion.div>
             </header>
           )}
+
+
 
 
       <main className={cn("space-y-0 pb-24 md:pb-0", isEmbedded && "py-0 pb-0")}>
