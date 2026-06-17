@@ -2798,128 +2798,173 @@ function ShopPageComponent() {
             </DialogHeader>
           )}
 
-          <div className="flex-1 pr-1">
+          <div className={cn("flex-1", bookingStep === 1 ? "" : "pr-1")}>
             {bookingStep === 1 && (
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-6 py-4"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid md:grid-cols-2 min-h-full"
               >
-                <div className="space-y-2">
-                  <h4 className="text-2xl font-bold text-black tracking-tight">Olá! 👋</h4>
-                  <p className="text-zinc-600 text-sm font-medium">
-                    Informe seu WhatsApp para começarmos seu agendamento.
-                  </p>
+                {/* Coluna esquerda: imagem premium */}
+                <div className="relative h-[180px] md:h-auto md:min-h-[560px] overflow-hidden md:rounded-l-[2.25rem]">
+                  <img
+                    src={shop.logo_url || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80"}
+                    alt={shop.business_name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-[#D4AF37]/30 md:rounded-l-[2.25rem] pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4AF37]/95 text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+                      <CalendarDays size={12} /> Agendamento
+                    </span>
+                    <h3 className="mt-3 text-white text-2xl md:text-3xl font-black tracking-tight leading-tight drop-shadow-lg">
+                      Agende seu horário
+                    </h3>
+                    <p className="mt-2 text-white/85 text-sm md:text-[15px] font-medium leading-snug max-w-xs drop-shadow">
+                      Escolha seu serviço, profissional favorito e garanta seu atendimento com praticidade.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300">
-                    <div className="flex justify-between items-center mb-3">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Seu WhatsApp</Label>
-                      {(submitting || isSearchingCustomer) && (
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-sky-600 animate-pulse">
-                          Buscando...
-                        </span>
-                      )}
-                    </div>
-                    <div className="relative group international-phone-portal">
-                      <PhoneInput
-                        defaultCountry={typeof window !== 'undefined' ? (navigator.language.split('-')[1]?.toLowerCase() || 'br') : 'br'}
-                        value={customerPhone}
-                        onChange={(phone) => setCustomerPhone(phone)}
-                        placeholder="(00) 00000-0000"
-                        className="relative z-10 w-full"
-                        inputClassName="!w-full !h-14 !bg-white !border-zinc-200 !text-xl !font-medium !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
-                        countrySelectorStyleProps={{
-                          buttonClassName: "!h-14 !bg-white !border-zinc-200 !px-4 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
-                        }}
-                      />
-                      <style>{`
-                        .international-phone-portal .react-international-phone-input-container {
-                          width: 100%;
-                          border: none;
-                          background: transparent;
-                        }
-                        .international-phone-portal .react-international-phone-input {
-                          width: 100% !important;
-                          border: 1px solid #e4e4e7 !important;
-                          border-radius: 0.75rem !important;
-                        }
-                        .international-phone-portal .react-international-phone-country-selector-button {
-                          border: 1px solid #e4e4e7 !important;
-                          border-right: none !important;
-                          border-radius: 0.75rem 0 0 0.75rem !important;
-                        }
-                      `}</style>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                      {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
-                        <motion.div 
-                          key={customerId ? "found" : "new"}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="mt-2"
-                        >
-                          {customerId ? (
-                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 flex items-center gap-4 animate-in fade-in slide-in-from-top-1">
-                              <div className="h-12 w-12 rounded-full bg-sky-50 flex items-center justify-center shrink-0">
-                                <CheckCircle2 className="text-sky-600" size={24} />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-lg font-bold text-zinc-900 tracking-tight leading-tight">
-                                  Olá, {customerName.split(' ')[0]}! 👋
-                                </h3>
-                                <p className="text-xs text-zinc-500 font-medium">Que bom ter você de volta!</p>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 space-y-3 animate-in fade-in slide-in-from-top-1">
-                              <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
-                              <Input 
-                                placeholder="Digite seu nome completo" 
-                                value={customerName} 
-                                onChange={(e) => setCustomerName(e.target.value)}
-                                className="bg-white text-black border border-zinc-200 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-sky-600/50"
-                              />
-                            </div>
-                          )}
-                          {customerId && activeSubscription && (
-                            <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-4 shadow-md">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Crown className="text-amber-600" size={18} />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Plano Ativo</span>
-                              </div>
-                              <p className="text-base font-bold text-amber-900">{activeSubscription.plan?.name || "Assinatura"}</p>
-                              {activeSubscription.next_billing_at && (
-                                <p className="text-[11px] text-amber-700 mt-1">
-                                  Renovação: {format(parseISO(activeSubscription.next_billing_at), "dd/MM/yyyy", { locale: ptBR })}
-                                </p>
-                              )}
-                              <p className="text-[11px] text-amber-800 mt-1">
-                                Serviços inclusos no plano serão aplicados automaticamente no agendamento.
-                              </p>
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
-
-                    </AnimatePresence>
+                {/* Coluna direita: formulário */}
+                <div className="flex flex-col p-6 md:p-8 gap-5">
+                  <div className="space-y-1.5">
+                    <h4 className="text-2xl md:text-[26px] font-black text-black tracking-tight leading-tight">
+                      Bem-vindo à {shop.business_name}
+                    </h4>
+                    <p className="text-zinc-600 text-sm font-medium leading-snug">
+                      Informe seu WhatsApp para começarmos seu agendamento de forma rápida e segura.
+                    </p>
+                    <p className="text-[11px] text-zinc-500 leading-snug pt-1">
+                      Você poderá escolher serviço, profissional, data e horário nos próximos passos.
+                    </p>
                   </div>
 
-                  <Button 
-                    className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
-                    onClick={handlePhoneCheck}
-                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
-                  >
-                    {submitting ? "Verificando..." : "Continuar"}
-                  </Button>
-                </div>
+                  <div className="space-y-3">
+                    <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-4 transition-all duration-300">
+                      <div className="flex justify-between items-center mb-2.5">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1 flex items-center gap-1.5">
+                          <MessageSquare size={12} className="text-[#D4AF37]" /> Seu WhatsApp
+                        </Label>
+                        {(submitting || isSearchingCustomer) && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-sky-600 animate-pulse">
+                            Buscando...
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative group international-phone-portal">
+                        <PhoneInput
+                          defaultCountry={typeof window !== 'undefined' ? (navigator.language.split('-')[1]?.toLowerCase() || 'br') : 'br'}
+                          value={customerPhone}
+                          onChange={(phone) => setCustomerPhone(phone)}
+                          placeholder="(71) 99999-9999"
+                          className="relative z-10 w-full"
+                          inputClassName="!w-full !h-14 !bg-white !border-zinc-200 !text-lg !font-semibold !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
+                          countrySelectorStyleProps={{
+                            buttonClassName: "!h-14 !bg-white !border-zinc-200 !px-3 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
+                          }}
+                        />
+                        <style>{`
+                          .international-phone-portal .react-international-phone-input-container { width: 100%; border: none; background: transparent; }
+                          .international-phone-portal .react-international-phone-input { width: 100% !important; border: 1px solid #e4e4e7 !important; border-radius: 0.75rem !important; }
+                          .international-phone-portal .react-international-phone-country-selector-button { border: 1px solid #e4e4e7 !important; border-right: none !important; border-radius: 0.75rem 0 0 0.75rem !important; }
+                        `}</style>
+                      </div>
 
-                <p className="text-[10px] text-center text-zinc-400 font-bold uppercase tracking-widest pt-2">
-                  Ambiente Seguro
-                </p>
+                      <AnimatePresence mode="wait">
+                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
+                          <motion.div
+                            key={customerId ? "found" : "new"}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="mt-3"
+                          >
+                            {customerId ? (
+                              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                  <CheckCircle2 className="text-emerald-600" size={20} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-base font-bold text-emerald-900 tracking-tight leading-tight truncate">
+                                    Olá, {customerName.split(' ')[0]}! 👋
+                                  </h3>
+                                  <p className="text-[11px] text-emerald-700 font-medium">Que bom ter você de volta!</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
+                                <Input
+                                  placeholder="Digite seu nome completo"
+                                  value={customerName}
+                                  onChange={(e) => setCustomerName(e.target.value)}
+                                  className="bg-white text-black border border-zinc-200 placeholder:text-zinc-400 rounded-xl h-12 text-base font-medium focus-visible:ring-[#D4AF37]/50"
+                                />
+                              </div>
+                            )}
+                            {customerId && activeSubscription && (
+                              <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3.5 shadow-md">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <Crown className="text-amber-600" size={16} />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Plano Ativo</span>
+                                </div>
+                                <p className="text-sm font-bold text-amber-900">{activeSubscription.plan?.name || "Assinatura"}</p>
+                                {activeSubscription.next_billing_at && (
+                                  <p className="text-[11px] text-amber-700 mt-0.5">
+                                    Renovação: {format(parseISO(activeSubscription.next_billing_at), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Benefícios */}
+                    <ul className="grid grid-cols-1 gap-1.5 px-1">
+                      {[
+                        "Agendamento rápido",
+                        "Escolha seu barbeiro",
+                        "Confirmação pelo WhatsApp",
+                        ...(shop.subscriptions_enabled ? ["Benefícios para assinantes"] : []),
+                      ].map((b) => (
+                        <li key={b} className="flex items-center gap-2 text-[12.5px] text-zinc-700 font-medium">
+                          <span className="h-5 w-5 rounded-full bg-[#D4AF37]/15 text-[#B8860B] flex items-center justify-center shrink-0">
+                            <CheckCircle2 size={13} />
+                          </span>
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Button
+                      className="w-full h-14 rounded-2xl font-extrabold text-black text-base tracking-tight transition-all duration-200 hover:brightness-105 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                      style={{
+                        background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                        boxShadow: '0 12px 28px rgba(245,158,11,.28)',
+                      }}
+                      onClick={handlePhoneCheck}
+                      disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
+                    >
+                      {submitting ? "Verificando..." : "Continuar agendamento"}
+                    </Button>
+                  </div>
+
+                  <div className="mt-auto pt-3 border-t border-zinc-100">
+                    <div className="flex items-start gap-2">
+                      <Lock size={14} className="text-zinc-500 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-[12px] font-bold text-zinc-700 leading-tight">Seus dados estão seguros</p>
+                        <p className="text-[11px] text-zinc-500 leading-snug mt-0.5">
+                          Usamos seu WhatsApp apenas para identificar seu cadastro e enviar informações do agendamento.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 
