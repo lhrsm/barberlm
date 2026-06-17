@@ -468,13 +468,14 @@ function LandingPageComponent() {
             {/* Starter */}
             <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-xl font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Para barbeiros individuais.</p>
+              <p className="text-sm text-white/40 font-bold mb-8 italic">Para quem está começando.</p>
               <div className="text-4xl font-black text-white mb-8">R$ 49,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Até 2 Barbeiros" />
-                <PricingItem text="Agenda Inteligente" />
-                <PricingItem text="Gestão de Clientes" />
-                <PricingItem text="Financeiro Básico" />
+                <PricingItem text="Agenda inteligente" />
+                <PricingItem text="Cadastro de clientes" />
+                <PricingItem text="Serviços" />
+                <PricingItem text="Barbeiros" />
+                <PricingItem text="Financeiro básico" />
               </ul>
               <Button 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
@@ -484,19 +485,19 @@ function LandingPageComponent() {
               </Button>
             </div>
 
-            {/* Pro */}
+            {/* Professional */}
             <div className="p-12 rounded-[3rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)] lg:scale-110 z-10">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Mais Vendido</div>
-              <h4 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Pro</h4>
+              <h4 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
               <p className="text-sm text-white/40 font-bold mb-8 italic">Para barbearias em expansão.</p>
               <div className="text-6xl font-black text-white mb-8">R$ 89,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Até 10 Barbeiros" />
-                <PricingItem text="WhatsApp Automático" />
-                <PricingItem text="Sistema de Cashback" />
-                <PricingItem text="Financeiro Completo" />
-                <PricingItem text="Marketing & Campanhas" />
-                <PricingItem text="15 Dias Grátis" />
+                <PricingItem text="Tudo do Starter" />
+                <PricingItem text="Comissões dos barbeiros" />
+                <PricingItem text="Fidelidade" />
+                <PricingItem text="Cupons" />
+                <PricingItem text="WhatsApp" />
+                <PricingItem text="Campanhas" />
               </ul>
               <Button 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
@@ -509,13 +510,15 @@ function LandingPageComponent() {
             {/* Elite */}
             <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-xl font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Gestão total sem limites.</p>
+              <p className="text-sm text-white/40 font-bold mb-8 italic">Gestão modular sem limites.</p>
               <div className="text-4xl font-black text-white mb-8">R$ 149,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Barbeiros Ilimitados" />
-                <PricingItem text="Suporte VIP 24h" />
-                <PricingItem text="Mentoria de Gestão" />
-                <PricingItem text="Automações Premium" />
+                <PricingItem text="Tudo do Professional" />
+                <PricingItem text="Assinaturas / Clube Premium" />
+                <PricingItem text="Loja de produtos" />
+                <PricingItem text="Cashback" />
+                <PricingItem text="Automações avançadas" />
+                <PricingItem text="Relatórios premium" />
               </ul>
               <Button 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
