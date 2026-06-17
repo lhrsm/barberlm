@@ -171,6 +171,7 @@ function SettingsComponent() {
         const profile = profileData[0];
         setFormData({
           business_name: profile.business_name || "",
+          responsible_name: (profile as any).responsible_name || "",
           slug: profile.slug || "",
           whatsapp_enabled: profile.whatsapp_enabled || false,
           scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
