@@ -81,7 +81,7 @@ function LandingPageComponent() {
           </div>
           
           <div className="hidden lg:flex items-center gap-8">
-            {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
+            {["Recursos", "Módulos", "Automações", "Planos", "FAQ"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-bold text-white/60 hover:text-primary transition-colors">
                 {item}
               </a>
@@ -122,7 +122,7 @@ function LandingPageComponent() {
               className="lg:hidden bg-zinc-950 border-b border-white/5 overflow-hidden"
             >
               <div className="flex flex-col p-6 gap-4">
-                {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
+                {["Recursos", "Módulos", "Automações", "Planos", "FAQ"].map((item) => (
                   <a 
                     key={item} 
                     href={`#${item.toLowerCase()}`} 
@@ -187,7 +187,7 @@ function LandingPageComponent() {
               transition={{ delay: 0.2 }}
               className="text-lg lg:text-xl text-white/50 max-w-2xl mb-12 font-bold leading-relaxed"
             >
-              Agendamentos online, automações inteligentes, WhatsApp, campanhas e gestão completa em uma única plataforma premium.
+              A plataforma <span className="text-primary">modular</span> para barbearias. Agenda, financeiro, comissões, assinaturas, fidelidade, cashback, loja e automações de WhatsApp — ative apenas os módulos que você precisa.
             </motion.p>
 
             <motion.div 
@@ -369,6 +369,59 @@ function LandingPageComponent() {
         </div>
       </section>
 
+      {/* Modular Section */}
+      <section id="módulos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-primary/5 blur-[140px] -z-10 rounded-full" />
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 lg:mb-24">
+            <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">Modular</h2>
+            <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight mb-6">
+              Escolha os módulos que <br />
+              <span className="text-primary italic">sua barbearia precisa.</span>
+            </h3>
+            <p className="text-lg lg:text-xl text-white/50 max-w-2xl mx-auto font-bold leading-relaxed">
+              O Barbex se adapta ao modelo da sua barbearia. Ative apenas os módulos que fazem sentido para o seu negócio.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
+            {[
+              { title: "Agenda", icon: <Calendar />, desc: "Agendamentos online 24/7" },
+              { title: "Financeiro", icon: <CircleDollarSign />, desc: "Fluxo de caixa e DRE" },
+              { title: "Clientes", icon: <Users />, desc: "CRM com histórico completo" },
+              { title: "Barbeiros", icon: <Scissors />, desc: "Painel individual por barbeiro" },
+              { title: "Loja", icon: <Briefcase />, desc: "Venda de produtos e estoque" },
+              { title: "Assinaturas", icon: <CreditCard />, desc: "Clube premium recorrente" },
+              { title: "Fidelidade", icon: <Star />, desc: "Pontos e recompensas" },
+              { title: "Cashback", icon: <TrendingUp />, desc: "Saldo a cada visita" },
+              { title: "Automações", icon: <Zap />, desc: "WhatsApp no piloto automático" },
+              { title: "Comissões", icon: <BarChart3 />, desc: "Cálculo automático por barbeiro" },
+            ].map((mod, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.04 }}
+                whileHover={{ y: -4 }}
+                className="p-5 lg:p-6 rounded-3xl bg-zinc-900/60 border border-white/5 hover:border-primary/30 hover:bg-zinc-900 transition-all group"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                  {mod.icon}
+                </div>
+                <h4 className="text-base font-black text-white mb-1">{mod.title}</h4>
+                <p className="text-xs text-white/40 font-bold leading-snug">{mod.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-12 flex items-center justify-center gap-2 text-sm font-bold text-white/40">
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+            <span>Ative ou desative qualquer módulo a qualquer momento.</span>
+          </div>
+        </div>
+      </section>
+
       {/* Automation Flow Section */}
       <section id="automações" className="py-24 lg:py-40 px-6 bg-zinc-950/40 relative">
         <div className="max-w-7xl mx-auto">
@@ -415,13 +468,14 @@ function LandingPageComponent() {
             {/* Starter */}
             <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-xl font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Para barbeiros individuais.</p>
+              <p className="text-sm text-white/40 font-bold mb-8 italic">Para quem está começando.</p>
               <div className="text-4xl font-black text-white mb-8">R$ 49,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Até 2 Barbeiros" />
-                <PricingItem text="Agenda Inteligente" />
-                <PricingItem text="Gestão de Clientes" />
-                <PricingItem text="Financeiro Básico" />
+                <PricingItem text="Agenda inteligente" />
+                <PricingItem text="Cadastro de clientes" />
+                <PricingItem text="Serviços" />
+                <PricingItem text="Barbeiros" />
+                <PricingItem text="Financeiro básico" />
               </ul>
               <Button 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
@@ -431,19 +485,19 @@ function LandingPageComponent() {
               </Button>
             </div>
 
-            {/* Pro */}
+            {/* Professional */}
             <div className="p-12 rounded-[3rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)] lg:scale-110 z-10">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Mais Vendido</div>
-              <h4 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Pro</h4>
+              <h4 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
               <p className="text-sm text-white/40 font-bold mb-8 italic">Para barbearias em expansão.</p>
               <div className="text-6xl font-black text-white mb-8">R$ 89,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Até 10 Barbeiros" />
-                <PricingItem text="WhatsApp Automático" />
-                <PricingItem text="Sistema de Cashback" />
-                <PricingItem text="Financeiro Completo" />
-                <PricingItem text="Marketing & Campanhas" />
-                <PricingItem text="15 Dias Grátis" />
+                <PricingItem text="Tudo do Starter" />
+                <PricingItem text="Comissões dos barbeiros" />
+                <PricingItem text="Fidelidade" />
+                <PricingItem text="Cupons" />
+                <PricingItem text="WhatsApp" />
+                <PricingItem text="Campanhas" />
               </ul>
               <Button 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
@@ -456,13 +510,15 @@ function LandingPageComponent() {
             {/* Elite */}
             <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-xl font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
-              <p className="text-sm text-white/40 font-bold mb-8 italic">Gestão total sem limites.</p>
+              <p className="text-sm text-white/40 font-bold mb-8 italic">Gestão modular sem limites.</p>
               <div className="text-4xl font-black text-white mb-8">R$ 149,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Barbeiros Ilimitados" />
-                <PricingItem text="Suporte VIP 24h" />
-                <PricingItem text="Mentoria de Gestão" />
-                <PricingItem text="Automações Premium" />
+                <PricingItem text="Tudo do Professional" />
+                <PricingItem text="Assinaturas / Clube Premium" />
+                <PricingItem text="Loja de produtos" />
+                <PricingItem text="Cashback" />
+                <PricingItem text="Automações avançadas" />
+                <PricingItem text="Relatórios premium" />
               </ul>
               <Button 
                 className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl italic uppercase tracking-wider transition-all hover:scale-105 active:scale-95" 
