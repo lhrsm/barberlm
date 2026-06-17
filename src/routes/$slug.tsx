@@ -54,6 +54,9 @@ function ShopPageComponent() {
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [publicSubscriptionPlans, setPublicSubscriptionPlans] = useState<any[]>([]);
+  const [publicLoyaltySettings, setPublicLoyaltySettings] = useState<any>(null);
+  const [publicActiveCoupons, setPublicActiveCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
@@ -751,10 +754,59 @@ function ShopPageComponent() {
       setServices(servicesRes.data || []);
       setBarbers(barbersRes.data || []);
       setProducts(productsRes.data || []);
-      
-      // Atualizar o título da página dinamicamente
+
+      // Public extras: subscription plans, loyalty settings, active coupons
+      // These are best-effort — failures (e.g. RLS) are silently ignored so the page still renders.
+      try {
+        const [plansRes, loyaltyRes, couponsRes] = await Promise.all([
+          supabase
+            .from("subscription_plans")
+            .select("id, name, description, monthly_price, max_uses_per_month, benefits, included_benefits, active, display_order")
+            .eq("tenant_id", currentShop.id)
+            .eq("active", true)
+            .order("display_order", { ascending: true }),
+          supabase
+            .from("loyalty_settings")
+            .select("*")
+            .eq("tenant_id", currentShop.id)
+            .maybeSingle(),
+          supabase
+            .from("coupons")
+            .select("id, code, type, value, expires_at, applies_to, active")
+            .eq("tenant_id", currentShop.id)
+            .eq("active", true)
+            .limit(6),
+        ]);
+        setPublicSubscriptionPlans(plansRes.data || []);
+        setPublicLoyaltySettings(loyaltyRes.data || null);
+        setPublicActiveCoupons(couponsRes.data || []);
+      } catch (e) {
+        console.warn("Public extras fetch failed (non-blocking):", e);
+      }
+
+      // SEO dinâmico
       if (typeof document !== 'undefined') {
-        document.title = `${currentShop.business_name} | Barbearia Premium`;
+        document.title = `${currentShop.business_name} | Agende online`;
+        const descContent = `Agende seu horário na ${currentShop.business_name} de forma rápida e fácil. Cortes premium, profissionais qualificados e atendimento de excelência.`;
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.setAttribute('name', 'description');
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.setAttribute('content', descContent);
+        const setOg = (prop: string, content: string) => {
+          let el = document.querySelector(`meta[property="${prop}"]`);
+          if (!el) {
+            el = document.createElement('meta');
+            el.setAttribute('property', prop);
+            document.head.appendChild(el);
+          }
+          el.setAttribute('content', content);
+        };
+        setOg('og:title', `${currentShop.business_name} | Agende online`);
+        setOg('og:description', descContent);
+        if (currentShop.logo_url) setOg('og:image', currentShop.logo_url);
       }
     } catch (error) {
       console.error("Error fetching shop data:", error);
@@ -1863,6 +1915,7 @@ function ShopPageComponent() {
                 <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
                   <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
                   <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
+                  {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (<a href="#clube" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Clube</a>)}
                   {productsEnabled && (<a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>)}
                   <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
                   <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
@@ -1879,7 +1932,7 @@ function ShopPageComponent() {
           )}
 
 
-      <main className={cn("space-y-0", isEmbedded && "py-0")}>
+      <main className={cn("space-y-0 pb-24 md:pb-0", isEmbedded && "py-0 pb-0")}>
         {/* Hero Section */}
         <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
           {/* Background Image with Parallax effect could be added here */}
@@ -1893,26 +1946,42 @@ function ShopPageComponent() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-4"
+              className="space-y-5 flex flex-col items-center"
             >
-              <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-none">
-                Seu estilo <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px #D4AF37` }}>começa aqui.</span>
+              {shop?.logo_url && (
+                <img
+                  src={shop.logo_url}
+                  alt={shop.business_name}
+                  className="h-20 w-20 md:h-24 md:w-24 rounded-2xl object-contain bg-black/40 backdrop-blur-md border border-[#D4AF37]/30 p-2 shadow-2xl"
+                />
+              )}
+              <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs md:text-sm">
+                Bem-vindo à
+              </span>
+              <h2 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase italic leading-none">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px #D4AF37` }}>
+                  {shop?.business_name || 'Barbearia Premium'}
+                </span>
               </h2>
-              <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-medium">
-                Cortes premium, barbeiros especialistas e agendamento online em segundos.
+              <p className="text-base md:text-xl text-slate-300 max-w-2xl mx-auto font-medium px-4">
+                Agende seu horário com praticidade, escolha seu barbeiro favorito e acompanhe tudo pelo seu portal.
               </p>
+              {shop?.address && (
+                <p className="text-xs md:text-sm text-slate-400 font-medium flex items-center gap-2">
+                  <MapPin size={14} className="text-[#D4AF37]" /> {shop.address}
+                </p>
+              )}
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 flex-wrap"
             >
               <Button 
                 size="lg" 
-                className="h-14 px-10 text-lg font-black bg-black text-white border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all w-full sm:w-auto uppercase tracking-tighter"
+                className="h-14 px-10 text-lg font-black bg-[#D4AF37] text-black border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37]/90 transition-all w-full sm:w-auto uppercase tracking-tighter"
                 onClick={handleBookingAction}
               >
                 Agendar Agora
@@ -1920,11 +1989,31 @@ function ShopPageComponent() {
               <Button 
                 variant="outline"
                 size="lg" 
-                className="h-14 px-10 text-lg font-bold rounded-full border-white/20 hover:bg-white/10 transition-all w-full sm:w-auto backdrop-blur-md"
+                className="h-14 px-10 text-lg font-bold rounded-full border-white/20 hover:bg-white/10 hover:text-white transition-all w-full sm:w-auto backdrop-blur-md text-white"
                 onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Conhecer Serviços
+                Ver serviços
               </Button>
+              {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="h-14 px-8 text-base font-bold rounded-full text-[#D4AF37] hover:bg-[#D4AF37]/10 w-full sm:w-auto uppercase tracking-tighter"
+                  onClick={() => document.getElementById('clube')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <Crown size={16} className="mr-2" /> Conhecer planos
+                </Button>
+              )}
+              {productsEnabled && products.length > 0 && (
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="h-14 px-8 text-base font-bold rounded-full text-white/80 hover:bg-white/10 w-full sm:w-auto uppercase tracking-tighter"
+                  onClick={() => document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <ShoppingBag size={16} className="mr-2" /> Ver produtos
+                </Button>
+              )}
             </motion.div>
           </div>
 
@@ -2197,6 +2286,198 @@ function ShopPageComponent() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Clube Premium / Assinaturas */}
+        {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
+          <section id="clube" className="py-24 bg-[#050505] relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
+            <div className="max-w-6xl mx-auto px-4 relative">
+              <div className="text-center space-y-4 mb-16">
+                <div className="inline-flex items-center gap-2 text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">
+                  <Crown size={14} /> Exclusivo para Membros
+                </div>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Clube Premium</h3>
+                <p className="text-slate-400 max-w-xl mx-auto text-lg">
+                  Assine um plano mensal e tenha benefícios exclusivos todos os meses na {shop.business_name}.
+                </p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {publicSubscriptionPlans.slice(0, 6).map((plan, idx) => {
+                  const benefits = Array.isArray(plan.benefits) ? plan.benefits : (Array.isArray(plan.included_benefits) ? plan.included_benefits : []);
+                  return (
+                    <motion.div
+                      key={plan.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      viewport={{ once: true }}
+                      className="group relative rounded-[2rem] p-8 border border-[#D4AF37]/20 bg-gradient-to-br from-zinc-950 to-black hover:border-[#D4AF37]/60 transition-all flex flex-col"
+                    >
+                      <div className="space-y-2 mb-6">
+                        <h4 className="text-2xl font-black uppercase tracking-tight text-white">{plan.name}</h4>
+                        {plan.description && (
+                          <p className="text-sm text-slate-400 line-clamp-2">{plan.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1 mb-6">
+                        <span className="text-5xl font-black text-white">R$ {Number(plan.monthly_price || 0).toFixed(2)}</span>
+                        <span className="text-sm text-slate-500 font-bold">/mês</span>
+                      </div>
+                      {plan.max_uses_per_month != null && (
+                        <p className="text-xs uppercase tracking-widest font-bold text-[#D4AF37] mb-4">
+                          Até {plan.max_uses_per_month} usos/mês
+                        </p>
+                      )}
+                      {benefits.length > 0 && (
+                        <ul className="space-y-2 mb-8 flex-1">
+                          {benefits.slice(0, 5).map((b: any, i: number) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                              <CheckCircle2 size={16} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                              <span>{typeof b === 'string' ? b : (b.name || b.description || JSON.stringify(b))}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <Button
+                        className="w-full h-12 rounded-xl bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
+                        onClick={handleBookingAction}
+                      >
+                        Assinar agora
+                      </Button>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Cupons / Promoções */}
+        {couponsEnabled && publicActiveCoupons.length > 0 && (
+          <section id="promocoes" className="py-20 bg-black">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center space-y-3 mb-12">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Aproveite</span>
+                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Promoções Ativas</h3>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {publicActiveCoupons.map((c) => (
+                  <div key={c.id} className="relative rounded-2xl border border-dashed border-[#D4AF37]/40 bg-gradient-to-br from-[#1a1408] to-black p-6 flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <TicketPercent size={18} className="text-[#D4AF37]" />
+                      <span className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">Cupom</span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-white tracking-tight">
+                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)} OFF`}
+                      </p>
+                      <p className="text-xs font-bold text-slate-400 mt-1">Código: <span className="text-white">{c.code}</span></p>
+                    </div>
+                    {c.expires_at && (
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                        Válido até {format(parseISO(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </p>
+                    )}
+                    <Button
+                      size="sm"
+                      className="mt-auto h-10 rounded-xl bg-white text-black hover:bg-white/90 font-bold"
+                      onClick={handleBookingAction}
+                    >
+                      Agendar com cupom
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Programa de Fidelidade */}
+        {loyaltyEnabled && publicLoyaltySettings?.enabled && (
+          <section id="fidelidade" className="py-24 bg-[#050505]">
+            <div className="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Recompensas</span>
+                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Programa de Fidelidade</h3>
+                <p className="text-slate-400 text-lg leading-relaxed">
+                  A cada atendimento concluído você acumula pontos para ganhar recompensas exclusivas.
+                </p>
+                {publicLoyaltySettings?.appointments_required && (
+                  <div className="rounded-2xl border border-[#D4AF37]/20 bg-black/60 p-6">
+                    <p className="text-sm text-slate-300">
+                      Complete <span className="text-[#D4AF37] font-black">{publicLoyaltySettings.appointments_required}</span> atendimentos
+                      {publicLoyaltySettings.benefit_description ? (
+                        <> e ganhe <span className="text-white font-bold">{publicLoyaltySettings.benefit_description}</span>.</>
+                      ) : (' e ganhe um serviço especial.')}
+                    </p>
+                  </div>
+                )}
+                <Button
+                  className="h-12 px-8 rounded-full bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
+                  onClick={handleBookingAction}
+                >
+                  Começar a acumular
+                </Button>
+              </div>
+              <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-[#D4AF37]/20 via-transparent to-transparent border border-[#D4AF37]/20 flex items-center justify-center">
+                <Gift size={120} className="text-[#D4AF37]/40" />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Cashback */}
+        {cashbackEnabled && shop?.cashback_enabled && (
+          <section id="cashback" className="py-20 bg-black">
+            <div className="max-w-4xl mx-auto px-4">
+              <div className="rounded-[3rem] p-12 md:p-16 bg-gradient-to-br from-emerald-950/40 via-black to-black border border-emerald-500/20 text-center space-y-6">
+                <div className="inline-flex items-center gap-2 text-emerald-400 font-black uppercase tracking-[0.3em] text-xs">
+                  <CircleDollarSign size={14} /> Dinheiro de volta
+                </div>
+                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Ganhe Cashback</h3>
+                <p className="text-slate-300 text-lg max-w-xl mx-auto">
+                  Receba <span className="text-emerald-400 font-black">{Number(shop.cashback_percentage || 0)}%</span> do valor de volta para usar em próximos atendimentos na {shop.business_name}.
+                </p>
+                <Button
+                  className="h-12 px-8 rounded-full bg-emerald-500 text-black font-black uppercase tracking-tighter hover:bg-emerald-400"
+                  onClick={handleBookingAction}
+                >
+                  Agendar e ganhar
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Como Funciona */}
+        <section id="como-funciona" className="py-24 bg-[#050505]">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center space-y-3 mb-16">
+              <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Simples e rápido</span>
+              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Como funciona</h3>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+              {[
+                { n: '01', t: 'Escolha o serviço', d: 'Selecione o serviço desejado em nosso catálogo.' },
+                { n: '02', t: 'Escolha o profissional', d: 'Encontre o barbeiro perfeito para você.' },
+                { n: '03', t: 'Selecione o horário', d: 'Veja a agenda em tempo real e escolha o melhor horário.' },
+                { n: '04', t: 'Confirme', d: 'Confirme seu agendamento em segundos.' },
+                { n: '05', t: 'Acompanhe', d: 'Gerencie tudo pelo portal do cliente.' },
+              ].map((s) => (
+                <div key={s.n} className="rounded-2xl border border-white/5 bg-black p-6 space-y-3 hover:border-[#D4AF37]/40 transition-all">
+                  <p className="text-[#D4AF37] font-black text-3xl tracking-tighter">{s.n}</p>
+                  <h4 className="text-lg font-black uppercase tracking-tight text-white">{s.t}</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">{s.d}</p>
+                </div>
+              ))}
+            </div>
+            {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
+              <p className="text-center text-slate-500 text-sm mt-10 max-w-2xl mx-auto">
+                Se você for assinante do Clube Premium, o sistema identifica seus benefícios automaticamente.
+              </p>
+            )}
           </div>
         </section>
 
