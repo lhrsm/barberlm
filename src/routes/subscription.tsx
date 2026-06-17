@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { withModule } from "@/components/modules/withModule";
+
 
 const PLAN_PRICE_IDS = {
   sandbox: {
