@@ -2146,6 +2146,7 @@ function ShopPageComponent() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Barbers Section */}
         <section id="profissionais" className="py-24 bg-black">
