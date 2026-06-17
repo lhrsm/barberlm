@@ -668,34 +668,14 @@ function LandingPageComponent() {
 
       {/* FAQ Section */}
       <section id="faq" className="py-24 lg:py-40 px-6 bg-zinc-950/20">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16 lg:mb-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12 lg:mb-16">
             <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">FAQ</h2>
             <h3 className="text-4xl lg:text-6xl font-black text-white tracking-tight">Tire suas dúvidas</h3>
+            <p className="mt-4 text-white/50 font-bold max-w-2xl mx-auto">Respostas rápidas sobre módulos, planos e funcionalidades do Barbex.</p>
           </div>
-          
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            <FaqItem 
-              value="item-1"
-              question="O teste de 15 dias é grátis mesmo?"
-              answer="Sim! Você terá acesso a 100% das funcionalidades do plano Pro por 15 dias sem pagar nada e sem precisar cadastrar cartão."
-            />
-            <FaqItem 
-              value="item-2"
-              question="Consigo usar no celular?"
-              answer="Com certeza. O Barbex é feito para ser usado no seu dia a dia, direto do celular, tablet ou computador."
-            />
-            <FaqItem 
-              value="item-3"
-              question="Como funciona o WhatsApp?"
-              answer="O sistema envia mensagens automáticas de confirmação, lembrete e marketing usando sua própria conta de WhatsApp conectada."
-            />
-            <FaqItem 
-              value="item-4"
-              question="Tem multa se eu quiser cancelar?"
-              answer="Não. Nossos planos não possuem fidelidade. Você pode cancelar quando quiser sem qualquer taxa adicional."
-            />
-          </Accordion>
+
+          <FaqExplorer />
         </div>
       </section>
 
@@ -704,7 +684,7 @@ function LandingPageComponent() {
         <div className="absolute inset-0 bg-primary/10 blur-[120px] -z-10" />
         <div className="max-w-5xl mx-auto p-12 lg:p-24 rounded-[3.5rem] bg-zinc-900 border border-white/10 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10" />
-          
+
           <h2 className="text-5xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
             Pronto para <br />
             <span className="text-primary italic">transformar?</span>
@@ -713,8 +693,8 @@ function LandingPageComponent() {
             Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_20px_40px_-15px_rgba(234,179,8,0.5)] group transition-all"
               onClick={() => setShowSignupModal(true)}
             >
