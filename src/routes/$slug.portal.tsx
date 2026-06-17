@@ -78,6 +78,10 @@ function ClientPortalComponent() {
   const [submitting, setSubmitting] = useState(false);
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
+  const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
+  const loyaltyEnabled = isModuleEnabled("loyalty");
+  const cashbackEnabled = isModuleEnabled("cashback");
+  const subscriptionsEnabled = isModuleEnabled("subscriptions");
   const [customerData, setCustomerData] = useState<any>(null);
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [loyaltyRewards, setLoyaltyRewards] = useState<any[]>([]);
