@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
+import { usePublicModules } from "@/hooks/use-public-modules";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -56,6 +57,14 @@ function ShopPageComponent() {
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
+
+  // Public modules — hide sections disabled by the barbershop owner in Settings > Modules
+  const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
+  const productsEnabled = isModuleEnabled("products");
+  const subscriptionsEnabled = isModuleEnabled("subscriptions");
+  const cashbackEnabled = isModuleEnabled("cashback");
+  const couponsEnabled = isModuleEnabled("coupons");
+  const loyaltyEnabled = isModuleEnabled("loyalty");
   
   // Debug logs to trace route issues
   useEffect(() => {
@@ -152,7 +161,9 @@ function ShopPageComponent() {
   const [showPixStep, setShowPixStep] = useState(false);
 
   // Subscription state
-  const [activeSubscription, setActiveSubscription] = useState<any>(null);
+  const [_activeSubscription, setActiveSubscription] = useState<any>(null);
+  // Mask subscription when the module is disabled — keeps the booking flow as a regular client
+  const activeSubscription = subscriptionsEnabled ? _activeSubscription : null;
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [benefitBalances, setBenefitBalances] = useState<any[]>([]);
@@ -1852,7 +1863,7 @@ function ShopPageComponent() {
                 <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
                   <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
                   <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
-                  <a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>
+                  {productsEnabled && (<a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>)}
                   <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
                   <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
                 </nav>
@@ -1987,6 +1998,7 @@ function ShopPageComponent() {
         </section>
 
         {/* Products Section */}
+        {productsEnabled && (
         <section id="produtos" className="py-24 bg-[#050505] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
           
@@ -2134,6 +2146,7 @@ function ShopPageComponent() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Barbers Section */}
         <section id="profissionais" className="py-24 bg-black">
@@ -3062,7 +3075,7 @@ function ShopPageComponent() {
 
                 {/* Highlight Cards for Balance */}
                 <div className="space-y-3">
-                  {shop.cashback_enabled && customerCashback > 0 && (
+                  {cashbackEnabled && shop.cashback_enabled && customerCashback > 0 && (
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -3129,6 +3142,7 @@ function ShopPageComponent() {
                   )}
                 </div>
 
+                {couponsEnabled && (
                 <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-lg">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
@@ -3178,10 +3192,12 @@ function ShopPageComponent() {
                     </div>
                   )}
                 </div>
+                )}
 
 
 
 
+                {productsEnabled && products.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
@@ -3298,6 +3314,7 @@ function ShopPageComponent() {
                     })}
                   </div>
                 </div>
+                )}
 
                 <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
                   <div className="flex items-center gap-3 pb-2 border-b border-zinc-100 mb-2">
@@ -3449,7 +3466,7 @@ function ShopPageComponent() {
 
 
                   
-                  {shop.cashback_enabled && (
+                  {cashbackEnabled && shop.cashback_enabled && (
                     <div className="bg-emerald-50 p-3 rounded-xl text-[11px] text-center mt-3 border border-emerald-100">
                       <span className="text-zinc-600 font-medium">Você receberá </span>
                       <span className="text-emerald-700 font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>

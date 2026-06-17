@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { usePublicModules } from "@/hooks/use-public-modules";
 import { 
   Phone, 
   History, 
@@ -77,10 +78,15 @@ function ClientPortalComponent() {
   const [submitting, setSubmitting] = useState(false);
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
+  const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
+  const loyaltyEnabled = isModuleEnabled("loyalty");
+  const cashbackEnabled = isModuleEnabled("cashback");
+  const subscriptionsEnabled = isModuleEnabled("subscriptions");
   const [customerData, setCustomerData] = useState<any>(null);
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [loyaltyRewards, setLoyaltyRewards] = useState<any[]>([]);
-  const [mySubscription, setMySubscription] = useState<any>(null);
+  const [_mySubscription, setMySubscription] = useState<any>(null);
+  const mySubscription = subscriptionsEnabled ? _mySubscription : null;
   const [cardOpen, setCardOpen] = useState(false);
   const [subRewards, setSubRewards] = useState<any[]>([]);
   const [subRewardsHistory, setSubRewardsHistory] = useState<any[]>([]);
@@ -1133,6 +1139,7 @@ function ClientPortalComponent() {
               <CardTitle className="text-2xl font-bold text-white">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
+          {loyaltyEnabled && (
           <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400">Fidelidade</CardDescription>
@@ -1146,6 +1153,7 @@ function ClientPortalComponent() {
               </CardTitle>
             </CardHeader>
           </Card>
+          )}
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-green-500/30 transition-all duration-300">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CRÉDITOS</CardDescription>
@@ -1156,6 +1164,7 @@ function ClientPortalComponent() {
               </div>
             </CardHeader>
           </Card>
+          {cashbackEnabled && (
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-[#D4AF37]/30 transition-all duration-300">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CASHBACK</CardDescription>
@@ -1166,6 +1175,7 @@ function ClientPortalComponent() {
               </div>
             </CardHeader>
           </Card>
+          )}
 
           {mySubscription && (() => {
             const isPaused = mySubscription.status === "paused";
@@ -1383,20 +1393,22 @@ function ClientPortalComponent() {
             <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
+            {loyaltyEnabled && (
             <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Fidelidade
             </TabsTrigger>
-            {mySubscription && (
+            )}
+            {subscriptionsEnabled && mySubscription && (
               <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                  Benefícios
               </TabsTrigger>
             )}
-            {mySubscription && (
+            {subscriptionsEnabled && mySubscription && (
               <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 <QrCode size={16} /> Carteirinha
               </TabsTrigger>
             )}
-            {mySubscription && (
+            {subscriptionsEnabled && mySubscription && (
               <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 ✦ Clube VIP
               </TabsTrigger>
