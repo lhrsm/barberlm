@@ -3197,6 +3197,7 @@ function ShopPageComponent() {
 
 
 
+                {productsEnabled && products.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
