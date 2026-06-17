@@ -3314,6 +3314,7 @@ function ShopPageComponent() {
                     })}
                   </div>
                 </div>
+                )}
 
                 <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
                   <div className="flex items-center gap-3 pb-2 border-b border-zinc-100 mb-2">
