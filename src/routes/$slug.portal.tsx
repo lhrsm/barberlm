@@ -1392,20 +1392,22 @@ function ClientPortalComponent() {
             <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
+            {loyaltyEnabled && (
             <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Fidelidade
             </TabsTrigger>
-            {mySubscription && (
+            )}
+            {subscriptionsEnabled && mySubscription && (
               <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                  Benefícios
               </TabsTrigger>
             )}
-            {mySubscription && (
+            {subscriptionsEnabled && mySubscription && (
               <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 <QrCode size={16} /> Carteirinha
               </TabsTrigger>
             )}
-            {mySubscription && (
+            {subscriptionsEnabled && mySubscription && (
               <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 ✦ Clube VIP
               </TabsTrigger>
