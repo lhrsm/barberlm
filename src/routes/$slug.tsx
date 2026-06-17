@@ -2252,6 +2252,198 @@ function ShopPageComponent() {
           </div>
         </section>
 
+        {/* Clube Premium / Assinaturas */}
+        {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
+          <section id="clube" className="py-24 bg-[#050505] relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
+            <div className="max-w-6xl mx-auto px-4 relative">
+              <div className="text-center space-y-4 mb-16">
+                <div className="inline-flex items-center gap-2 text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">
+                  <Crown size={14} /> Exclusivo para Membros
+                </div>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Clube Premium</h3>
+                <p className="text-slate-400 max-w-xl mx-auto text-lg">
+                  Assine um plano mensal e tenha benefícios exclusivos todos os meses na {shop.business_name}.
+                </p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {publicSubscriptionPlans.slice(0, 6).map((plan, idx) => {
+                  const benefits = Array.isArray(plan.benefits) ? plan.benefits : (Array.isArray(plan.included_benefits) ? plan.included_benefits : []);
+                  return (
+                    <motion.div
+                      key={plan.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      viewport={{ once: true }}
+                      className="group relative rounded-[2rem] p-8 border border-[#D4AF37]/20 bg-gradient-to-br from-zinc-950 to-black hover:border-[#D4AF37]/60 transition-all flex flex-col"
+                    >
+                      <div className="space-y-2 mb-6">
+                        <h4 className="text-2xl font-black uppercase tracking-tight text-white">{plan.name}</h4>
+                        {plan.description && (
+                          <p className="text-sm text-slate-400 line-clamp-2">{plan.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1 mb-6">
+                        <span className="text-5xl font-black text-white">R$ {Number(plan.monthly_price || 0).toFixed(2)}</span>
+                        <span className="text-sm text-slate-500 font-bold">/mês</span>
+                      </div>
+                      {plan.max_uses_per_month != null && (
+                        <p className="text-xs uppercase tracking-widest font-bold text-[#D4AF37] mb-4">
+                          Até {plan.max_uses_per_month} usos/mês
+                        </p>
+                      )}
+                      {benefits.length > 0 && (
+                        <ul className="space-y-2 mb-8 flex-1">
+                          {benefits.slice(0, 5).map((b: any, i: number) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                              <CheckCircle2 size={16} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                              <span>{typeof b === 'string' ? b : (b.name || b.description || JSON.stringify(b))}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <Button
+                        className="w-full h-12 rounded-xl bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
+                        onClick={handleBookingAction}
+                      >
+                        Assinar agora
+                      </Button>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Cupons / Promoções */}
+        {couponsEnabled && publicActiveCoupons.length > 0 && (
+          <section id="promocoes" className="py-20 bg-black">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center space-y-3 mb-12">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Aproveite</span>
+                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Promoções Ativas</h3>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {publicActiveCoupons.map((c) => (
+                  <div key={c.id} className="relative rounded-2xl border border-dashed border-[#D4AF37]/40 bg-gradient-to-br from-[#1a1408] to-black p-6 flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <TicketPercent size={18} className="text-[#D4AF37]" />
+                      <span className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">Cupom</span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-white tracking-tight">
+                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)} OFF`}
+                      </p>
+                      <p className="text-xs font-bold text-slate-400 mt-1">Código: <span className="text-white">{c.code}</span></p>
+                    </div>
+                    {c.expires_at && (
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                        Válido até {format(parseISO(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </p>
+                    )}
+                    <Button
+                      size="sm"
+                      className="mt-auto h-10 rounded-xl bg-white text-black hover:bg-white/90 font-bold"
+                      onClick={handleBookingAction}
+                    >
+                      Agendar com cupom
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Programa de Fidelidade */}
+        {loyaltyEnabled && publicLoyaltySettings?.enabled && (
+          <section id="fidelidade" className="py-24 bg-[#050505]">
+            <div className="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Recompensas</span>
+                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Programa de Fidelidade</h3>
+                <p className="text-slate-400 text-lg leading-relaxed">
+                  A cada atendimento concluído você acumula pontos para ganhar recompensas exclusivas.
+                </p>
+                {publicLoyaltySettings?.appointments_required && (
+                  <div className="rounded-2xl border border-[#D4AF37]/20 bg-black/60 p-6">
+                    <p className="text-sm text-slate-300">
+                      Complete <span className="text-[#D4AF37] font-black">{publicLoyaltySettings.appointments_required}</span> atendimentos
+                      {publicLoyaltySettings.benefit_description ? (
+                        <> e ganhe <span className="text-white font-bold">{publicLoyaltySettings.benefit_description}</span>.</>
+                      ) : (' e ganhe um serviço especial.')}
+                    </p>
+                  </div>
+                )}
+                <Button
+                  className="h-12 px-8 rounded-full bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
+                  onClick={handleBookingAction}
+                >
+                  Começar a acumular
+                </Button>
+              </div>
+              <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-[#D4AF37]/20 via-transparent to-transparent border border-[#D4AF37]/20 flex items-center justify-center">
+                <Gift size={120} className="text-[#D4AF37]/40" />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Cashback */}
+        {cashbackEnabled && shop?.cashback_enabled && (
+          <section id="cashback" className="py-20 bg-black">
+            <div className="max-w-4xl mx-auto px-4">
+              <div className="rounded-[3rem] p-12 md:p-16 bg-gradient-to-br from-emerald-950/40 via-black to-black border border-emerald-500/20 text-center space-y-6">
+                <div className="inline-flex items-center gap-2 text-emerald-400 font-black uppercase tracking-[0.3em] text-xs">
+                  <CircleDollarSign size={14} /> Dinheiro de volta
+                </div>
+                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Ganhe Cashback</h3>
+                <p className="text-slate-300 text-lg max-w-xl mx-auto">
+                  Receba <span className="text-emerald-400 font-black">{Number(shop.cashback_percentage || 0)}%</span> do valor de volta para usar em próximos atendimentos na {shop.business_name}.
+                </p>
+                <Button
+                  className="h-12 px-8 rounded-full bg-emerald-500 text-black font-black uppercase tracking-tighter hover:bg-emerald-400"
+                  onClick={handleBookingAction}
+                >
+                  Agendar e ganhar
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Como Funciona */}
+        <section id="como-funciona" className="py-24 bg-[#050505]">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center space-y-3 mb-16">
+              <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Simples e rápido</span>
+              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Como funciona</h3>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+              {[
+                { n: '01', t: 'Escolha o serviço', d: 'Selecione o serviço desejado em nosso catálogo.' },
+                { n: '02', t: 'Escolha o profissional', d: 'Encontre o barbeiro perfeito para você.' },
+                { n: '03', t: 'Selecione o horário', d: 'Veja a agenda em tempo real e escolha o melhor horário.' },
+                { n: '04', t: 'Confirme', d: 'Confirme seu agendamento em segundos.' },
+                { n: '05', t: 'Acompanhe', d: 'Gerencie tudo pelo portal do cliente.' },
+              ].map((s) => (
+                <div key={s.n} className="rounded-2xl border border-white/5 bg-black p-6 space-y-3 hover:border-[#D4AF37]/40 transition-all">
+                  <p className="text-[#D4AF37] font-black text-3xl tracking-tighter">{s.n}</p>
+                  <h4 className="text-lg font-black uppercase tracking-tight text-white">{s.t}</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">{s.d}</p>
+                </div>
+              ))}
+            </div>
+            {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
+              <p className="text-center text-slate-500 text-sm mt-10 max-w-2xl mx-auto">
+                Se você for assinante do Clube Premium, o sistema identifica seus benefícios automaticamente.
+              </p>
+            )}
+          </div>
+        </section>
+
         {/* Portal CTA Section */}
         <section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[120px] rounded-full pointer-events-none" style={{ backgroundColor: `${primaryColor}05` }} />
