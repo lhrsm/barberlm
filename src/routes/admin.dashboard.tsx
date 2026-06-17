@@ -30,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { AdminChartsTab } from "@/components/admin/AdminChartsTab";
+import { SaasMetricsCards } from "@/components/admin/SaasMetricsCards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -199,6 +200,9 @@ function AdminDashboard() {
           </div>
         </motion.div>
       </section>
+
+      {/* SaaS Metrics (MRR/ARR/Churn/Conversion) */}
+      <SaasMetricsCards />
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
