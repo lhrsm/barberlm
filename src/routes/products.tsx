@@ -576,8 +576,16 @@ function ProductsComponent() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="group relative bg-[#05070d] border border-zinc-800 rounded-2xl overflow-hidden hover:border-[#f59e0b]/40 hover:shadow-[0_8px_32px_rgba(245,158,11,0.15)] transition-all duration-300"
+                        data-product-card
                       >
-                        <div className="aspect-[4/3] sm:aspect-square bg-[#0b0f17] relative overflow-hidden">
+                        <div
+                          className="aspect-[4/3] sm:aspect-square bg-[#0b0f17] relative overflow-hidden cursor-pointer"
+                          onClick={(e) => {
+                            // ignore clicks originating from action buttons
+                            if ((e.target as HTMLElement).closest('[data-product-action]')) return;
+                            setActiveProductId((prev) => (prev === product.id ? null : product.id));
+                          }}
+                        >
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                           ) : (
@@ -598,11 +606,18 @@ function ProductsComponent() {
                             </div>
                           )}
 
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                          <div
+                            className={`absolute inset-0 bg-black/60 transition-opacity duration-300 flex items-center justify-center gap-2 group-hover:opacity-100 ${
+                              activeProductId === product.id ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover:pointer-events-auto'
+                            }`}
+                          >
                             <Button
+                              data-product-action
                               size="icon"
                               className="h-11 w-11 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveProductId(null);
                                 setEditingProduct(product);
                                 setIsAddDialogOpen(true);
                               }}
@@ -611,17 +626,27 @@ function ProductsComponent() {
                               <Edit size={18} />
                             </Button>
                             <Button
+                              data-product-action
                               size="icon"
                               className="h-11 w-11 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 text-[#f59e0b] border border-[#f59e0b]/40 backdrop-blur-md"
-                              onClick={() => handleDuplicateProduct(product)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveProductId(null);
+                                handleDuplicateProduct(product);
+                              }}
                               title="Duplicar"
                             >
                               <Copy size={18} />
                             </Button>
                             <Button
+                              data-product-action
                               size="icon"
                               className="h-11 w-11 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 backdrop-blur-md"
-                              onClick={() => handleDeleteProduct(product.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveProductId(null);
+                                handleDeleteProduct(product.id);
+                              }}
                               title="Excluir"
                             >
                               <Trash2 size={18} />
