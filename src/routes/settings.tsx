@@ -65,6 +65,7 @@ function SettingsComponent() {
 
   const [formData, setFormData] = useState<any>({
     business_name: "",
+    responsible_name: "",
     slug: "",
     whatsapp_enabled: false,
     scheduling_mode: "automatic" as "manual" | "automatic",
@@ -170,6 +171,7 @@ function SettingsComponent() {
         const profile = profileData[0];
         setFormData({
           business_name: profile.business_name || "",
+          responsible_name: (profile as any).responsible_name || "",
           slug: profile.slug || "",
           whatsapp_enabled: profile.whatsapp_enabled || false,
           scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
@@ -249,6 +251,7 @@ function SettingsComponent() {
       .from("profiles")
       .update({
         business_name: profileUpdateData.business_name,
+        responsible_name: profileUpdateData.responsible_name,
         slug: profileUpdateData.slug,
         whatsapp_enabled: profileUpdateData.whatsapp_enabled,
         scheduling_mode: profileUpdateData.scheduling_mode,
@@ -446,9 +449,9 @@ function SettingsComponent() {
                         <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
                         <Input 
                           id="profile_name" 
-                          value={formData.business_name} 
-                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                          placeholder="Seu nome"
+                          value={formData.responsible_name} 
+                          onChange={(e) => setFormData({ ...formData, responsible_name: e.target.value })}
+                          placeholder="Seu nome (administrador)"
                           className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>

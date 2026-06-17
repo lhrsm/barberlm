@@ -604,7 +604,7 @@ function DashboardComponent() {
               )}
               <div className="min-w-0">
                 <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
-                  {profile?.business_name ? `Olá, ${profile.business_name}!` : "Painel de Controle"}
+                  {(profile?.responsible_name || profile?.business_name) ? `Olá, ${profile.responsible_name || profile.business_name}!` : "Painel de Controle"}
                 </h1>
                 <p className="text-sm text-zinc-400 mt-1 truncate">
                   Bem-vindo de volta ao seu painel administrativo.
