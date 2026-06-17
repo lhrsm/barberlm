@@ -1272,55 +1272,39 @@ function FinancesComponent() {
             )}
           </TabsList>
 
-          {/* Mobile accordion */}
-          <div className="md:hidden">
-            <Accordion type="single" collapsible className="border border-white/10 bg-[#0b0f17] rounded-xl">
-              <AccordionItem value="nav" className="border-0">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                  <span className="flex items-center gap-2 text-sm font-bold text-white">
-                    {(() => {
-                      const map: Record<string, { icon: any; label: string }> = {
-                        transactions: { icon: FileText, label: "Lançamentos" },
-                        pending: { icon: Clock, label: "Pendentes" },
-                        refunds: { icon: RefreshCcw, label: "Estornos" },
-                        barbers: { icon: Users, label: "Por Barbeiro" },
-                        settings: { icon: AlertCircle, label: "Configs" },
-                      };
-                      const cur = map[financeTab] || map.transactions;
-                      const Icon = cur.icon;
-                      return (<><Icon size={16} className="text-[#F5C542]" /> {cur.label}</>);
-                    })()}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="px-2 pb-2">
-                  <div className="grid grid-cols-1 gap-1.5">
-                    {[
-                      { v: "transactions", icon: FileText, label: "Lançamentos" },
-                      { v: "pending", icon: Clock, label: "Pendentes" },
-                      { v: "refunds", icon: RefreshCcw, label: "Estornos" },
-                      ...(role !== 'barber' ? [
-                        { v: "barbers", icon: Users, label: "Por Barbeiro" },
-                        { v: "settings", icon: AlertCircle, label: "Configs" },
-                      ] : []),
-                    ].map(({ v, icon: Icon, label }) => (
-                      <Button
-                        key={v}
-                        variant="ghost"
-                        onClick={() => setFinanceTab(v)}
-                        className={cn(
-                          "justify-start gap-2 rounded-lg h-10 font-bold",
-                          financeTab === v
-                            ? "bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black hover:brightness-110"
-                            : "text-slate-300 hover:bg-white/5 hover:text-white"
-                        )}
-                      >
-                        <Icon size={16} /> {label}
-                      </Button>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+          {/* Mobile premium tabs (Mercado Pago style) */}
+          <div className="md:hidden rounded-[24px] border border-[rgba(255,184,0,0.15)] bg-[#0A1020] overflow-hidden">
+            <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
+              <div className="flex w-max min-w-full items-end gap-1">
+                {[
+                  { v: "transactions", icon: FileText, label: "Lançamentos" },
+                  { v: "pending", icon: Clock, label: "Pendentes" },
+                  { v: "refunds", icon: RefreshCcw, label: "Estornos" },
+                  ...(role !== 'barber' ? [
+                    { v: "barbers", icon: Users, label: "Por Barbeiro" },
+                    { v: "settings", icon: AlertCircle, label: "Configs" },
+                  ] : []),
+                ].map(({ v, icon: Icon, label }) => {
+                  const active = financeTab === v;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setFinanceTab(v)}
+                      className={cn(
+                        "group relative inline-flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[12px] font-semibold uppercase tracking-wider transition-all duration-300 rounded-t-[22px] focus-visible:outline-none",
+                        active
+                          ? "bg-white text-[#111111] font-bold shadow-[0_-2px_12px_rgba(0,0,0,.15)]"
+                          : "text-white/70 hover:text-white"
+                      )}
+                    >
+                      <Icon size={15} className="opacity-90" />
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
 
