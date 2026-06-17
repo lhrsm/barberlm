@@ -161,7 +161,9 @@ function ShopPageComponent() {
   const [showPixStep, setShowPixStep] = useState(false);
 
   // Subscription state
-  const [activeSubscription, setActiveSubscription] = useState<any>(null);
+  const [_activeSubscription, setActiveSubscription] = useState<any>(null);
+  // Mask subscription when the module is disabled — keeps the booking flow as a regular client
+  const activeSubscription = subscriptionsEnabled ? _activeSubscription : null;
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [benefitBalances, setBenefitBalances] = useState<any[]>([]);
