@@ -30,16 +30,20 @@ import {
 } from "@/components/ui/alert-dialog";
 
 
-const PLAN_PRICE_IDS = {
+// IDs reais dos preços no Stripe (cadastrados na sua conta).
+// Sandbox: usamos lookup keys; Live: usamos os price IDs reais.
+const PLAN_PRICE_IDS: Record<'sandbox' | 'live', Record<string, string>> = {
   sandbox: {
-    starter: "starter_monthly", // Lookup keys para ambiente de teste
-    pro: "pro_monthly",
+    starter: "starter_monthly",
+    professional: "professional_monthly",
     elite: "elite_monthly",
+    enterprise: "enterprise_monthly",
   },
   live: {
     starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
-    pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
+    professional: "price_1TVtOVPKG6q10Ujre6zMGYpk",
     elite: "price_1TVtgWPKG6q10UjrxRUCnyg1",
+    enterprise: "",
   }
 };
 
