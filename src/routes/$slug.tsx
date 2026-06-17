@@ -2955,7 +2955,7 @@ function ShopPageComponent() {
 
                   <div className="mt-auto pt-3 border-t border-zinc-100">
                     <div className="flex items-start gap-2">
-                      <Lock size={14} className="text-zinc-500 mt-0.5 shrink-0" />
+                      <LockIcon size={14} className="text-zinc-500 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-[12px] font-bold text-zinc-700 leading-tight">Seus dados estão seguros</p>
                         <p className="text-[11px] text-zinc-500 leading-snug mt-0.5">
