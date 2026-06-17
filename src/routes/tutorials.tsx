@@ -26,6 +26,30 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  PremiumTabs,
+  PremiumTabsList,
+  PremiumTabsBody,
+  PremiumTabsContent,
+} from "@/components/ui/premium-tabs";
+import { Rocket, Calendar, DollarSign, Zap, Crown, MessageCircle } from "lucide-react";
+
+const MOBILE_TABS = [
+  { value: "primeiros", label: "Primeiros Passos", icon: Rocket, keywords: ["primeiro", "começ", "intro", "inicio", "início"] },
+  { value: "agendamentos", label: "Agendamentos", icon: Calendar, keywords: ["agendamento", "agenda"] },
+  { value: "financeiro", label: "Financeiro", icon: DollarSign, keywords: ["financ", "pagamento", "caixa"] },
+  { value: "automacoes", label: "Automações", icon: Zap, keywords: ["automa"] },
+  { value: "assinaturas", label: "Assinaturas", icon: Crown, keywords: ["assinatur", "plano"] },
+  { value: "whatsapp", label: "WhatsApp", icon: MessageCircle, keywords: ["whats"] },
+];
+
+function matchesTab(tutorial: any, tabValue: string) {
+  const tab = MOBILE_TABS.find((t) => t.value === tabValue);
+  if (!tab) return false;
+  const name = (tutorial.category?.name || "").toLowerCase();
+  const title = (tutorial.title || "").toLowerCase();
+  return tab.keywords.some((k) => name.includes(k) || title.includes(k));
+}
 
 export const Route = createFileRoute("/tutorials")({
   component: TutorialsPage,
