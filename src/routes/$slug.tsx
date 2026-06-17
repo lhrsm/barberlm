@@ -2047,37 +2047,52 @@ function ShopPageComponent() {
                   key={service.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
+                  transition={{ delay: idx * 0.08 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group relative overflow-hidden border-gray-100 bg-white hover:bg-gray-50 transition-all duration-500 rounded-[2rem] h-full shadow-lg">
-                    <div className="p-8 space-y-6">
-                      <div className="flex justify-between items-start">
-                        <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                          <Scissors className="h-6 w-6 text-gray-400 group-hover:text-[#D4AF37] transition-colors" />
+                  <Card
+                    className="group relative overflow-hidden rounded-[2rem] h-full border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black hover:border-[#D4AF37]/50 hover:-translate-y-1 transition-all duration-500 shadow-2xl hover:shadow-[#D4AF37]/10 cursor-pointer"
+                    onClick={() => handleSelectService(service)}
+                  >
+                    <div className="absolute -top-20 -right-20 w-48 h-48 bg-[#D4AF37]/10 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    <div className="relative p-7 flex flex-col h-full gap-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-[-6deg] transition-all duration-500">
+                          <Scissors className="h-6 w-6 text-[#D4AF37]" />
                         </div>
                         <div className="text-right">
-                          <p className="text-3xl font-black tracking-tighter text-black">R$ {service.price.toFixed(2)}</p>
-                          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{service.duration_minutes} MIN</p>
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold mb-1">A partir de</p>
+                          <p className="text-3xl font-black tracking-tighter text-white">
+                            <span className="text-sm text-white/50 font-bold mr-1">R$</span>{service.price.toFixed(2)}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <h4 className="text-2xl font-black uppercase tracking-tight text-black group-hover:translate-x-1 transition-transform duration-500">{service.name}</h4>
-                        <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
-                          Cuidado especializado com produtos de alta qualidade para um resultado impecável.
+                      <div className="space-y-2 flex-1">
+                        <h4 className="text-2xl font-black uppercase tracking-tight text-white group-hover:text-[#D4AF37] transition-colors duration-500">
+                          {service.name}
+                        </h4>
+                        <p className="text-white/50 text-sm line-clamp-2 leading-relaxed">
+                          {service.description || "Cuidado especializado com produtos de alta qualidade para um resultado impecável."}
                         </p>
                       </div>
 
-                      <Button 
-                        className="w-full h-12 rounded-xl font-bold transition-all bg-black text-white hover:bg-black/90 group-hover:shadow-xl hover:scale-105"
-                        onClick={() => handleSelectService(service)}
-                      >
-                        Agendar este serviço
-                      </Button>
+                      <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                        <div className="flex items-center gap-2 text-white/60">
+                          <Clock className="h-4 w-4 text-[#D4AF37]" />
+                          <span className="text-xs font-bold uppercase tracking-widest">{service.duration_minutes} min</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="h-10 px-5 rounded-full font-bold text-xs uppercase tracking-wider bg-[#D4AF37] text-black hover:bg-white transition-all group-hover:scale-105 shadow-lg"
+                          onClick={(e) => { e.stopPropagation(); handleSelectService(service); }}
+                        >
+                          Agendar <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                        </Button>
+                      </div>
                     </div>
-                    {/* Decorative element */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2" style={{ backgroundColor: `${primaryColor}10` }} />
                   </Card>
                 </motion.div>
               ))}
