@@ -65,6 +65,7 @@ function SettingsComponent() {
 
   const [formData, setFormData] = useState<any>({
     business_name: "",
+    responsible_name: "",
     slug: "",
     whatsapp_enabled: false,
     scheduling_mode: "automatic" as "manual" | "automatic",
