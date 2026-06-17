@@ -3037,6 +3037,113 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_gateway_logs: {
+        Row: {
+          created_at: string
+          event: string
+          gateway_id: string | null
+          id: string
+          message: string | null
+          payload: Json | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          gateway_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          gateway_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_gateway_logs_gateway_id_fkey"
+            columns: ["gateway_id"]
+            isOneToOne: false
+            referencedRelation: "payment_gateways"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_gateways: {
+        Row: {
+          created_at: string
+          credentials: Json
+          environment: string
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          last_event_at: string | null
+          last_payment_at: string | null
+          last_sync_at: string | null
+          methods: Json
+          name: string
+          pix_settings: Json
+          provider: string
+          status: string
+          status_message: string | null
+          tenant_id: string
+          updated_at: string
+          webhook_secret: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          credentials?: Json
+          environment?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          last_event_at?: string | null
+          last_payment_at?: string | null
+          last_sync_at?: string | null
+          methods?: Json
+          name: string
+          pix_settings?: Json
+          provider: string
+          status?: string
+          status_message?: string | null
+          tenant_id: string
+          updated_at?: string
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          credentials?: Json
+          environment?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          last_event_at?: string | null
+          last_payment_at?: string | null
+          last_sync_at?: string | null
+          methods?: Json
+          name?: string
+          pix_settings?: Json
+          provider?: string
+          status?: string
+          status_message?: string | null
+          tenant_id?: string
+          updated_at?: string
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           active: boolean | null
