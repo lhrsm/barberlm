@@ -1,254 +1,327 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Check, 
-  X, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Save,
-  MessageSquare,
-  Award,
-  Zap,
-  Layout,
-  BarChart,
-  AlertTriangle,
-  Calendar,
-  DollarSign,
-  Activity,
-  LifeBuoy,
-  User
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Crown, Edit2, Save, X, Check, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/admin/plans")({
   component: AdminPlans,
 });
 
-function AdminPlans() {
-  const queryClient = useQueryClient();
-  const [editingPlan, setEditingPlan] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<any>(null);
+interface Plan {
+  id: string;
+  name: string;
+  slug: string | null;
+  description: string | null;
+  price_monthly: number;
+  price_yearly: number;
+  tier: number;
+  max_barbers: number | null;
+  is_recommended: boolean;
+  allowed_modules: string[];
+  active: boolean;
+}
 
-  const { data: plans, isLoading, error } = useQuery({
-    queryKey: ["admin-plans"],
+const MODULE_CATALOG: { key: string; label: string; group: string }[] = [
+  // Core
+  { key: "dashboard", label: "Dashboard", group: "Core" },
+  { key: "calendar", label: "Agenda", group: "Core" },
+  { key: "customers", label: "Clientes", group: "Core" },
+  { key: "barbers", label: "Barbeiros", group: "Core" },
+  { key: "services", label: "Serviços", group: "Core" },
+  { key: "finances", label: "Financeiro", group: "Core" },
+  { key: "support", label: "Suporte", group: "Core" },
+  // Growth
+  { key: "commissions", label: "Comissões", group: "Crescimento" },
+  { key: "loyalty", label: "Fidelidade", group: "Crescimento" },
+  { key: "campaigns", label: "Campanhas", group: "Crescimento" },
+  { key: "coupons", label: "Cupons", group: "Crescimento" },
+  { key: "whatsapp", label: "WhatsApp", group: "Crescimento" },
+  // Premium
+  { key: "subscriptions", label: "Assinaturas", group: "Premium" },
+  { key: "cashback", label: "Cashback", group: "Premium" },
+  { key: "products", label: "Loja / Produtos", group: "Premium" },
+  { key: "automations", label: "Automações", group: "Premium" },
+  { key: "subscription_rewards", label: "Benefícios de assinatura", group: "Premium" },
+  { key: "integrations", label: "Integrações", group: "Premium" },
+  { key: "tutorials", label: "Tutoriais", group: "Premium" },
+  { key: "pix_key", label: "Chave PIX", group: "Premium" },
+  // Enterprise
+  { key: "multi_units", label: "Multi-unidades", group: "Enterprise" },
+  { key: "white_label", label: "White Label", group: "Enterprise" },
+  { key: "api_access", label: "API", group: "Enterprise" },
+  { key: "corporate_reports", label: "Relatórios corporativos", group: "Enterprise" },
+];
+
+const GROUPS = ["Core", "Crescimento", "Premium", "Enterprise"] as const;
+
+function AdminPlans() {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [form, setForm] = useState<Plan | null>(null);
+
+  const { data: plans, isLoading } = useQuery({
+    queryKey: ["admin-plans-modules"],
     queryFn: async () => {
-      console.log("Fetching plans for admin...");
-      const { data, error } = await supabase.from("plans").select("*").order("price_monthly");
-      if (error) {
-        console.error("Error fetching plans:", error);
-        throw error;
-      }
-      return data;
-    }
+      const { data, error } = await supabase
+        .from("plans")
+        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active")
+        .order("tier", { ascending: true });
+      if (error) throw error;
+      return (data || []).map((p: any) => ({
+        ...p,
+        allowed_modules: Array.isArray(p.allowed_modules) ? p.allowed_modules : [],
+        tier: p.tier ?? 0,
+      })) as Plan[];
+    },
   });
 
-  const updatePlanMutation = useMutation({
-    mutationFn: async (plan: any) => {
+  const updateMutation = useMutation({
+    mutationFn: async (plan: Plan) => {
       const { error } = await supabase
         .from("plans")
         .update({
+          name: plan.name,
+          description: plan.description,
           price_monthly: plan.price_monthly,
-          features: plan.features,
-          limits: plan.limits
-        })
+          price_yearly: plan.price_yearly,
+          tier: plan.tier,
+          max_barbers: plan.max_barbers,
+          is_recommended: plan.is_recommended,
+          allowed_modules: plan.allowed_modules,
+          active: plan.active,
+        } as any)
         .eq("id", plan.id);
-      
       if (error) throw error;
-
-      // Log action
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("audit_logs").insert({
-          admin_id: user.id,
-          action: 'update_plan',
-          details: { plan_id: plan.id, plan_name: plan.name }
-        });
-      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-plans"] });
-      setEditingPlan(null);
-      toast.success("Plano atualizado com sucesso");
+      qc.invalidateQueries({ queryKey: ["admin-plans-modules"] });
+      qc.invalidateQueries({ queryKey: ["barbershop-plan"] });
+      setEditing(null);
+      toast.success("Plano atualizado");
     },
-    onError: (error) => {
-      toast.error("Erro ao atualizar plano: " + error.message);
-    }
+    onError: (e: any) => toast.error("Erro ao salvar: " + e.message),
   });
 
-  const startEditing = (plan: any) => {
-    setEditingPlan(plan.id);
-    setEditForm({ ...plan });
-  };
+  useEffect(() => {
+    if (editing && plans) {
+      const p = plans.find((x) => x.id === editing);
+      if (p) setForm({ ...p });
+    } else {
+      setForm(null);
+    }
+  }, [editing, plans]);
 
-  const toggleFeature = (feature: string) => {
-    setEditForm((prev: any) => ({
-      ...prev,
-      features: {
-        ...prev.features,
-        [feature]: !prev.features[feature]
-      }
-    }));
-  };
-
-  const updateLimit = (key: string, value: string) => {
-    setEditForm((prev: any) => ({
-      ...prev,
-      limits: {
-        ...prev.limits,
-        [key]: parseInt(value) || -1
-      }
-    }));
+  const toggleModule = (key: string) => {
+    if (!form) return;
+    const has = form.allowed_modules.includes(key);
+    setForm({
+      ...form,
+      allowed_modules: has
+        ? form.allowed_modules.filter((m) => m !== key)
+        : [...form.allowed_modules, key],
+    });
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center animate-pulse">Carregando planos...</div>;
+    return <div className="p-8 text-center text-white/60">Carregando planos...</div>;
   }
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <header className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">Níveis de Assinatura</h2>
-          <p className="text-gray-400 font-medium">Configure os recursos e limites de cada nível do SaaS.</p>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px w-8 bg-amber-500" />
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-400">Super Admin</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white italic uppercase">Planos & Módulos</h1>
+          <p className="text-sm text-white/60 mt-2">Configure o preço, limite de barbeiros e os módulos permitidos em cada plano.</p>
         </div>
-        <Button 
-          onClick={() => toast.info("Funcionalidade de criar planos em breve")}
-          className="h-12 px-8 rounded-2xl bg-white/5 border-white/10 text-white gap-2 font-bold uppercase tracking-wider text-xs italic transition-all hover:bg-white/10"
-        >
-          <Plus className="mr-2 h-4 w-4 text-purple-400" /> Novo Plano
-        </Button>
-      </div>
+      </header>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        {plans?.map((plan) => (
-          <Card key={plan.id} className={cn(
-            "relative flex flex-col glass border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-purple-500/30 transition-all duration-500",
-            editingPlan === plan.id ? "ring-2 ring-purple-500 border-purple-500" : ""
-          )}>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <CardHeader className="pt-8 px-8 pb-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-2xl font-black text-white italic tracking-tighter uppercase">{plan.name}</CardTitle>
-                  <CardDescription className="text-gray-400 font-medium">{plan.description}</CardDescription>
-                </div>
-                <Badge className={cn(
-                  "rounded-lg px-2 py-0.5 text-[10px] border-none font-bold uppercase tracking-tighter",
-                  plan.active 
-                    ? "bg-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]" 
-                    : "bg-gray-500/20 text-gray-400"
-                )}>
-                  {plan.active ? "Ativo" : "Inativo"}
-                </Badge>
-              </div>
-              <div className="mt-4">
-                {editingPlan === plan.id ? (
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-medium">R$</span>
-                    <Input 
-                      type="number" 
-                      className="h-8 w-24 inline-block mx-1" 
-                      value={editForm.price_monthly}
-                      onChange={(e) => setEditForm({...editForm, price_monthly: parseFloat(e.target.value)})}
-                    />
-                    <span className="text-sm text-muted-foreground">/ mês</span>
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
+        {plans?.map((plan) => {
+          const isEditing = editing === plan.id;
+          const current = isEditing && form ? form : plan;
+          const allowedSet = new Set(current.allowed_modules);
+
+          return (
+            <Card
+              key={plan.id}
+              className={cn(
+                "glass rounded-3xl border-2 transition-all flex flex-col",
+                isEditing
+                  ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.25)]"
+                  : plan.is_recommended
+                  ? "border-amber-500/40"
+                  : "border-white/10",
+              )}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    {isEditing ? (
+                      <Input
+                        value={current.name}
+                        onChange={(e) => setForm({ ...current, name: e.target.value })}
+                        className="h-9 text-lg font-bold bg-white/5 border-white/10"
+                      />
+                    ) : (
+                      <CardTitle className="text-2xl font-black text-white italic uppercase flex items-center gap-2">
+                        {plan.name}
+                        {plan.is_recommended && <Crown className="w-4 h-4 text-amber-400" />}
+                      </CardTitle>
+                    )}
+                    <CardDescription className="text-white/50 text-xs mt-1">
+                      Tier {current.tier} · slug: <code className="text-amber-400">{plan.slug}</code>
+                    </CardDescription>
                   </div>
-                ) : (
-                  <div className="flex items-baseline gap-1 text-4xl font-black text-white italic tracking-tighter">
-                    R$ {plan.price_monthly}
-                    <span className="text-sm font-bold text-gray-500 ml-2 uppercase tracking-widest not-italic">/ mês</span>
+                  <Badge className={plan.active ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-zinc-500/20 text-zinc-400"}>
+                    {plan.active ? "Ativo" : "Inativo"}
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex-1 space-y-5">
+                {/* Price + limits */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[10px] uppercase tracking-wider text-white/50">Preço/mês</Label>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={current.price_monthly}
+                        onChange={(e) => setForm({ ...current, price_monthly: parseFloat(e.target.value) || 0 })}
+                        className="h-9 bg-white/5 border-white/10 mt-1"
+                      />
+                    ) : (
+                      <p className="text-xl font-black text-white mt-1">R$ {Number(plan.price_monthly).toFixed(2)}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-[10px] uppercase tracking-wider text-white/50">Máx. barbeiros</Label>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        value={current.max_barbers ?? ""}
+                        placeholder="Ilimitado"
+                        onChange={(e) =>
+                          setForm({
+                            ...current,
+                            max_barbers: e.target.value ? parseInt(e.target.value) : null,
+                          })
+                        }
+                        className="h-9 bg-white/5 border-white/10 mt-1"
+                      />
+                    ) : (
+                      <p className="text-xl font-black text-white mt-1">{plan.max_barbers ?? "∞"}</p>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                    <Label className="text-xs text-white/70">Marcar como recomendado</Label>
+                    <Switch
+                      checked={current.is_recommended}
+                      onCheckedChange={(v) => setForm({ ...current, is_recommended: v })}
+                    />
                   </div>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 space-y-8 px-8 pb-8">
-              <div className="space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-4">
-                  <Zap size={12} className="text-purple-400" /> Vantagens Estratégicas
-                </p>
-                <div className="space-y-3">
-                  {Object.entries(plan.features || {}).map(([key, value]: [string, any]) => (
-                    <div key={key} className="flex items-center justify-between group/item">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5 group-hover/item:border-purple-500/30 transition-colors">
-                          {key === 'whatsapp' && <MessageSquare size={14} className="text-emerald-400" />}
-                          {key === 'cashback' && <Award size={14} className="text-amber-400" />}
-                          {key === 'ia' && <Zap size={14} className="text-purple-400" />}
-                          {key === 'reports' && <BarChart size={14} className="text-blue-400" />}
-                          {key === 'analytics' && <Layout size={14} className="text-rose-400" />}
-                          {key === 'agenda' && <Calendar size={14} className="text-emerald-400" />}
-                          {key === 'financeiro' && <DollarSign size={14} className="text-amber-400" />}
-                          {key === 'automations' && <Activity size={14} className="text-purple-400" />}
-                          {key === 'support' && <LifeBuoy size={14} className="text-blue-400" />}
-                          {key === 'clientes' && <User size={14} className="text-cyan-400" />}
-                          {!['whatsapp', 'cashback', 'ia', 'reports', 'analytics', 'agenda', 'financeiro', 'automations', 'support', 'clientes'].includes(key) && <Check size={14} className="text-gray-400" />}
-                        </div>
-                        <span className="text-xs font-bold text-gray-300 capitalize group-hover/item:text-white transition-colors">{key.replace('_', ' ')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {typeof value === 'string' ? (
-                          <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-[8px] uppercase">{value}</Badge>
-                        ) : value ? (
-                          <Check size={14} className="text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]" />
-                        ) : (
-                          <X size={14} className="text-gray-600" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              <div className="space-y-4 mt-8">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-4">
-                  <AlertTriangle size={12} className="text-amber-400" /> Capacidade & Limites
-                </p>
-                <div className="space-y-3">
-                  {Object.entries(plan.limits || {}).map(([key, val]: [string, any]) => (
-                    <div key={key} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group-hover:border-white/10 transition-colors">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        {key === 'users' ? 'Profissionais' : key === 'clients' ? 'Clientes' : 'Agendamentos'}
-                      </span>
-                      <span className="text-sm font-black text-white italic">
-                        {val === -1 ? 'ILIMITADO' : val}
-                      </span>
-                    </div>
-                  ))}
+                {/* Allowed modules */}
+                <div>
+                  <Label className="text-[10px] uppercase tracking-wider text-white/50">
+                    Módulos permitidos ({current.allowed_modules.length})
+                  </Label>
+                  <div className="mt-3 space-y-3">
+                    {GROUPS.map((group) => {
+                      const items = MODULE_CATALOG.filter((m) => m.group === group);
+                      return (
+                        <div key={group}>
+                          <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1.5">{group}</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {items.map((m) => {
+                              const on = allowedSet.has(m.key);
+                              return (
+                                <button
+                                  key={m.key}
+                                  type="button"
+                                  disabled={!isEditing}
+                                  onClick={() => toggleModule(m.key)}
+                                  className={cn(
+                                    "flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold border transition-all text-left",
+                                    on
+                                      ? "bg-amber-500/15 border-amber-500/40 text-amber-200"
+                                      : "bg-white/5 border-white/10 text-white/40",
+                                    isEditing && "hover:border-amber-500/60 cursor-pointer",
+                                    !isEditing && "cursor-default opacity-90",
+                                  )}
+                                >
+                                  {on ? <Check className="w-3 h-3 shrink-0" /> : <Lock className="w-3 h-3 shrink-0" />}
+                                  <span className="truncate">{m.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-white/5 p-6 border-t border-white/5">
-              {editingPlan === plan.id ? (
-                <div className="flex gap-3 w-full">
-                  <Button variant="ghost" className="flex-1 rounded-xl text-gray-400 font-bold uppercase tracking-widest text-[10px]" onClick={() => setEditingPlan(null)}>
-                    Cancelar
+              </CardContent>
+
+              <CardFooter className="p-4 border-t border-white/10">
+                {isEditing ? (
+                  <div className="flex gap-2 w-full">
+                    <Button
+                      variant="ghost"
+                      className="flex-1 text-white/60"
+                      onClick={() => setEditing(null)}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-bold"
+                      onClick={() => form && updateMutation.mutate(form)}
+                      disabled={updateMutation.isPending}
+                    >
+                      <Save className="w-4 h-4 mr-1" />
+                      Salvar
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white"
+                    onClick={() => setEditing(plan.id)}
+                  >
+                    <Edit2 className="w-4 h-4 mr-2" />
+                    Editar plano
                   </Button>
-                  <Button className="flex-1 rounded-xl bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px]" onClick={() => updatePlanMutation.mutate(editForm)}>
-                    <Save className="mr-2 h-4 w-4" /> Salvar
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-3 w-full">
-                  <Button variant="outline" className="flex-1 rounded-xl border-white/10 bg-white/5 text-gray-300 font-bold uppercase tracking-widest text-[10px] hover:bg-white/10" onClick={() => startEditing(plan)}>
-                    <Edit2 className="mr-2 h-3 w-3" /> Editar Plano
-                  </Button>
-                  <Button variant="ghost" className="px-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => toast.error("Não é possível excluir planos em uso")}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
+                )}
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
+
+      <Card className="glass border-amber-500/20 bg-amber-500/5">
+        <CardContent className="p-5 text-sm text-amber-200/80">
+          💡 <strong>Como funciona:</strong> ao alterar os módulos permitidos de um plano, todas as barbearias que <em>já estão</em> nesse plano não perdem o que tinham ativado — apenas os registros de <code>barbershop_modules</code> existentes continuam. Novos módulos liberados aparecem como "Disponíveis" para a barbearia ativar; módulos removidos do plano deixam de aparecer no menu e são bloqueados nas rotas. A trigger de sync é executada automaticamente sempre que uma barbearia troca de plano.
+        </CardContent>
+      </Card>
     </div>
   );
 }
