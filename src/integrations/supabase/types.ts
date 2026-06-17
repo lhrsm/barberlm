@@ -1970,6 +1970,7 @@ export type Database = {
           logo_url: string | null
           name: string
           owner_id: string | null
+          plan_id: string | null
           slug: string
           updated_at: string | null
         }
@@ -1979,6 +1980,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           owner_id?: string | null
+          plan_id?: string | null
           slug: string
           updated_at?: string | null
         }
@@ -1988,10 +1990,19 @@ export type Database = {
           logo_url?: string | null
           name?: string
           owner_id?: string | null
+          plan_id?: string | null
           slug?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "barbershops_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       campaign_logs: {
         Row: {
@@ -3029,38 +3040,53 @@ export type Database = {
       plans: {
         Row: {
           active: boolean | null
+          allowed_modules: Json
           created_at: string
           description: string | null
           features: Json
           id: string
+          is_recommended: boolean
           limits: Json
+          max_barbers: number | null
           name: string
           price_monthly: number
           price_yearly: number
+          slug: string | null
+          tier: number
           updated_at: string
         }
         Insert: {
           active?: boolean | null
+          allowed_modules?: Json
           created_at?: string
           description?: string | null
           features?: Json
           id?: string
+          is_recommended?: boolean
           limits?: Json
+          max_barbers?: number | null
           name: string
           price_monthly?: number
           price_yearly?: number
+          slug?: string | null
+          tier?: number
           updated_at?: string
         }
         Update: {
           active?: boolean | null
+          allowed_modules?: Json
           created_at?: string
           description?: string | null
           features?: Json
           id?: string
+          is_recommended?: boolean
           limits?: Json
+          max_barbers?: number | null
           name?: string
           price_monthly?: number
           price_yearly?: number
+          slug?: string | null
+          tier?: number
           updated_at?: string
         }
         Relationships: []
@@ -5903,6 +5929,7 @@ export type Database = {
           tenant_id: string
         }[]
       }
+      get_allowed_modules: { Args: { _tenant: string }; Returns: Json }
       get_appointment_by_management_token: {
         Args: { p_token: string }
         Returns: {
