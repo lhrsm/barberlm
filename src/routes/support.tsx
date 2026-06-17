@@ -30,29 +30,29 @@ function SupportPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#05070d] text-white">
-        <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+      <div className="min-h-screen bg-[#050816] text-white overflow-x-hidden">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500 w-full">
           {!selectedTicket ? (
             <>
               {/* HEADER */}
-              <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
-                <div className="flex min-w-0 items-center gap-4">
-                  <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
-                    <Headset className="h-7 w-7 text-[#f59e0b]" />
+              <header className="flex flex-col items-start gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4 w-full">
+                  <div className="shrink-0 h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+                    <Headset className="h-6 w-6 sm:h-7 sm:w-7 text-[#f59e0b]" />
                   </div>
-                  <div className="min-w-0">
-                    <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-[28px] sm:text-3xl font-black tracking-tight leading-tight">
                       Suporte
                     </h1>
-                    <p className="text-sm text-zinc-400 mt-1 truncate">
-                      Estamos aqui para ajudar você a ter a melhor experiência com a Barbex.
+                    <p className="text-[13px] sm:text-sm text-zinc-400 mt-1">
+                      Central de atendimento e chamados
                     </p>
                   </div>
                 </div>
-                <div className="flex shrink-0">
+                <div className="flex w-full sm:w-auto sm:shrink-0">
                   <Button
                     onClick={() => setIsNewTicketOpen(true)}
-                    className="h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5"
+                    className="w-full sm:w-auto h-[46px] sm:h-[42px] px-[18px] rounded-[14px] sm:rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-semibold sm:font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5 mt-1 sm:mt-0"
                   >
                     <Plus className="h-4 w-4 mr-2" /> Novo Chamado
                   </Button>
@@ -60,12 +60,12 @@ function SupportPage() {
               </header>
 
               {/* CONTENT GRID */}
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
                 {/* TICKETS */}
-                <div className="lg:col-span-3">
-                  <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-5">
+                <div className="lg:col-span-3 min-w-0">
+                  <div className="bg-[#0A1020] border border-[rgba(255,184,0,0.12)] rounded-[20px] p-4 md:p-6 space-y-4 md:space-y-5">
                     <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-                      <h3 className="font-bold flex items-center gap-2 text-white">
+                      <h3 className="text-base font-bold flex items-center gap-2 text-white">
                         <MessageCircle className="h-5 w-5 text-[#f59e0b]" />
                         Seus Chamados
                       </h3>
@@ -75,19 +75,19 @@ function SupportPage() {
                 </div>
 
                 {/* CHANNELS */}
-                <div className="space-y-6">
-                  <div className="p-6 rounded-2xl bg-[#0b0f17] border border-[#f59e0b]/20 space-y-4">
-                    <h4 className="font-bold flex items-center gap-2 text-white">
+                <div className="space-y-4 md:space-y-6 min-w-0">
+                  <div className="p-4 md:p-6 rounded-[20px] bg-[#0A1020] border border-[rgba(255,184,0,0.12)] space-y-4">
+                    <h4 className="text-base font-bold flex items-center gap-2 text-white">
                       <LifeBuoy className="h-4 w-4 text-[#f59e0b]" />
                       Canais de Atendimento
                     </h4>
-                    <div className="space-y-3">
-                      <div className="p-4 bg-[#05070d] rounded-xl border border-zinc-800/80 text-sm">
-                        <p className="font-bold mb-1 text-white flex items-center gap-2">
+                    <div className="grid grid-cols-1 gap-3 md:gap-4">
+                      <div className="w-full p-4 bg-[#050816] rounded-xl border border-zinc-800/80 text-sm transition-all hover:border-[#f59e0b]/30">
+                        <p className="text-base font-bold mb-1 text-white flex items-center gap-2">
                           <MessageCircle className="h-4 w-4 text-emerald-400" />
                           WhatsApp Oficial
                         </p>
-                        <p className="text-zinc-400 text-xs mb-3">
+                        <p className="text-zinc-400 text-[13px] mb-3">
                           Atendimento de Seg. a Sex. das 09h às 18h.
                         </p>
                         <Button
@@ -104,12 +104,12 @@ function SupportPage() {
                           </a>
                         </Button>
                       </div>
-                      <div className="p-4 bg-[#05070d] rounded-xl border border-zinc-800/80 text-sm">
-                        <p className="font-bold mb-1 text-white flex items-center gap-2">
+                      <div className="w-full p-4 bg-[#050816] rounded-xl border border-zinc-800/80 text-sm transition-all hover:border-[#f59e0b]/30">
+                        <p className="text-base font-bold mb-1 text-white flex items-center gap-2">
                           <Mail className="h-4 w-4 text-[#f59e0b]" />
                           E-mail Suporte
                         </p>
-                        <p className="text-zinc-400 text-xs mb-3">
+                        <p className="text-zinc-400 text-[13px] mb-3">
                           suporte@barbex.shop
                         </p>
                         <Button
@@ -125,6 +125,7 @@ function SupportPage() {
                 </div>
               </div>
             </>
+
           ) : (
             <TicketDetails
               ticket={selectedTicket}
