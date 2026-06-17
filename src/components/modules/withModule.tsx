@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ModuleGuard } from "@/components/modules/ModuleGuard";
-import type { ModuleKey } from "@/hooks/use-modules";
+import { useModules, type ModuleKey } from "@/hooks/use-modules";
 import type { ComponentType } from "react";
 
 /**
@@ -14,39 +14,28 @@ export function withModule<P extends object>(
   Component: ComponentType<P>,
 ) {
   return function GuardedRoute(props: P) {
-    return (
-      <ModuleGuardWrapper module={module} title={title}>
-        <Component {...props} />
-      </ModuleGuardWrapper>
-    );
+    const { isEnabled, isLoading } = useModules();
+
+    if (isLoading) {
+      return (
+        <AppLayout>
+          <div className="flex items-center justify-center min-h-[40vh] text-white/60">
+            Carregando...
+          </div>
+        </AppLayout>
+      );
+    }
+
+    if (!isEnabled(module)) {
+      return (
+        <AppLayout>
+          <ModuleGuard module={module} title={title}>
+            <div />
+          </ModuleGuard>
+        </AppLayout>
+      );
+    }
+
+    return <Component {...props} />;
   };
-}
-
-function ModuleGuardWrapper({
-  module,
-  title,
-  children,
-}: {
-  module: ModuleKey;
-  title: string;
-  children: React.ReactNode;
-}) {
-  // Use a lightweight check: render children fully (they include AppLayout),
-  // but if disabled, render AppLayout with the guard message instead.
-  const { useModules } = require("@/hooks/use-modules") as typeof import("@/hooks/use-modules");
-  const { isEnabled, isLoading } = useModules();
-
-  if (isLoading) return <AppLayout><div /></AppLayout>;
-
-  if (!isEnabled(module)) {
-    return (
-      <AppLayout>
-        <ModuleGuard module={module} title={title}>
-          <div />
-        </ModuleGuard>
-      </AppLayout>
-    );
-  }
-
-  return <>{children}</>;
 }
