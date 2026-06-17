@@ -107,47 +107,49 @@ export function AuthForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl border-2 border-[#D4AF37]">
-      <div className="mb-8">
-        <div className="flex justify-center gap-4">
-          <Button 
-            type="button"
-            variant="ghost" 
-            className={`flex-1 gap-2 transition-all duration-300 hover:scale-105 ${
-              loginMethod === "email" 
-                ? "bg-black text-white hover:bg-black/90 hover:text-white" 
-                : "bg-gray-100 text-gray-600 hover:bg-black hover:text-white"
-            }`}
-            onClick={() => setLoginMethod("email")}
-          >
-            <Mail size={16} /> E-mail
-          </Button>
-          <Button 
-            type="button"
-            variant="ghost" 
-            className={`flex-1 gap-2 transition-all duration-300 hover:scale-105 ${
-              loginMethod === "phone" 
-                ? "bg-black text-white hover:bg-black/90 hover:text-white" 
-                : "bg-gray-100 text-gray-600 hover:bg-black hover:text-white"
-            }`}
-            onClick={() => setLoginMethod("phone")}
-          >
-            <Phone size={16} /> Telefone
-          </Button>
-        </div>
+    <div className="w-full">
+      {/* Segmented control E-mail / Telefone */}
+      <div className="relative grid grid-cols-2 p-1 rounded-2xl bg-white/[0.04] border border-white/10 mb-6">
+        <div
+          className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl transition-transform duration-300 ease-out shadow-lg"
+          style={{
+            background: "linear-gradient(135deg, #F59E0B, #D97706)",
+            transform: loginMethod === "email" ? "translateX(0)" : "translateX(calc(100% + 4px))",
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => setLoginMethod("email")}
+          className={`relative z-10 h-10 rounded-xl text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors ${
+            loginMethod === "email" ? "text-black" : "text-white/70 hover:text-white"
+          }`}
+        >
+          <Mail size={15} /> E-mail
+        </button>
+        <button
+          type="button"
+          onClick={() => setLoginMethod("phone")}
+          className={`relative z-10 h-10 rounded-xl text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors ${
+            loginMethod === "phone" ? "text-black" : "text-white/70 hover:text-white"
+          }`}
+        >
+          <Phone size={15} /> Telefone
+        </button>
       </div>
-      
-      <form onSubmit={handleLogin} className="space-y-6">
+
+      <form onSubmit={handleLogin} className="space-y-5">
         {loginMethod === "email" ? (
-          <div className="space-y-2">
-            <Label htmlFor="login-email">Email</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="login-email" className="text-[11px] font-bold uppercase tracking-widest text-white/60 ml-1">
+              E-mail
+            </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <Input
                 id="login-email"
                 type="email"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black placeholder:text-black/60"
-                placeholder="exemplo@email.com"
+                className="pl-11 h-[52px] rounded-[14px] bg-white/[0.04] border-white/10 text-white placeholder:text-white/30 focus-visible:border-[#F59E0B] focus-visible:ring-2 focus-visible:ring-[#F59E0B]/30 focus-visible:shadow-[0_0_0_4px_rgba(245,158,11,0.08)] transition-all"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -155,14 +157,16 @@ export function AuthForm() {
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            <Label htmlFor="login-phone">Telefone</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="login-phone" className="text-[11px] font-bold uppercase tracking-widest text-white/60 ml-1">
+              Telefone
+            </Label>
             <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <Input
                 id="login-phone"
                 type="tel"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black placeholder:text-black/60"
+                className="pl-11 h-[52px] rounded-[14px] bg-white/[0.04] border-white/10 text-white placeholder:text-white/30 focus-visible:border-[#F59E0B] focus-visible:ring-2 focus-visible:ring-[#F59E0B]/30 focus-visible:shadow-[0_0_0_4px_rgba(245,158,11,0.08)] transition-all"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -173,23 +177,25 @@ export function AuthForm() {
         )}
 
         {loginMethod === "email" && (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <Label htmlFor="login-password">Senha</Label>
-              <button 
+              <Label htmlFor="login-password" className="text-[11px] font-bold uppercase tracking-widest text-white/60 ml-1">
+                Senha
+              </Label>
+              <button
                 type="button"
                 onClick={handleResetPassword}
-                className="text-xs text-[#D4AF37] font-semibold hover:underline"
+                className="text-[11px] text-[#F59E0B] font-bold hover:text-[#D97706] transition-colors"
               >
                 Esqueci minha senha
               </button>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <Input
                 id="login-password"
                 type="password"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black placeholder:text-black/60"
+                className="pl-11 h-[52px] rounded-[14px] bg-white/[0.04] border-white/10 text-white placeholder:text-white/30 focus-visible:border-[#F59E0B] focus-visible:ring-2 focus-visible:ring-[#F59E0B]/30 focus-visible:shadow-[0_0_0_4px_rgba(245,158,11,0.08)] transition-all"
                 placeholder="Digite sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -198,17 +204,20 @@ export function AuthForm() {
             </div>
           </div>
         )}
-        
-        <Button 
-          type="submit" 
-          className="w-full h-11 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-bold text-lg" 
+
+        <Button
+          type="submit"
+          className="w-full h-[54px] rounded-[14px] text-black font-extrabold text-base tracking-tight transition-all duration-200 hover:brightness-105 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
+          style={{
+            background: "linear-gradient(135deg, #F59E0B, #D97706)",
+            boxShadow: "0 12px 28px rgba(245,158,11,.28)",
+          }}
           disabled={loading}
         >
-          {loading ? "Processando..." : (
-            loginMethod === "email" ? "Entrar" : "Entrar com Telefone"
-          )}
+          {loading ? "Processando..." : loginMethod === "email" ? "Entrar" : "Entrar com Telefone"}
         </Button>
       </form>
     </div>
   );
 }
+
