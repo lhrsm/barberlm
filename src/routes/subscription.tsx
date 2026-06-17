@@ -366,8 +366,9 @@ function SubscriptionComponent() {
                   <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Plano Atual</div>
                   <div className="text-xl font-black text-white">
                     {plan === 'starter' ? 'Starter' :
-                     plan === 'pro' ? 'Pro' :
+                     (plan === 'pro' || (plan as any) === 'professional') ? 'Professional' :
                      plan === 'elite' ? 'Elite' :
+                     (plan as any) === 'enterprise' ? 'Enterprise' :
                      (!plan || plan === 'free') ? 'Grátis' : plan}
                   </div>
                 </div>
