@@ -57,6 +57,14 @@ function ShopPageComponent() {
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
+
+  // Public modules — hide sections disabled by the barbershop owner in Settings > Modules
+  const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
+  const productsEnabled = isModuleEnabled("products");
+  const subscriptionsEnabled = isModuleEnabled("subscriptions");
+  const cashbackEnabled = isModuleEnabled("cashback");
+  const couponsEnabled = isModuleEnabled("coupons");
+  const loyaltyEnabled = isModuleEnabled("loyalty");
   
   // Debug logs to trace route issues
   useEffect(() => {
