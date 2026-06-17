@@ -373,6 +373,10 @@ function SettingsComponent() {
           <div className="rounded-b-[24px] sm:rounded-[24px] sm:rounded-tl-none border border-[rgba(255,184,0,0.15)] bg-[#0A1020] p-4 md:p-6 -mx-4 sm:mx-0">
 
 
+          <TabsContent value="modules" className="space-y-4">
+            <ModulesSettings />
+          </TabsContent>
+
           <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
