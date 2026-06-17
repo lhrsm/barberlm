@@ -29,7 +29,14 @@ import {
   Megaphone,
   CreditCard,
   Briefcase,
-  Menu
+  Menu,
+  Search,
+  Sparkles,
+  ShoppingBag,
+  Repeat,
+  UserCircle,
+  Percent,
+  Tag,
 } from "lucide-react";
 import {
   Accordion,
@@ -568,18 +575,89 @@ function LandingPageComponent() {
             <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Cancele quando quiser</span>
           </div>
 
+          {/* Featured: Cashback Premium */}
+          <div className="mt-20 max-w-6xl mx-auto">
+            <div className="group relative rounded-[2rem] p-[1.5px] bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#D97706] shadow-[0_30px_80px_-30px_rgba(245,158,11,0.45)] hover:shadow-[0_40px_100px_-25px_rgba(245,158,11,0.7)] transition-all duration-500">
+              <div className="absolute -inset-4 bg-[#F59E0B]/10 blur-3xl rounded-[2.5rem] -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative rounded-[1.9rem] bg-zinc-950 p-8 lg:p-12 overflow-hidden">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#F59E0B]/10 blur-[100px] -z-0 pointer-events-none" />
+                <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-[#D97706]/10 blur-[100px] -z-0 pointer-events-none" />
+
+                <div className="relative grid lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-16 items-center">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3 mb-5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+                        <Star className="h-3 w-3" /> Incluso no Elite
+                      </span>
+                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/70 font-bold uppercase tracking-widest">Módulo Premium</span>
+                    </div>
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center shadow-lg">
+                        <CircleDollarSign className="h-7 w-7 text-black" />
+                      </div>
+                      <div>
+                        <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">Cashback Premium</h4>
+                        <div className="mt-2 flex items-baseline gap-2">
+                          <span className="text-2xl font-black bg-gradient-to-r from-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent">R$ 19,90</span>
+                          <span className="text-sm font-bold text-white/40">/mês</span>
+                          <span className="text-xs text-white/40 font-bold">· ou grátis no Elite</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-white/60 text-base lg:text-lg leading-relaxed font-medium max-w-xl">
+                      Crie campanhas de cashback para fidelizar clientes, aumentar o retorno e estimular novas compras.
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <Button
+                        onClick={() => setShowSignupModal(true)}
+                        className="h-12 px-6 rounded-xl font-black bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black hover:brightness-110 shadow-lg"
+                      >
+                        Ativar Módulo
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                      <a
+                        href="#faq"
+                        className="h-12 px-6 rounded-xl font-black border border-white/15 text-white/80 hover:text-white hover:border-white/30 inline-flex items-center transition-colors"
+                      >
+                        Saiba Mais
+                      </a>
+                    </div>
+                  </div>
+
+                  <ul className="grid sm:grid-cols-2 gap-3">
+                    {[
+                      "Cashback automático",
+                      "Regras personalizadas",
+                      "Relatórios de utilização",
+                      "Integração com agendamentos",
+                      "Fidelização de clientes",
+                      "Aumento da recorrência",
+                    ].map((b) => (
+                      <li key={b} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/5 transition-colors">
+                        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center shrink-0">
+                          <Check className="h-3.5 w-3.5 text-black" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm font-bold text-white/90">{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Upsells */}
-          <div className="mt-24">
+          <div className="mt-16">
             <div className="text-center mb-12">
               <h3 className="text-primary font-black uppercase tracking-widest text-xs mb-3">Recursos adicionais</h3>
               <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Turbine seu plano com IA</h4>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
               {[
                 { name: "IA Agendadora", price: "R$ 39,90", desc: "Confirma, reagenda, cancela e responde dúvidas no WhatsApp 24/7." },
                 { name: "IA Comercial", price: "R$ 49,90", desc: "Recupera inativos, cria campanhas, ofertas inteligentes e pós-venda." },
                 { name: "Loja Premium", price: "R$ 19,90", desc: "Vitrine completa para venda de produtos.", free: "Grátis no Elite" },
-                { name: "Cashback Premium", price: "R$ 19,90", desc: "Programa avançado de cashback com regras personalizadas.", free: "Grátis no Elite" },
               ].map((u) => (
                 <div key={u.name} className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-primary/30 transition-colors">
                   <div className="flex items-start justify-between mb-3">
@@ -597,34 +675,14 @@ function LandingPageComponent() {
 
       {/* FAQ Section */}
       <section id="faq" className="py-24 lg:py-40 px-6 bg-zinc-950/20">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16 lg:mb-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12 lg:mb-16">
             <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">FAQ</h2>
             <h3 className="text-4xl lg:text-6xl font-black text-white tracking-tight">Tire suas dúvidas</h3>
+            <p className="mt-4 text-white/50 font-bold max-w-2xl mx-auto">Respostas rápidas sobre módulos, planos e funcionalidades do Barbex.</p>
           </div>
-          
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            <FaqItem 
-              value="item-1"
-              question="O teste de 15 dias é grátis mesmo?"
-              answer="Sim! Você terá acesso a 100% das funcionalidades do plano Pro por 15 dias sem pagar nada e sem precisar cadastrar cartão."
-            />
-            <FaqItem 
-              value="item-2"
-              question="Consigo usar no celular?"
-              answer="Com certeza. O Barbex é feito para ser usado no seu dia a dia, direto do celular, tablet ou computador."
-            />
-            <FaqItem 
-              value="item-3"
-              question="Como funciona o WhatsApp?"
-              answer="O sistema envia mensagens automáticas de confirmação, lembrete e marketing usando sua própria conta de WhatsApp conectada."
-            />
-            <FaqItem 
-              value="item-4"
-              question="Tem multa se eu quiser cancelar?"
-              answer="Não. Nossos planos não possuem fidelidade. Você pode cancelar quando quiser sem qualquer taxa adicional."
-            />
-          </Accordion>
+
+          <FaqExplorer />
         </div>
       </section>
 
@@ -633,7 +691,7 @@ function LandingPageComponent() {
         <div className="absolute inset-0 bg-primary/10 blur-[120px] -z-10" />
         <div className="max-w-5xl mx-auto p-12 lg:p-24 rounded-[3.5rem] bg-zinc-900 border border-white/10 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10" />
-          
+
           <h2 className="text-5xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
             Pronto para <br />
             <span className="text-primary italic">transformar?</span>
@@ -642,8 +700,8 @@ function LandingPageComponent() {
             Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_20px_40px_-15px_rgba(234,179,8,0.5)] group transition-all"
               onClick={() => setShowSignupModal(true)}
             >
@@ -723,5 +781,125 @@ function FaqItem({ value, question, answer }: { value: string, question: string,
         {answer}
       </AccordionContent>
     </AccordionItem>
+  );
+}
+
+type FaqEntry = {
+  q: string;
+  a: string;
+  category:
+    | "Planos"
+    | "Cashback"
+    | "Financeiro"
+    | "WhatsApp"
+    | "Assinaturas"
+    | "Loja Virtual"
+    | "Clientes"
+    | "Comissões";
+};
+
+const FAQ_DATA: FaqEntry[] = [
+  { category: "Planos", q: "O teste de 15 dias é grátis mesmo?", a: "Sim! Você terá acesso a 100% das funcionalidades do plano Pro por 15 dias sem pagar nada e sem precisar cadastrar cartão." },
+  { category: "Planos", q: "Consigo usar no celular?", a: "Com certeza. O Barbex é feito para ser usado no seu dia a dia, direto do celular, tablet ou computador." },
+  { category: "WhatsApp", q: "Como funciona o WhatsApp?", a: "O sistema envia mensagens automáticas de confirmação, lembrete e marketing usando sua própria conta de WhatsApp conectada." },
+  { category: "Planos", q: "Tem multa se eu quiser cancelar?", a: "Não. Nossos planos não possuem fidelidade. Você pode cancelar quando quiser sem qualquer taxa adicional." },
+  { category: "Cashback", q: "O Cashback Premium está incluso em todos os planos?", a: "Não.\n\nO módulo Cashback Premium pode ser contratado separadamente por R$ 19,90/mês ou está incluso gratuitamente no plano Elite." },
+  { category: "Cashback", q: "Como funciona o cashback?", a: "A barbearia define a porcentagem e as regras de concessão.\n\nExemplo:\nServiço: R$ 50\nCashback: 10%\n\nO cliente recebe R$ 5 de saldo para utilizar em futuros agendamentos." },
+  { category: "Financeiro", q: "O cliente pode pagar apenas com cashback?", a: "Sim.\n\nO sistema aceita:\n• Cashback\n• Créditos\n• PIX\n• Dinheiro\n• Cartão\n• Pagamentos mistos\n\nExemplo: Serviço de R$ 50 → R$ 10 em cashback + R$ 15 em créditos + R$ 25 em PIX." },
+  { category: "WhatsApp", q: "Preciso contratar uma plataforma de WhatsApp?", a: "Sim.\n\nAs automações utilizam plataformas externas como:\n• Z-API\n• Evolution API\n• Outras integrações compatíveis\n\nImportante: o valor dessas plataformas é contratado diretamente pelo cliente." },
+  { category: "Assinaturas", q: "Posso vender planos de assinatura?", a: "Sim.\n\nO módulo Assinaturas permite:\n• Planos semanais\n• Planos quinzenais\n• Planos mensais\n• Benefícios exclusivos\n• Controle de utilização\n• Renovação automática\n• Fidelidade Premium" },
+  { category: "Planos", q: "Posso utilizar apenas agendamento sem loja e sem assinaturas?", a: "Sim. Os módulos são independentes.\n\nVocê pode ativar apenas:\n• Agenda\n• Clientes\n• Financeiro\n• WhatsApp\n\nE habilitar outros módulos futuramente." },
+  { category: "Loja Virtual", q: "A loja virtual é obrigatória?", a: "Não. A loja é um módulo opcional.\n\nQuando estiver desativada:\n• O menu não aparece no painel\n• Não aparece no frontend\n• Nenhuma funcionalidade relacionada é carregada" },
+  { category: "Comissões", q: "O sistema controla comissões dos barbeiros?", a: "Sim.\n\nO módulo de comissões permite:\n• Comissão por serviço\n• Comissão percentual\n• Comissão fixa\n• Relatórios por período\n• Histórico de pagamentos" },
+  { category: "Clientes", q: "Os clientes possuem painel próprio?", a: "Sim.\n\nCada cliente pode acessar:\n• Histórico de atendimentos\n• Créditos\n• Cashback\n• Assinaturas\n• Fidelidade\n• Agendamentos futuros" },
+  { category: "Planos", q: "Posso começar pequeno e evoluir depois?", a: "Sim. O Barbex foi desenvolvido de forma modular.\n\nVocê pode iniciar apenas com:\n• Agenda\n• Clientes\n• Financeiro\n\nE posteriormente habilitar:\n• Loja Virtual\n• Assinaturas\n• Cashback Premium\n• Fidelidade Premium\n• WhatsApp\n• Automações\n• Programa de Indicação" },
+];
+
+const FAQ_CATEGORIES: { name: string; icon: React.ReactNode }[] = [
+  { name: "Todos", icon: <Sparkles className="h-3.5 w-3.5" /> },
+  { name: "Planos", icon: <Tag className="h-3.5 w-3.5" /> },
+  { name: "Cashback", icon: <Percent className="h-3.5 w-3.5" /> },
+  { name: "Financeiro", icon: <CircleDollarSign className="h-3.5 w-3.5" /> },
+  { name: "WhatsApp", icon: <MessageSquare className="h-3.5 w-3.5" /> },
+  { name: "Assinaturas", icon: <Repeat className="h-3.5 w-3.5" /> },
+  { name: "Loja Virtual", icon: <ShoppingBag className="h-3.5 w-3.5" /> },
+  { name: "Clientes", icon: <UserCircle className="h-3.5 w-3.5" /> },
+  { name: "Comissões", icon: <Briefcase className="h-3.5 w-3.5" /> },
+];
+
+function FaqExplorer() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("Todos");
+
+  const filtered = FAQ_DATA.filter((f) => {
+    const matchCat = category === "Todos" || f.category === category;
+    const q = query.trim().toLowerCase();
+    const matchQ = !q || f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  return (
+    <div>
+      <div className="relative mb-5">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar nas perguntas..."
+          className="w-full h-14 pl-11 pr-4 rounded-2xl bg-zinc-900/70 border border-white/10 text-white placeholder:text-white/30 font-bold focus:outline-none focus:border-primary/60 transition-colors"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-8">
+        {FAQ_CATEGORIES.map((c) => {
+          const active = category === c.name;
+          return (
+            <button
+              key={c.name}
+              onClick={() => setCategory(c.name)}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all",
+                active
+                  ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black border-transparent shadow-lg"
+                  : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/25"
+              )}
+            >
+              {c.icon}
+              {c.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-16 rounded-3xl border border-white/5 bg-zinc-900/40">
+          <p className="text-white/60 font-bold">Nenhuma pergunta encontrada.</p>
+          <p className="text-white/30 text-sm mt-1">Tente outro termo ou categoria.</p>
+        </div>
+      ) : (
+        <Accordion type="single" collapsible className="w-full space-y-3">
+          {filtered.map((f, idx) => (
+            <AccordionItem
+              key={`${f.category}-${idx}`}
+              value={`faq-${idx}`}
+              className="border border-white/5 bg-zinc-900/50 rounded-2xl px-6 hover:border-primary/20 transition-colors"
+            >
+              <AccordionTrigger className="text-left hover:no-underline py-6">
+                <div className="flex items-start gap-3 pr-4">
+                  <span className="mt-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-primary font-black uppercase tracking-widest shrink-0">
+                    {f.category}
+                  </span>
+                  <span className="text-base lg:text-lg font-black text-white">{f.q}</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-white/60 text-base font-medium leading-relaxed pb-6 whitespace-pre-line">
+                {f.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
+    </div>
   );
 }
