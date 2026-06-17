@@ -1138,6 +1138,7 @@ function ClientPortalComponent() {
               <CardTitle className="text-2xl font-bold text-white">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
+          {loyaltyEnabled && (
           <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400">Fidelidade</CardDescription>
@@ -1151,6 +1152,7 @@ function ClientPortalComponent() {
               </CardTitle>
             </CardHeader>
           </Card>
+          )}
           <Card className="bg-white/5 border-white/10 shadow-md group hover:border-green-500/30 transition-all duration-300">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400 group-hover:text-green-500/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CRÉDITOS</CardDescription>
