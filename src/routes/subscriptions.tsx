@@ -927,32 +927,32 @@ function SubscriptionsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#05070d] text-white">
-        <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+      <div className="min-h-screen bg-[#05070d] text-white overflow-x-hidden max-w-full">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
           {/* HEADER */}
-          <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
-                <CreditCard className="h-7 w-7 text-emerald-400" />
+          <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 items-start md:items-center gap-3 md:gap-4">
+              <div className="shrink-0 h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <CreditCard className="h-6 w-6 md:h-7 md:w-7 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">Assinaturas</h1>
-                <p className="text-sm text-zinc-400 mt-1 truncate">
-                  Gerencie assinaturas, planos e assinantes da sua barbearia.
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight break-words">Assinaturas</h1>
+                <p className="text-sm text-zinc-400 mt-1 leading-snug">
+                  Gerencie planos e assinantes.
                 </p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row gap-2 md:shrink-0 w-full md:w-auto">
               <Button
                 onClick={openNewPlan}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_24px_rgba(16,185,129,0.45)] transition-all hover:-translate-y-0.5"
+                className="w-full md:w-auto h-11 md:h-10 rounded-[14px] md:rounded-md bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_24px_rgba(16,185,129,0.45)] transition-all hover:-translate-y-0.5"
               >
                 <Plus className="h-4 w-4 mr-2" /> Novo Plano
               </Button>
               <Button
                 onClick={openNewSub}
                 variant="outline"
-                className="bg-[#0b0f17] border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold transition-all hover:-translate-y-0.5"
+                className="w-full md:w-auto h-11 md:h-10 rounded-[14px] md:rounded-md bg-[#0b0f17] border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold transition-all hover:-translate-y-0.5"
               >
                 <Plus className="h-4 w-4 mr-2" /> Nova Assinatura
               </Button>
