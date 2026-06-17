@@ -235,19 +235,19 @@ function SubscriptionComponent() {
   return (
     <AppLayout>
       <PaymentTestModeBanner />
-      <div className="min-h-screen bg-[#05070d] text-white">
+      <div className="min-h-screen bg-[#05070d] text-white max-w-full overflow-x-hidden">
         <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto animate-in fade-in duration-500">
           {/* HEADER */}
-          <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
-                <CreditCard className="h-7 w-7 text-emerald-400" />
+          <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start sm:items-center gap-4">
+              <div className="shrink-0 h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 grid place-items-center shadow-[0_4px_20px_rgba(16,185,129,0.15)]">
+                <CreditCard className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight break-words sm:truncate">
                   Minha Assinatura
                 </h1>
-                <p className="text-sm text-zinc-400 mt-1 truncate">
+                <p className="text-sm text-zinc-400 mt-1 break-words sm:truncate">
                   Gerencie seu plano e limites do sistema
                 </p>
               </div>
@@ -257,7 +257,7 @@ function SubscriptionComponent() {
                 size="sm"
                 onClick={handleManageSubscription}
                 disabled={updating}
-                className="shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-9 px-3 transition-all"
+                className="w-full sm:w-auto shrink-0 bg-[#0b0f17] border border-zinc-700 text-white hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 font-bold text-xs h-11 sm:h-9 rounded-[14px] sm:rounded-md px-3 transition-all"
               >
                 {updating ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5 mr-1.5" />}
                 Gerenciar
