@@ -38,9 +38,10 @@ import {
   AlertTriangle,
   Send,
 } from "lucide-react";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/subscription-rewards")({
-  component: SubscriptionRewardsPage,
+  component: withModule("subscriptions", "Fidelidade Premium", SubscriptionRewardsPage),
 });
 
 type RewardType = "free_service" | "cashback" | "credit" | "product" | "discount" | "custom";

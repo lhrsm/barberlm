@@ -41,10 +41,11 @@ import { cn } from "@/lib/utils";
 import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
 import { WebhooksCard } from "@/components/integrations/WebhooksCard";
 import { ConfigurableIntegrationCard } from "@/components/integrations/ConfigurableIntegrationCard";
+import { withModule } from "@/components/modules/withModule";
 
 
 export const Route = createFileRoute("/integrations")({
-  component: IntegrationsComponent,
+  component: withModule("integrations", "Integrações", IntegrationsComponent),
 });
 
 function IntegrationsComponent() {

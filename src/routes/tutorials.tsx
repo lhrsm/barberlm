@@ -33,6 +33,7 @@ import {
   PremiumTabsContent,
 } from "@/components/ui/premium-tabs";
 import { Rocket, Calendar, DollarSign, Zap, Crown, MessageCircle } from "lucide-react";
+import { withModule } from "@/components/modules/withModule";
 
 const MOBILE_TABS = [
   { value: "primeiros", label: "Primeiros Passos", icon: Rocket, keywords: ["primeiro", "começ", "intro", "inicio", "início"] },
@@ -52,7 +53,7 @@ function matchesTab(tutorial: any, tabValue: string) {
 }
 
 export const Route = createFileRoute("/tutorials")({
-  component: TutorialsPage,
+  component: withModule("tutorials", "Tutoriais", TutorialsPage),
 });
 
 function TutorialsPage() {

@@ -73,12 +73,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { withModule } from "@/components/modules/withModule";
 
 // Casting to any to bypass type errors for new table
 const anySupabase = supabase as any;
 
 export const Route = createFileRoute("/automations")({
-  component: AutomationsComponent,
+  component: withModule("automations", "Automações", AutomationsComponent),
 });
 
 function AutomationsComponent() {

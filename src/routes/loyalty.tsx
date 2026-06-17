@@ -7,9 +7,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Gift, Trophy, TrendingDown, Users, Settings } from "lucide-react";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/loyalty")({
-  component: LoyaltyDashboardPage,
+  component: withModule("loyalty", "Fidelidade", LoyaltyDashboardPage),
 });
 
 function LoyaltyDashboardPage() {

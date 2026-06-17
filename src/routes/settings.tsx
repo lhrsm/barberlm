@@ -34,8 +34,10 @@ import {
   ExternalLink,
   UserRound,
   History,
-  Info
+  Info,
+  Layout
 } from "lucide-react";
+import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { CouponManagement } from "@/components/admin/CouponManagement";
 
@@ -348,6 +350,7 @@ function SettingsComponent() {
               {[
                 { value: "general", icon: Globe, label: "Geral" },
                 { value: "profile", icon: UserRound, label: "Perfil" },
+                { value: "modules", icon: Layout, label: "Módulos" },
                 { value: "appearance", icon: Palette, label: "Aparência" },
                 { value: "scheduling", icon: Calendar, label: "Agenda" },
                 { value: "coupons", icon: Gift, label: "Cupons" },
@@ -369,6 +372,10 @@ function SettingsComponent() {
 
           <div className="rounded-b-[24px] sm:rounded-[24px] sm:rounded-tl-none border border-[rgba(255,184,0,0.15)] bg-[#0A1020] p-4 md:p-6 -mx-4 sm:mx-0">
 
+
+          <TabsContent value="modules" className="space-y-4">
+            <ModulesSettings />
+          </TabsContent>
 
           <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">

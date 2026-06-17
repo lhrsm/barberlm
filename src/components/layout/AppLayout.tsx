@@ -46,23 +46,25 @@ import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthP
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { toast } from "sonner";
 
-const defaultNavItems = [
+import { useModules, type ModuleKey } from "@/hooks/use-modules";
+
+const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: ModuleKey }> = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Agenda", icon: Calendar, to: "/calendar" },
   { label: "Clientes", icon: Users, to: "/customers" },
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
-  { label: "Comissões", icon: CircleDollarSign, to: "/commissions" },
-  { label: "Produtos", icon: ShoppingBag, to: "/products" },
-  { label: "Automações", icon: MessageSquare, to: "/automations" },
-  { label: "Campanhas", icon: Megaphone, to: "/campaigns" },
-  { label: "Integrações", icon: Share2, to: "/integrations" },
-  { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
-  { label: "Suporte", icon: Headset, to: "/support" },
-  { label: "Assinaturas", icon: CreditCard, to: "/subscriptions" },
-  { label: "Fidelidade Premium", icon: Gift, to: "/subscription-rewards" },
-  { label: "Fidelidade", icon: Gift, to: "/loyalty" },
+  { label: "Comissões", icon: CircleDollarSign, to: "/commissions", module: "commissions" },
+  { label: "Produtos", icon: ShoppingBag, to: "/products", module: "products" },
+  { label: "Automações", icon: MessageSquare, to: "/automations", module: "automations" },
+  { label: "Campanhas", icon: Megaphone, to: "/campaigns", module: "campaigns" },
+  { label: "Integrações", icon: Share2, to: "/integrations", module: "integrations" },
+  { label: "Tutoriais", icon: GraduationCap, to: "/tutorials", module: "tutorials" },
+  { label: "Suporte", icon: Headset, to: "/support", module: "support" },
+  { label: "Assinaturas", icon: CreditCard, to: "/subscriptions", module: "subscriptions" },
+  { label: "Fidelidade Premium", icon: Gift, to: "/subscription-rewards", module: "subscriptions" },
+  { label: "Fidelidade", icon: Gift, to: "/loyalty", module: "loyalty" },
 
   { label: "Minha Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
@@ -92,8 +94,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const slug = tenantProfile?.slug || authProfile?.slug || "general";
 
-  const navItems = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
-  
+  const { isEnabled: isModuleEnabled } = useModules();
+  const rawNav = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
+  const navItems = rawNav.filter((item: any) => !item.module || isModuleEnabled(item.module));
+
   if (role === 'super_admin' || role === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }

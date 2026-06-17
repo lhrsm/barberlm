@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { withModule } from "@/components/modules/withModule";
 
 const PLAN_PRICE_IDS = {
   sandbox: {
@@ -44,7 +45,7 @@ const PLAN_PRICE_IDS = {
 
 
 export const Route = createFileRoute("/subscription")({
-  component: SubscriptionComponent,
+  component: withModule("subscriptions", "Assinaturas", SubscriptionComponent),
 });
 
 function SubscriptionComponent() {

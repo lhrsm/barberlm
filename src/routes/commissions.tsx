@@ -48,9 +48,10 @@ import {
   Medal,
   Award,
 } from "lucide-react";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/commissions")({
-  component: CommissionsPage,
+  component: withModule("commissions", "Comissões", CommissionsPage),
 });
 
 type Entry = {

@@ -39,9 +39,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/campaigns")({
-  component: CampaignsComponent,
+  component: withModule("campaigns", "Campanhas", CampaignsComponent),
 });
 
 function CampaignsComponent() {

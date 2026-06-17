@@ -67,9 +67,10 @@ import {
 } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/subscriptions")({
-  component: SubscriptionsPage,
+  component: withModule("subscriptions", "Assinaturas", SubscriptionsPage),
 });
 
 type PlanType = "hair" | "beard" | "hair_beard" | "custom";
