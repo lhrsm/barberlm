@@ -288,9 +288,12 @@ function SettingsComponent() {
         whatsapp_number: profileUpdateData.whatsapp_number,
         opening_date: profileUpdateData.opening_date || null,
         cancellation_window_hours: parseInt(profileUpdateData.cancellation_window_hours) || 2,
+        barber_can_cancel: !!profileUpdateData.barber_can_cancel,
+        barber_can_reschedule: !!profileUpdateData.barber_can_reschedule,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
+
 
     // Save to barbershop_settings
     const { error: settingsError } = await supabase
@@ -875,7 +878,37 @@ function SettingsComponent() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card className="bg-[#0a0d14] border border-[#1f2937] rounded-2xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937] bg-[#050816]">
+                  <CardTitle className="text-white font-black uppercase tracking-wider text-sm">Permissões do Barbeiro</CardTitle>
+                  <CardDescription className="text-slate-400">Controle o que cada barbeiro pode fazer no próprio painel.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-5">
+                  <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-[#05070d] border border-[#1f2937]">
+                    <div>
+                      <p className="text-white font-bold text-sm">Permitir barbeiro cancelar agendamento?</p>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1">Quando desativado, o barbeiro poderá apenas solicitar o cancelamento via WhatsApp.</p>
+                    </div>
+                    <Switch
+                      checked={!!formData.barber_can_cancel}
+                      onCheckedChange={(v) => setFormData({ ...formData, barber_can_cancel: v })}
+                    />
+                  </div>
+                  <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-[#05070d] border border-[#1f2937]">
+                    <div>
+                      <p className="text-white font-bold text-sm">Permitir barbeiro reagendar agendamento?</p>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1">Quando desativado, o barbeiro poderá apenas solicitar o reagendamento via WhatsApp ao cliente.</p>
+                    </div>
+                    <Switch
+                      checked={!!formData.barber_can_reschedule}
+                      onCheckedChange={(v) => setFormData({ ...formData, barber_can_reschedule: v })}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
+
 
             <TabsContent value="coupons" className="space-y-4">
               <CouponManagement />
