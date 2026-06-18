@@ -2524,32 +2524,56 @@ function ShopPageComponent() {
                 <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Aproveite</span>
                 <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Promoções Ativas</h3>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {publicActiveCoupons.map((c) => (
-                  <div key={c.id} className="relative rounded-2xl border border-dashed border-[#D4AF37]/40 bg-gradient-to-br from-[#1a1408] to-black p-6 flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <TicketPercent size={18} className="text-[#D4AF37]" />
-                      <span className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">Cupom</span>
+                  <motion.div
+                    key={c.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="group relative rounded-3xl border border-[#F5C542]/20 bg-white/[0.02] p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#F5C542]/60 hover:bg-white/[0.03] hover:shadow-[0_20px_50px_rgba(245,197,66,0.15)] hover:-translate-y-1"
+                  >
+                    {/* Notch decorative */}
+                    <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
+                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#F5C542]/20 to-[#D4A017]/10 flex items-center justify-center border border-[#F5C542]/30">
+                          <TicketPercent size={16} className="text-[#F5C542]" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#F5C542]">Cupom Premium</span>
+                      </div>
                     </div>
+
                     <div>
-                      <p className="text-2xl font-black text-white tracking-tight">
-                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)} OFF`}
+                      <p className="text-4xl font-black text-white tracking-tighter leading-none">
+                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)}`}
                       </p>
-                      <p className="text-xs font-bold text-slate-400 mt-1">Código: <span className="text-white">{c.code}</span></p>
+                      {!(c.type === 'percent' || c.type === 'percentage') && (
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">de desconto</p>
+                      )}
                     </div>
+
+                    <div className="rounded-xl border border-dashed border-[#F5C542]/30 bg-[#F5C542]/[0.04] px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Código</p>
+                      <p className="text-base font-black text-white tracking-[0.15em]">{c.code}</p>
+                    </div>
+
                     {c.expires_at && (
-                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1.5">
+                        <Calendar size={12} className="text-[#F5C542]/70" />
                         Válido até {format(parseISO(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     )}
+
                     <Button
-                      size="sm"
-                      className="mt-auto h-10 rounded-xl bg-white text-black hover:bg-white/90 font-bold"
+                      className="mt-auto h-12 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] font-black uppercase tracking-widest text-[11px] shadow-[0_8px_20px_rgba(245,197,66,0.28)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.4)] hover:-translate-y-0.5 transition-all"
                       onClick={handleBookingAction}
                     >
-                      Agendar com cupom
+                      <Calendar size={14} className="mr-2" /> Agendar com Cupom
                     </Button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
