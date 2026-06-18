@@ -1896,8 +1896,8 @@ function ShopPageComponent() {
                 "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
                 "backdrop-blur-xl border-b",
                 scrolled
-                  ? "bg-[rgba(5,11,24,0.92)] border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
-                  : "bg-[rgba(5,11,24,0.65)] border-white/[0.06] shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+                  ? "bg-[rgba(5,11,24,0.94)] border-[rgba(212,175,55,0.22)] shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+                  : "bg-[rgba(5,11,24,0.78)] border-[rgba(212,175,55,0.18)] shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
               )}
             >
               <motion.div
@@ -1905,30 +1905,30 @@ function ShopPageComponent() {
                 animate={{ y: 0, opacity: 1 }}
                 className={cn(
                   "mx-auto max-w-7xl flex items-center justify-between gap-4 px-4 sm:px-6 transition-all duration-500",
-                  scrolled ? "h-16" : "h-20"
+                  scrolled ? "h-[76px]" : "h-[92px]"
                 )}
               >
-                {/* Logo */}
-                <a href="#inicio" className="flex items-center shrink-0 group">
-                  {shop.barbershop_logo_url ? (
-                    <img
-                      src={shop.barbershop_logo_url}
-                      alt={shop.business_name}
-                      className={cn(
-                        "rounded-full object-cover ring-1 ring-white/10 transition-all duration-500 group-hover:ring-[#D4AF37]/40",
-                        scrolled ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14"
-                      )}
-                    />
-                  ) : (
-                    <div
-                      className={cn(
-                        "rounded-full grid place-items-center bg-[#0B1324] border border-[rgba(255,184,0,0.25)] transition-all duration-500 group-hover:border-[#D4AF37]/60 group-hover:shadow-[0_0_24px_rgba(212,175,55,0.25)]",
-                        scrolled ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14"
-                      )}
-                    >
-                      <Scissors className={cn("text-[#D4AF37] transition-all", scrolled ? "h-5 w-5" : "h-6 w-6")} />
-                    </div>
-                  )}
+                {/* Logo destacada */}
+                <a href="#inicio" className="flex items-center shrink-0 group" aria-label={shop.business_name}>
+                  <div
+                    className={cn(
+                      "relative rounded-full bg-[#0B1324] border-2 border-[#D4AF37]/60 overflow-hidden transition-all duration-500",
+                      "shadow-[0_0_24px_rgba(212,175,55,0.25)] group-hover:shadow-[0_0_32px_rgba(212,175,55,0.45)] group-hover:border-[#D4AF37]",
+                      scrolled ? "h-[60px] w-[60px] md:h-16 md:w-16" : "h-[60px] w-[60px] md:h-[72px] md:w-[72px]"
+                    )}
+                  >
+                    {shop.barbershop_logo_url ? (
+                      <img
+                        src={shop.barbershop_logo_url}
+                        alt={shop.business_name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full grid place-items-center">
+                        <Scissors className={cn("text-[#D4AF37] transition-all", scrolled ? "h-6 w-6" : "h-7 w-7")} />
+                      </div>
+                    )}
+                  </div>
                 </a>
 
                 {/* Nav desktop centralizado */}
@@ -1936,9 +1936,10 @@ function ShopPageComponent() {
                   {[
                     { href: "#inicio", label: "Início" },
                     { href: "#servicos", label: "Serviços" },
-                    ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Clube" }] : []),
-                    ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
                     { href: "#profissionais", label: "Profissionais" },
+                    ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+                    ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
+                    ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
                     { href: "#contato", label: "Contato" },
                   ].map((it) => (
                     <a
@@ -1955,9 +1956,14 @@ function ShopPageComponent() {
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
                     onClick={handleBookingAction}
-                    className="rounded-full bg-[#D4AF37] text-black hover:bg-[#e6c558] transition-all font-bold tracking-wide h-11 px-6 md:h-12 md:px-8 shadow-[0_6px_20px_rgba(212,175,55,0.25)]"
+                    className={cn(
+                      "rounded-full font-extrabold tracking-wide text-black transition-all",
+                      "bg-gradient-to-br from-[#F5C542] to-[#D4A017] hover:from-[#F8D265] hover:to-[#D4A017]",
+                      "shadow-[0_10px_28px_rgba(245,197,66,0.28)] hover:-translate-y-0.5",
+                      "h-[42px] px-[18px] text-xs md:h-12 md:px-7 md:text-sm"
+                    )}
                   >
-                    {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
+                    {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar Agora'}
                   </Button>
 
                   {/* Hambúrguer mobile */}
@@ -1966,30 +1972,31 @@ function ShopPageComponent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden h-11 w-11 rounded-full text-white hover:bg-white/10 hover:text-[#D4AF37]"
+                        className="md:hidden h-11 w-11 rounded-full bg-[#0B1324] border border-[#D4AF37]/30 text-white hover:bg-[#0B1324] hover:border-[#D4AF37]/70 hover:text-[#D4AF37]"
                         aria-label="Abrir menu"
                       >
                         <Menu className="h-5 w-5" />
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="bg-[#05070d] border-l border-white/10 text-white w-[280px] p-0">
+                    <SheetContent side="right" className="bg-[#05070d] border-l border-[#D4AF37]/15 text-white w-[280px] p-0">
                       <div className="flex items-center gap-3 p-6 border-b border-white/10">
-                        {shop.barbershop_logo_url ? (
-                          <img src={shop.barbershop_logo_url} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full grid place-items-center bg-[#0B1324] border border-[rgba(255,184,0,0.25)]">
-                            <Scissors className="h-5 w-5 text-[#D4AF37]" />
-                          </div>
-                        )}
+                        <div className="h-12 w-12 rounded-full overflow-hidden bg-[#0B1324] border-2 border-[#D4AF37]/60 shadow-[0_0_18px_rgba(212,175,55,0.3)]">
+                          {shop.barbershop_logo_url ? (
+                            <img src={shop.barbershop_logo_url} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full grid place-items-center"><Scissors className="h-5 w-5 text-[#D4AF37]" /></div>
+                          )}
+                        </div>
                         <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Menu</span>
                       </div>
                       <nav className="flex flex-col p-2">
                         {[
                           { href: "#inicio", label: "Início" },
                           { href: "#servicos", label: "Serviços" },
-                          ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Clube" }] : []),
-                          ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
                           { href: "#profissionais", label: "Profissionais" },
+                          ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+                          ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
+                          ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
                           { href: "#contato", label: "Contato" },
                         ].map((it) => (
                           <a
@@ -2000,6 +2007,12 @@ function ShopPageComponent() {
                             {it.label}
                           </a>
                         ))}
+                        <Button
+                          onClick={handleBookingAction}
+                          className="mt-4 mx-2 rounded-full bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-black font-extrabold h-12 shadow-[0_10px_28px_rgba(245,197,66,0.25)]"
+                        >
+                          Agendar Agora
+                        </Button>
                       </nav>
                     </SheetContent>
                   </Sheet>
