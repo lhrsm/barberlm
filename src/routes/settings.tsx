@@ -36,8 +36,11 @@ import {
   History,
   Info,
   Layout,
-  ShieldCheck
+  ShieldCheck,
+  Coins,
+  Trophy
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
@@ -263,9 +266,11 @@ function SettingsComponent() {
         secondary_color: profileUpdateData.secondary_color,
         logo_url: profileUpdateData.logo_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
-        loyalty_mode: profileUpdateData.loyalty_mode,
-        // EXCLUSIVIDADE: se modo = loyalty, cashback é forçado a OFF
-        cashback_enabled: profileUpdateData.loyalty_mode === 'cashback' ? profileUpdateData.cashback_enabled : false,
+        // loyalty_mode mantido por compatibilidade — derivado dos switches independentes
+        loyalty_mode: profileUpdateData.loyalty_enabled
+          ? 'loyalty'
+          : (profileUpdateData.cashback_enabled ? 'cashback' : 'none'),
+        cashback_enabled: !!profileUpdateData.cashback_enabled,
         cashback_percentage: profileUpdateData.cashback_percentage,
         cashback_type: profileUpdateData.cashback_type,
         cashback_fixed_value: profileUpdateData.cashback_fixed_value,
@@ -299,9 +304,8 @@ function SettingsComponent() {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'barber_id' });
 
-    // Save loyalty_settings (novo módulo de fidelidade)
-    const loyaltyEnabledFinal =
-      updatedData.loyalty_mode === 'loyalty' ? !!updatedData.loyalty_enabled : false;
+    // Save loyalty_settings (módulo de fidelidade tradicional — switch independente)
+    const loyaltyEnabledFinal = !!updatedData.loyalty_enabled;
     const { error: loyaltyError } = await supabase
       .from("loyalty_settings" as any)
       .upsert({
@@ -983,312 +987,256 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="loyalty" className="space-y-6">
-              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
-                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
-                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
-                    <Gift className="text-[#ea580c] h-5 w-5" />
-                    Estratégia de Fidelização
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Recomendamos usar apenas uma estratégia por vez: Cashback, Fidelidade ou Assinatura.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                    <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Modo Ativo</Label>
-                    <Select
-                      value={formData.loyalty_mode}
-                      onValueChange={(value) => setFormData({
-                        ...formData,
-                        loyalty_mode: value,
-                        cashback_enabled: value === 'cashback' ? (formData.cashback_enabled || true) : false,
-                      })}
-                    >
-                      <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-                        <SelectItem value="none">Nenhuma</SelectItem>
-                        <SelectItem value="cashback">Cashback</SelectItem>
-                        <SelectItem value="loyalty">Fidelidade (Cartão)</SelectItem>
-                        <SelectItem value="subscription">Assinatura</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[10px] text-slate-600 font-medium uppercase italic">
-                      Apenas o modo selecionado gera saldo/pontos ao concluir um agendamento.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Header da aba */}
+              <div className="px-1">
+                <h3 className="text-2xl font-black uppercase italic tracking-wider text-white flex items-center gap-3">
+                  <Gift className="text-[#ea580c] h-6 w-6" />
+                  Estratégias de Fidelização
+                </h3>
+                <p className="text-slate-400 text-sm font-medium mt-1">
+                  Ative apenas os recursos que deseja utilizar na sua barbearia.
+                  Cada estratégia funciona de forma independente.
+                </p>
+              </div>
 
-              {formData.loyalty_mode === 'cashback' && (
+              {/* CARD 1 — CASHBACK */}
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
-                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
-                    <Gift className="text-[#ea580c] h-5 w-5" />
-                    Sistema de Cashback
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">Configure como seus clientes ganham crédito premium a cada serviço.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="flex items-center justify-between p-5 bg-[#05070d]/50 border border-[#1f2937] rounded-2xl shadow-inner transition-all hover:border-[#ea580c]/30">
-                    <div className="space-y-1">
-                      <Label className="text-base font-black uppercase italic">Ativar Cashback</Label>
-                      <p className="text-[10px] text-slate-500 font-medium tracking-tight uppercase">
-                        Habilita o acúmulo de saldo para seus clientes.
-                      </p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-[#ea580c]/20 to-transparent border border-[#ea580c]/30 grid place-items-center shrink-0">
+                        <Coins className="text-[#ea580c] h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2 flex-wrap">
+                          Cashback
+                          <Badge variant="outline" className={formData.cashback_enabled ? "border-emerald-500/40 text-emerald-400" : "border-slate-600/40 text-slate-500"}>
+                            {formData.cashback_enabled ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </CardTitle>
+                        <CardDescription className="text-slate-400 mt-1">
+                          Conceda saldo para utilização em futuros agendamentos. Ex.: cliente gasta R$ 100 e recebe R$ 10.
+                        </CardDescription>
+                      </div>
                     </div>
-                    <Switch 
-                      checked={formData.cashback_enabled} 
+                    <Switch
+                      checked={formData.cashback_enabled}
                       onCheckedChange={(checked) => setFormData({ ...formData, cashback_enabled: checked })}
-                      className="data-[state=checked]:bg-[#ea580c]"
+                      className="data-[state=checked]:bg-[#ea580c] shrink-0"
                     />
                   </div>
-
-                  {formData.cashback_enabled && (
-                    <div className="grid gap-6 animate-in fade-in slide-in-from-top-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo de Retorno</Label>
-                          <Select 
-                            value={formData.cashback_type} 
-                            onValueChange={(value) => setFormData({ ...formData, cashback_type: value })}
-                          >
-                            <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-                              <SelectItem value="percentage">Percentual (%)</SelectItem>
-                              <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {formData.cashback_type === 'percentage' ? (
-                          <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                            <Label htmlFor="cashback_percentage" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Porcentagem de Retorno (%)</Label>
-                            <div className="flex flex-col sm:flex-row items-center gap-4">
-                              <Input 
-                                id="cashback_percentage" 
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={formData.cashback_percentage} 
-                                onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
-                                className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
-                              />
-                              <span className="text-xs text-slate-500 font-medium italic">
-                                Ex: A cada R$ 100,00 gastos, o cliente recebe R$ <span className="text-[#ea580c] font-black">{formData.cashback_percentage.toFixed(2)}</span>.
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                            <Label htmlFor="cashback_fixed_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor Fixo de Retorno (R$)</Label>
-                            <div className="flex flex-col sm:flex-row items-center gap-4">
-                              <Input 
-                                id="cashback_fixed_value" 
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={formData.cashback_fixed_value} 
-                                onChange={(e) => setFormData({ ...formData, cashback_fixed_value: parseFloat(e.target.value) || 0 })}
-                                className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
-                              />
-                              <span className="text-xs text-slate-500 font-medium italic">
-                                O cliente recebe sempre R$ <span className="text-[#ea580c] font-black">{formData.cashback_fixed_value.toFixed(2)}</span> por serviço.
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label htmlFor="cashback_minimum_amount" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor Mínimo do Serviço (R$)</Label>
-                          <Input 
-                            id="cashback_minimum_amount" 
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={formData.cashback_minimum_amount} 
-                            onChange={(e) => setFormData({ ...formData, cashback_minimum_amount: parseFloat(e.target.value) || 0 })}
-                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black italic"
-                          />
-                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">O cashback só será gerado para serviços acima deste valor.</p>
-                        </div>
-
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label htmlFor="cashback_expiration_days" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Validade do Crédito (Dias)</Label>
-                          <Input 
-                            id="cashback_expiration_days" 
-                            type="number"
-                            min="0"
-                            value={formData.cashback_expiration_days} 
-                            onChange={(e) => setFormData({ ...formData, cashback_expiration_days: parseInt(e.target.value) || 0 })}
-                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black italic"
-                          />
-                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">Use 0 para validade ilimitada.</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
-                        <Info className="h-5 w-5 text-[#ea580c] shrink-0" />
-                        <div className="space-y-1">
-                          <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Logística do Cashback</p>
-                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
-                            O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
-                            Os clientes podem usar esse saldo para obter descontos premium em agendamentos futuros.
-                          </p>
-                        </div>
-                      </div>
+                </CardHeader>
+                {formData.cashback_enabled && (
+                <CardContent className="p-6 space-y-6 animate-in fade-in slide-in-from-top-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo de Retorno</Label>
+                      <Select value={formData.cashback_type} onValueChange={(value) => setFormData({ ...formData, cashback_type: value })}>
+                        <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                          <SelectItem value="percentage">Percentual (%)</SelectItem>
+                          <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-              )}
 
-              {formData.loyalty_mode === 'loyalty' && (
+                    {formData.cashback_type === 'percentage' ? (
+                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                        <Label htmlFor="cashback_percentage" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Percentual de Cashback (%)</Label>
+                        <Input id="cashback_percentage" type="number" min="0" max="100"
+                          value={formData.cashback_percentage}
+                          onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
+                          className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic" />
+                        <p className="text-[10px] text-slate-600 font-medium uppercase italic">
+                          A cada R$ 100,00, o cliente recebe R$ <span className="text-[#ea580c] font-black">{formData.cashback_percentage.toFixed(2)}</span>.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                        <Label htmlFor="cashback_fixed_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor Fixo (R$)</Label>
+                        <Input id="cashback_fixed_value" type="number" min="0" step="0.01"
+                          value={formData.cashback_fixed_value}
+                          onChange={(e) => setFormData({ ...formData, cashback_fixed_value: parseFloat(e.target.value) || 0 })}
+                          className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label htmlFor="cashback_minimum_amount" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor Mínimo do Serviço (R$)</Label>
+                      <Input id="cashback_minimum_amount" type="number" min="0" step="0.01"
+                        value={formData.cashback_minimum_amount}
+                        onChange={(e) => setFormData({ ...formData, cashback_minimum_amount: parseFloat(e.target.value) || 0 })}
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black italic" />
+                      <p className="text-[10px] text-slate-600 font-medium uppercase italic">Cashback só será gerado para serviços acima deste valor.</p>
+                    </div>
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label htmlFor="cashback_expiration_days" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Validade do Crédito (Dias)</Label>
+                      <Input id="cashback_expiration_days" type="number" min="0"
+                        value={formData.cashback_expiration_days}
+                        onChange={(e) => setFormData({ ...formData, cashback_expiration_days: parseInt(e.target.value) || 0 })}
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black italic" />
+                      <p className="text-[10px] text-slate-600 font-medium uppercase italic">Use 0 para validade ilimitada.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                    <Info className="h-5 w-5 text-[#ea580c] shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Regra automática para assinantes</p>
+                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed uppercase">
+                        Cashback não é gerado em serviços cobertos integralmente pelo plano de assinatura.
+                        Quando o assinante paga um valor extra (diferença), o cashback incide apenas sobre essa diferença.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                )}
+              </Card>
+
+              {/* CARD 2 — FIDELIDADE TRADICIONAL */}
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
-                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
-                    <Gift className="text-[#ea580c] h-5 w-5" />
-                    Programa de Fidelidade
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    A fidelidade pertence à barbearia. Atendimentos com qualquer barbeiro contam para a meta.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="flex items-center justify-between p-5 bg-[#05070d]/50 border border-[#1f2937] rounded-2xl">
-                    <div className="space-y-1">
-                      <Label className="text-base font-black uppercase italic">Ativar Fidelidade</Label>
-                      <p className="text-[10px] text-slate-500 font-medium uppercase">
-                        Ao ativar, o cashback é desativado automaticamente.
-                      </p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-[#ea580c]/20 to-transparent border border-[#ea580c]/30 grid place-items-center shrink-0">
+                        <Gift className="text-[#ea580c] h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2 flex-wrap">
+                          Fidelidade Tradicional
+                          <Badge variant="outline" className={formData.loyalty_enabled ? "border-emerald-500/40 text-emerald-400" : "border-slate-600/40 text-slate-500"}>
+                            {formData.loyalty_enabled ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </CardTitle>
+                        <CardDescription className="text-slate-400 mt-1">
+                          Programa baseado em quantidade de atendimentos. Ex.: a cada 10 atendimentos, ganhe 1 serviço grátis.
+                        </CardDescription>
+                      </div>
                     </div>
                     <Switch
                       checked={formData.loyalty_enabled}
                       onCheckedChange={(checked) => setFormData({ ...formData, loyalty_enabled: checked })}
-                      className="data-[state=checked]:bg-[#ea580c]"
+                      className="data-[state=checked]:bg-[#ea580c] shrink-0"
                     />
                   </div>
+                </CardHeader>
+                {formData.loyalty_enabled && (
+                <CardContent className="p-6 space-y-6 animate-in fade-in slide-in-from-top-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label htmlFor="loyalty_appointments_required" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Quantidade Necessária</Label>
+                      <Input id="loyalty_appointments_required" type="number" min="1" max="100"
+                        value={formData.loyalty_appointments_required}
+                        onChange={(e) => setFormData({ ...formData, loyalty_appointments_required: parseInt(e.target.value) || 1 })}
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic" />
+                      <p className="text-[10px] text-slate-600 font-medium uppercase italic">Meta de atendimentos para liberar o benefício.</p>
+                    </div>
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo de Recompensa</Label>
+                      <Select value={formData.loyalty_benefit_type} onValueChange={(value) => setFormData({ ...formData, loyalty_benefit_type: value })}>
+                        <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
+                          <SelectItem value="free_service">Serviço grátis</SelectItem>
+                          <SelectItem value="percent_discount">Desconto percentual (%)</SelectItem>
+                          <SelectItem value="fixed_discount">Desconto fixo (R$)</SelectItem>
+                          <SelectItem value="free_addon">Brinde / serviço adicional grátis</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                  {formData.loyalty_enabled && (
-                    <div className="grid gap-6 animate-in fade-in slide-in-from-top-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label htmlFor="loyalty_appointments_required" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Quantidade de Atendimentos</Label>
-                          <Input
-                            id="loyalty_appointments_required"
-                            type="number"
-                            min="1"
-                            max="100"
-                            value={formData.loyalty_appointments_required}
-                            onChange={(e) => setFormData({ ...formData, loyalty_appointments_required: parseInt(e.target.value) || 1 })}
-                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
-                          />
-                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">
-                            Meta para concessão do benefício.
-                          </p>
-                        </div>
-
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tipo de Benefício</Label>
-                          <Select
-                            value={formData.loyalty_benefit_type}
-                            onValueChange={(value) => setFormData({ ...formData, loyalty_benefit_type: value })}
-                          >
-                            <SelectTrigger className="bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-                              <SelectItem value="free_service">Serviço grátis</SelectItem>
-                              <SelectItem value="percent_discount">Desconto percentual (%)</SelectItem>
-                              <SelectItem value="fixed_discount">Desconto fixo (R$)</SelectItem>
-                              <SelectItem value="free_addon">Brinde / serviço adicional grátis</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {(formData.loyalty_benefit_type === 'percent_discount' || formData.loyalty_benefit_type === 'fixed_discount') && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                            <Label htmlFor="loyalty_benefit_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                              {formData.loyalty_benefit_type === 'percent_discount' ? 'Percentual de desconto (%)' : 'Valor do desconto (R$)'}
-                            </Label>
-                            <Input
-                              id="loyalty_benefit_value"
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={formData.loyalty_benefit_value}
-                              onChange={(e) => setFormData({ ...formData, loyalty_benefit_value: parseFloat(e.target.value) || 0 })}
-                              className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label htmlFor="loyalty_benefit_description" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Descrição visível ao cliente</Label>
-                          <Input
-                            id="loyalty_benefit_description"
-                            type="text"
-                            value={formData.loyalty_benefit_description}
-                            onChange={(e) => setFormData({ ...formData, loyalty_benefit_description: e.target.value })}
-                            placeholder="Ex.: Corte grátis"
-                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full font-bold"
-                          />
-                        </div>
-
-                        <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
-                          <Label htmlFor="loyalty_max_benefit_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Valor máximo do benefício (R$)</Label>
-                          <Input
-                            id="loyalty_max_benefit_value"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={formData.loyalty_max_benefit_value}
-                            onChange={(e) => setFormData({ ...formData, loyalty_max_benefit_value: parseFloat(e.target.value) || 0 })}
-                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
-                          />
-                          <p className="text-[10px] text-slate-600 font-medium uppercase italic">0 = sem teto.</p>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl max-w-md">
-                        <Label htmlFor="loyalty_validity_days" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Validade da recompensa (dias)</Label>
-                        <Input
-                          id="loyalty_validity_days"
-                          type="number"
-                          min="0"
-                          value={formData.loyalty_validity_days}
-                          onChange={(e) => setFormData({ ...formData, loyalty_validity_days: parseInt(e.target.value) || 0 })}
-                          className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic"
-                        />
-                        <p className="text-[10px] text-slate-600 font-medium uppercase italic">0 = sem expiração.</p>
-                      </div>
-
-                      <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
-                        <CheckCircle2 className="h-5 w-5 text-[#ea580c] shrink-0" />
-                        <div className="space-y-1">
-                          <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Como funciona</p>
-                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
-                            A fidelidade pertence à barbearia: atendimentos concluídos com qualquer barbeiro contam para a meta.
-                            Quando o cliente atinge a meta, uma recompensa é gerada automaticamente. A comissão do barbeiro permanece normal — o custo da promoção é absorvido pela barbearia.
-                          </p>
-                        </div>
+                  {(formData.loyalty_benefit_type === 'percent_discount' || formData.loyalty_benefit_type === 'fixed_discount') && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                        <Label htmlFor="loyalty_benefit_value" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                          {formData.loyalty_benefit_type === 'percent_discount' ? 'Percentual de desconto (%)' : 'Valor do desconto (R$)'}
+                        </Label>
+                        <Input id="loyalty_benefit_value" type="number" min="0" step="0.01"
+                          value={formData.loyalty_benefit_value}
+                          onChange={(e) => setFormData({ ...formData, loyalty_benefit_value: parseFloat(e.target.value) || 0 })}
+                          className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic" />
                       </div>
                     </div>
                   )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label htmlFor="loyalty_benefit_description" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Descrição visível ao cliente</Label>
+                      <Input id="loyalty_benefit_description" type="text"
+                        value={formData.loyalty_benefit_description}
+                        onChange={(e) => setFormData({ ...formData, loyalty_benefit_description: e.target.value })}
+                        placeholder="Ex.: Corte grátis"
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full font-bold" />
+                    </div>
+                    <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                      <Label htmlFor="loyalty_validity_days" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Validade da Recompensa (dias)</Label>
+                      <Input id="loyalty_validity_days" type="number" min="0"
+                        value={formData.loyalty_validity_days}
+                        onChange={(e) => setFormData({ ...formData, loyalty_validity_days: parseInt(e.target.value) || 0 })}
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full text-lg font-black text-center italic" />
+                      <p className="text-[10px] text-slate-600 font-medium uppercase italic">0 = sem expiração.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-[#ea580c] shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Regra</p>
+                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed uppercase">
+                        Aplicável apenas a clientes avulsos. Assinantes acumulam recompensas pela Fidelidade Premium (por tempo).
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                )}
+              </Card>
+
+              {/* CARD 3 — FIDELIDADE PREMIUM POR TEMPO */}
+              <Card className="bg-gradient-to-br from-[#0b0f17] to-[#0a0a1a] border border-[#D4AF37]/30 text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#D4AF37]/15 bg-[#0b0f17]/50 p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-transparent border border-[#D4AF37]/40 grid place-items-center shrink-0">
+                        <Trophy className="text-[#D4AF37] h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2 flex-wrap">
+                          Fidelidade Premium
+                          <Badge variant="outline" className="border-[#D4AF37]/40 text-[#D4AF37]">
+                            Por tempo
+                          </Badge>
+                        </CardTitle>
+                        <CardDescription className="text-slate-400 mt-1">
+                          Recompensas desbloqueadas pelo tempo de permanência do cliente na assinatura.
+                          Ex.: 3 meses → hidratação grátis · 6 meses → barba grátis · 12 meses → kit exclusivo.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  <div className="bg-[#05070d] border border-[#1f2937] rounded-2xl p-5 space-y-3">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">Como funciona</p>
+                    <ul className="text-[11px] text-slate-300 space-y-1.5 leading-relaxed">
+                      <li>• Disponível apenas para clientes <strong>assinantes</strong> ativos.</li>
+                      <li>• Recompensas configuráveis por meses de permanência.</li>
+                      <li>• Não acumula com Fidelidade Tradicional nem Cashback em serviços cobertos pelo plano.</li>
+                      <li>• Integrada com cada plano de assinatura (ativa/inativa por plano).</li>
+                    </ul>
+                  </div>
+                  <Button asChild className="w-full sm:w-auto bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider h-11 rounded-xl">
+                    <Link to="/subscription-rewards">
+                      <Trophy className="h-4 w-4 mr-2" /> Gerenciar Fidelidade Premium
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
-              )}
-
             </TabsContent>
+
 
 
             <TabsContent value="pix" className="space-y-4">
