@@ -365,7 +365,7 @@ function LandingPageComponent() {
 
               <Button
                 size="lg"
-                className="h-16 px-10 text-lg font-black bg-white text-black hover:bg-zinc-200 rounded-2xl group mt-8"
+                className="h-16 px-10 text-lg font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black hover:brightness-110 rounded-2xl group mt-8 shadow-[0_20px_50px_-15px_rgba(245,197,66,0.6)]"
                 onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Explorar todos os recursos
