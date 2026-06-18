@@ -321,8 +321,9 @@ function LandingPageComponent() {
             ].map((item, index) => (
               <motion.div 
                 key={index}
-                whileHover={{ y: -5 }}
-                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 hover:border-red-500/20 hover:bg-red-500/[0.02] transition-all group"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.25 }}
+                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-red-500/20 shadow-[0_0_24px_-12px_rgba(239,68,68,0.4)] hover:border-red-500/50 hover:bg-red-500/[0.04] hover:shadow-[0_12px_40px_-12px_rgba(239,68,68,0.45)] active:scale-[1.01] transition-all group"
               >
                 <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <div className="text-red-500">{item.icon}</div>
@@ -346,41 +347,50 @@ function LandingPageComponent() {
                 O Barbex foi desenhado para eliminar a fricção do seu dia a dia, automatizando o que é chato e potencializando o que traz lucro.
               </p>
               
-              <div className="grid sm:grid-cols-2 gap-6 pt-8">
+              <div className="grid sm:grid-cols-2 gap-4 pt-8">
                 {[
-                  { title: "Agenda Inteligente", icon: <Calendar /> },
-                  { title: "WhatsApp Automático", icon: <MessageSquare /> },
-                  { title: "Financeiro Completo", icon: <CircleDollarSign /> },
-                  { title: "Cashback & Fidelidade", icon: <Star /> },
-                  { title: "Relatórios de Gestão", icon: <TrendingUp /> },
-                  { title: "Controle de Estoque", icon: <Briefcase /> },
+                  { title: "Agenda Inteligente", desc: "Preencha horários ociosos com sugestões automáticas.", icon: <Calendar /> },
+                  { title: "WhatsApp Automático", desc: "Confirma, lembra e se comunica por você 24/7.", icon: <MessageSquare /> },
+                  { title: "Financeiro Completo", desc: "Controle total do financeiro com fluxo de caixa e DRE.", icon: <CircleDollarSign /> },
+                  { title: "Cashback & Fidelidade", desc: "Fidelize clientes e aumente o retorno com benefícios inteligentes.", icon: <Star /> },
+                  { title: "Relatórios de Gestão", desc: "Relatórios avançados para decisões mais estratégicas.", icon: <TrendingUp /> },
+                  { title: "Controle de Estoque", desc: "Tenha controle do estoque e receba alertas automáticos.", icon: <Briefcase /> },
                 ].map((s, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                      {s.icon}
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                    className="p-4 rounded-2xl bg-zinc-900/40 border border-primary/20 hover:border-primary/60 hover:shadow-[0_10px_30px_-12px_rgba(245,197,66,0.45)] transition-all"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        {s.icon}
+                      </div>
+                      <span className="text-white font-black text-sm">{s.title}</span>
                     </div>
-                    <span className="text-white font-bold">{s.title}</span>
-                  </div>
+                    <p className="text-xs text-white/50 font-medium leading-snug">{s.desc}</p>
+                  </motion.div>
                 ))}
               </div>
 
-              <Button
-                size="lg"
-                className="h-16 px-10 text-lg font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black hover:brightness-110 rounded-2xl group mt-8 shadow-[0_20px_50px_-15px_rgba(245,197,66,0.6)]"
-                onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Explorar todos os recursos
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <div className="flex justify-center sm:justify-start mt-8">
+                <Button
+                  className="h-auto py-3 px-6 text-sm sm:text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black hover:brightness-110 rounded-full group shadow-[0_20px_50px_-15px_rgba(245,197,66,0.6)] hover:scale-[1.03] transition-all"
+                  onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Explorar todos os recursos
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
             </div>
             
-            <div className="relative">
+            <div className="relative mx-auto w-[90%] lg:w-full">
               <div className="absolute -inset-10 bg-primary/20 blur-[100px] rounded-full opacity-30 animate-pulse" />
-              <div className="relative rounded-[2.5rem] border border-white/10 bg-zinc-900/50 backdrop-blur p-2 shadow-2xl overflow-hidden">
+              <div className="relative rounded-[2.5rem] border border-primary/30 bg-zinc-900/50 backdrop-blur p-2 shadow-[0_30px_80px_-20px_rgba(245,197,66,0.35)] overflow-hidden">
                 <img 
                   src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1200" 
                   alt="Barber working" 
-                  className="rounded-[2rem] opacity-80"
+                  className="rounded-[2rem] opacity-80 w-full"
                 />
               </div>
             </div>
@@ -421,11 +431,11 @@ function LandingPageComponent() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.04 }}
-                whileHover={{ y: -4 }}
-                className="p-5 lg:p-6 rounded-3xl bg-zinc-900/60 border border-white/5 hover:border-primary/30 hover:bg-zinc-900 transition-all group"
+                transition={{ delay: i * 0.04, duration: 0.25 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                className="p-5 lg:p-6 rounded-3xl bg-zinc-900/60 border border-primary/20 shadow-[0_0_20px_-12px_rgba(245,197,66,0.4)] hover:border-primary/60 hover:bg-zinc-900 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.5)] transition-all group"
               >
-                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-all">
                   {mod.icon}
                 </div>
                 <h4 className="text-base font-black text-white mb-1">{mod.title}</h4>
@@ -503,7 +513,7 @@ function LandingPageComponent() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-stretch">
             {/* Starter */}
-            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
+            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias iniciantes.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.starter}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -517,7 +527,7 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios básicos" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Começar agora
@@ -525,8 +535,8 @@ function LandingPageComponent() {
             </div>
 
             {/* Professional — destaque */}
-            <div className="p-8 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)] z-10">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">Mais Popular</div>
+            <div className="p-8 lg:p-10 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(245,197,66,0.5)] z-10 lg:scale-[1.04] hover:shadow-[0_50px_100px_-20px_rgba(245,197,66,0.65)] transition-all duration-300">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">Mais Escolhido</div>
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias em crescimento.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.professional}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -540,7 +550,7 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios avançados" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-sm shadow-xl italic uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-95"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black font-black text-sm shadow-[0_15px_30px_-10px_rgba(245,197,66,0.6)] italic uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-95"
                 onClick={() => setShowSignupModal(true)}
               >
                 Teste 15 dias grátis
@@ -548,7 +558,7 @@ function LandingPageComponent() {
             </div>
 
             {/* Elite */}
-            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
+            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Premium — recorrência e crescimento.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.elite}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -562,7 +572,7 @@ function LandingPageComponent() {
                 <PricingItem text="Portal Premium & Relatórios premium" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Assinar Elite
@@ -570,7 +580,7 @@ function LandingPageComponent() {
             </div>
 
             {/* Enterprise */}
-            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-white/10 flex flex-col h-full">
+            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Enterprise</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para redes de barbearias.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.enterprise}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -584,7 +594,7 @@ function LandingPageComponent() {
                 <PricingItem text="Gerente de conta dedicado" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Falar com vendas
@@ -613,15 +623,21 @@ function LandingPageComponent() {
                 { name: "IA Comercial", price: "R$ 49,90", desc: "Recupera inativos, cria campanhas, ofertas inteligentes e pós-venda." },
                 { name: "Loja Premium", price: "R$ 19,90", desc: "Vitrine completa para venda de produtos.", free: "Grátis no Elite" },
                 { name: "Cashback Premium", price: "R$ 19,90", desc: "Cashback automático, regras personalizadas e mais recorrência.", free: "Grátis no Elite" },
+                { name: "Assinaturas Premium", price: "R$ 29,90", desc: "Clube de assinatura recorrente com benefícios exclusivos.", free: "Grátis no Elite" },
               ].map((u) => (
-                <div key={u.name} className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-primary/30 transition-colors">
+                <motion.div
+                  key={u.name}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.25 }}
+                  className="p-6 rounded-2xl bg-zinc-900/50 border border-emerald-500/30 shadow-[0_0_20px_-12px_rgba(16,185,129,0.45)] hover:border-emerald-500/60 hover:shadow-[0_18px_40px_-15px_rgba(16,185,129,0.5)] transition-all"
+                >
                   <div className="flex items-start justify-between mb-3 gap-2">
                     <h5 className="text-sm font-black text-white uppercase italic tracking-tight">{u.name}</h5>
-                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold whitespace-nowrap">{u.free}</span>}
+                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-black whitespace-nowrap shadow-[0_0_12px_-4px_rgba(16,185,129,0.6)]">{u.free}</span>}
                   </div>
                   <div className="text-2xl font-black text-white mb-2">{u.price}<span className="text-xs text-white/40 font-bold">/mês</span></div>
                   <p className="text-xs text-white/50 leading-relaxed">{u.desc}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -659,22 +675,22 @@ function LandingPageComponent() {
             <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#D4A017]/15 blur-[120px] pointer-events-none" />
 
             <div className="relative grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center p-10 lg:p-20">
-              <div className="text-left">
+              <div className="text-center lg:text-left">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg mb-6">
                   <Sparkles className="h-3 w-3" /> Comece em minutos
                 </span>
-                <h2 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-[0.95]">
+                <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-[0.95]">
                   Pronto para <br />
                   <span className="bg-gradient-to-r from-[#F5C542] to-[#D4A017] bg-clip-text text-transparent italic">transformar</span> sua<br />
                   barbearia?
                 </h2>
-                <p className="text-base lg:text-lg text-white/60 max-w-xl mb-8 font-medium leading-relaxed">
+                <p className="text-base lg:text-lg text-white/60 max-w-xl mx-auto lg:mx-0 mb-10 font-medium leading-relaxed">
                   Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <Button
                     size="lg"
-                    className="h-14 px-8 text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black rounded-2xl shadow-[0_20px_40px_-15px_rgba(245,197,66,0.6)] group transition-all"
+                    className="h-14 w-full sm:w-auto px-8 text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black rounded-2xl shadow-[0_20px_40px_-15px_rgba(245,197,66,0.6)] group transition-all hover:-translate-y-0.5"
                     onClick={() => setShowSignupModal(true)}
                   >
                     Começar agora
@@ -682,12 +698,12 @@ function LandingPageComponent() {
                   </Button>
                   <a
                     href="#planos"
-                    className="h-14 px-8 inline-flex items-center justify-center rounded-2xl font-black text-sm border border-white/15 text-white/80 hover:text-white hover:border-white/30 transition-colors"
+                    className="h-14 w-full sm:w-auto px-8 inline-flex items-center justify-center rounded-2xl font-black text-sm border border-white/15 text-white/80 hover:text-white hover:border-primary/50 hover:shadow-[0_10px_30px_-15px_rgba(245,197,66,0.4)] transition-all"
                   >
                     Ver planos
                   </a>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/50 font-bold">
+                <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-xs text-white/50 font-bold">
                   <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> 15 dias grátis</span>
                   <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Sem cartão</span>
                   <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Cancele quando quiser</span>
@@ -872,7 +888,7 @@ function FaqExplorer() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap justify-center gap-2 mb-8">
         {FAQ_CATEGORIES.map((c) => {
           const active = category === c.name;
           return (
@@ -880,10 +896,10 @@ function FaqExplorer() {
               key={c.name}
               onClick={() => setCategory(c.name)}
               className={cn(
-                "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all",
+                "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all",
                 active
-                  ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black border-transparent shadow-lg"
-                  : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/25"
+                  ? "bg-primary text-primary-foreground border-primary shadow-[0_10px_30px_-10px_rgba(245,197,66,0.6)]"
+                  : "bg-transparent text-white border-primary/25 hover:border-primary/60 hover:shadow-[0_0_18px_-6px_rgba(245,197,66,0.6)] hover:text-primary"
               )}
             >
               {c.icon}
