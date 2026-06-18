@@ -36,8 +36,11 @@ import {
   History,
   Info,
   Layout,
-  ShieldCheck
+  ShieldCheck,
+  Coins,
+  Trophy
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
