@@ -110,6 +110,8 @@ function SettingsComponent() {
     client_token: "",
     opening_date: "",
     cancellation_window_hours: 2,
+    barber_can_cancel: false,
+    barber_can_reschedule: false,
   });
 
 
