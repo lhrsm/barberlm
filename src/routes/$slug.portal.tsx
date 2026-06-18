@@ -2729,6 +2729,14 @@ function ClientPortalComponent() {
         }}
       />
 
+      <ReviewModal
+        open={isReviewOpen}
+        onOpenChange={setIsReviewOpen}
+        appointment={reviewAppointment}
+        tenantId={shop?.id}
+        onSubmitted={() => { if (client?.customer_id) fetchClientData(client.customer_id); }}
+      />
+
       {/* CARTÃO DIGITAL DO ASSINANTE */}
       {mySubscription?.card_token && (
         <Dialog open={cardOpen} onOpenChange={setCardOpen}>
