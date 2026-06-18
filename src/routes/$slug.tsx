@@ -2250,21 +2250,26 @@ function ShopPageComponent() {
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-              {categories.map((cat) => (
-                <Button
-                  key={cat}
-                  variant={activeCategory === cat ? "default" : "outline"}
-                  className={cn(
-                    "rounded-full px-6 h-10 font-bold text-[10px] uppercase tracking-widest transition-all",
-                    activeCategory === cat ? "shadow-lg scale-105" : "border-white/10 hover:bg-white/5 text-slate-500"
-                  )}
-                  style={activeCategory === cat ? { backgroundColor: "#D4AF37" } : {}}
-                  onClick={() => setActiveCategory(cat)}
-                >
-                  {cat}
-                </Button>
-              ))}
+            <div className="-mx-4 px-4 mb-12 overflow-x-auto custom-scrollbar lg:overflow-visible">
+              <div className="flex lg:flex-wrap items-center justify-start lg:justify-center gap-2 min-w-max lg:min-w-0">
+                {categories.map((cat) => {
+                  const isActive = activeCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={cn(
+                        "shrink-0 h-10 px-5 rounded-full font-black uppercase tracking-widest text-[11px] transition-all duration-200 border",
+                        isActive
+                          ? "bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] border-transparent shadow-[0_8px_20px_rgba(245,197,66,0.28)]"
+                          : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-[#F5C542]/50 hover:text-white"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Desktop Grid / Mobile Scroll */}
