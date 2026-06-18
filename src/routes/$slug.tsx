@@ -780,6 +780,20 @@ function ShopPageComponent() {
       setBarbers(barbersWithStats);
       setProducts(productsRes.data || []);
 
+      // Public approved testimonials
+      try {
+        const { data: testimonialsRes } = await supabase
+          .from("appointment_reviews")
+          .select("id, testimonial_text, barbershop_rating, barber_rating, created_at, customers(name, avatar_url), barbers(name)")
+          .eq("tenant_id", currentShop.id)
+          .eq("testimonial_status", "approved")
+          .eq("show_on_frontend", true)
+          .not("testimonial_text", "is", null)
+          .order("approved_at", { ascending: false })
+          .limit(9);
+        setPublicTestimonials(testimonialsRes || []);
+      } catch (_e) { /* silent */ }
+
       // Public extras: subscription plans, loyalty settings, active coupons
       // These are best-effort — failures (e.g. RLS) are silently ignored so the page still renders.
       try {
