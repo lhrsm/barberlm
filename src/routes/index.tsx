@@ -55,6 +55,13 @@ function LandingPageComponent() {
   const navigate = useNavigate();
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const planPrices = {
+    monthly: { starter: "R$ 49,90", professional: "R$ 99,90", elite: "R$ 149,90", enterprise: "R$ 249,90" },
+    annual:  { starter: "R$ 39,90", professional: "R$ 79,90", elite: "R$ 119,90", enterprise: "R$ 199,90" },
+  } as const;
+  const prices = planPrices[billingCycle];
+  const priceSuffix = billingCycle === "annual" ? "/mês · cobrado anualmente" : "/mês";
 
   useEffect(() => {
     if (!loading && user && role) {
@@ -358,7 +365,7 @@ function LandingPageComponent() {
 
               <Button
                 size="lg"
-                className="h-16 px-10 text-lg font-black bg-white text-black hover:bg-zinc-200 rounded-2xl group mt-8"
+                className="h-16 px-10 text-lg font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black hover:brightness-110 rounded-2xl group mt-8 shadow-[0_20px_50px_-15px_rgba(245,197,66,0.6)]"
                 onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Explorar todos os recursos
@@ -470,8 +477,26 @@ function LandingPageComponent() {
             <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight mb-8">Investimento que se paga <br /><span className="text-white/40">na primeira semana.</span></h3>
             
             <div className="inline-flex items-center p-1 bg-zinc-900 rounded-2xl border border-white/5 mb-12">
-              <button className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-black text-sm">Mensal</button>
-              <button className="px-6 py-2 rounded-xl text-white/40 font-black text-sm">Anual (20% OFF)</button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("monthly")}
+                className={cn(
+                  "px-6 py-2 rounded-xl font-black text-sm transition-all",
+                  billingCycle === "monthly" ? "bg-primary text-primary-foreground" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("annual")}
+                className={cn(
+                  "px-6 py-2 rounded-xl font-black text-sm transition-all",
+                  billingCycle === "annual" ? "bg-primary text-primary-foreground" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                Anual <span className="ml-1 text-[10px] opacity-80">(20% OFF)</span>
+              </button>
             </div>
           </div>
 
@@ -480,7 +505,7 @@ function LandingPageComponent() {
             <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias iniciantes.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 49,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.starter}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Até 3 barbeiros</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Agenda online" />
@@ -503,7 +528,7 @@ function LandingPageComponent() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">Mais Popular</div>
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias em crescimento.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 99,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.professional}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Até 10 barbeiros</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Starter" />
@@ -525,7 +550,7 @@ function LandingPageComponent() {
             <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Premium — recorrência e crescimento.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 149,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.elite}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Barbeiros ilimitados</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Professional" />
@@ -547,7 +572,7 @@ function LandingPageComponent() {
             <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-white/10 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Enterprise</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para redes de barbearias.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 249,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.enterprise}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Usuários ilimitados</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Elite" />
@@ -575,94 +600,23 @@ function LandingPageComponent() {
             <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Cancele quando quiser</span>
           </div>
 
-          {/* Featured: Cashback Premium */}
-          <div className="mt-20 max-w-6xl mx-auto">
-            <div className="group relative rounded-[2rem] p-[1.5px] bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#D97706] shadow-[0_30px_80px_-30px_rgba(245,158,11,0.45)] hover:shadow-[0_40px_100px_-25px_rgba(245,158,11,0.7)] transition-all duration-500">
-              <div className="absolute -inset-4 bg-[#F59E0B]/10 blur-3xl rounded-[2.5rem] -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative rounded-[1.9rem] bg-zinc-950 p-8 lg:p-12 overflow-hidden">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-[#F59E0B]/10 blur-[100px] -z-0 pointer-events-none" />
-                <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-[#D97706]/10 blur-[100px] -z-0 pointer-events-none" />
-
-                <div className="relative grid lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-16 items-center">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3 mb-5">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
-                        <Star className="h-3 w-3" /> Incluso no Elite
-                      </span>
-                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/70 font-bold uppercase tracking-widest">Módulo Premium</span>
-                    </div>
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center shadow-lg">
-                        <CircleDollarSign className="h-7 w-7 text-black" />
-                      </div>
-                      <div>
-                        <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">Cashback Premium</h4>
-                        <div className="mt-2 flex items-baseline gap-2">
-                          <span className="text-2xl font-black bg-gradient-to-r from-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent">R$ 19,90</span>
-                          <span className="text-sm font-bold text-white/40">/mês</span>
-                          <span className="text-xs text-white/40 font-bold">· ou grátis no Elite</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-white/60 text-base lg:text-lg leading-relaxed font-medium max-w-xl">
-                      Crie campanhas de cashback para fidelizar clientes, aumentar o retorno e estimular novas compras.
-                    </p>
-
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <Button
-                        onClick={() => setShowSignupModal(true)}
-                        className="h-12 px-6 rounded-xl font-black bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black hover:brightness-110 shadow-lg"
-                      >
-                        Ativar Módulo
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                      <a
-                        href="#faq"
-                        className="h-12 px-6 rounded-xl font-black border border-white/15 text-white/80 hover:text-white hover:border-white/30 inline-flex items-center transition-colors"
-                      >
-                        Saiba Mais
-                      </a>
-                    </div>
-                  </div>
-
-                  <ul className="grid sm:grid-cols-2 gap-3">
-                    {[
-                      "Cashback automático",
-                      "Regras personalizadas",
-                      "Relatórios de utilização",
-                      "Integração com agendamentos",
-                      "Fidelização de clientes",
-                      "Aumento da recorrência",
-                    ].map((b) => (
-                      <li key={b} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/5 transition-colors">
-                        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center shrink-0">
-                          <Check className="h-3.5 w-3.5 text-black" strokeWidth={3} />
-                        </div>
-                        <span className="text-sm font-bold text-white/90">{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Upsells */}
           <div className="mt-16">
             <div className="text-center mb-12">
               <h3 className="text-primary font-black uppercase tracking-widest text-xs mb-3">Recursos adicionais</h3>
               <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Turbine seu plano com IA</h4>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
               {[
                 { name: "IA Agendadora", price: "R$ 39,90", desc: "Confirma, reagenda, cancela e responde dúvidas no WhatsApp 24/7." },
                 { name: "IA Comercial", price: "R$ 49,90", desc: "Recupera inativos, cria campanhas, ofertas inteligentes e pós-venda." },
                 { name: "Loja Premium", price: "R$ 19,90", desc: "Vitrine completa para venda de produtos.", free: "Grátis no Elite" },
+                { name: "Cashback Premium", price: "R$ 19,90", desc: "Cashback automático, regras personalizadas e mais recorrência.", free: "Grátis no Elite" },
               ].map((u) => (
                 <div key={u.name} className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-primary/30 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-3 gap-2">
                     <h5 className="text-sm font-black text-white uppercase italic tracking-tight">{u.name}</h5>
-                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold">{u.free}</span>}
+                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold whitespace-nowrap">{u.free}</span>}
                   </div>
                   <div className="text-2xl font-black text-white mb-2">{u.price}<span className="text-xs text-white/40 font-bold">/mês</span></div>
                   <p className="text-xs text-white/50 leading-relaxed">{u.desc}</p>
@@ -670,6 +624,7 @@ function LandingPageComponent() {
               ))}
             </div>
           </div>
+
         </div>
       </section>
 
@@ -689,28 +644,71 @@ function LandingPageComponent() {
       {/* Final CTA */}
       <section className="py-24 lg:py-40 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/10 blur-[120px] -z-10" />
-        <div className="max-w-5xl mx-auto p-12 lg:p-24 rounded-[3.5rem] bg-zinc-900 border border-white/10 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10" />
+        <div className="max-w-6xl mx-auto rounded-[3rem] p-[1.5px] bg-gradient-to-br from-[#F5C542] via-[#D4A017] to-[#7a5a0a] shadow-[0_40px_120px_-30px_rgba(245,197,66,0.45)]">
+          <div className="relative rounded-[2.9rem] bg-gradient-to-br from-zinc-950 via-zinc-900 to-black overflow-hidden">
+            <div className="absolute inset-0 opacity-30">
+              <img
+                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=1600"
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/40" />
+            </div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#F5C542]/20 blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#D4A017]/15 blur-[120px] pointer-events-none" />
 
-          <h2 className="text-5xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
-            Pronto para <br />
-            <span className="text-primary italic">transformar?</span>
-          </h2>
-          <p className="text-lg lg:text-xl text-white/40 max-w-2xl mx-auto mb-12 font-bold leading-relaxed">
-            Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              size="lg"
-              className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_20px_40px_-15px_rgba(234,179,8,0.5)] group transition-all"
-              onClick={() => setShowSignupModal(true)}
-            >
-              Começar agora
-              <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-2 transition-transform" />
-            </Button>
+            <div className="relative grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center p-10 lg:p-20">
+              <div className="text-left">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg mb-6">
+                  <Sparkles className="h-3 w-3" /> Comece em minutos
+                </span>
+                <h2 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-[0.95]">
+                  Pronto para <br />
+                  <span className="bg-gradient-to-r from-[#F5C542] to-[#D4A017] bg-clip-text text-transparent italic">transformar</span> sua<br />
+                  barbearia?
+                </h2>
+                <p className="text-base lg:text-lg text-white/60 max-w-xl mb-8 font-medium leading-relaxed">
+                  Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
+                </p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <Button
+                    size="lg"
+                    className="h-14 px-8 text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black rounded-2xl shadow-[0_20px_40px_-15px_rgba(245,197,66,0.6)] group transition-all"
+                    onClick={() => setShowSignupModal(true)}
+                  >
+                    Começar agora
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  <a
+                    href="#planos"
+                    className="h-14 px-8 inline-flex items-center justify-center rounded-2xl font-black text-sm border border-white/15 text-white/80 hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    Ver planos
+                  </a>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/50 font-bold">
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> 15 dias grátis</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Sem cartão</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Cancele quando quiser</span>
+                </div>
+              </div>
+
+              <div className="hidden lg:block relative">
+                <div className="absolute -inset-6 bg-[#F5C542]/20 blur-[80px] rounded-full" />
+                <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80&w=900"
+                    alt="Barbearia premium"
+                    className="w-full h-[420px] object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
 
       {/* Footer */}
       <footer className="bg-background border-t border-white/5 py-24 px-6">
