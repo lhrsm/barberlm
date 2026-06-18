@@ -355,14 +355,20 @@ function ClientPortalComponent() {
       .order("earned_at", { ascending: false });
     setLoyaltyRewards((rewards as any[]) || []);
 
-    // Fetch appointments
+    // Fetch appointments (with review status)
     const { data: appts } = await supabase
       .from("appointments")
-      .select("*, services(name), barbers(name)")
+      .select("*, services(name), barbers(name), appointment_reviews(id)")
       .eq("customer_id", customerId)
       .order("start_time", { ascending: false });
-    
-    setAppointments(appts || []);
+
+    const apptsWithReview = (appts || []).map((a: any) => ({
+      ...a,
+      _review_id: Array.isArray(a.appointment_reviews) && a.appointment_reviews.length > 0
+        ? a.appointment_reviews[0].id
+        : (a.appointment_reviews?.id ?? null),
+    }));
+    setAppointments(apptsWithReview);
     if (appts) checkAutoCancellation(appts);
 
     // Fetch sales
