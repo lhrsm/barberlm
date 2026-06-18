@@ -2393,7 +2393,7 @@ function ShopPageComponent() {
                 className="inline-flex items-center justify-center gap-2 h-14 px-10 rounded-full font-black uppercase tracking-widest text-[12px] text-white bg-[#0a0a0a] border border-[#F5C542]/40 hover:border-[#F5C542] hover:bg-[#F5C542]/[0.08] hover:text-[#F5C542] hover:shadow-[0_12px_30px_rgba(245,197,66,0.25)] transition-all duration-200"
               >
                 <ShoppingBag size={16} /> Ver Todos os Produtos
-              </Link>
+              </button>
             </div>
           </div>
         </section>
