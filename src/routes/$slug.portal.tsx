@@ -2586,6 +2586,10 @@ function ClientPortalComponent() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="privacy" className="pt-6">
+            <PrivacyPanel customerData={customerData} appointments={appointments} />
+          </TabsContent>
         </Tabs>
       </main>
 
