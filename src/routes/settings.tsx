@@ -263,9 +263,11 @@ function SettingsComponent() {
         secondary_color: profileUpdateData.secondary_color,
         logo_url: profileUpdateData.logo_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
-        loyalty_mode: profileUpdateData.loyalty_mode,
-        // EXCLUSIVIDADE: se modo = loyalty, cashback é forçado a OFF
-        cashback_enabled: profileUpdateData.loyalty_mode === 'cashback' ? profileUpdateData.cashback_enabled : false,
+        // loyalty_mode mantido por compatibilidade — derivado dos switches independentes
+        loyalty_mode: profileUpdateData.loyalty_enabled
+          ? 'loyalty'
+          : (profileUpdateData.cashback_enabled ? 'cashback' : 'none'),
+        cashback_enabled: !!profileUpdateData.cashback_enabled,
         cashback_percentage: profileUpdateData.cashback_percentage,
         cashback_type: profileUpdateData.cashback_type,
         cashback_fixed_value: profileUpdateData.cashback_fixed_value,
