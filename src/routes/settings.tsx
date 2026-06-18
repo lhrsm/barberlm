@@ -35,11 +35,13 @@ import {
   UserRound,
   History,
   Info,
-  Layout
+  Layout,
+  ShieldCheck
 } from "lucide-react";
 import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
+import { LgpdSettings } from "@/components/settings/LgpdSettings";
 import { CouponManagement } from "@/components/admin/CouponManagement";
 
 import {
@@ -362,6 +364,7 @@ function SettingsComponent() {
                 { value: "payments", icon: CreditCard, label: "Pagamentos" },
                 { value: "loyalty", icon: Gift, label: "Fidelidade" },
                 { value: "pix", icon: QrCode, label: "PIX" },
+                { value: "lgpd", icon: ShieldCheck, label: "LGPD" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
@@ -380,6 +383,11 @@ function SettingsComponent() {
           <TabsContent value="modules" className="space-y-4">
             <ModulesSettings />
           </TabsContent>
+
+          <TabsContent value="lgpd" className="space-y-4">
+            <LgpdSettings />
+          </TabsContent>
+
 
           <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">
