@@ -215,6 +215,8 @@ function SettingsComponent() {
           client_token: settingsData?.client_token || "",
           opening_date: profile.opening_date || "",
           cancellation_window_hours: profile.cancellation_window_hours ?? 2,
+          barber_can_cancel: (profile as any).barber_can_cancel ?? false,
+          barber_can_reschedule: (profile as any).barber_can_reschedule ?? false,
         });
       } else {
         toast.error("Perfil não encontrado.");
