@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar, CircleDollarSign, Clock, Users, Scissors, TrendingUp, Edit2, 
   User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X,
-  AlertCircle, Eye, ChevronLeft, ChevronRight, Filter, Crown, Plus
+  AlertCircle, Eye, ChevronLeft, ChevronRight, Filter, Crown, Plus, MessageSquare as MessageSquareText
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -44,10 +44,13 @@ function ProfessionalDashboard() {
   
   const [appointments, setAppointments] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
+  const [tenant, setTenant] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [commissionEntries, setCommissionEntries] = useState<any[]>([]);
   const [commissionClosings, setCommissionClosings] = useState<any[]>([]);
+  const [appointmentFilter, setAppointmentFilter] = useState<'today'|'week'|'month'|'completed'|'cancelled'|'pending'>('today');
+
   
   // Sync tab with URL
   useEffect(() => {
@@ -106,6 +109,17 @@ function ProfessionalDashboard() {
       console.log("[PROFISSIONAL_BARBER_DATA]", bData);
       setBarber(bData);
 
+      // Tenant profile (business name, permissions, phone)
+      if (bData?.user_id) {
+        const { data: tData } = await supabase
+          .from("profiles")
+          .select("business_name, slug, phone, barber_can_cancel, barber_can_reschedule")
+          .eq("id", bData.user_id)
+          .maybeSingle();
+        setTenant(tData);
+      }
+
+
       // Appointments
       const { data: allApps, error: aError } = await supabase
         .from("appointments")
@@ -162,6 +176,60 @@ function ProfessionalDashboard() {
       fetchData();
     }
   };
+
+  // WhatsApp / contato com cliente
+  const onlyDigits = (v?: string | null) => (v || "").replace(/\D+/g, "");
+  const formatDate = (d: string) => format(new Date(d), "dd/MM/yyyy");
+  const formatTime = (d: string) => format(new Date(d), "HH:mm");
+
+  const openWhatsapp = (app: any, mode: 'contact' | 'reschedule' | 'cancel' = 'contact') => {
+    const phone = onlyDigits(app.customers?.phone);
+    if (!phone) {
+      toast.error("Cliente sem telefone cadastrado.");
+      return;
+    }
+    const customerName = app.customers?.name || "Cliente";
+    const barberName = barber?.name || session?.name || "seu profissional";
+    const shopName = tenant?.business_name || "barbearia";
+    const dateStr = formatDate(app.start_time);
+    const timeStr = formatTime(app.start_time);
+
+    let msg = `Olá ${customerName}, aqui é ${barberName} da ${shopName}. Estou entrando em contato sobre seu agendamento do dia ${dateStr} às ${timeStr}.`;
+    if (mode === 'reschedule') {
+      msg += ` Gostaria de remarcar para outro horário, podemos combinar?`;
+    } else if (mode === 'cancel') {
+      msg += ` Infelizmente preciso solicitar o cancelamento deste atendimento. Podemos conversar?`;
+    }
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // Filtros de agendamentos
+  const filteredAppointments = (() => {
+    const now = new Date();
+    const dayStart = startOfDay(now);
+    const dayEnd = endOfDay(now);
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    return appointments.filter((a) => {
+      const d = new Date(a.start_time);
+      switch (appointmentFilter) {
+        case 'today': return d >= dayStart && d <= dayEnd;
+        case 'week': return d >= weekStart;
+        case 'month': return d >= monthStart;
+        case 'completed': return a.status === 'completed';
+        case 'cancelled': return a.status === 'cancelled';
+        case 'pending': return a.status === 'scheduled' || a.status === 'confirmed';
+        default: return true;
+      }
+    });
+  })();
+
+  const filterLabels: Record<string, string> = {
+    today: 'Hoje', week: 'Semana', month: 'Mês',
+    completed: 'Concluídos', cancelled: 'Cancelados', pending: 'Pendentes',
+  };
+
 
   if (loading) {
     return (
@@ -310,17 +378,26 @@ function ProfessionalDashboard() {
               <CircleDollarSign className="h-4 w-4" /> Comissão
             </TabsTrigger>
             <TabsTrigger 
+              value="finances" 
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+            >
+              <CircleDollarSign className="h-4 w-4" /> Financeiro
+            </TabsTrigger>
+            <TabsTrigger 
               value="profile" 
               className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
           </TabsList>
+
           
           <TabsContent value="appointments" className="mt-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">Agendamentos de Hoje</h2>
-              <Button 
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">
+                Minha Agenda — {filterLabels[appointmentFilter]}
+              </h2>
+              <Button
                 size="sm"
                 className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(212,175,55,0.2)]"
                 onClick={() => toast.info("Funcionalidade de novo agendamento disponível em breve no painel do profissional.")}
@@ -328,103 +405,153 @@ function ProfessionalDashboard() {
                 <Plus className="h-4 w-4 mr-2" /> Novo Agendamento
               </Button>
             </div>
-            
+
+            <div className="flex flex-wrap gap-2">
+              {(['today','week','month','pending','completed','cancelled'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setAppointmentFilter(f)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
+                    appointmentFilter === f
+                      ? "bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.25)]"
+                      : "bg-[#0b0f17] text-gray-400 border-[#D4AF37]/20 hover:border-[#D4AF37]/50 hover:text-white"
+                  )}
+                >
+                  {filterLabels[f]}
+                </button>
+              ))}
+            </div>
+
             <div className="grid gap-4">
-              {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
+              {filteredAppointments.length === 0 ? (
                 <Card className="border-dashed border-[#D4AF37]/20 py-16 text-center bg-[#0b0f17] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                   <CardContent className="flex flex-col items-center">
                     <Calendar className="h-16 w-16 text-[#D4AF37] opacity-20 mb-4" />
-                    <p className="text-gray-400 font-medium text-lg">Nenhum atendimento para hoje.</p>
+                    <p className="text-gray-400 font-medium text-lg">Nenhum atendimento neste filtro.</p>
                   </CardContent>
                 </Card>
               ) : (
-                appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).map(app => (
-                  <Card key={app.id} className="overflow-hidden bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl transition-all hover:border-[#D4AF37]/30">
-                    <div className="flex flex-col md:flex-row md:items-center">
-                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/10">
-                        <span className="text-3xl font-black text-white">{format(new Date(app.start_time), "HH:mm")}</span>
-                        <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider mt-1">Hoje</span>
-                      </div>
-                      
-                      <div className="flex-1 p-6 flex items-center gap-6">
-                        <Avatar className="h-14 w-14 border-2 border-[#D4AF37]/20 shadow-md">
-                          <AvatarImage src={app.customers?.avatar_url} />
-                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-black">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-1">
-                            <h4 className="font-black text-xl truncate text-white">{app.customers?.name || "Cliente"}</h4>
-                            <div className="flex flex-col gap-1.5 items-end">
-                              <Badge className={cn(
-                                "px-2 py-0.5 font-black text-[9px] uppercase border-0",
-                                app.status === 'completed' ? "bg-green-600" :
-                                app.status === 'cancelled' ? "bg-red-600" :
-                                app.status === 'confirmed' ? "bg-yellow-500 text-black" : "bg-blue-600"
-                              )}>
-                                {app.status === 'completed' ? 'CONCLUÍDO' : 
-                                 app.status === 'cancelled' ? 'CANCELADO' : 
-                                 app.status === 'confirmed' ? 'CONFIRMADO' : 'AGENDADO'}
-                              </Badge>
-                              {app.status !== 'cancelled' && app.payment_status === 'paid' && (
-                                <Badge className="bg-green-600/10 text-green-500 border-0 font-black text-[8px] uppercase px-1.5 py-0">
-                                  PAGO
+                filteredAppointments.map(app => {
+                  const isPending = app.status === 'scheduled' || app.status === 'confirmed';
+                  const canCancel = !!tenant?.barber_can_cancel;
+                  return (
+                    <Card key={app.id} className="overflow-hidden bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl transition-all hover:border-[#D4AF37]/30">
+                      <div className="flex flex-col md:flex-row md:items-stretch">
+                        <div className="w-full md:w-36 bg-[#D4AF37]/5 p-5 flex md:flex-col items-center justify-center gap-2 md:gap-1 border-b md:border-b-0 md:border-r border-[#D4AF37]/10">
+                          <span className="text-2xl md:text-3xl font-black text-white">{format(new Date(app.start_time), "HH:mm")}</span>
+                          <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider">
+                            {format(new Date(app.start_time), "dd/MM")}
+                          </span>
+                        </div>
+
+                        <div className="flex-1 p-5 flex items-center gap-4">
+                          <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-[#D4AF37]/20 shadow-md shrink-0">
+                            <AvatarImage src={app.customers?.avatar_url} />
+                            <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-black">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-3 mb-1">
+                              <h4 className="font-black text-lg md:text-xl truncate text-white">{app.customers?.name || "Cliente"}</h4>
+                              <div className="flex flex-col gap-1 items-end shrink-0">
+                                <Badge className={cn(
+                                  "px-2 py-0.5 font-black text-[9px] uppercase border-0",
+                                  app.status === 'completed' ? "bg-green-600" :
+                                  app.status === 'cancelled' ? "bg-red-600" :
+                                  app.status === 'confirmed' ? "bg-yellow-500 text-black" : "bg-blue-600"
+                                )}>
+                                  {app.status === 'completed' ? 'CONCLUÍDO' :
+                                   app.status === 'cancelled' ? 'CANCELADO' :
+                                   app.status === 'confirmed' ? 'CONFIRMADO' : 'AGENDADO'}
                                 </Badge>
-                              )}
+                                {app.status !== 'cancelled' && app.payment_status === 'paid' && (
+                                  <Badge className="bg-green-600/10 text-green-500 border-0 font-black text-[8px] uppercase px-1.5 py-0">PAGO</Badge>
+                                )}
+                              </div>
                             </div>
+                            <p className="text-sm text-gray-400 flex items-center gap-2 font-medium flex-wrap">
+                              <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
+                              <span className="text-gray-600">•</span>
+                              <span className="font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-400 flex items-center gap-2 font-medium">
-                            <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
-                            <span className="text-gray-600">•</span>
-                            <span className="font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
-                          </p>
+                        </div>
+
+                        <div className="p-5 bg-[#05070d]/50 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-[#D4AF37]/10 md:w-[260px]">
+                          {isPending ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleAction(app, 'completed')}
+                                className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black h-10 w-full"
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-2" /> Concluir
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => openWhatsapp(app, 'contact')}
+                                className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-black h-10 w-full"
+                              >
+                                <MessageSquareText className="h-4 w-4 mr-2" /> Falar no WhatsApp
+                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openWhatsapp(app, 'reschedule')}
+                                  className="bg-transparent text-[#D4AF37] border-[#D4AF37]/30 hover:bg-[#D4AF37]/10 rounded-xl font-black h-10 flex-1 text-[10px] uppercase tracking-wider"
+                                >
+                                  Reagendar
+                                </Button>
+                                {canCancel ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }}
+                                    className="bg-transparent hover:bg-red-950/20 text-red-500 border-red-900/50 rounded-xl font-black h-10 flex-1 text-[10px] uppercase tracking-wider"
+                                  >
+                                    <X className="h-3.5 w-3.5 mr-1" /> Cancelar
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => openWhatsapp(app, 'cancel')}
+                                    className="bg-transparent hover:bg-red-950/20 text-red-500 border-red-900/50 rounded-xl font-black h-10 flex-1 text-[10px] uppercase tracking-wider"
+                                    title="Cancelamento direto desabilitado pela barbearia"
+                                  >
+                                    Sol. Cancel.
+                                  </Button>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <Badge className={cn(
+                                "w-full justify-center py-2 font-black rounded-lg uppercase text-[11px]",
+                                app.status === 'completed' ? "bg-green-600/10 text-green-500 border border-green-600/20" : "bg-red-600/10 text-red-500 border border-red-600/20"
+                              )}>
+                                {app.status === 'completed' ? 'Finalizado' : 'Cancelado'}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                onClick={() => openWhatsapp(app, 'contact')}
+                                className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-black h-10 w-full"
+                              >
+                                <MessageSquareText className="h-4 w-4 mr-2" /> Falar com Cliente
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
-
-                      <div className="p-6 bg-[#05070d]/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
-                        {app.status === 'scheduled' || app.status === 'confirmed' ? (
-                          <>
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleAction(app, 'completed')} 
-                              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] flex-1"
-                            >
-                              <CheckCircle2 className="h-4 w-4 mr-2" /> Concluir
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} 
-                              className="bg-transparent hover:bg-red-950/20 text-red-500 border-red-900/50 rounded-xl font-black px-6 h-11 flex-1"
-                            >
-                              <X className="h-4 w-4 mr-2" /> Cancelar
-                            </Button>
-                            <Button 
-                              size="sm"
-                              className="bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#D4AF37]/20 rounded-xl h-11 w-11 p-0 transition-all hover:scale-[1.05]"
-                              onClick={() => toast.info(`Detalhes de ${app.customers?.name}`)}
-                            >
-                              <Eye className="h-4 w-4 text-[#D4AF37]" />
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center gap-1 w-full min-w-[140px]">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status Final</span>
-                            <Badge className={cn(
-                              "w-full justify-center py-2 font-black rounded-lg uppercase text-[11px]",
-                              app.status === 'completed' ? "bg-green-600/10 text-green-500 border border-green-600/20" : "bg-red-600/10 text-red-500 border border-red-600/20"
-                            )}>
-                              {app.status === 'completed' ? 'Finalizado' : 'Cancelado'}
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                ))
+                    </Card>
+                  );
+                })
               )}
             </div>
           </TabsContent>
+
 
           <TabsContent value="history" className="mt-8 space-y-6">
             <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
@@ -652,8 +779,93 @@ function ProfessionalDashboard() {
             })()}
           </TabsContent>
 
+          <TabsContent value="finances" className="mt-8 space-y-6">
+            {(() => {
+              const now = new Date();
+              const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+              const myAppts = appointments;
+              const monthAppts = myAppts.filter(a => new Date(a.start_time) >= monthStart);
+              const completed = monthAppts.filter(a => a.status === 'completed');
+              const cancelled = monthAppts.filter(a => a.status === 'cancelled');
+              const revenue = completed.reduce((s, a) => s + Number(a.total_price || 0), 0);
+              const avgTicket = completed.length ? revenue / completed.length : 0;
+
+              const monthEntries = commissionEntries.filter(e => new Date(e.earned_at) >= monthStart);
+              const totalCommission = monthEntries.reduce((s, e) => s + Number(e.commission_amount || 0), 0);
+              const paidCommission = monthEntries.reduce((s, e) => s + Number(e.paid_amount || 0), 0);
+              const pendingCommission = totalCommission - paidCommission;
+
+              const cards = [
+                { title: 'Atendimentos Concluídos', value: String(completed.length), icon: CheckCircle2 },
+                { title: 'Faturamento Gerado', value: `R$ ${revenue.toFixed(2)}`, icon: CircleDollarSign },
+                { title: 'Ticket Médio', value: `R$ ${avgTicket.toFixed(2)}`, icon: TrendingUp },
+                { title: 'Cancelamentos', value: String(cancelled.length), icon: X },
+                { title: 'Comissão Gerada', value: `R$ ${totalCommission.toFixed(2)}`, icon: Crown },
+                { title: 'Comissão Paga', value: `R$ ${paidCommission.toFixed(2)}`, icon: CheckCircle2 },
+                { title: 'Comissão Pendente', value: `R$ ${pendingCommission.toFixed(2)}`, icon: Clock },
+                { title: 'Atendimentos no Mês', value: String(monthAppts.length), icon: Calendar },
+              ];
+
+              return (
+                <>
+                  <div className="bg-[#0b0f17] border border-[#D4AF37]/20 rounded-2xl p-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mb-1">Financeiro Pessoal</p>
+                    <h2 className="text-2xl font-black text-white">Resumo do Mês</h2>
+                    <p className="text-sm text-gray-400 font-medium mt-1">Dados exclusivos do seu desempenho. Não inclui informações da barbearia.</p>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {cards.map((c, i) => (
+                      <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{c.title}</span>
+                          <c.icon className="h-5 w-5 text-[#D4AF37]" />
+                        </div>
+                        <div className="text-2xl font-black text-white">{c.value}</div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                      <CardTitle className="text-xl font-black text-white">Histórico de Serviços (mês)</CardTitle>
+                      <CardDescription className="text-gray-400 font-medium">Últimos atendimentos concluídos por você.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
+                            <tr>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#D4AF37]/5">
+                            {completed.length === 0 ? (
+                              <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum atendimento concluído este mês.</td></tr>
+                            ) : completed.slice(0, 20).map(a => (
+                              <tr key={a.id} className="hover:bg-[#D4AF37]/5">
+                                <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(a.start_time), "dd/MM HH:mm")}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">{a.customers?.name || 'Cliente'}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">{a.services?.name}</td>
+                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(a.total_price || 0).toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
+          </TabsContent>
+
           <TabsContent value="profile" className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
+
               <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
                   <CardTitle className="text-xl font-black text-white">Perfil Profissional</CardTitle>

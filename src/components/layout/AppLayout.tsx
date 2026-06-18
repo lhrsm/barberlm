@@ -72,11 +72,13 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
 
 const barberNavItems = (slug: string) => [
   { label: "Dashboard", icon: Layout, to: `/${slug}/profissional` },
-  { label: "Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Agenda", icon: Calendar, to: `/${slug}/profissional?tab=appointments` },
   { label: "Histórico", icon: History, to: `/${slug}/profissional?tab=history` },
-  { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Financeiro", icon: CircleDollarSign, to: `/${slug}/profissional?tab=finances` },
+  { label: "Comissão", icon: CircleDollarSign, to: `/${slug}/profissional?tab=commission` },
   { label: "Perfil", icon: User, to: `/${slug}/profissional?tab=profile` },
 ];
+
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
