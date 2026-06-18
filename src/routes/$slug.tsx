@@ -2098,12 +2098,12 @@ function ShopPageComponent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 w-full max-w-3xl mx-auto"
+              className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-4xl mx-auto"
             >
               {/* Primário */}
               <button
                 onClick={handleBookingAction}
-                className="group inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-black bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_10px_28px_rgba(245,197,66,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(245,197,66,0.35)] w-full sm:w-auto"
+                className="group inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-[#050505] bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_12px_30px_rgba(245,197,66,0.32)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(245,197,66,0.42)] w-full sm:w-auto sm:min-w-[220px]"
               >
                 <Calendar size={16} /> Agendar Agora
               </button>
@@ -2111,7 +2111,7 @@ function ShopPageComponent() {
               {/* Secundário — Ver Serviços */}
               <button
                 onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.04] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:bg-white/[0.07] hover:shadow-[0_10px_28px_rgba(245,197,66,0.22)] w-full sm:w-auto sm:min-w-[220px]"
               >
                 <Scissors size={16} /> Ver Serviços
               </button>
@@ -2119,7 +2119,7 @@ function ShopPageComponent() {
               {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
                 <button
                   onClick={() => document.getElementById('clube')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.04] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:bg-white/[0.07] hover:shadow-[0_10px_28px_rgba(245,197,66,0.22)] w-full sm:w-auto sm:min-w-[220px]"
                 >
                   <Crown size={16} /> Conhecer Planos
                 </button>
@@ -2128,7 +2128,7 @@ function ShopPageComponent() {
               {productsEnabled && products.length > 0 && (
                 <button
                   onClick={() => document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.04] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:bg-white/[0.07] hover:shadow-[0_10px_28px_rgba(245,197,66,0.22)] w-full sm:w-auto sm:min-w-[220px]"
                 >
                   <ShoppingBag size={16} /> Ver Produtos
                 </button>
