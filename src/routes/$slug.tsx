@@ -6,7 +6,8 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, CalendarDays, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, ArrowRight, Plus, Minus, Tag, TicketPercent, X, Crown, Menu, Lock as LockIcon } from "lucide-react";
+import { Scissors, Calendar, CalendarDays, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, ArrowRight, Plus, Minus, Tag, TicketPercent, X, Crown, Menu, Lock as LockIcon } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
@@ -1932,14 +1933,14 @@ function ShopPageComponent() {
                 </a>
 
                 {/* Nav desktop centralizado */}
-                <nav className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 absolute left-1/2 -translate-x-1/2">
+                <nav className="hidden md:flex items-center gap-7 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 absolute left-1/2 -translate-x-1/2">
                   {[
                     { href: "#inicio", label: "Início" },
                     { href: "#servicos", label: "Serviços" },
                     { href: "#profissionais", label: "Profissionais" },
-                    ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                     ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
                     ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+                    ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                     { href: "#contato", label: "Contato" },
                   ].map((it) => (
                     <a
@@ -1950,6 +1951,28 @@ function ShopPageComponent() {
                       {it.label}
                     </a>
                   ))}
+                  {(cashbackEnabled || couponsEnabled) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="relative py-1 inline-flex items-center gap-1 transition-colors hover:text-[#D4AF37] outline-none">
+                        Mais <ChevronDown className="h-3 w-3" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-[#05070d] border-[#D4AF37]/20 text-white min-w-[180px]">
+                        {cashbackEnabled && shop?.cashback_enabled && (
+                          <DropdownMenuItem asChild>
+                            <a href="#cashback" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Cashback</a>
+                          </DropdownMenuItem>
+                        )}
+                        {couponsEnabled && publicActiveCoupons.length > 0 && (
+                          <DropdownMenuItem asChild>
+                            <a href="#campanhas" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Campanhas</a>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem asChild>
+                          <a href={`/${shop.slug}/portal`} className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Portal do Cliente</a>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </nav>
 
                 {/* Ações direita */}
@@ -1994,10 +2017,13 @@ function ShopPageComponent() {
                           { href: "#inicio", label: "Início" },
                           { href: "#servicos", label: "Serviços" },
                           { href: "#profissionais", label: "Profissionais" },
-                          ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                           ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
                           ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+                          ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+                          ...(cashbackEnabled && shop?.cashback_enabled ? [{ href: "#cashback", label: "Cashback" }] : []),
+                          ...(couponsEnabled && publicActiveCoupons.length > 0 ? [{ href: "#campanhas", label: "Campanhas" }] : []),
                           { href: "#contato", label: "Contato" },
+                          { href: `/${shop.slug}/portal`, label: "Portal do Cliente" },
                         ].map((it) => (
                           <a
                             key={it.href}
@@ -2069,41 +2095,40 @@ function ShopPageComponent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 flex-wrap"
+              className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 w-full max-w-3xl mx-auto"
             >
-              <Button 
-                size="lg" 
-                className="h-14 px-10 text-lg font-black bg-[#D4AF37] text-black border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37]/90 transition-all w-full sm:w-auto uppercase tracking-tighter"
+              {/* Primário */}
+              <button
                 onClick={handleBookingAction}
+                className="group inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-black bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_10px_28px_rgba(245,197,66,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(245,197,66,0.35)] w-full sm:w-auto"
               >
-                Agendar Agora
-              </Button>
-              <Button 
-                size="lg" 
-                className="h-14 px-10 text-lg font-bold rounded-full border-2 border-white/30 bg-white/5 text-white hover:bg-white/15 hover:border-white/60 transition-all w-full sm:w-auto backdrop-blur-md uppercase tracking-tighter"
+                <Calendar size={16} /> Agendar Agora
+              </button>
+
+              {/* Secundário — Ver Serviços */}
+              <button
                 onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
               >
-                <Scissors size={16} className="mr-2" /> Ver serviços
-              </Button>
+                <Scissors size={16} /> Ver Serviços
+              </button>
+
               {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="h-14 px-8 text-base font-bold rounded-full text-[#D4AF37] hover:bg-[#D4AF37]/10 w-full sm:w-auto uppercase tracking-tighter"
+                <button
                   onClick={() => document.getElementById('clube')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
                 >
-                  <Crown size={16} className="mr-2" /> Conhecer planos
-                </Button>
+                  <Crown size={16} /> Conhecer Planos
+                </button>
               )}
+
               {productsEnabled && products.length > 0 && (
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="h-14 px-8 text-base font-bold rounded-full text-white/80 hover:bg-white/10 w-full sm:w-auto uppercase tracking-tighter"
+                <button
                   onClick={() => document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
                 >
-                  <ShoppingBag size={16} className="mr-2" /> Ver produtos
-                </Button>
+                  <ShoppingBag size={16} /> Ver Produtos
+                </button>
               )}
             </motion.div>
           </div>
