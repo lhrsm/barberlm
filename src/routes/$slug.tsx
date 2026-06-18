@@ -141,8 +141,11 @@ function ShopPageComponent() {
   };
 
   const categories = useMemo(() => {
-    const cats = ["Todos", ...new Set(products.map(p => p.category).filter(Boolean))];
-    return cats;
+    const curated = ["Todos", "Pomadas", "Cabelos", "Barba", "Cuidados Pessoais", "Kits", "Acessórios"];
+    const fromProducts = Array.from(new Set(products.map(p => p.category).filter(Boolean) as string[]));
+    // Keep curated order, append any extra categories that exist in products but not in curated list
+    const extras = fromProducts.filter(c => !curated.includes(c));
+    return [...curated, ...extras];
   }, [products]);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
