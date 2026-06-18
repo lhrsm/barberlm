@@ -301,9 +301,8 @@ function SettingsComponent() {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'barber_id' });
 
-    // Save loyalty_settings (novo módulo de fidelidade)
-    const loyaltyEnabledFinal =
-      updatedData.loyalty_mode === 'loyalty' ? !!updatedData.loyalty_enabled : false;
+    // Save loyalty_settings (módulo de fidelidade tradicional — switch independente)
+    const loyaltyEnabledFinal = !!updatedData.loyalty_enabled;
     const { error: loyaltyError } = await supabase
       .from("loyalty_settings" as any)
       .upsert({
