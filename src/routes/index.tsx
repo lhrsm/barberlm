@@ -600,94 +600,23 @@ function LandingPageComponent() {
             <span className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Cancele quando quiser</span>
           </div>
 
-          {/* Featured: Cashback Premium */}
-          <div className="mt-20 max-w-6xl mx-auto">
-            <div className="group relative rounded-[2rem] p-[1.5px] bg-gradient-to-br from-[#F59E0B] via-[#D4AF37] to-[#D97706] shadow-[0_30px_80px_-30px_rgba(245,158,11,0.45)] hover:shadow-[0_40px_100px_-25px_rgba(245,158,11,0.7)] transition-all duration-500">
-              <div className="absolute -inset-4 bg-[#F59E0B]/10 blur-3xl rounded-[2.5rem] -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative rounded-[1.9rem] bg-zinc-950 p-8 lg:p-12 overflow-hidden">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-[#F59E0B]/10 blur-[100px] -z-0 pointer-events-none" />
-                <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-[#D97706]/10 blur-[100px] -z-0 pointer-events-none" />
-
-                <div className="relative grid lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-16 items-center">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3 mb-5">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
-                        <Star className="h-3 w-3" /> Incluso no Elite
-                      </span>
-                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/70 font-bold uppercase tracking-widest">Módulo Premium</span>
-                    </div>
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center shadow-lg">
-                        <CircleDollarSign className="h-7 w-7 text-black" />
-                      </div>
-                      <div>
-                        <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">Cashback Premium</h4>
-                        <div className="mt-2 flex items-baseline gap-2">
-                          <span className="text-2xl font-black bg-gradient-to-r from-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent">R$ 19,90</span>
-                          <span className="text-sm font-bold text-white/40">/mês</span>
-                          <span className="text-xs text-white/40 font-bold">· ou grátis no Elite</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-white/60 text-base lg:text-lg leading-relaxed font-medium max-w-xl">
-                      Crie campanhas de cashback para fidelizar clientes, aumentar o retorno e estimular novas compras.
-                    </p>
-
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <Button
-                        onClick={() => setShowSignupModal(true)}
-                        className="h-12 px-6 rounded-xl font-black bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black hover:brightness-110 shadow-lg"
-                      >
-                        Ativar Módulo
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                      <a
-                        href="#faq"
-                        className="h-12 px-6 rounded-xl font-black border border-white/15 text-white/80 hover:text-white hover:border-white/30 inline-flex items-center transition-colors"
-                      >
-                        Saiba Mais
-                      </a>
-                    </div>
-                  </div>
-
-                  <ul className="grid sm:grid-cols-2 gap-3">
-                    {[
-                      "Cashback automático",
-                      "Regras personalizadas",
-                      "Relatórios de utilização",
-                      "Integração com agendamentos",
-                      "Fidelização de clientes",
-                      "Aumento da recorrência",
-                    ].map((b) => (
-                      <li key={b} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/5 transition-colors">
-                        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center shrink-0">
-                          <Check className="h-3.5 w-3.5 text-black" strokeWidth={3} />
-                        </div>
-                        <span className="text-sm font-bold text-white/90">{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Upsells */}
           <div className="mt-16">
             <div className="text-center mb-12">
               <h3 className="text-primary font-black uppercase tracking-widest text-xs mb-3">Recursos adicionais</h3>
               <h4 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Turbine seu plano com IA</h4>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
               {[
                 { name: "IA Agendadora", price: "R$ 39,90", desc: "Confirma, reagenda, cancela e responde dúvidas no WhatsApp 24/7." },
                 { name: "IA Comercial", price: "R$ 49,90", desc: "Recupera inativos, cria campanhas, ofertas inteligentes e pós-venda." },
                 { name: "Loja Premium", price: "R$ 19,90", desc: "Vitrine completa para venda de produtos.", free: "Grátis no Elite" },
+                { name: "Cashback Premium", price: "R$ 19,90", desc: "Cashback automático, regras personalizadas e mais recorrência.", free: "Grátis no Elite" },
               ].map((u) => (
                 <div key={u.name} className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-primary/30 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-3 gap-2">
                     <h5 className="text-sm font-black text-white uppercase italic tracking-tight">{u.name}</h5>
-                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold">{u.free}</span>}
+                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold whitespace-nowrap">{u.free}</span>}
                   </div>
                   <div className="text-2xl font-black text-white mb-2">{u.price}<span className="text-xs text-white/40 font-bold">/mês</span></div>
                   <p className="text-xs text-white/50 leading-relaxed">{u.desc}</p>
@@ -695,6 +624,7 @@ function LandingPageComponent() {
               ))}
             </div>
           </div>
+
         </div>
       </section>
 
