@@ -550,7 +550,7 @@ function LandingPageComponent() {
             <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Premium — recorrência e crescimento.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 149,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.elite}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Barbeiros ilimitados</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Professional" />
