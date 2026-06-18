@@ -623,15 +623,21 @@ function LandingPageComponent() {
                 { name: "IA Comercial", price: "R$ 49,90", desc: "Recupera inativos, cria campanhas, ofertas inteligentes e pós-venda." },
                 { name: "Loja Premium", price: "R$ 19,90", desc: "Vitrine completa para venda de produtos.", free: "Grátis no Elite" },
                 { name: "Cashback Premium", price: "R$ 19,90", desc: "Cashback automático, regras personalizadas e mais recorrência.", free: "Grátis no Elite" },
+                { name: "Assinaturas Premium", price: "R$ 29,90", desc: "Clube de assinatura recorrente com benefícios exclusivos.", free: "Grátis no Elite" },
               ].map((u) => (
-                <div key={u.name} className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-primary/30 transition-colors">
+                <motion.div
+                  key={u.name}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.25 }}
+                  className="p-6 rounded-2xl bg-zinc-900/50 border border-emerald-500/30 shadow-[0_0_20px_-12px_rgba(16,185,129,0.45)] hover:border-emerald-500/60 hover:shadow-[0_18px_40px_-15px_rgba(16,185,129,0.5)] transition-all"
+                >
                   <div className="flex items-start justify-between mb-3 gap-2">
                     <h5 className="text-sm font-black text-white uppercase italic tracking-tight">{u.name}</h5>
-                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold whitespace-nowrap">{u.free}</span>}
+                    {u.free && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-black whitespace-nowrap shadow-[0_0_12px_-4px_rgba(16,185,129,0.6)]">{u.free}</span>}
                   </div>
                   <div className="text-2xl font-black text-white mb-2">{u.price}<span className="text-xs text-white/40 font-bold">/mês</span></div>
                   <p className="text-xs text-white/50 leading-relaxed">{u.desc}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
