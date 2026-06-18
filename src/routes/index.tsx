@@ -675,22 +675,22 @@ function LandingPageComponent() {
             <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#D4A017]/15 blur-[120px] pointer-events-none" />
 
             <div className="relative grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center p-10 lg:p-20">
-              <div className="text-left">
+              <div className="text-center lg:text-left">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg mb-6">
                   <Sparkles className="h-3 w-3" /> Comece em minutos
                 </span>
-                <h2 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-[0.95]">
+                <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-[0.95]">
                   Pronto para <br />
                   <span className="bg-gradient-to-r from-[#F5C542] to-[#D4A017] bg-clip-text text-transparent italic">transformar</span> sua<br />
                   barbearia?
                 </h2>
-                <p className="text-base lg:text-lg text-white/60 max-w-xl mb-8 font-medium leading-relaxed">
+                <p className="text-base lg:text-lg text-white/60 max-w-xl mx-auto lg:mx-0 mb-10 font-medium leading-relaxed">
                   Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <Button
                     size="lg"
-                    className="h-14 px-8 text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black rounded-2xl shadow-[0_20px_40px_-15px_rgba(245,197,66,0.6)] group transition-all"
+                    className="h-14 w-full sm:w-auto px-8 text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black rounded-2xl shadow-[0_20px_40px_-15px_rgba(245,197,66,0.6)] group transition-all hover:-translate-y-0.5"
                     onClick={() => setShowSignupModal(true)}
                   >
                     Começar agora
@@ -698,12 +698,12 @@ function LandingPageComponent() {
                   </Button>
                   <a
                     href="#planos"
-                    className="h-14 px-8 inline-flex items-center justify-center rounded-2xl font-black text-sm border border-white/15 text-white/80 hover:text-white hover:border-white/30 transition-colors"
+                    className="h-14 w-full sm:w-auto px-8 inline-flex items-center justify-center rounded-2xl font-black text-sm border border-white/15 text-white/80 hover:text-white hover:border-primary/50 hover:shadow-[0_10px_30px_-15px_rgba(245,197,66,0.4)] transition-all"
                   >
                     Ver planos
                   </a>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/50 font-bold">
+                <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-xs text-white/50 font-bold">
                   <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> 15 dias grátis</span>
                   <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Sem cartão</span>
                   <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Cancele quando quiser</span>
