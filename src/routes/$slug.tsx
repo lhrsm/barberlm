@@ -1933,14 +1933,14 @@ function ShopPageComponent() {
                 </a>
 
                 {/* Nav desktop centralizado */}
-                <nav className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 absolute left-1/2 -translate-x-1/2">
+                <nav className="hidden md:flex items-center gap-7 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 absolute left-1/2 -translate-x-1/2">
                   {[
                     { href: "#inicio", label: "Início" },
                     { href: "#servicos", label: "Serviços" },
                     { href: "#profissionais", label: "Profissionais" },
-                    ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                     ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
                     ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+                    ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                     { href: "#contato", label: "Contato" },
                   ].map((it) => (
                     <a
@@ -1951,6 +1951,28 @@ function ShopPageComponent() {
                       {it.label}
                     </a>
                   ))}
+                  {(cashbackEnabled || couponsEnabled) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="relative py-1 inline-flex items-center gap-1 transition-colors hover:text-[#D4AF37] outline-none">
+                        Mais <ChevronDown className="h-3 w-3" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-[#05070d] border-[#D4AF37]/20 text-white min-w-[180px]">
+                        {cashbackEnabled && shop?.cashback_enabled && (
+                          <DropdownMenuItem asChild>
+                            <a href="#cashback" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Cashback</a>
+                          </DropdownMenuItem>
+                        )}
+                        {couponsEnabled && publicActiveCoupons.length > 0 && (
+                          <DropdownMenuItem asChild>
+                            <a href="#campanhas" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Campanhas</a>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem asChild>
+                          <a href={`/${shop.slug}/portal`} className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Portal do Cliente</a>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </nav>
 
                 {/* Ações direita */}
