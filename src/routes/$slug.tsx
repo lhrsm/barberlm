@@ -2355,9 +2355,19 @@ function ShopPageComponent() {
                           </div>
                         </div>
 
-                        <div className="pt-2">
+                        <div className="pt-2 space-y-2">
+                          <Button
+                            variant="outline"
+                            className="w-full h-11 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-transparent border border-[#F5C542]/35 text-[#F5C542] hover:bg-[#F5C542]/10 hover:border-[#F5C542] transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProductProductForModal(product);
+                            }}
+                          >
+                            Ver Produto
+                          </Button>
                           <Button 
-                            className="w-full h-14 rounded-2xl font-black uppercase tracking-tighter transition-all bg-white text-black hover:bg-white/90 shadow-xl hover:scale-[1.02] active:scale-[0.98] border border-white/10"
+                            className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] shadow-[0_8px_20px_rgba(245,197,66,0.25)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.35)] hover:-translate-y-0.5"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleProduct(product);
@@ -2371,6 +2381,17 @@ function ShopPageComponent() {
                   </Card>
                 </motion.div>
               ))}
+            </div>
+
+            {/* Ver Todos os Produtos */}
+            <div className="mt-12 flex justify-center">
+              <Link
+                to="/$slug/loja"
+                params={{ slug: slug! }}
+                className="inline-flex items-center justify-center gap-2 h-14 px-10 rounded-full font-black uppercase tracking-widest text-[12px] text-white bg-[#0a0a0a] border border-[#F5C542]/40 hover:border-[#F5C542] hover:bg-[#F5C542]/[0.08] hover:text-[#F5C542] hover:shadow-[0_12px_30px_rgba(245,197,66,0.25)] transition-all duration-200"
+              >
+                <ShoppingBag size={16} /> Ver Todos os Produtos
+              </Link>
             </div>
           </div>
         </section>
