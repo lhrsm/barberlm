@@ -17,6 +17,7 @@ import { Route as SubscriptionRewardsRouteImport } from './routes/subscription-r
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
@@ -49,7 +50,6 @@ import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
-import { Route as AuthenticatedReviewsRouteImport } from './routes/_authenticated/reviews'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subscription-card.validate.$token'
@@ -95,6 +95,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -257,11 +262,6 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
-const AuthenticatedReviewsRoute = AuthenticatedReviewsRouteImport.update({
-  id: '/_authenticated/reviews',
-  path: '/reviews',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SlugProfissionalRoute = SlugProfissionalRouteImport.update({
   id: '/profissional',
   path: '/profissional',
@@ -314,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/loyalty': typeof LoyaltyRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/reviews': typeof ReviewsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
@@ -324,7 +325,6 @@ export interface FileRoutesByFullPath {
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
-  '/reviews': typeof AuthenticatedReviewsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -362,6 +362,7 @@ export interface FileRoutesByTo {
   '/loyalty': typeof LoyaltyRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/reviews': typeof ReviewsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
@@ -372,7 +373,6 @@ export interface FileRoutesByTo {
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
-  '/reviews': typeof AuthenticatedReviewsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -412,6 +412,7 @@ export interface FileRoutesById {
   '/loyalty': typeof LoyaltyRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
+  '/reviews': typeof ReviewsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
@@ -422,7 +423,6 @@ export interface FileRoutesById {
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
-  '/_authenticated/reviews': typeof AuthenticatedReviewsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -463,6 +463,7 @@ export interface FileRouteTypes {
     | '/loyalty'
     | '/privacy'
     | '/products'
+    | '/reviews'
     | '/services'
     | '/settings'
     | '/subscription'
@@ -473,7 +474,6 @@ export interface FileRouteTypes {
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
-    | '/reviews'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -511,6 +511,7 @@ export interface FileRouteTypes {
     | '/loyalty'
     | '/privacy'
     | '/products'
+    | '/reviews'
     | '/services'
     | '/settings'
     | '/subscription'
@@ -521,7 +522,6 @@ export interface FileRouteTypes {
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
-    | '/reviews'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -560,6 +560,7 @@ export interface FileRouteTypes {
     | '/loyalty'
     | '/privacy'
     | '/products'
+    | '/reviews'
     | '/services'
     | '/settings'
     | '/subscription'
@@ -570,7 +571,6 @@ export interface FileRouteTypes {
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
-    | '/_authenticated/reviews'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -610,6 +610,7 @@ export interface RootRouteChildren {
   LoyaltyRoute: typeof LoyaltyRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRoute
+  ReviewsRoute: typeof ReviewsRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
@@ -618,7 +619,6 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   TutorialsRoute: typeof TutorialsRoute
-  AuthenticatedReviewsRoute: typeof AuthenticatedReviewsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
@@ -683,6 +683,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -909,13 +916,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/_authenticated/reviews': {
-      id: '/_authenticated/reviews'
-      path: '/reviews'
-      fullPath: '/reviews'
-      preLoaderRoute: typeof AuthenticatedReviewsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/$slug/profissional': {
       id: '/$slug/profissional'
       path: '/profissional'
@@ -1035,6 +1035,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoyaltyRoute: LoyaltyRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRoute,
+  ReviewsRoute: ReviewsRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
@@ -1043,7 +1044,6 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   TutorialsRoute: TutorialsRoute,
-  AuthenticatedReviewsRoute: AuthenticatedReviewsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
