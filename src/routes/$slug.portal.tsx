@@ -1479,11 +1479,22 @@ function ClientPortalComponent() {
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-400">
                               <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
-                               <Badge variant="outline" className="capitalize text-[10px]">
-                               {app.payment_method === 'pix' ? 'Pago via PIX' : 
-                                  app.payment_method === 'credits' ? 'Pago com Créditos' : 
-                                  app.payment_method === 'cashback' ? 'Pago com Cashback' : 'Pagar na Barbearia'}
-                               </Badge>
+                               {(() => {
+                                 const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
+                                 const label = isSubCovered ? '✦ Incluso no Plano' :
+                                   app.payment_method === 'pix' ? 'Pago via PIX' :
+                                   app.payment_method === 'credits' ? 'Pago com Créditos' :
+                                   app.payment_method === 'cashback' ? 'Pago com Cashback' :
+                                   'Pagar na Barbearia';
+                                 return (
+                                   <Badge variant="outline" className={cn(
+                                     "capitalize text-[10px]",
+                                     isSubCovered && "text-[#D4AF37] border-[#D4AF37]/40 bg-[#D4AF37]/10"
+                                   )}>
+                                     {label}
+                                   </Badge>
+                                 );
+                               })()}
                                {app.notes && app.notes.includes('Pagamento:') && (
                                  <span className="text-[10px] text-[#D4AF37] font-medium">{app.notes}</span>
                                )}
@@ -1507,17 +1518,42 @@ function ClientPortalComponent() {
                              </Badge>
                            ) : (
                              <div className="flex flex-col items-end gap-1.5">
-                               <Badge className={cn(
-                                 app.payment_status === 'paid' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-outline border text-foreground'
-                               )}>
-                                 {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
-                               </Badge>
+                               {(() => {
+                                 const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
+                                 if (isSubCovered) {
+                                   return (
+                                     <Badge className="bg-[#D4AF37] hover:bg-[#B8962E] text-black">
+                                       Incluso no Plano
+                                     </Badge>
+                                   );
+                                 }
+                                 return (
+                                   <Badge className={cn(
+                                     app.payment_status === 'paid' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-outline border text-foreground'
+                                   )}>
+                                     {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
+                                   </Badge>
+                                 );
+                               })()}
                                <Badge variant={app.status === 'completed' ? 'default' : 'secondary'} className={cn(
                                  app.status === 'completed' && "bg-green-600 hover:bg-green-700",
                                  app.status === 'scheduled' && "bg-blue-500 hover:bg-blue-600"
                                )}>
                                  {app.status === 'completed' ? 'Concluído' : 'Agendado'}
                                </Badge>
+                               {app.status === 'completed' && !app._review_id && (
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={(e) => { e.stopPropagation(); setReviewAppointment(app); setIsReviewOpen(true); }}
+                                   className="h-7 text-[10px] border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                                 >
+                                   ★ Avaliar
+                                 </Button>
+                               )}
+                               {app.status === 'completed' && app._review_id && (
+                                 <span className="text-[10px] text-emerald-500 font-bold">★ Avaliado</span>
+                               )}
                              </div>
                            )}
                            {app.status === 'scheduled' && (
