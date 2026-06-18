@@ -138,6 +138,8 @@ function ClientPortalComponent() {
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewAppointment, setReviewAppointment] = useState<any>(null);
 
   // Benefits tab — filters & modals
   const [benefitSearch, setBenefitSearch] = useState("");
