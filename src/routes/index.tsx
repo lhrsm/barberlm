@@ -644,28 +644,71 @@ function LandingPageComponent() {
       {/* Final CTA */}
       <section className="py-24 lg:py-40 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/10 blur-[120px] -z-10" />
-        <div className="max-w-5xl mx-auto p-12 lg:p-24 rounded-[3.5rem] bg-zinc-900 border border-white/10 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10" />
+        <div className="max-w-6xl mx-auto rounded-[3rem] p-[1.5px] bg-gradient-to-br from-[#F5C542] via-[#D4A017] to-[#7a5a0a] shadow-[0_40px_120px_-30px_rgba(245,197,66,0.45)]">
+          <div className="relative rounded-[2.9rem] bg-gradient-to-br from-zinc-950 via-zinc-900 to-black overflow-hidden">
+            <div className="absolute inset-0 opacity-30">
+              <img
+                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=1600"
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/40" />
+            </div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#F5C542]/20 blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#D4A017]/15 blur-[120px] pointer-events-none" />
 
-          <h2 className="text-5xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
-            Pronto para <br />
-            <span className="text-primary italic">transformar?</span>
-          </h2>
-          <p className="text-lg lg:text-xl text-white/40 max-w-2xl mx-auto mb-12 font-bold leading-relaxed">
-            Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              size="lg"
-              className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_20px_40px_-15px_rgba(234,179,8,0.5)] group transition-all"
-              onClick={() => setShowSignupModal(true)}
-            >
-              Começar agora
-              <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-2 transition-transform" />
-            </Button>
+            <div className="relative grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center p-10 lg:p-20">
+              <div className="text-left">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg mb-6">
+                  <Sparkles className="h-3 w-3" /> Comece em minutos
+                </span>
+                <h2 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-[0.95]">
+                  Pronto para <br />
+                  <span className="bg-gradient-to-r from-[#F5C542] to-[#D4A017] bg-clip-text text-transparent italic">transformar</span> sua<br />
+                  barbearia?
+                </h2>
+                <p className="text-base lg:text-lg text-white/60 max-w-xl mb-8 font-medium leading-relaxed">
+                  Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
+                </p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <Button
+                    size="lg"
+                    className="h-14 px-8 text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black rounded-2xl shadow-[0_20px_40px_-15px_rgba(245,197,66,0.6)] group transition-all"
+                    onClick={() => setShowSignupModal(true)}
+                  >
+                    Começar agora
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  <a
+                    href="#planos"
+                    className="h-14 px-8 inline-flex items-center justify-center rounded-2xl font-black text-sm border border-white/15 text-white/80 hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    Ver planos
+                  </a>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/50 font-bold">
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> 15 dias grátis</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Sem cartão</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-[#F5C542]" /> Cancele quando quiser</span>
+                </div>
+              </div>
+
+              <div className="hidden lg:block relative">
+                <div className="absolute -inset-6 bg-[#F5C542]/20 blur-[80px] rounded-full" />
+                <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80&w=900"
+                    alt="Barbearia premium"
+                    className="w-full h-[420px] object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
 
       {/* Footer */}
       <footer className="bg-background border-t border-white/5 py-24 px-6">
