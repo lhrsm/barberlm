@@ -513,7 +513,7 @@ function LandingPageComponent() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-stretch">
             {/* Starter */}
-            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
+            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias iniciantes.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.starter}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -527,7 +527,7 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios básicos" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Começar agora
@@ -535,8 +535,8 @@ function LandingPageComponent() {
             </div>
 
             {/* Professional — destaque */}
-            <div className="p-8 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)] z-10">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">Mais Popular</div>
+            <div className="p-8 lg:p-10 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(245,197,66,0.5)] z-10 lg:scale-[1.04] hover:shadow-[0_50px_100px_-20px_rgba(245,197,66,0.65)] transition-all duration-300">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">Mais Escolhido</div>
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias em crescimento.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.professional}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -550,7 +550,7 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios avançados" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-sm shadow-xl italic uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-95"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black font-black text-sm shadow-[0_15px_30px_-10px_rgba(245,197,66,0.6)] italic uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-95"
                 onClick={() => setShowSignupModal(true)}
               >
                 Teste 15 dias grátis
@@ -558,7 +558,7 @@ function LandingPageComponent() {
             </div>
 
             {/* Elite */}
-            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 flex flex-col h-full">
+            <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Premium — recorrência e crescimento.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.elite}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -572,7 +572,7 @@ function LandingPageComponent() {
                 <PricingItem text="Portal Premium & Relatórios premium" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Assinar Elite
@@ -580,7 +580,7 @@ function LandingPageComponent() {
             </div>
 
             {/* Enterprise */}
-            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-white/10 flex flex-col h-full">
+            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Enterprise</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para redes de barbearias.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.enterprise}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
@@ -594,7 +594,7 @@ function LandingPageComponent() {
                 <PricingItem text="Gerente de conta dedicado" />
               </ul>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-white/10 italic uppercase tracking-wider transition-all"
+                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
                 Falar com vendas
