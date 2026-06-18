@@ -43,8 +43,8 @@ export function CookieBanner() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[80] px-3 pb-3 sm:px-4 sm:pb-4">
-      <div className="mx-auto max-w-4xl rounded-2xl border border-white/10 bg-[#0b0b0c]/95 p-4 text-white shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur">
+    <div className="fixed bottom-3 left-3 z-[80] sm:bottom-4 sm:left-4">
+      <div className="w-[calc(100vw-1.5rem)] max-w-sm rounded-xl border border-white/10 bg-[#0b0b0c]/95 p-3 text-white shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505]">
             <Cookie size={18} strokeWidth={2.5} />
