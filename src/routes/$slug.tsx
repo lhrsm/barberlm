@@ -55,6 +55,7 @@ function ShopPageComponent() {
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [publicTestimonials, setPublicTestimonials] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [publicSubscriptionPlans, setPublicSubscriptionPlans] = useState<any[]>([]);
   const [publicLoyaltySettings, setPublicLoyaltySettings] = useState<any>(null);
