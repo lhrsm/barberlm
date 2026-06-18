@@ -60,12 +60,14 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("barbers")
-        .update({ working_hours: hours })
-        .eq("id", barber.id);
-      
+      const { data, error } = await supabase.rpc("update_barber_working_hours", {
+        p_barber_id: barber.id,
+        p_working_hours: hours,
+      });
+
       if (error) throw error;
+      if (data !== true) throw new Error("Profissional não encontrado");
+
       toast.success("Horários atualizados!");
       onUpdate();
       onClose();
