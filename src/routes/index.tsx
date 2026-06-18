@@ -572,7 +572,7 @@ function LandingPageComponent() {
             <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-white/10 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Enterprise</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para redes de barbearias.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 249,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.enterprise}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Usuários ilimitados</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Elite" />
