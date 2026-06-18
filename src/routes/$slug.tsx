@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Outlet, useLocation, Link } from "@tanstack/react-router";
 import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -154,6 +154,8 @@ function ShopPageComponent() {
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [allowMarketing, setAllowMarketing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
@@ -3051,6 +3053,39 @@ function ShopPageComponent() {
                       ))}
                     </ul>
 
+                    <div className="mt-3 space-y-2 rounded-xl bg-zinc-50 border border-zinc-200 p-3">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={consentAccepted}
+                          onChange={(e) => setConsentAccepted(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 accent-[#D97706] shrink-0"
+                        />
+                        <span className="text-[12px] leading-snug text-zinc-700">
+                          Li e concordo com a{" "}
+                          <Link to="/privacy" target="_blank" className="font-semibold text-[#B8860B] underline underline-offset-2">
+                            Política de Privacidade
+                          </Link>{" "}
+                          e os{" "}
+                          <Link to="/terms" target="_blank" className="font-semibold text-[#B8860B] underline underline-offset-2">
+                            Termos de Uso
+                          </Link>
+                          .
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowMarketing}
+                          onChange={(e) => setAllowMarketing(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 accent-[#D97706] shrink-0"
+                        />
+                        <span className="text-[12px] leading-snug text-zinc-600">
+                          Quero receber promoções, novidades e campanhas (opcional).
+                        </span>
+                      </label>
+                    </div>
+
                     <Button
                       className="w-full h-14 rounded-2xl font-extrabold text-black text-base tracking-tight transition-all duration-200 hover:brightness-105 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                       style={{
@@ -3058,7 +3093,7 @@ function ShopPageComponent() {
                         boxShadow: '0 12px 28px rgba(245,158,11,.28)',
                       }}
                       onClick={handlePhoneCheck}
-                      disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
+                      disabled={!consentAccepted || !customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
                     >
                       {submitting ? "Verificando..." : "Continuar agendamento"}
                     </Button>
