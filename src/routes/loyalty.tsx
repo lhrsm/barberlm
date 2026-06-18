@@ -72,7 +72,7 @@ function LoyaltyDashboardPage() {
     .filter((c: any) => (c.loyalty_points || 0) > 0)
     .slice(0, 10);
 
-  const moduleActive = profile?.loyalty_mode === "loyalty" && (settings as any)?.enabled;
+  const moduleActive = !!(settings as any)?.enabled;
 
   if (loading || !user) return null;
 
