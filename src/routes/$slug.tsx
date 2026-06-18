@@ -2510,6 +2510,34 @@ function ShopPageComponent() {
           </div>
         </section>
 
+        {/* Testimonials Section */}
+        {publicTestimonials.length > 0 && (
+          <section id="depoimentos" className="py-24 bg-[#080808]">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center space-y-4 mb-16">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">O que dizem</span>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Depoimentos</h3>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {publicTestimonials.map((t) => (
+                  <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/15 bg-gradient-to-br from-zinc-950 to-black hover:border-[#D4AF37]/40 transition-all">
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1,2,3,4,5].map(n => (
+                        <Star key={n} size={14} className={cn(n <= (t.barbershop_rating || 5) ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
+                      ))}
+                    </div>
+                    <p className="text-white/90 italic mb-4 text-sm leading-relaxed">"{t.testimonial_text}"</p>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-white">{t.customers?.name || "Cliente"}</span>
+                      {t.barbers?.name && <span className="text-[#D4AF37]/70">com {t.barbers.name}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Clube Premium / Assinaturas */}
         {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
           <section id="clube" className="py-24 bg-[#050505] relative overflow-hidden">
