@@ -55,6 +55,13 @@ function LandingPageComponent() {
   const navigate = useNavigate();
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const planPrices = {
+    monthly: { starter: "R$ 49,90", professional: "R$ 99,90", elite: "R$ 149,90", enterprise: "R$ 249,90" },
+    annual:  { starter: "R$ 39,90", professional: "R$ 79,90", elite: "R$ 119,90", enterprise: "R$ 199,90" },
+  } as const;
+  const prices = planPrices[billingCycle];
+  const priceSuffix = billingCycle === "annual" ? "/mês · cobrado anualmente" : "/mês";
 
   useEffect(() => {
     if (!loading && user && role) {
