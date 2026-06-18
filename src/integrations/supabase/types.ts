@@ -133,6 +133,83 @@ export type Database = {
           },
         ]
       }
+      appointment_reviews: {
+        Row: {
+          appointment_id: string
+          approved_at: string | null
+          approved_by: string | null
+          barber_id: string | null
+          barber_rating: number | null
+          barbershop_rating: number | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          show_on_frontend: boolean
+          tenant_id: string
+          testimonial_status: string
+          testimonial_text: string | null
+        }
+        Insert: {
+          appointment_id: string
+          approved_at?: string | null
+          approved_by?: string | null
+          barber_id?: string | null
+          barber_rating?: number | null
+          barbershop_rating?: number | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          show_on_frontend?: boolean
+          tenant_id: string
+          testimonial_status?: string
+          testimonial_text?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          barber_id?: string | null
+          barber_rating?: number | null
+          barbershop_rating?: number | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          show_on_frontend?: boolean
+          tenant_id?: string
+          testimonial_status?: string
+          testimonial_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "appointment_reviews_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_status_logs: {
         Row: {
           appointment_id: string
@@ -5945,6 +6022,23 @@ export type Database = {
       }
     }
     Views: {
+      barber_rating_stats: {
+        Row: {
+          avg_rating: number | null
+          barber_id: string | null
+          tenant_id: string | null
+          total_ratings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_reviews_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vw_automation_debug: {
         Row: {
           appointment_id: string | null

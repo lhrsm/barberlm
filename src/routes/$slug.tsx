@@ -55,6 +55,7 @@ function ShopPageComponent() {
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [publicTestimonials, setPublicTestimonials] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [publicSubscriptionPlans, setPublicSubscriptionPlans] = useState<any[]>([]);
   const [publicLoyaltySettings, setPublicLoyaltySettings] = useState<any>(null);
@@ -760,8 +761,38 @@ function ShopPageComponent() {
       ]);
 
       setServices(servicesRes.data || []);
-      setBarbers(barbersRes.data || []);
+
+      // Enrich barbers with rating stats
+      const barberList = barbersRes.data || [];
+      let barbersWithStats: any[] = barberList;
+      if (barberList.length > 0) {
+        const { data: stats } = await supabase
+          .from("barber_rating_stats" as any)
+          .select("barber_id, avg_rating, total_ratings")
+          .in("barber_id", barberList.map((b: any) => b.id));
+        const statsMap = new Map((stats || []).map((s: any) => [s.barber_id, s]));
+        barbersWithStats = barberList.map((b: any) => ({
+          ...b,
+          avg_rating: statsMap.get(b.id)?.avg_rating ?? null,
+          total_ratings: statsMap.get(b.id)?.total_ratings ?? 0,
+        }));
+      }
+      setBarbers(barbersWithStats);
       setProducts(productsRes.data || []);
+
+      // Public approved testimonials
+      try {
+        const { data: testimonialsRes } = await supabase
+          .from("appointment_reviews")
+          .select("id, testimonial_text, barbershop_rating, barber_rating, created_at, customers(name, avatar_url), barbers(name)")
+          .eq("tenant_id", currentShop.id)
+          .eq("testimonial_status", "approved")
+          .eq("show_on_frontend", true)
+          .not("testimonial_text", "is", null)
+          .order("approved_at", { ascending: false })
+          .limit(9);
+        setPublicTestimonials(testimonialsRes || []);
+      } catch (_e) { /* silent */ }
 
       // Public extras: subscription plans, loyalty settings, active coupons
       // These are best-effort — failures (e.g. RLS) are silently ignored so the page still renders.
@@ -2468,8 +2499,8 @@ function ShopPageComponent() {
                       <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
                       <div className="flex items-center gap-1.5">
                         <Star size={14} className="text-yellow-500" fill="currentColor" />
-                        <span className="text-sm font-bold text-white">{barber.average_rating || "5.0"}</span>
-                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} reviews)</span>
+                        <span className="text-sm font-bold text-white">{barber.avg_rating ? Number(barber.avg_rating).toFixed(1) : "—"}</span>
+                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} avaliações)</span>
                       </div>
                     </div>
                   </div>
@@ -2478,6 +2509,34 @@ function ShopPageComponent() {
             </div>
           </div>
         </section>
+
+        {/* Testimonials Section */}
+        {publicTestimonials.length > 0 && (
+          <section id="depoimentos" className="py-24 bg-[#080808]">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center space-y-4 mb-16">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">O que dizem</span>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Depoimentos</h3>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {publicTestimonials.map((t) => (
+                  <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/15 bg-gradient-to-br from-zinc-950 to-black hover:border-[#D4AF37]/40 transition-all">
+                    <div className="flex items-center gap-1 mb-3">
+                      {[1,2,3,4,5].map(n => (
+                        <Star key={n} size={14} className={cn(n <= (t.barbershop_rating || 5) ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
+                      ))}
+                    </div>
+                    <p className="text-white/90 italic mb-4 text-sm leading-relaxed">"{t.testimonial_text}"</p>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-white">{t.customers?.name || "Cliente"}</span>
+                      {t.barbers?.name && <span className="text-[#D4AF37]/70">com {t.barbers.name}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Clube Premium / Assinaturas */}
         {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
@@ -2875,8 +2934,8 @@ function ShopPageComponent() {
                   <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
                   <div className="flex items-center gap-1.5">
                     <Star size={14} className="text-yellow-500" fill="currentColor" />
-                    <span className="text-sm font-bold text-white">{barber.average_rating || "5.0"}</span>
-                    <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} reviews)</span>
+                    <span className="text-sm font-bold text-white">{barber.avg_rating ? Number(barber.avg_rating).toFixed(1) : "—"}</span>
+                    <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} avaliações)</span>
                   </div>
                 </div>
               </div>
