@@ -739,7 +739,8 @@ function LandingPageComponent() {
                 <li><Link to="/auth" className="hover:text-primary transition-colors">Entrar</Link></li>
                 <li><Link to="/auth" className="hover:text-primary transition-colors">Criar conta</Link></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Suporte</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacidade</a></li>
+                <li><Link to="/privacy" className="hover:text-primary transition-colors">Política de Privacidade</Link></li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors">Termos de Uso</Link></li>
               </ul>
             </div>
           </div>
