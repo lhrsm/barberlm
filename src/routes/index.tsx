@@ -888,7 +888,7 @@ function FaqExplorer() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap justify-center gap-2 mb-8">
         {FAQ_CATEGORIES.map((c) => {
           const active = category === c.name;
           return (
@@ -896,10 +896,10 @@ function FaqExplorer() {
               key={c.name}
               onClick={() => setCategory(c.name)}
               className={cn(
-                "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all",
+                "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all",
                 active
-                  ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-black border-transparent shadow-lg"
-                  : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/25"
+                  ? "bg-primary text-primary-foreground border-primary shadow-[0_10px_30px_-10px_rgba(245,197,66,0.6)]"
+                  : "bg-transparent text-white border-primary/25 hover:border-primary/60 hover:shadow-[0_0_18px_-6px_rgba(245,197,66,0.6)] hover:text-primary"
               )}
             >
               {c.icon}
