@@ -141,8 +141,11 @@ function ShopPageComponent() {
   };
 
   const categories = useMemo(() => {
-    const cats = ["Todos", ...new Set(products.map(p => p.category).filter(Boolean))];
-    return cats;
+    const curated = ["Todos", "Pomadas", "Cabelos", "Barba", "Cuidados Pessoais", "Kits", "Acessórios"];
+    const fromProducts = Array.from(new Set(products.map(p => p.category).filter(Boolean) as string[]));
+    // Keep curated order, append any extra categories that exist in products but not in curated list
+    const extras = fromProducts.filter(c => !curated.includes(c));
+    return [...curated, ...extras];
   }, [products]);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
@@ -2095,12 +2098,12 @@ function ShopPageComponent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 w-full max-w-3xl mx-auto"
+              className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-4xl mx-auto"
             >
               {/* Primário */}
               <button
                 onClick={handleBookingAction}
-                className="group inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-black bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_10px_28px_rgba(245,197,66,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(245,197,66,0.35)] w-full sm:w-auto"
+                className="group inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-[#050505] bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_12px_30px_rgba(245,197,66,0.32)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(245,197,66,0.42)] w-full sm:w-auto sm:min-w-[220px]"
               >
                 <Calendar size={16} /> Agendar Agora
               </button>
@@ -2108,7 +2111,7 @@ function ShopPageComponent() {
               {/* Secundário — Ver Serviços */}
               <button
                 onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.04] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:bg-white/[0.07] hover:shadow-[0_10px_28px_rgba(245,197,66,0.22)] w-full sm:w-auto sm:min-w-[220px]"
               >
                 <Scissors size={16} /> Ver Serviços
               </button>
@@ -2116,7 +2119,7 @@ function ShopPageComponent() {
               {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
                 <button
                   onClick={() => document.getElementById('clube')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.04] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:bg-white/[0.07] hover:shadow-[0_10px_28px_rgba(245,197,66,0.22)] w-full sm:w-auto sm:min-w-[220px]"
                 >
                   <Crown size={16} /> Conhecer Planos
                 </button>
@@ -2125,7 +2128,7 @@ function ShopPageComponent() {
               {productsEnabled && products.length > 0 && (
                 <button
                   onClick={() => document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.06] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:shadow-[0_10px_28px_rgba(245,197,66,0.18)] w-full sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 h-14 sm:h-[56px] px-7 rounded-full font-extrabold text-[15px] text-white bg-white/[0.04] border border-[#F5C542]/35 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F5C542] hover:bg-white/[0.07] hover:shadow-[0_10px_28px_rgba(245,197,66,0.22)] w-full sm:w-auto sm:min-w-[220px]"
                 >
                   <ShoppingBag size={16} /> Ver Produtos
                 </button>
@@ -2247,21 +2250,26 @@ function ShopPageComponent() {
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-              {categories.map((cat) => (
-                <Button
-                  key={cat}
-                  variant={activeCategory === cat ? "default" : "outline"}
-                  className={cn(
-                    "rounded-full px-6 h-10 font-bold text-[10px] uppercase tracking-widest transition-all",
-                    activeCategory === cat ? "shadow-lg scale-105" : "border-white/10 hover:bg-white/5 text-slate-500"
-                  )}
-                  style={activeCategory === cat ? { backgroundColor: "#D4AF37" } : {}}
-                  onClick={() => setActiveCategory(cat)}
-                >
-                  {cat}
-                </Button>
-              ))}
+            <div className="-mx-4 px-4 mb-12 overflow-x-auto custom-scrollbar lg:overflow-visible">
+              <div className="flex lg:flex-wrap items-center justify-start lg:justify-center gap-2 min-w-max lg:min-w-0">
+                {categories.map((cat) => {
+                  const isActive = activeCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={cn(
+                        "shrink-0 h-10 px-5 rounded-full font-black uppercase tracking-widest text-[11px] transition-all duration-200 border",
+                        isActive
+                          ? "bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] border-transparent shadow-[0_8px_20px_rgba(245,197,66,0.28)]"
+                          : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-[#F5C542]/50 hover:text-white"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Desktop Grid / Mobile Scroll */}
@@ -2347,9 +2355,19 @@ function ShopPageComponent() {
                           </div>
                         </div>
 
-                        <div className="pt-2">
+                        <div className="pt-2 space-y-2">
+                          <Button
+                            variant="outline"
+                            className="w-full h-11 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-transparent border border-[#F5C542]/35 text-[#F5C542] hover:bg-[#F5C542]/10 hover:border-[#F5C542] transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProductProductForModal(product);
+                            }}
+                          >
+                            Ver Produto
+                          </Button>
                           <Button 
-                            className="w-full h-14 rounded-2xl font-black uppercase tracking-tighter transition-all bg-white text-black hover:bg-white/90 shadow-xl hover:scale-[1.02] active:scale-[0.98] border border-white/10"
+                            className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] shadow-[0_8px_20px_rgba(245,197,66,0.25)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.35)] hover:-translate-y-0.5"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleProduct(product);
@@ -2363,6 +2381,19 @@ function ShopPageComponent() {
                   </Card>
                 </motion.div>
               ))}
+            </div>
+
+            {/* Ver Todos os Produtos */}
+            <div className="mt-12 flex justify-center">
+              <button
+                onClick={() => {
+                  setActiveCategory("Todos");
+                  document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center justify-center gap-2 h-14 px-10 rounded-full font-black uppercase tracking-widest text-[12px] text-white bg-[#0a0a0a] border border-[#F5C542]/40 hover:border-[#F5C542] hover:bg-[#F5C542]/[0.08] hover:text-[#F5C542] hover:shadow-[0_12px_30px_rgba(245,197,66,0.25)] transition-all duration-200"
+              >
+                <ShoppingBag size={16} /> Ver Todos os Produtos
+              </button>
             </div>
           </div>
         </section>
@@ -2493,32 +2524,56 @@ function ShopPageComponent() {
                 <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Aproveite</span>
                 <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Promoções Ativas</h3>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {publicActiveCoupons.map((c) => (
-                  <div key={c.id} className="relative rounded-2xl border border-dashed border-[#D4AF37]/40 bg-gradient-to-br from-[#1a1408] to-black p-6 flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <TicketPercent size={18} className="text-[#D4AF37]" />
-                      <span className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">Cupom</span>
+                  <motion.div
+                    key={c.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="group relative rounded-3xl border border-[#F5C542]/20 bg-white/[0.02] p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#F5C542]/60 hover:bg-white/[0.03] hover:shadow-[0_20px_50px_rgba(245,197,66,0.15)] hover:-translate-y-1"
+                  >
+                    {/* Notch decorative */}
+                    <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
+                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#F5C542]/20 to-[#D4A017]/10 flex items-center justify-center border border-[#F5C542]/30">
+                          <TicketPercent size={16} className="text-[#F5C542]" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#F5C542]">Cupom Premium</span>
+                      </div>
                     </div>
+
                     <div>
-                      <p className="text-2xl font-black text-white tracking-tight">
-                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)} OFF`}
+                      <p className="text-4xl font-black text-white tracking-tighter leading-none">
+                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)}`}
                       </p>
-                      <p className="text-xs font-bold text-slate-400 mt-1">Código: <span className="text-white">{c.code}</span></p>
+                      {!(c.type === 'percent' || c.type === 'percentage') && (
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">de desconto</p>
+                      )}
                     </div>
+
+                    <div className="rounded-xl border border-dashed border-[#F5C542]/30 bg-[#F5C542]/[0.04] px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Código</p>
+                      <p className="text-base font-black text-white tracking-[0.15em]">{c.code}</p>
+                    </div>
+
                     {c.expires_at && (
-                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1.5">
+                        <Calendar size={12} className="text-[#F5C542]/70" />
                         Válido até {format(parseISO(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     )}
+
                     <Button
-                      size="sm"
-                      className="mt-auto h-10 rounded-xl bg-white text-black hover:bg-white/90 font-bold"
+                      className="mt-auto h-12 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] font-black uppercase tracking-widest text-[11px] shadow-[0_8px_20px_rgba(245,197,66,0.28)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.4)] hover:-translate-y-0.5 transition-all"
                       onClick={handleBookingAction}
                     >
-                      Agendar com cupom
+                      <Calendar size={14} className="mr-2" /> Agendar com Cupom
                     </Button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
