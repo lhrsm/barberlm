@@ -2484,8 +2484,8 @@ function ShopPageComponent() {
                       <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
                       <div className="flex items-center gap-1.5">
                         <Star size={14} className="text-yellow-500" fill="currentColor" />
-                        <span className="text-sm font-bold text-white">{barber.average_rating || "5.0"}</span>
-                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} reviews)</span>
+                        <span className="text-sm font-bold text-white">{barber.avg_rating ? Number(barber.avg_rating).toFixed(1) : "—"}</span>
+                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} avaliações)</span>
                       </div>
                     </div>
                   </div>
