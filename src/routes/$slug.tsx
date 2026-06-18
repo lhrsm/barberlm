@@ -2527,8 +2527,25 @@ function ShopPageComponent() {
                   Começar a acumular
                 </Button>
               </div>
-              <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-[#D4AF37]/20 via-transparent to-transparent border border-[#D4AF37]/20 flex items-center justify-center">
-                <Gift size={120} className="text-[#D4AF37]/40" />
+              <div className="relative rounded-[28px] overflow-hidden border border-[#D4AF37]/30 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[240px] md:min-h-[360px]">
+                <img
+                  src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=1600&auto=format&fit=crop"
+                  alt="Cliente sendo atendido em barbearia premium"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/20" />
+                <div className="absolute top-4 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-[0.18em] shadow-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-black animate-pulse" />
+                  Programa Ativo
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 space-y-2">
+                  <h4 className="text-2xl md:text-3xl font-black uppercase italic tracking-tight text-white leading-tight">
+                    Ganhe recompensas a cada visita
+                  </h4>
+                  <p className="text-sm text-white/80 max-w-md">
+                    Volte mais vezes, acumule benefícios e aproveite experiências exclusivas.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
