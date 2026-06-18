@@ -120,20 +120,17 @@ function ProfessionalDashboard() {
       }
 
 
-      // Appointments
+      // Appointments (via SECURITY DEFINER RPC — barber panel uses anon session,
+      // so direct SELECT is blocked by RLS for confirmed/completed appointments)
       const { data: allApps, error: aError } = await supabase
-        .from("appointments")
-        .select("*, customers(name, phone, avatar_url), services(name)")
-        .eq("barber_id", session.barber_id);
-      
+        .rpc("get_barber_appointments", { p_barber_id: session.barber_id });
+
       if (aError) {
         console.error("[PROFISSIONAL_APPOINTMENTS_ERROR]", aError);
         throw new Error("Erro ao carregar agenda: " + aError.message);
       }
-      
-      if (allApps) {
-        setAppointments(allApps.sort((a,b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()));
-      }
+
+      setAppointments(Array.isArray(allApps) ? allApps : []);
 
       // Commission entries
       const { data: entries } = await supabase

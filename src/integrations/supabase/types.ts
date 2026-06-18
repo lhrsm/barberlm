@@ -6259,6 +6259,7 @@ export type Database = {
           total_amount: number
         }[]
       }
+      get_barber_appointments: { Args: { p_barber_id: string }; Returns: Json }
       get_cron_status: {
         Args: never
         Returns: {
