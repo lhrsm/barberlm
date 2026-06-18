@@ -477,8 +477,26 @@ function LandingPageComponent() {
             <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight mb-8">Investimento que se paga <br /><span className="text-white/40">na primeira semana.</span></h3>
             
             <div className="inline-flex items-center p-1 bg-zinc-900 rounded-2xl border border-white/5 mb-12">
-              <button className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-black text-sm">Mensal</button>
-              <button className="px-6 py-2 rounded-xl text-white/40 font-black text-sm">Anual (20% OFF)</button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("monthly")}
+                className={cn(
+                  "px-6 py-2 rounded-xl font-black text-sm transition-all",
+                  billingCycle === "monthly" ? "bg-primary text-primary-foreground" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("annual")}
+                className={cn(
+                  "px-6 py-2 rounded-xl font-black text-sm transition-all",
+                  billingCycle === "annual" ? "bg-primary text-primary-foreground" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                Anual <span className="ml-1 text-[10px] opacity-80">(20% OFF)</span>
+              </button>
             </div>
           </div>
 
