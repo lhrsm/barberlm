@@ -321,8 +321,9 @@ function LandingPageComponent() {
             ].map((item, index) => (
               <motion.div 
                 key={index}
-                whileHover={{ y: -5 }}
-                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 hover:border-red-500/20 hover:bg-red-500/[0.02] transition-all group"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.25 }}
+                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-red-500/20 shadow-[0_0_24px_-12px_rgba(239,68,68,0.4)] hover:border-red-500/50 hover:bg-red-500/[0.04] hover:shadow-[0_12px_40px_-12px_rgba(239,68,68,0.45)] active:scale-[1.01] transition-all group"
               >
                 <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <div className="text-red-500">{item.icon}</div>
