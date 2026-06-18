@@ -1136,6 +1136,27 @@ function ClientPortalComponent() {
 
         </div>
 
+        {mySubscription && (
+          <SubscriberPanel
+            client={client}
+            shop={shop}
+            slug={slug}
+            customerData={customerData}
+            mySubscription={mySubscription}
+            appointments={appointments}
+            subPlanServices={subPlanServices}
+            benefitBalances={benefitBalances}
+            subRewards={subRewards}
+            subRewardsHistory={subRewardsHistory}
+            subUsageLogs={subUsageLogs}
+            myReferrals={myReferrals}
+            onOpenCard={() => setCardOpen(true)}
+            onReschedule={handleEditAppointment}
+            onCancel={handleCancelAppointment}
+          />
+        )}
+
+        {!mySubscription && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
