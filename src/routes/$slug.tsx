@@ -1275,6 +1275,32 @@ function ShopPageComponent() {
         return res.data;
       });
 
+      // LGPD: register consent + update customer preferences (best-effort, non-blocking)
+      try {
+        const finalCustId = createdAppointments[0]?.customer_id || null;
+        await supabase.from('privacy_consents').insert([{
+          tenant_id: shop?.id || null,
+          customer_id: finalCustId,
+          accepted_terms: true,
+          accepted_privacy: true,
+          allow_marketing: allowMarketing,
+          allow_notifications: true,
+          source: 'public_booking',
+          user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
+        }]);
+        if (finalCustId) {
+          await supabase.from('customers').update({
+            allow_marketing: allowMarketing,
+            allow_notifications: true,
+            privacy_accepted_at: new Date().toISOString(),
+            terms_accepted_at: new Date().toISOString(),
+          }).eq('id', finalCustId);
+        }
+      } catch (consentErr) {
+        console.warn('LGPD consent insert failed (non-blocking):', consentErr);
+      }
+
+
       // 2.5 Create Finance Transactions for Paid Appointments (e.g. Full Credits/Cashback)
       for (const appt of createdAppointments) {
         if (appt.payment_status === 'paid' && (appt.payment_method === 'credits' || appt.payment_method === 'cashback')) {
