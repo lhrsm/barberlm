@@ -73,8 +73,17 @@ export function SubscriberPanel({
   const monthsVip = Math.max(0, Math.floor(effectiveMs / (1000 * 60 * 60 * 24 * 30.4375)));
   const isPaused = mySubscription.status === "paused";
 
-  // utilization
-  const usageMax = Number(mySubscription.plan?.usage_limit ?? 0);
+  // utilization — fallback: sum per-service limits from subPlanServices when plan-level limit not set
+  const planUsageLimit = Number(mySubscription.plan?.usage_limit ?? 0);
+  const servicesSumLimit = (subPlanServices || []).reduce(
+    (acc: number, s: any) => acc + Number(s?.usage_limit ?? 0),
+    0,
+  );
+  const benefitsSumLimit = (benefitBalances || []).reduce(
+    (acc: number, b: any) => acc + Number(b?.limit ?? b?.total ?? 0),
+    0,
+  );
+  const usageMax = planUsageLimit > 0 ? planUsageLimit : servicesSumLimit > 0 ? servicesSumLimit : benefitsSumLimit;
   const usageUsed = Number(mySubscription.usage_count ?? subUsageLogs.length ?? 0);
   const usageRemaining = Math.max(0, usageMax - usageUsed);
   const usagePct = usageMax > 0 ? Math.min(100, (usageUsed / usageMax) * 100) : 0;
