@@ -6389,6 +6389,10 @@ export type Database = {
         Args: { p_subscription_id: string }
         Returns: number
       }
+      update_barber_working_hours: {
+        Args: { p_barber_id: string; p_working_hours: Json }
+        Returns: boolean
+      }
       use_customer_credits: {
         Args: {
           p_amount: number
