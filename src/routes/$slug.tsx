@@ -760,7 +760,23 @@ function ShopPageComponent() {
       ]);
 
       setServices(servicesRes.data || []);
-      setBarbers(barbersRes.data || []);
+
+      // Enrich barbers with rating stats
+      const barberList = barbersRes.data || [];
+      let barbersWithStats: any[] = barberList;
+      if (barberList.length > 0) {
+        const { data: stats } = await supabase
+          .from("barber_rating_stats" as any)
+          .select("barber_id, avg_rating, total_ratings")
+          .in("barber_id", barberList.map((b: any) => b.id));
+        const statsMap = new Map((stats || []).map((s: any) => [s.barber_id, s]));
+        barbersWithStats = barberList.map((b: any) => ({
+          ...b,
+          avg_rating: statsMap.get(b.id)?.avg_rating ?? null,
+          total_ratings: statsMap.get(b.id)?.total_ratings ?? 0,
+        }));
+      }
+      setBarbers(barbersWithStats);
       setProducts(productsRes.data || []);
 
       // Public extras: subscription plans, loyalty settings, active coupons
