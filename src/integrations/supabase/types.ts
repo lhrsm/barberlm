@@ -2636,6 +2636,8 @@ export type Database = {
       }
       customers: {
         Row: {
+          allow_marketing: boolean
+          allow_notifications: boolean
           avatar_url: string | null
           barber_id: string | null
           birth_date: string | null
@@ -2646,6 +2648,8 @@ export type Database = {
           credit_balance: number | null
           credits: number | null
           credits_used: number | null
+          deletion_requested_at: string | null
+          deletion_status: string | null
           email: string | null
           id: string
           last_visit: string | null
@@ -2654,12 +2658,16 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          privacy_accepted_at: string | null
           tenant_id: string | null
+          terms_accepted_at: string | null
           total_spent: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          allow_marketing?: boolean
+          allow_notifications?: boolean
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
@@ -2670,6 +2678,8 @@ export type Database = {
           credit_balance?: number | null
           credits?: number | null
           credits_used?: number | null
+          deletion_requested_at?: string | null
+          deletion_status?: string | null
           email?: string | null
           id?: string
           last_visit?: string | null
@@ -2678,12 +2688,16 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          privacy_accepted_at?: string | null
           tenant_id?: string | null
+          terms_accepted_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          allow_marketing?: boolean
+          allow_notifications?: boolean
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
@@ -2694,6 +2708,8 @@ export type Database = {
           credit_balance?: number | null
           credits?: number | null
           credits_used?: number | null
+          deletion_requested_at?: string | null
+          deletion_status?: string | null
           email?: string | null
           id?: string
           last_visit?: string | null
@@ -2702,7 +2718,9 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          privacy_accepted_at?: string | null
           tenant_id?: string | null
+          terms_accepted_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
           user_id?: string
@@ -3197,6 +3215,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      privacy_consents: {
+        Row: {
+          accepted_at: string
+          accepted_privacy: boolean
+          accepted_terms: boolean
+          allow_marketing: boolean
+          allow_notifications: boolean
+          created_at: string
+          customer_id: string | null
+          id: string
+          ip: string | null
+          source: string | null
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          accepted_privacy?: boolean
+          accepted_terms?: boolean
+          allow_marketing?: boolean
+          allow_notifications?: boolean
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          ip?: string | null
+          source?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          accepted_privacy?: boolean
+          accepted_terms?: boolean
+          allow_marketing?: boolean
+          allow_notifications?: boolean
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          ip?: string | null
+          source?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privacy_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {

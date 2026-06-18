@@ -40,7 +40,10 @@ import {
   Gift,
   Info,
   Filter,
-  X
+  X,
+  ShieldCheck,
+  Download,
+  Trash2,
 } from "lucide-react";
 import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1389,28 +1392,26 @@ function ClientPortalComponent() {
 
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className={cn("flex w-full flex-wrap bg-white/5 p-1 rounded-xl gap-1", mySubscription ? "md:grid md:grid-cols-7 md:max-w-[1100px]" : "md:grid md:grid-cols-4 md:max-w-[750px]")}>
+          <TabsList className={cn("flex w-full flex-wrap bg-white/5 p-1 rounded-xl gap-1", mySubscription ? "md:grid md:grid-cols-8 md:max-w-[1200px]" : "md:grid md:grid-cols-5 md:max-w-[900px]")}>
             <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            {loyaltyEnabled && (
             <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-               Fidelidade
+              <Gift size={16} /> Fidelidade
             </TabsTrigger>
-            )}
-            {subscriptionsEnabled && mySubscription && (
+            {mySubscription && (
               <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-                 Benefícios
+                Benefícios
               </TabsTrigger>
             )}
-            {subscriptionsEnabled && mySubscription && (
+            {mySubscription && (
               <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-                <QrCode size={16} /> Carteirinha
+                <QrCode size={16} /> Cartão
               </TabsTrigger>
             )}
-            {subscriptionsEnabled && mySubscription && (
+            {mySubscription && (
               <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-                ✦ Clube VIP
+                VIP
               </TabsTrigger>
             )}
             <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
@@ -1418,6 +1419,9 @@ function ClientPortalComponent() {
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <UserIcon size={16} /> Perfil
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+              <ShieldCheck size={16} /> Privacidade
             </TabsTrigger>
           </TabsList>
 
@@ -2582,6 +2586,10 @@ function ClientPortalComponent() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="privacy" className="pt-6">
+            <PrivacyPanel customerData={customerData} appointments={appointments} />
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -2726,3 +2734,160 @@ function ClientPortalComponent() {
     </div>
   );
 }
+
+function PrivacyPanel({ customerData, appointments }: { customerData: any; appointments: any[] }) {
+  const [allowMarketing, setAllowMarketing] = useState<boolean>(!!customerData?.allow_marketing);
+  const [allowNotifications, setAllowNotifications] = useState<boolean>(customerData?.allow_notifications !== false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [requesting, setRequesting] = useState(false);
+  const deletionPending = !!customerData?.deletion_requested_at;
+
+  useEffect(() => {
+    setAllowMarketing(!!customerData?.allow_marketing);
+    setAllowNotifications(customerData?.allow_notifications !== false);
+  }, [customerData?.id]);
+
+  const savePreferences = async () => {
+    if (!customerData?.id) return;
+    setSavingPrefs(true);
+    const { error } = await supabase
+      .from('customers')
+      .update({ allow_marketing: allowMarketing, allow_notifications: allowNotifications })
+      .eq('id', customerData.id);
+    setSavingPrefs(false);
+    if (error) {
+      toast.error('Não foi possível salvar suas preferências.');
+    } else {
+      toast.success('Preferências atualizadas.');
+    }
+  };
+
+  const exportData = async () => {
+    if (!customerData?.id) return;
+    try {
+      const [consentsRes, txRes, cashbackRes, creditsRes] = await Promise.all([
+        supabase.from('privacy_consents').select('*').eq('customer_id', customerData.id),
+        supabase.from('transactions').select('*').eq('customer_id', customerData.id),
+        supabase.from('cashback_transactions').select('*').eq('customer_id', customerData.id),
+        supabase.from('credit_transactions').select('*').eq('customer_id', customerData.id),
+      ]);
+      const payload = {
+        exported_at: new Date().toISOString(),
+        profile: customerData,
+        appointments: appointments || [],
+        consents: consentsRes.data || [],
+        transactions: txRes.data || [],
+        cashback: cashbackRes.data || [],
+        credits: creditsRes.data || [],
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `meus-dados-${customerData.id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('Download iniciado.');
+    } catch (e) {
+      console.error(e);
+      toast.error('Falha ao exportar seus dados.');
+    }
+  };
+
+  const requestDeletion = async () => {
+    if (!customerData?.id) return;
+    if (!window.confirm('Confirmar solicitação de exclusão dos seus dados? A barbearia analisará o pedido.')) return;
+    setRequesting(true);
+    const { error } = await supabase
+      .from('customers')
+      .update({
+        deletion_requested_at: new Date().toISOString(),
+        deletion_status: 'pending',
+      })
+      .eq('id', customerData.id);
+    setRequesting(false);
+    if (error) {
+      toast.error('Não foi possível registrar sua solicitação.');
+    } else {
+      toast.success('Solicitação enviada. Você será notificado quando for processada.');
+    }
+  };
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card className="bg-white/5 border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2"><ShieldCheck size={18} className="text-[#D4AF37]" /> Preferências de comunicação</CardTitle>
+          <CardDescription className="text-gray-400">Controle como entramos em contato com você.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <label className="flex items-start gap-3 cursor-pointer rounded-lg bg-white/[0.03] border border-white/10 p-3">
+            <input
+              type="checkbox"
+              checked={allowNotifications}
+              onChange={(e) => setAllowNotifications(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-[#D4AF37]"
+            />
+            <span className="text-sm text-white/85">
+              <span className="block font-semibold">Notificações operacionais</span>
+              <span className="block text-white/55 text-xs mt-0.5">Confirmações, lembretes e comprovantes dos seus agendamentos.</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer rounded-lg bg-white/[0.03] border border-white/10 p-3">
+            <input
+              type="checkbox"
+              checked={allowMarketing}
+              onChange={(e) => setAllowMarketing(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-[#D4AF37]"
+            />
+            <span className="text-sm text-white/85">
+              <span className="block font-semibold">Promoções e campanhas</span>
+              <span className="block text-white/55 text-xs mt-0.5">Receber ofertas, descontos e novidades pelos canais da barbearia.</span>
+            </span>
+          </label>
+          <Button onClick={savePreferences} disabled={savingPrefs} className="w-full bg-[#D4AF37] text-black hover:brightness-110">
+            {savingPrefs ? 'Salvando...' : 'Salvar preferências'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white/5 border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2"><Download size={18} className="text-[#D4AF37]" /> Meus dados</CardTitle>
+          <CardDescription className="text-gray-400">Exporte uma cópia ou solicite exclusão (LGPD).</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button onClick={exportData} variant="outline" className="w-full border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]">
+            <Download size={16} className="mr-2" /> Baixar meus dados (JSON)
+          </Button>
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+            <p className="text-xs text-white/70">
+              A exclusão anonimiza seus dados pessoais (nome, telefone, e-mail).
+              Registros financeiros exigidos por lei são mantidos. O processo é aprovado pela barbearia.
+            </p>
+            {deletionPending ? (
+              <p className="mt-2 text-xs font-semibold text-amber-300">
+                Solicitação em análise (enviada em {new Date(customerData.deletion_requested_at).toLocaleDateString('pt-BR')}).
+              </p>
+            ) : (
+              <Button
+                onClick={requestDeletion}
+                disabled={requesting}
+                variant="outline"
+                className="w-full mt-3 border-red-500/40 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+              >
+                <Trash2 size={16} className="mr-2" /> {requesting ? 'Enviando...' : 'Solicitar exclusão dos meus dados'}
+              </Button>
+            )}
+          </div>
+          <p className="text-[11px] text-white/40">
+            Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
