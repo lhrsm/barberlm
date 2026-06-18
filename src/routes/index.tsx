@@ -528,7 +528,7 @@ function LandingPageComponent() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">Mais Popular</div>
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
               <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias em crescimento.</p>
-              <div className="text-3xl font-black text-white mb-1">R$ 99,90<span className="text-xs text-white/40 font-bold">/mês</span></div>
+              <div className="text-3xl font-black text-white mb-1">{prices.professional}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
               <p className="text-[11px] text-white/40 mb-6">Até 10 barbeiros</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Starter" />
