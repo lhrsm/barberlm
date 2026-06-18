@@ -245,7 +245,12 @@ function AuthPageComponent() {
               </div>
             </div>
 
-            <p className="lg:hidden text-center text-[11px] text-white/30 mt-6">Barbex © 2026</p>
+            <div className="mt-6 flex items-center justify-center gap-4 text-[11px] text-white/40">
+              <Link to="/terms" className="hover:text-white/80 transition-colors">Termos de Uso</Link>
+              <span className="text-white/20">•</span>
+              <Link to="/privacy" className="hover:text-white/80 transition-colors">Política de Privacidade</Link>
+            </div>
+            <p className="lg:hidden text-center text-[11px] text-white/30 mt-3">Barbex © 2026</p>
           </div>
         </motion.main>
       </div>
