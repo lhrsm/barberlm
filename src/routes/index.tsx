@@ -347,41 +347,50 @@ function LandingPageComponent() {
                 O Barbex foi desenhado para eliminar a fricção do seu dia a dia, automatizando o que é chato e potencializando o que traz lucro.
               </p>
               
-              <div className="grid sm:grid-cols-2 gap-6 pt-8">
+              <div className="grid sm:grid-cols-2 gap-4 pt-8">
                 {[
-                  { title: "Agenda Inteligente", icon: <Calendar /> },
-                  { title: "WhatsApp Automático", icon: <MessageSquare /> },
-                  { title: "Financeiro Completo", icon: <CircleDollarSign /> },
-                  { title: "Cashback & Fidelidade", icon: <Star /> },
-                  { title: "Relatórios de Gestão", icon: <TrendingUp /> },
-                  { title: "Controle de Estoque", icon: <Briefcase /> },
+                  { title: "Agenda Inteligente", desc: "Preencha horários ociosos com sugestões automáticas.", icon: <Calendar /> },
+                  { title: "WhatsApp Automático", desc: "Confirma, lembra e se comunica por você 24/7.", icon: <MessageSquare /> },
+                  { title: "Financeiro Completo", desc: "Controle total do financeiro com fluxo de caixa e DRE.", icon: <CircleDollarSign /> },
+                  { title: "Cashback & Fidelidade", desc: "Fidelize clientes e aumente o retorno com benefícios inteligentes.", icon: <Star /> },
+                  { title: "Relatórios de Gestão", desc: "Relatórios avançados para decisões mais estratégicas.", icon: <TrendingUp /> },
+                  { title: "Controle de Estoque", desc: "Tenha controle do estoque e receba alertas automáticos.", icon: <Briefcase /> },
                 ].map((s, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                      {s.icon}
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                    className="p-4 rounded-2xl bg-zinc-900/40 border border-primary/20 hover:border-primary/60 hover:shadow-[0_10px_30px_-12px_rgba(245,197,66,0.45)] transition-all"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        {s.icon}
+                      </div>
+                      <span className="text-white font-black text-sm">{s.title}</span>
                     </div>
-                    <span className="text-white font-bold">{s.title}</span>
-                  </div>
+                    <p className="text-xs text-white/50 font-medium leading-snug">{s.desc}</p>
+                  </motion.div>
                 ))}
               </div>
 
-              <Button
-                size="lg"
-                className="h-16 px-10 text-lg font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black hover:brightness-110 rounded-2xl group mt-8 shadow-[0_20px_50px_-15px_rgba(245,197,66,0.6)]"
-                onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Explorar todos os recursos
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <div className="flex justify-center sm:justify-start mt-8">
+                <Button
+                  className="h-auto py-3 px-6 text-sm sm:text-base font-black bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black hover:brightness-110 rounded-full group shadow-[0_20px_50px_-15px_rgba(245,197,66,0.6)] hover:scale-[1.03] transition-all"
+                  onClick={() => document.getElementById('módulos')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Explorar todos os recursos
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
             </div>
             
-            <div className="relative">
+            <div className="relative mx-auto w-[90%] lg:w-full">
               <div className="absolute -inset-10 bg-primary/20 blur-[100px] rounded-full opacity-30 animate-pulse" />
-              <div className="relative rounded-[2.5rem] border border-white/10 bg-zinc-900/50 backdrop-blur p-2 shadow-2xl overflow-hidden">
+              <div className="relative rounded-[2.5rem] border border-primary/30 bg-zinc-900/50 backdrop-blur p-2 shadow-[0_30px_80px_-20px_rgba(245,197,66,0.35)] overflow-hidden">
                 <img 
                   src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1200" 
                   alt="Barber working" 
-                  className="rounded-[2rem] opacity-80"
+                  className="rounded-[2rem] opacity-80 w-full"
                 />
               </div>
             </div>
