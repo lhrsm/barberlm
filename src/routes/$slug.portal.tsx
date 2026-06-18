@@ -67,6 +67,7 @@ import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { SubscriberPanel } from "@/components/portal/SubscriberPanel";
+import { ReviewModal } from "@/components/portal/ReviewModal";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
