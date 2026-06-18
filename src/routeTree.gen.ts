@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TutorialsRouteImport } from './routes/tutorials'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SubscriptionRewardsRouteImport } from './routes/subscription-rewards'
@@ -17,6 +18,7 @@ import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -59,6 +61,11 @@ const TutorialsRoute = TutorialsRouteImport.update({
   path: '/tutorials',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -92,6 +99,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoyaltyRoute = LoyaltyRouteImport.update({
@@ -294,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -301,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -339,6 +353,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -346,6 +361,7 @@ export interface FileRoutesByTo {
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -386,6 +402,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/loyalty': typeof LoyaltyRoute
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -393,6 +410,7 @@ export interface FileRoutesById {
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -434,6 +452,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/loyalty'
+    | '/privacy'
     | '/products'
     | '/services'
     | '/settings'
@@ -441,6 +460,7 @@ export interface FileRouteTypes {
     | '/subscription-rewards'
     | '/subscriptions'
     | '/support'
+    | '/terms'
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -479,6 +499,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/loyalty'
+    | '/privacy'
     | '/products'
     | '/services'
     | '/settings'
@@ -486,6 +507,7 @@ export interface FileRouteTypes {
     | '/subscription-rewards'
     | '/subscriptions'
     | '/support'
+    | '/terms'
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -525,6 +547,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/loyalty'
+    | '/privacy'
     | '/products'
     | '/services'
     | '/settings'
@@ -532,6 +555,7 @@ export interface FileRouteTypes {
     | '/subscription-rewards'
     | '/subscriptions'
     | '/support'
+    | '/terms'
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -572,6 +596,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   IntegrationsRoute: typeof IntegrationsRoute
   LoyaltyRoute: typeof LoyaltyRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
@@ -579,6 +604,7 @@ export interface RootRouteChildren {
   SubscriptionRewardsRoute: typeof SubscriptionRewardsRoute
   SubscriptionsRoute: typeof SubscriptionsRouteWithChildren
   SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
   TutorialsRoute: typeof TutorialsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -595,6 +621,13 @@ declare module '@tanstack/react-router' {
       path: '/tutorials'
       fullPath: '/tutorials'
       preLoaderRoute: typeof TutorialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/support': {
@@ -644,6 +677,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loyalty': {
@@ -973,6 +1013,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   IntegrationsRoute: IntegrationsRoute,
   LoyaltyRoute: LoyaltyRoute,
+  PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
@@ -980,6 +1021,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscriptionRewardsRoute: SubscriptionRewardsRoute,
   SubscriptionsRoute: SubscriptionsRouteWithChildren,
   SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
   TutorialsRoute: TutorialsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
