@@ -432,10 +432,11 @@ function LandingPageComponent() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.04 }}
-                whileHover={{ y: -4 }}
-                className="p-5 lg:p-6 rounded-3xl bg-zinc-900/60 border border-white/5 hover:border-primary/30 hover:bg-zinc-900 transition-all group"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.25 }}
+                className="p-5 lg:p-6 rounded-3xl bg-zinc-900/60 border border-primary/20 shadow-[0_0_20px_-12px_rgba(245,197,66,0.4)] hover:border-primary/60 hover:bg-zinc-900 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.5)] transition-all group"
               >
-                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-all">
                   {mod.icon}
                 </div>
                 <h4 className="text-base font-black text-white mb-1">{mod.title}</h4>
