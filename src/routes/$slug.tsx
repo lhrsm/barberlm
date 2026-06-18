@@ -2017,10 +2017,13 @@ function ShopPageComponent() {
                           { href: "#inicio", label: "Início" },
                           { href: "#servicos", label: "Serviços" },
                           { href: "#profissionais", label: "Profissionais" },
-                          ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                           ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
                           ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+                          ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+                          ...(cashbackEnabled && shop?.cashback_enabled ? [{ href: "#cashback", label: "Cashback" }] : []),
+                          ...(couponsEnabled && publicActiveCoupons.length > 0 ? [{ href: "#campanhas", label: "Campanhas" }] : []),
                           { href: "#contato", label: "Contato" },
+                          { href: `/${shop.slug}/portal`, label: "Portal do Cliente" },
                         ].map((it) => (
                           <a
                             key={it.href}
