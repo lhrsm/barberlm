@@ -273,15 +273,25 @@ export function AppointmentDetailsModal({
           <Icon size={12} />
           {getStatusLabel(status)}
         </Badge>
-        {status !== 'cancelled' && (
-          <Badge className={cn(
-            "w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg",
-            appointment.payment_status === 'paid' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"
-          )}>
-            <DollarSign size={12} />
-            {appointment.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
-          </Badge>
-        )}
+        {status !== 'cancelled' && (() => {
+          const isSubCovered = appointment.payment_method === 'subscription' || appointment.payment_status === 'covered_by_subscription';
+          if (isSubCovered) {
+            return (
+              <Badge className="w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]">
+                <DollarSign size={12} /> Incluso no Plano
+              </Badge>
+            );
+          }
+          return (
+            <Badge className={cn(
+              "w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg",
+              appointment.payment_status === 'paid' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"
+            )}>
+              <DollarSign size={12} />
+              {appointment.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
+            </Badge>
+          );
+        })()}
       </div>
     );
   };
