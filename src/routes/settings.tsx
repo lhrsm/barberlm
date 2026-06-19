@@ -647,6 +647,38 @@ function SettingsComponent() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Globe className="text-[#ea580c] h-5 w-5" />
+                    Redes Sociais
+                  </CardTitle>
+                  <CardDescription className="text-slate-400 font-medium">
+                    Cole a URL completa ou o @usuário. Campos vazios não aparecem no site público.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 grid gap-5 md:grid-cols-2">
+                  {[
+                    { key: "social_instagram", label: "Instagram", ph: "@suabarbearia ou https://instagram.com/..." },
+                    { key: "social_facebook", label: "Facebook", ph: "suabarbearia ou https://facebook.com/..." },
+                    { key: "social_tiktok", label: "TikTok", ph: "@suabarbearia ou https://tiktok.com/@..." },
+                    { key: "social_youtube", label: "YouTube", ph: "@suabarbearia ou https://youtube.com/@..." },
+                    { key: "social_whatsapp", label: "WhatsApp", ph: "5571999999999 ou https://wa.me/..." },
+                  ].map((f) => (
+                    <div key={f.key} className="grid gap-2">
+                      <Label htmlFor={f.key} className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{f.label}</Label>
+                      <Input
+                        id={f.key}
+                        value={(formData as any)[f.key]}
+                        onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                        placeholder={f.ph}
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </TabsContent>
 
 
