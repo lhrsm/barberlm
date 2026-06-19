@@ -224,6 +224,11 @@ function SettingsComponent() {
           cancellation_window_hours: profile.cancellation_window_hours ?? 2,
           barber_can_cancel: (profile as any).barber_can_cancel ?? false,
           barber_can_reschedule: (profile as any).barber_can_reschedule ?? false,
+          social_instagram: (profile as any).social_links?.instagram || "",
+          social_facebook: (profile as any).social_links?.facebook || "",
+          social_tiktok: (profile as any).social_links?.tiktok || "",
+          social_youtube: (profile as any).social_links?.youtube || "",
+          social_whatsapp: (profile as any).social_links?.whatsapp || "",
         });
       } else {
         toast.error("Perfil não encontrado.");
