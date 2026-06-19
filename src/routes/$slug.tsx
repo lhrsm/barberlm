@@ -2520,7 +2520,7 @@ function ShopPageComponent() {
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {publicTestimonials.map((t) => (
-                  <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/15 bg-gradient-to-br from-zinc-950 to-black hover:border-[#D4AF37]/40 transition-all">
+                  <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-[#D4AF37]/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300">
                     <div className="flex items-center gap-1 mb-3">
                       {[1,2,3,4,5].map(n => (
                         <Star key={n} size={14} className={cn(n <= (t.barbershop_rating || 5) ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
