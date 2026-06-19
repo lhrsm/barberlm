@@ -61,6 +61,25 @@ export const Route = createFileRoute("/settings")({
   component: SettingsComponent,
 });
 
+function normalizeSocial(kind: "instagram" | "facebook" | "tiktok" | "youtube" | "whatsapp", raw: string): string {
+  const v = (raw || "").trim();
+  if (!v) return "";
+  if (kind === "whatsapp") {
+    if (/^https?:\/\//i.test(v)) return v;
+    const digits = v.replace(/\D/g, "");
+    return digits ? `https://wa.me/${digits}` : "";
+  }
+  if (/^https?:\/\//i.test(v)) return v;
+  const handle = v.replace(/^@/, "").replace(/\s+/g, "");
+  if (!handle) return "";
+  switch (kind) {
+    case "instagram": return `https://instagram.com/${handle}`;
+    case "facebook": return `https://facebook.com/${handle}`;
+    case "tiktok": return `https://tiktok.com/@${handle}`;
+    case "youtube": return `https://youtube.com/@${handle}`;
+  }
+}
+
 function SettingsComponent() {
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
@@ -112,6 +131,11 @@ function SettingsComponent() {
     cancellation_window_hours: 2,
     barber_can_cancel: false,
     barber_can_reschedule: false,
+    social_instagram: "",
+    social_facebook: "",
+    social_tiktok: "",
+    social_youtube: "",
+    social_whatsapp: "",
   });
 
 
@@ -219,6 +243,11 @@ function SettingsComponent() {
           cancellation_window_hours: profile.cancellation_window_hours ?? 2,
           barber_can_cancel: (profile as any).barber_can_cancel ?? false,
           barber_can_reschedule: (profile as any).barber_can_reschedule ?? false,
+          social_instagram: (profile as any).social_links?.instagram || "",
+          social_facebook: (profile as any).social_links?.facebook || "",
+          social_tiktok: (profile as any).social_links?.tiktok || "",
+          social_youtube: (profile as any).social_links?.youtube || "",
+          social_whatsapp: (profile as any).social_links?.whatsapp || "",
         });
       } else {
         toast.error("Perfil não encontrado.");
@@ -294,6 +323,13 @@ function SettingsComponent() {
         cancellation_window_hours: parseInt(profileUpdateData.cancellation_window_hours) || 2,
         barber_can_cancel: !!profileUpdateData.barber_can_cancel,
         barber_can_reschedule: !!profileUpdateData.barber_can_reschedule,
+        social_links: {
+          instagram: normalizeSocial("instagram", profileUpdateData.social_instagram),
+          facebook: normalizeSocial("facebook", profileUpdateData.social_facebook),
+          tiktok: normalizeSocial("tiktok", profileUpdateData.social_tiktok),
+          youtube: normalizeSocial("youtube", profileUpdateData.social_youtube),
+          whatsapp: normalizeSocial("whatsapp", profileUpdateData.social_whatsapp),
+        },
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
@@ -609,6 +645,38 @@ function SettingsComponent() {
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Globe className="text-[#ea580c] h-5 w-5" />
+                    Redes Sociais
+                  </CardTitle>
+                  <CardDescription className="text-slate-400 font-medium">
+                    Cole a URL completa ou o @usuário. Campos vazios não aparecem no site público.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 grid gap-5 md:grid-cols-2">
+                  {[
+                    { key: "social_instagram", label: "Instagram", ph: "@suabarbearia ou https://instagram.com/..." },
+                    { key: "social_facebook", label: "Facebook", ph: "suabarbearia ou https://facebook.com/..." },
+                    { key: "social_tiktok", label: "TikTok", ph: "@suabarbearia ou https://tiktok.com/@..." },
+                    { key: "social_youtube", label: "YouTube", ph: "@suabarbearia ou https://youtube.com/@..." },
+                    { key: "social_whatsapp", label: "WhatsApp", ph: "5571999999999 ou https://wa.me/..." },
+                  ].map((f) => (
+                    <div key={f.key} className="grid gap-2">
+                      <Label htmlFor={f.key} className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{f.label}</Label>
+                      <Input
+                        id={f.key}
+                        value={(formData as any)[f.key]}
+                        onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                        placeholder={f.ph}
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                      />
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </TabsContent>
