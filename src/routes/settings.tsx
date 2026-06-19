@@ -323,6 +323,13 @@ function SettingsComponent() {
         cancellation_window_hours: parseInt(profileUpdateData.cancellation_window_hours) || 2,
         barber_can_cancel: !!profileUpdateData.barber_can_cancel,
         barber_can_reschedule: !!profileUpdateData.barber_can_reschedule,
+        social_links: {
+          instagram: normalizeSocial("instagram", profileUpdateData.social_instagram),
+          facebook: normalizeSocial("facebook", profileUpdateData.social_facebook),
+          tiktok: normalizeSocial("tiktok", profileUpdateData.social_tiktok),
+          youtube: normalizeSocial("youtube", profileUpdateData.social_youtube),
+          whatsapp: normalizeSocial("whatsapp", profileUpdateData.social_whatsapp),
+        },
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
