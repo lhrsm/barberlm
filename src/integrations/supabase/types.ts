@@ -3552,6 +3552,7 @@ export type Database = {
           secondary_color: string | null
           selected_plan: string | null
           slug: string | null
+          social_links: Json
           status: string | null
           suspension_reason: string | null
           tenant_id: string | null
@@ -3601,6 +3602,7 @@ export type Database = {
           secondary_color?: string | null
           selected_plan?: string | null
           slug?: string | null
+          social_links?: Json
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
@@ -3650,6 +3652,7 @@ export type Database = {
           secondary_color?: string | null
           selected_plan?: string | null
           slug?: string | null
+          social_links?: Json
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
