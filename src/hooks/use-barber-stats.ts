@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
 export async function fetchBarberStats(barberId: string) {
   const now = new Date();
@@ -14,52 +14,71 @@ export async function fetchBarberStats(barberId: string) {
     .from("barbers")
     .select("commission_rate")
     .eq("id", barberId)
-    .single();
+    .maybeSingle();
 
-  const { data: allApps, error } = await supabase
-    .from("appointments")
-    .select("*, customers(name, phone, avatar_url), services(name)")
-    .eq("barber_id", barberId);
+  // IMPORTANT: barber panel runs under the anon session (custom barber auth),
+  // so direct SELECT on appointments is blocked by RLS for confirmed/completed
+  // rows. Always go through the SECURITY DEFINER RPC, same source the
+  // appointments list uses — keeps dashboard, history, commissions and
+  // financial screens in sync.
+  const { data: rpcData, error } = await supabase
+    .rpc("get_barber_appointments", { p_barber_id: barberId });
 
   if (error) {
-    console.error("Error fetching barber stats:", error);
+    console.error("[BARBER_STATS_RPC_ERROR]", error);
     throw error;
   }
-  
-  if (!allApps) return null;
 
-  const todayApps = allApps.filter(a => a.start_time >= tStart && a.start_time <= tEnd && a.status !== 'cancelled');
-  const todayCount = todayApps.length;
-  
-  const weekApps = allApps.filter(a => a.start_time >= wStart && a.start_time <= wEnd && a.status !== 'cancelled');
-  const weekCount = weekApps.length;
-  
-  const monthApps = allApps.filter(a => a.start_time >= mStart && a.start_time <= mEnd);
-  const monthCount = monthApps.filter(a => a.status !== 'cancelled').length;
-  
+  const allApps: any[] = Array.isArray(rpcData) ? rpcData : [];
+
+  const inRange = (a: any, s: string, e: string) =>
+    a.start_time >= s && a.start_time <= e;
+
+  const todayApps = allApps.filter(a => inRange(a, tStart, tEnd) && a.status !== 'cancelled');
+  const weekApps = allApps.filter(a => inRange(a, wStart, wEnd) && a.status !== 'cancelled');
+  const monthApps = allApps.filter(a => inRange(a, mStart, mEnd));
+
   const monthCompletedApps = monthApps.filter(a => a.status === 'completed');
   const monthCancelledApps = monthApps.filter(a => a.status === 'cancelled');
-  const totalRevenueMonth = monthCompletedApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0);
-  
+
+  const totalRevenueMonth = monthCompletedApps.reduce(
+    (acc, a) => acc + Number(a.total_price || 0), 0
+  );
+
   const commissionRate = Number(barber?.commission_rate || 0) / 100;
   const commissionMonth = totalRevenueMonth * commissionRate;
-  
-  const distinctCustomers = new Set(allApps.filter(a => a.status === 'completed').map(a => a.customer_id)).size;
-  const avgTicket = monthCompletedApps.length > 0 ? totalRevenueMonth / monthCompletedApps.length : 0;
-  
-  const nextApp = allApps
-    .filter(a => new Date(a.start_time) > now && a.status === 'scheduled')
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(a.start_time).getTime())[0];
 
-  return {
-    today: todayCount,
-    week: weekCount,
-    month: monthCount,
+  const distinctCustomers = new Set(
+    allApps.filter(a => a.status === 'completed').map(a => a.customer_id)
+  ).size;
+  const avgTicket = monthCompletedApps.length > 0
+    ? totalRevenueMonth / monthCompletedApps.length
+    : 0;
+
+  const nextApp = allApps
+    .filter(a => new Date(a.start_time) > now && (a.status === 'scheduled' || a.status === 'confirmed'))
+    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
+
+  const result = {
+    today: todayApps.length,
+    week: weekApps.length,
+    month: monthApps.filter(a => a.status !== 'cancelled').length,
     revenueMonth: totalRevenueMonth,
-    commissionMonth: commissionMonth,
+    commissionMonth,
     avgTicket,
     customerCount: distinctCustomers,
     nextApp,
-    cancelledMonth: monthCancelledApps.length
+    cancelledMonth: monthCancelledApps.length,
   };
+
+  console.log("[BARBER_STATS_COMPUTED]", {
+    barberId,
+    totalAppointments: allApps.length,
+    completedThisMonth: monthCompletedApps.length,
+    revenueMonth: totalRevenueMonth,
+    commissionRate,
+    commissionMonth,
+  });
+
+  return result;
 }
