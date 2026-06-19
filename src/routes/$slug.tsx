@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, CalendarDays, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, ArrowRight, ArrowUp, Plus, Minus, Tag, TicketPercent, X, Crown, Menu, Lock as LockIcon, ExternalLink } from "lucide-react";
+import { Scissors, Calendar, CalendarDays, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, ArrowRight, ArrowUp, Plus, Minus, Tag, TicketPercent, X, Crown, Menu, Lock as LockIcon, ExternalLink, Ban } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -2926,11 +2926,41 @@ function ShopPageComponent() {
 
                   {/* Col 4: hours */}
                   <div className="space-y-4">
-                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Funcionamento</h5>
+                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37] flex items-center gap-2">
+                      <Clock size={14} className="text-[#D4AF37]" />
+                      Funcionamento
+                    </h5>
                     <div className="space-y-2 text-sm text-slate-400 font-medium">
-                      <p className="flex justify-between gap-3"><span>Seg - Sex</span> <span className="text-white">09:00 - 20:00</span></p>
-                      <p className="flex justify-between gap-3"><span>Sábado</span> <span className="text-white">08:00 - 18:00</span></p>
-                      <p className="flex justify-between gap-3"><span>Domingo</span> <span className="text-white">Fechado</span></p>
+                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/[0.04] transition-all">
+                        <span className="flex items-center gap-2">
+                          <CalendarDays size={14} className="text-[#D4AF37]/70 group-hover:text-[#D4AF37] transition-colors" />
+                          Seg - Sex
+                        </span>
+                        <span className="text-white font-semibold flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                          09:00 - 20:00
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/[0.04] transition-all">
+                        <span className="flex items-center gap-2">
+                          <CalendarDays size={14} className="text-[#D4AF37]/70 group-hover:text-[#D4AF37] transition-colors" />
+                          Sábado
+                        </span>
+                        <span className="text-white font-semibold flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                          08:00 - 18:00
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-red-400/30 transition-all">
+                        <span className="flex items-center gap-2">
+                          <Ban size={14} className="text-red-400/70 group-hover:text-red-400 transition-colors" />
+                          Domingo
+                        </span>
+                        <span className="text-slate-500 font-semibold flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-400/70" />
+                          Fechado
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
