@@ -2808,71 +2808,141 @@ function ShopPageComponent() {
         </section>
 
         {/* Footer */}
-        <footer id="contato" className="py-20 bg-[#050505] border-t border-white/5">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                   {shop.barbershop_logo_url ? (
-                    <img src={shop.barbershop_logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
-                      <Scissors className="h-6 w-6 text-[#D4AF37]" />
+        {(() => {
+          const social = (shop as any)?.social_links || {};
+          const socials = [
+            { key: "instagram", url: social.instagram, label: "Instagram", path: "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM17.5 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" },
+            { key: "facebook", url: social.facebook, label: "Facebook", path: "M13 22v-8h3l1-4h-4V7.5C13 6.4 13.4 5.5 15 5.5h2V2.2C16.5 2.1 15.3 2 14 2c-3 0-5 1.8-5 5v3H6v4h3v8h4z" },
+            { key: "tiktok", url: social.tiktok, label: "TikTok", path: "M16 2c.3 1.7 1.3 3 2.8 3.8 1 .5 2 .7 3.2.7v3.6c-2 .1-3.8-.4-5.5-1.5v6.6c0 4-3.3 7.3-7.3 7.3S2 18.7 2 14.7s3.3-7.3 7.3-7.3c.4 0 .8 0 1.2.1v3.8c-.4-.1-.8-.2-1.2-.2-2 0-3.7 1.7-3.7 3.7s1.7 3.7 3.7 3.7 3.7-1.7 3.7-3.7V2h3z" },
+            { key: "youtube", url: social.youtube, label: "YouTube", path: "M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8C22 15.2 22 12 22 12s0-3.2-.4-4.8zM10 15V9l5 3-5 3z" },
+            { key: "whatsapp", url: social.whatsapp, label: "WhatsApp", path: "M20 4A11.9 11.9 0 0 0 3 18l-1 4 4-1a11.9 11.9 0 0 0 14-17zm-8 18a9.9 9.9 0 0 1-5-1.4l-.4-.2-2.4.6.7-2.3-.2-.4A9.9 9.9 0 1 1 12 22zm5.5-7c-.3-.2-1.8-.9-2-1s-.5-.2-.7.1-.8 1-1 1.2-.4.2-.6.1c-1.6-.7-2.8-2-3.4-3.4-.2-.4 0-.4.2-.6l.5-.6c.1-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-.9-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4S6 8.3 6 9.7s1 2.8 1.1 3 2 3.1 5 4.3c2.5 1 2.5.7 3 .6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.2-.6-.4z" },
+          ].filter((s) => s.url);
+          const hasAddress = !!shop?.address;
+          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop?.address || shop?.business_name || "")}`;
+          const mapsEmbed = hasAddress ? `https://www.google.com/maps?q=${encodeURIComponent(shop.address)}&output=embed` : "";
+
+          return (
+            <footer
+              id="contato"
+              className="relative border-t border-[#F5C542]/10"
+              style={{
+                background: "radial-gradient(circle at top, rgba(245,197,66,0.08), transparent 40%), #02040A",
+                padding: "clamp(48px, 6vw, 72px) clamp(20px, 4vw, 40px) 32px",
+              }}
+            >
+              <div className="max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+                  {/* Col 1: brand */}
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-3">
+                      {shop.barbershop_logo_url ? (
+                        <img src={shop.barbershop_logo_url} alt={shop.business_name} className="h-12 w-12 object-contain rounded-xl bg-white/5 p-1" />
+                      ) : (
+                        <div className="h-12 w-12 rounded-xl bg-[#D4AF37]/15 flex items-center justify-center">
+                          <Scissors className="h-6 w-6 text-[#D4AF37]" />
+                        </div>
+                      )}
+                      <h4 className="font-bold text-xl tracking-tight text-white truncate">{shop.business_name}</h4>
                     </div>
-                  )}
-                  <h4 className="font-bold text-xl tracking-tight">{shop.business_name}</h4>
-                </div>
-                <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                  A barbearia que redefine o conceito de estilo e cuidado masculino. Tradição e modernidade em um só lugar.
-                </p>
-                <div className="flex gap-4">
-                  {shop.whatsapp_number && (
-                    <a href={`https://wa.me/${shop.whatsapp_number}`} className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary transition-all group" style={{ '--primary': primaryColor } as any}>
-                      <MessageSquare size={18} className="text-slate-400 group-hover:text-white" />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Localização</h5>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin size={18} className="text-slate-500 shrink-0" />
-                    <p className="text-slate-400 text-sm leading-relaxed">{shop.address || "Endereço não informado"}</p>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      Tradição, estilo e cuidado masculino em um só lugar.
+                    </p>
+                    {socials.length > 0 && (
+                      <div className="flex flex-wrap gap-3">
+                        {socials.map((s) => (
+                          <a
+                            key={s.key}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={s.label}
+                            className="h-10 w-10 rounded-full bg-white/5 border border-[#F5C542]/25 flex items-center justify-center text-white/85 hover:text-[#F5C542] hover:border-[#F5C542] hover:shadow-[0_0_20px_rgba(245,197,66,0.45)] transition-all"
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path} /></svg>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <Button variant="link" className="text-xs p-0 h-auto text-[#D4AF37]" asChild>
-                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address || shop.business_name)}`} target="_blank">Ver no Google Maps</a>
-                  </Button>
+
+                  {/* Col 2: location + map */}
+                  <div className="space-y-4">
+                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Localização</h5>
+                    {hasAddress ? (
+                      <>
+                        <div className="flex items-start gap-3">
+                          <MapPin size={18} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                          <p className="text-slate-300 text-sm leading-relaxed">{shop.address}</p>
+                        </div>
+                        <div
+                          className="w-full overflow-hidden rounded-[20px] border border-[#F5C542]/20 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.7)]"
+                          style={{ height: "min(220px, 40vw)", minHeight: 180 }}
+                        >
+                          <iframe
+                            src={mapsEmbed}
+                            title="Mapa"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="w-full h-full"
+                            style={{ border: 0, filter: "grayscale(0.4) contrast(1.05)" }}
+                          />
+                        </div>
+                        <a
+                          href={mapsLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-[#F5C542] transition-colors"
+                        >
+                          <ExternalLink size={14} /> Abrir no Google Maps
+                        </a>
+                      </>
+                    ) : (
+                      <div className="rounded-[20px] border border-dashed border-[#F5C542]/20 bg-white/[0.02] p-6 text-center">
+                        <MapPin size={20} className="text-[#D4AF37]/60 mx-auto mb-2" />
+                        <p className="text-sm font-bold text-white">Localização não informada</p>
+                        <p className="text-xs text-slate-500 mt-1">Esta barbearia ainda não cadastrou o endereço.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Col 3: quick links */}
+                  <div className="space-y-4">
+                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Links Rápidos</h5>
+                    <nav className="flex flex-col gap-2.5 text-sm font-medium text-slate-400">
+                      <a href="#inicio" className="hover:text-white transition-colors">Início</a>
+                      <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
+                      <a href="#profissionais" className="hover:text-white transition-colors">Profissionais</a>
+                      {isModuleEnabled("subscriptions") && (
+                        <a href="#planos" className="hover:text-white transition-colors">Planos</a>
+                      )}
+                      {isModuleEnabled("products") && (
+                        <a href="#produtos" className="hover:text-white transition-colors">Produtos</a>
+                      )}
+                      <a href={`/${slug}/portal`} className="hover:text-white transition-colors">Portal do Cliente</a>
+                      <a href="/privacy" className="hover:text-white transition-colors">Política de Privacidade</a>
+                      <a href="/terms" className="hover:text-white transition-colors">Termos de Uso</a>
+                    </nav>
+                  </div>
+
+                  {/* Col 4: hours */}
+                  <div className="space-y-4">
+                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Funcionamento</h5>
+                    <div className="space-y-2 text-sm text-slate-400 font-medium">
+                      <p className="flex justify-between gap-3"><span>Seg - Sex</span> <span className="text-white">09:00 - 20:00</span></p>
+                      <p className="flex justify-between gap-3"><span>Sábado</span> <span className="text-white">08:00 - 18:00</span></p>
+                      <p className="flex justify-between gap-3"><span>Domingo</span> <span className="text-white">Fechado</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-[#F5C542]/10 flex flex-col md:flex-row justify-between items-center gap-3 text-center md:text-left">
+                  <p className="text-xs text-slate-500">© 2026 {shop?.business_name}. Todos os direitos reservados.</p>
+                  <p className="text-xs text-slate-600">Powered by <span className="text-[#D4AF37] font-bold">Barbex</span></p>
                 </div>
               </div>
-
-              <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Links Rápidos</h5>
-                <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
-                  <a href="#inicio" className="hover:text-white transition-colors">Início</a>
-                  <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
-                  <a href="#profissionais" className="hover:text-white transition-colors">Profissionais</a>
-                  <a href={`/${slug}/portal`} className="hover:text-white transition-colors">Portal do Cliente</a>
-                </nav>
-              </div>
-
-              <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Funcionamento</h5>
-                <div className="space-y-2 text-sm text-slate-500 font-medium">
-                  <p className="flex justify-between"><span>Seg - Sex:</span> <span className="text-white">09:00 - 20:00</span></p>
-                  <p className="flex justify-between"><span>Sábado:</span> <span className="text-white">08:00 - 18:00</span></p>
-                  <p className="flex justify-between"><span>Domingo:</span> <span className="text-white">Fechado</span></p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-8 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-600">© 2026 {shop?.business_name} - Premium Experience</p>
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-800">Powered by BarberSaaS Elite</p>
-            </div>
-          </div>
-        </footer>
+            </footer>
+          );
+        })()}
 
         {/* Mobile Bottom CTA */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-40">
