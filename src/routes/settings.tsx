@@ -112,6 +112,11 @@ function SettingsComponent() {
     cancellation_window_hours: 2,
     barber_can_cancel: false,
     barber_can_reschedule: false,
+    social_instagram: "",
+    social_facebook: "",
+    social_tiktok: "",
+    social_youtube: "",
+    social_whatsapp: "",
   });
 
 
