@@ -674,7 +674,8 @@ function ShopPageComponent() {
           plan,
           effective_plan,
           selected_plan,
-          opening_date
+          opening_date,
+          social_links
         `)
         .eq("slug", normalizedSlug)
         .maybeSingle();
