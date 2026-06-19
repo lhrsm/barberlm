@@ -61,6 +61,25 @@ export const Route = createFileRoute("/settings")({
   component: SettingsComponent,
 });
 
+function normalizeSocial(kind: "instagram" | "facebook" | "tiktok" | "youtube" | "whatsapp", raw: string): string {
+  const v = (raw || "").trim();
+  if (!v) return "";
+  if (kind === "whatsapp") {
+    if (/^https?:\/\//i.test(v)) return v;
+    const digits = v.replace(/\D/g, "");
+    return digits ? `https://wa.me/${digits}` : "";
+  }
+  if (/^https?:\/\//i.test(v)) return v;
+  const handle = v.replace(/^@/, "").replace(/\s+/g, "");
+  if (!handle) return "";
+  switch (kind) {
+    case "instagram": return `https://instagram.com/${handle}`;
+    case "facebook": return `https://facebook.com/${handle}`;
+    case "tiktok": return `https://tiktok.com/@${handle}`;
+    case "youtube": return `https://youtube.com/@${handle}`;
+  }
+}
+
 function SettingsComponent() {
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
