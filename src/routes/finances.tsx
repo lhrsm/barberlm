@@ -85,7 +85,43 @@ function FinancesComponent() {
   const [financeTab, setFinanceTab] = useState<string>("transactions");
 
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
+  const [barberCustomStart, setBarberCustomStart] = useState<string>("");
+  const [barberCustomEnd, setBarberCustomEnd] = useState<string>("");
+  const barberPeriodRange = useMemo(() => {
+    const toISO = (d: Date) => d.toISOString().split('T')[0];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let start: Date | null = today;
+    let end: Date | null = today;
+    if (barberPeriodPreset === "today") { start = today; end = today; }
+    else if (barberPeriodPreset === "yesterday") {
+      const y = new Date(today); y.setDate(y.getDate() - 1); start = y; end = y;
+    }
+    else if (barberPeriodPreset === "week") {
+      const s = new Date(today); s.setDate(s.getDate() - s.getDay()); start = s; end = today;
+    }
+    else if (barberPeriodPreset === "month") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1); end = today;
+    }
+    else if (barberPeriodPreset === "prev_month") {
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
+    }
+    else if (barberPeriodPreset === "all") { start = null; end = null; }
+    else if (barberPeriodPreset === "custom") {
+      start = barberCustomStart ? new Date(barberCustomStart + "T00:00:00") : null;
+      end = barberCustomEnd ? new Date(barberCustomEnd + "T00:00:00") : null;
+    }
+    return { start: start ? toISO(start) : null, end: end ? toISO(end) : null };
+  }, [barberPeriodPreset, barberCustomStart, barberCustomEnd]);
+  const inBarberRange = (date?: string | null) => {
+    if (!date) return false;
+    const d = String(date).slice(0, 10);
+    if (barberPeriodRange.start && d < barberPeriodRange.start) return false;
+    if (barberPeriodRange.end && d > barberPeriodRange.end) return false;
+    return true;
+  };
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
