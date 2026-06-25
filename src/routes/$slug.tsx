@@ -2113,9 +2113,9 @@ function ShopPageComponent() {
 
 
 
-      <main className={cn("space-y-0 pb-24 md:pb-0", isEmbedded && "py-0 pb-0")}>
+      <main className={cn("space-y-0", isEmbedded && "py-0 pb-0")}>
         {/* Hero Section */}
-        <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+        <section id="inicio" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(92px+env(safe-area-inset-top)+24px)] pb-12 md:pt-0 md:pb-0 md:h-screen md:min-h-[700px]">
           {/* Background Image with Parallax effect could be added here */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10" />
           <div className="absolute inset-0 z-0">
@@ -2345,8 +2345,8 @@ function ShopPageComponent() {
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group bg-zinc-950 border-zinc-800 rounded-[2rem] overflow-hidden hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full shadow-2xl hover:shadow-primary/10">
-                    <div className="aspect-square relative overflow-hidden bg-zinc-900">
+                  <Card className="group bg-zinc-950 border-zinc-800 rounded-[20px] md:rounded-[2rem] overflow-hidden hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full shadow-2xl hover:shadow-primary/10">
+                    <div className="relative overflow-hidden bg-zinc-900 h-[200px] sm:h-[220px] md:aspect-square md:h-auto">
                       {product.image_url ? (
                         <img 
                           src={product.image_url} 
@@ -2388,23 +2388,23 @@ function ShopPageComponent() {
                     </div>
 
                     <div 
-                      className="p-7 flex flex-col flex-1 space-y-4 cursor-pointer"
+                      className="p-[18px] md:p-7 flex flex-col flex-1 space-y-3 md:space-y-4 cursor-pointer"
                       onClick={() => setSelectedProductProductForModal(product)}
                     >
                       <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{product.category || 'Cuidados'}</p>
-                        <h4 className="text-xl font-black uppercase tracking-tight leading-tight text-white group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any}>{product.name}</h4>
+                        <h4 className="text-base md:text-xl font-black uppercase tracking-tight leading-tight text-white group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any}>{product.name}</h4>
                         {product.brand && <p className="text-xs font-bold text-zinc-400">{product.brand}</p>}
                       </div>
 
-                      <p className="text-zinc-400 text-sm line-clamp-2 leading-relaxed flex-1 font-medium">
+                      <p className="text-zinc-400 text-xs md:text-sm line-clamp-2 leading-relaxed flex-1 font-medium">
                         {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
                       </p>
 
-                      <div className="pt-4 border-t border-white/5 space-y-4">
+                      <div className="pt-3 md:pt-4 border-t border-white/5 space-y-3 md:space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
-                            <span className="text-2xl font-black text-white" style={{ color: primaryColor }}>R$ {Number(product.price).toFixed(2)}</span>
+                            <span className="text-lg md:text-2xl font-black text-white" style={{ color: primaryColor }}>R$ {Number(product.price).toFixed(2)}</span>
                             {product.promotional_price && (
                               <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
                             )}
@@ -2572,8 +2572,11 @@ function ShopPageComponent() {
                         )}
                       </div>
                       <div className="flex items-baseline gap-1 mb-6">
-                        <span className="text-5xl font-black text-white">R$ {Number(plan.monthly_price || 0).toFixed(2)}</span>
-                        <span className="text-sm text-slate-500 font-bold">/mês</span>
+                        <span className="font-black text-white leading-none" style={{ fontSize: 'clamp(34px, 9vw, 56px)' }}>
+                          <span className="font-black text-white/90 mr-1" style={{ fontSize: 'clamp(20px, 5.5vw, 32px)' }}>R$</span>
+                          {Number(plan.monthly_price || 0).toFixed(2)}
+                        </span>
+                        <span className="text-sm md:text-base text-slate-500 font-bold" style={{ fontSize: 'clamp(14px, 3vw, 18px)' }}>/mês</span>
                       </div>
                       {plan.max_uses_per_month != null && (
                         <p className="text-xs uppercase tracking-widest font-bold text-[#D4AF37] mb-4">
@@ -2604,62 +2607,53 @@ function ShopPageComponent() {
           </section>
         )}
 
-        {/* Cupons / Promoções */}
+        {/* Promoções — banners sem expor códigos */}
         {couponsEnabled && publicActiveCoupons.length > 0 && (
           <section id="promocoes" className="py-20 bg-black">
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center space-y-3 mb-12">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Aproveite</span>
-                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Promoções Ativas</h3>
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Campanhas</span>
+                <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Ofertas Especiais Disponíveis</h3>
+                <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
+                  Aproveite condições exclusivas. Use o seu cupom no momento do agendamento.
+                </p>
               </div>
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {publicActiveCoupons.map((c) => (
+                {publicActiveCoupons.slice(0, 3).map((c, idx) => (
                   <motion.div
                     key={c.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
                     viewport={{ once: true }}
-                    className="group relative rounded-3xl border border-[#F5C542]/20 bg-white/[0.02] p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#F5C542]/60 hover:bg-white/[0.03] hover:shadow-[0_20px_50px_rgba(245,197,66,0.15)] hover:-translate-y-1"
+                    className="group relative rounded-3xl border border-[#F5C542]/20 bg-gradient-to-br from-[#0B1324] via-black to-black p-7 flex flex-col gap-5 transition-all duration-300 hover:border-[#F5C542]/60 hover:shadow-[0_20px_50px_rgba(245,197,66,0.18)] hover:-translate-y-1 overflow-hidden"
                   >
-                    {/* Notch decorative */}
-                    <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
-                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#F5C542]/20 to-[#D4A017]/10 flex items-center justify-center border border-[#F5C542]/30">
-                          <TicketPercent size={16} className="text-[#F5C542]" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#F5C542]">Cupom Premium</span>
+                    <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-[#F5C542]/10 blur-3xl pointer-events-none" />
+                    <div className="relative flex items-center gap-3">
+                      <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#F5C542]/25 to-[#D4A017]/10 flex items-center justify-center border border-[#F5C542]/30">
+                        <TicketPercent size={18} className="text-[#F5C542]" />
                       </div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#F5C542]">Oferta Especial</span>
                     </div>
-
-                    <div>
-                      <p className="text-4xl font-black text-white tracking-tighter leading-none">
-                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)}`}
+                    <div className="relative space-y-2">
+                      <h4 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white leading-tight">
+                        Condição exclusiva disponível
+                      </h4>
+                      <p className="text-sm text-slate-400 leading-relaxed">
+                        Já tem o cupom? Aplique no momento do agendamento e garanta o seu benefício.
                       </p>
-                      {!(c.type === 'percent' || c.type === 'percentage') && (
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">de desconto</p>
-                      )}
                     </div>
-
-                    <div className="rounded-xl border border-dashed border-[#F5C542]/30 bg-[#F5C542]/[0.04] px-4 py-3">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Código</p>
-                      <p className="text-base font-black text-white tracking-[0.15em]">{c.code}</p>
-                    </div>
-
                     {c.expires_at && (
-                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1.5">
+                      <p className="relative text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1.5">
                         <Calendar size={12} className="text-[#F5C542]/70" />
                         Válido até {format(parseISO(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     )}
-
                     <Button
-                      className="mt-auto h-12 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] font-black uppercase tracking-widest text-[11px] shadow-[0_8px_20px_rgba(245,197,66,0.28)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.4)] hover:-translate-y-0.5 transition-all"
+                      className="relative mt-auto h-12 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] font-black uppercase tracking-widest text-[11px] shadow-[0_8px_20px_rgba(245,197,66,0.28)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.4)] hover:-translate-y-0.5 transition-all"
                       onClick={handleBookingAction}
                     >
-                      <Calendar size={14} className="mr-2" /> Agendar com Cupom
+                      <Calendar size={14} className="mr-2" /> Agendar agora
                     </Button>
                   </motion.div>
                 ))}
@@ -2667,6 +2661,7 @@ function ShopPageComponent() {
             </div>
           </section>
         )}
+
 
         {/* Programa de Fidelidade */}
         {loyaltyEnabled && publicLoyaltySettings?.enabled && (
@@ -2772,40 +2767,58 @@ function ShopPageComponent() {
           </div>
         </section>
 
-        {/* Portal CTA Section */}
-        <section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
+        {/* Portal CTA Section — Premium with image */}
+        <section className="py-20 md:py-24 bg-[#0a0a0a] relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[120px] rounded-full pointer-events-none" style={{ backgroundColor: `${primaryColor}05` }} />
-          
-          <div className="max-w-4xl mx-auto px-4 relative z-10">
-            <div className="glass p-12 md:p-20 rounded-[4rem] text-center space-y-10 border border-white/10 shadow-2xl">
-              <div className="space-y-4">
-                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Pronto para elevar seu visual?</h3>
-                <p className="text-slate-400 text-lg md:text-xl max-w-xl mx-auto font-medium leading-relaxed">
-                  Agende seu horário agora e experimente o padrão de excelência que você merece.
-                </p>
+
+          <div className="max-w-6xl mx-auto px-4 relative z-10">
+            <div
+              className="grid md:grid-cols-2 overflow-hidden rounded-[28px] md:rounded-[32px] border border-[#F5C542]/20 bg-[rgba(5,11,24,0.92)] shadow-[0_24px_70px_rgba(0,0,0,0.35)]"
+            >
+              {/* Image — top on mobile, right on desktop */}
+              <div className="relative h-[220px] sm:h-[280px] md:h-auto md:min-h-[420px] md:order-2">
+                <img
+                  src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1600&auto=format&fit=crop"
+                  alt="Barbearia premium — cliente sendo atendido"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(5,11,24,0.95)] via-[rgba(5,11,24,0.35)] to-transparent md:bg-gradient-to-r md:from-[rgba(5,11,24,0.95)] md:via-[rgba(5,11,24,0.25)] md:to-transparent" />
+                <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5C542] text-black text-[10px] font-black uppercase tracking-[0.18em] shadow-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-black animate-pulse" />
+                  Agenda aberta
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Button 
-                  size="lg"
-                  className="h-16 px-12 rounded-full shadow-2xl hover:scale-105 transition-all gap-3 text-lg font-black uppercase tracking-tighter w-full sm:w-auto"
-                  style={{ backgroundColor: primaryColor }}
-                  onClick={handleBookingAction}
-                >
-                  Agendar meu horário
-                </Button>
-                <Button 
-                  variant="link" 
-                  size="lg" 
-                  className="text-white hover:text-primary transition-colors font-bold text-lg underline-offset-8" 
-                  asChild
-                >
-                  <a href={`/${slug}/portal`}>Acessar meu portal</a>
-                </Button>
+              {/* Content */}
+              <div className="p-8 sm:p-10 md:p-14 flex flex-col justify-center space-y-6 md:order-1">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Sua vez</span>
+                <h3 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white leading-[1.02]">
+                  Pronto para elevar seu visual?
+                </h3>
+                <p className="text-slate-300/90 text-base md:text-lg leading-relaxed max-w-xl">
+                  Agende seu horário agora e experimente o padrão de excelência que você merece.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
+                  <Button
+                    className="h-[52px] px-7 rounded-full font-black uppercase tracking-widest text-[12px] text-[#050505] bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_12px_30px_rgba(245,197,66,0.32)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(245,197,66,0.45)] transition-all"
+                    onClick={handleBookingAction}
+                  >
+                    Agendar meu horário
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-[52px] px-7 rounded-full font-black uppercase tracking-widest text-[12px] bg-[#0B1324] border border-[#F5C542]/40 text-white hover:bg-[#F5C542]/[0.08] hover:border-[#F5C542] hover:text-[#F5C542] transition-all"
+                  >
+                    <a href={`/${slug}/portal`}>Acessar meu portal</a>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </section>
+
 
         {/* Footer */}
         {(() => {
@@ -2974,15 +2987,8 @@ function ShopPageComponent() {
           );
         })()}
 
-        {/* Mobile Bottom CTA */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-40">
-          <Button 
-            className="w-full h-14 rounded-2xl shadow-2xl bg-black text-white border-2 border-[#D4AF37] font-black uppercase tracking-tighter text-lg scale-100 active:scale-95 transition-all"
-            onClick={handleBookingAction}
-          >
-            {shop.scheduling_mode === 'manual' ? 'Agendar WhatsApp' : 'Agendar Agora'}
-          </Button>
-        </div>
+        {/* Mobile Bottom CTA removed — header + hero CTAs are sufficient */}
+
       </main>
     </>
   ) : isProfessionalsRoute ? (
@@ -5105,7 +5111,8 @@ function BackToTopButton() {
       type="button"
       aria-label="Voltar ao topo"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-6 right-6 z-[60] h-12 w-12 rounded-full bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] shadow-[0_12px_30px_rgba(245,197,66,0.42)] flex items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(245,197,66,0.55)] ${visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+      className={`fixed right-5 md:right-6 z-[60] h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] shadow-[0_12px_30px_rgba(245,197,66,0.42)] flex items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(245,197,66,0.55)] ${visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}
     >
       <ArrowUp size={20} strokeWidth={2.5} />
     </button>
