@@ -9,11 +9,13 @@ export async function fetchBarberStats(barberId: string) {
   // discover tenant from barbers table
   const { data: barber } = await supabase
     .from("barbers")
-    .select("tenant_id, commission_rate")
+    .select("tenant_id, user_id, commission_rate")
     .eq("id", barberId)
     .maybeSingle();
 
-  if (!barber?.tenant_id) {
+  const tenantId = barber?.tenant_id || barber?.user_id;
+
+  if (!tenantId) {
     return {
       today: 0, week: 0, month: 0,
       revenueMonth: 0, commissionMonth: 0, commissionPaid: 0, commissionPending: 0,
@@ -22,7 +24,7 @@ export async function fetchBarberStats(barberId: string) {
   }
 
   const { data, error } = await supabase.rpc("get_barber_dashboard_summary", {
-    p_tenant_id: barber.tenant_id,
+    p_tenant_id: tenantId,
     p_barber_id: barberId,
   });
 
