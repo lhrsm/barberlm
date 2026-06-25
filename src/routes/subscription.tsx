@@ -344,7 +344,7 @@ function SubscriptionComponent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-zinc-800/80">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
-                  {plan === 'elite' || (plan as any) === 'enterprise' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
+                  {(plan === 'elite' || (plan as any) === 'enterprise') ? <Rocket className="h-5 w-5 text-emerald-400" /> :
                    (plan === 'pro' || (plan as any) === 'professional') ? <Crown className="h-5 w-5 text-emerald-400" /> :
                    plan === 'starter' ? <Zap className="h-5 w-5 text-emerald-400" /> :
                    <Star className="h-5 w-5 text-emerald-400" />}
@@ -353,9 +353,8 @@ function SubscriptionComponent() {
                   <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Plano Atual</div>
                   <div className="text-xl font-black text-white">
                     {plan === 'starter' ? 'Starter' :
-                     (plan === 'pro' || (plan as any) === 'professional') ? 'Professional' :
-                     plan === 'elite' ? 'Elite' :
-                     (plan as any) === 'enterprise' ? 'Enterprise' :
+                     (plan === 'pro' || (plan as any) === 'professional') ? 'Pro' :
+                     (plan === 'elite' || (plan as any) === 'enterprise') ? 'Elite' :
                      (!plan || plan === 'free') ? 'Grátis' : plan}
                   </div>
                 </div>
