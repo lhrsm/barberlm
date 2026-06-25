@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { useFinancial } from "@/hooks/use-financial";
+import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -62,6 +63,7 @@ function FinancesComponent() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [barberCommissionSummaries, setBarberCommissionSummaries] = useState<Record<string, any>>({});
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ 
     amount: "", 
@@ -227,6 +229,15 @@ function FinancesComponent() {
         .on('postgres_changes', { 
           event: '*', 
           schema: 'public', 
+          table: 'barber_commissions',
+          filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
+        }, () => {
+          fetchBarberCommissionSummaries();
+          queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
           table: 'refund_requests',
           filter: `tenant_id=eq.${user.id}`
         }, () => {
@@ -251,6 +262,28 @@ function FinancesComponent() {
       .eq("active", true);
     setBarbers(data || []);
   }
+
+  async function fetchBarberCommissionSummaries() {
+    if (!user || barbers.length === 0) return;
+    const summaries = await Promise.all(
+      barbers.map(async (barber) => {
+        const { data } = await supabase.rpc("get_barber_commission_summary", {
+          p_tenant_id: user.id,
+          p_barber_id: barber.id,
+          p_start_date: barberPeriodRange.start || undefined,
+          p_end_date: barberPeriodRange.end || undefined,
+        });
+        return [barber.id, data || {}] as const;
+      })
+    );
+    setBarberCommissionSummaries(Object.fromEntries(summaries));
+  }
+
+  useEffect(() => {
+    if (user && barbers.length > 0) {
+      fetchBarberCommissionSummaries();
+    }
+  }, [user?.id, barbers.length, barberPeriodRange.start, barberPeriodRange.end]);
 
   async function fetchTransactions(bId: string | null = null) {
     if (!user) return;
@@ -2126,42 +2159,16 @@ function FinancesComponent() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {barbers.map((barber) => {
-                const barberTransactions = transactions.filter(t => 
-                  t.barber_id === barber.id && 
-                  t.type === 'income' &&
-                  inBarberRange(t.date)
-                );
-                const bApptIds = new Set();
-                const totalReceived = barberTransactions.reduce((acc, t) => {
-                  // Se houver agendamento vinculado, usamos o valor total para receita operacional do barbeiro
-                  if (t.appointment_id) {
-                    if (bApptIds.has(t.appointment_id)) return acc;
-                    bApptIds.add(t.appointment_id);
-                    return acc + (Number(t.appointment?.original_total || t.appointment?.total_price || (Number(t.amount) + Number(t.appointment?.credit_used || 0))) || 0);
-                  }
-                  
-                  const val = parseFloat(String(t.amount)) || 0;
-                  // Tenta extrair créditos da descrição se o valor for 0 (legado ou manual)
-                  if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
-                    const match = t.description.match(/R\$\s*([\d.]+)/);
-                    if (match) return acc + parseFloat(match[1]);
-                  }
-                  
-                  // Verifica se tem texto de abatimento mas o valor não é 0
-                  if (t.description?.includes("Abatimento Créditos: R$")) {
-                    const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
-                    const creditedAmount = match ? parseFloat(match[1]) : 0;
-                    return acc + val + creditedAmount;
-                  }
-                  
-                  return acc + val;
-                }, 0);
-                
+                const commissionSummary = barberCommissionSummaries[barber.id] || {};
                 const commissionRate = Number(barber.commission_rate || 0);
-                const barberPart = totalReceived * (commissionRate / 100);
+                const totalReceived = Number(commissionSummary.production_total || 0);
+                const barberPart = Number(commissionSummary.commission_total || 0);
+                const commissionPending = Number(commissionSummary.commission_pending || 0);
+                const commissionPaid = Number(commissionSummary.commission_paid || 0);
                 const barbershopPartFromBarber = totalReceived - barberPart;
-                const apptCount = bApptIds.size;
-                const avgTicket = apptCount > 0 ? totalReceived / apptCount : 0;
+                const apptCount = Number(commissionSummary.completed_appointments || 0);
+                const pendingCount = Number(commissionSummary.pending_count || 0);
+                const avgTicket = Number(commissionSummary.average_ticket || 0);
 
                 return (
                   <Card key={barber.id} className="bg-card border-border text-foreground">
@@ -2184,6 +2191,14 @@ function FinancesComponent() {
                           <span className="text-primary font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm pt-2 border-t border-border">
+                          <span className="text-muted-foreground">Comissão pendente</span>
+                          <span className="text-yellow-500 font-bold">R$ {commissionPending.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Comissão paga</span>
+                          <span className="text-emerald-500 font-bold">R$ {commissionPaid.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm pt-2 border-t border-border">
                           <span className="text-muted-foreground">Atendimentos</span>
                           <span className="font-bold text-white">{apptCount}</span>
                         </div>
@@ -2191,6 +2206,19 @@ function FinancesComponent() {
                           <span className="text-muted-foreground">Ticket Médio</span>
                           <span className="font-medium text-white">R$ {avgTicket.toFixed(2)}</span>
                         </div>
+                        {commissionPending > 0 && (
+                          <PayCommissionDialog
+                            tenantId={user.id}
+                            barberId={barber.id}
+                            barberName={barber.name}
+                            startDate={barberPeriodRange.start}
+                            endDate={barberPeriodRange.end}
+                            pendingAmount={commissionPending}
+                            pendingCount={pendingCount || apptCount}
+                            triggerClassName="w-full mt-3"
+                            onPaid={fetchBarberCommissionSummaries}
+                          />
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -2225,32 +2253,8 @@ function FinancesComponent() {
                       }, 0);
 
                       const totalFromBarbers = barbers.reduce((acc, barber) => {
-                        const bTransactions = transactions.filter(t => 
-                          t.barber_id === barber.id && 
-                          t.type === 'income' &&
-                          inBarberRange(t.date)
-                        );
-                        const bApptIds = new Set();
-                        const bTotal = bTransactions.reduce((tAcc, t) => {
-                          if (t.appointment_id) {
-                            if (bApptIds.has(t.appointment_id)) return tAcc;
-                            bApptIds.add(t.appointment_id);
-                            return tAcc + (Number(t.appointment?.original_total || t.appointment?.total_price || (Number(t.amount) + Number(t.appointment?.credit_used || 0))) || 0);
-                          }
-                          const val = parseFloat(String(t.amount)) || 0;
-                          if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
-                            const match = t.description.match(/R\$\s*([\d.]+)/);
-                            if (match) return tAcc + parseFloat(match[1]);
-                          }
-                          if (t.description?.includes("Abatimento Créditos: R$")) {
-                            const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
-                            const creditedAmount = match ? parseFloat(match[1]) : 0;
-                            return tAcc + val + creditedAmount;
-                          }
-                          return tAcc + val;
-                        }, 0);
-                        const commissionRate = Number(barber.commission_rate || 0);
-                        return acc + (bTotal - (bTotal * (commissionRate / 100)));
+                        const s = barberCommissionSummaries[barber.id] || {};
+                        return acc + (Number(s.production_total || 0) - Number(s.commission_total || 0));
                       }, 0);
 
                       const finalTotal = totalGeneralOnly + totalFromBarbers;

@@ -48,7 +48,7 @@ function ProfessionalDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [commissionEntries, setCommissionEntries] = useState<any[]>([]);
-  const [commissionClosings, setCommissionClosings] = useState<any[]>([]);
+  const [commissionSummary, setCommissionSummary] = useState<any>(null);
   const [appointmentFilter, setAppointmentFilter] = useState<'today'|'week'|'month'|'completed'|'cancelled'|'pending'>('today');
 
   
@@ -132,21 +132,27 @@ function ProfessionalDashboard() {
 
       setAppointments(Array.isArray(allApps) ? allApps : []);
 
-      // Commission entries
-      const { data: entries } = await supabase
-        .from("commission_entries")
-        .select("*")
-        .eq("barber_id", session.barber_id)
-        .order("earned_at", { ascending: false });
-      setCommissionEntries(entries || []);
-
-      // Commission closings (payment history)
-      const { data: closings } = await supabase
-        .from("commission_closings")
-        .select("*")
-        .eq("barber_id", session.barber_id)
-        .order("period_end", { ascending: false });
-      setCommissionClosings(closings || []);
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+      const today = new Date().toISOString().slice(0, 10);
+      const [{ data: entries, error: entriesError }, { data: summary, error: summaryError }] = await Promise.all([
+        supabase.rpc("get_barber_commissions", {
+          p_tenant_id: bData.tenant_id || bData.user_id,
+          p_barber_id: session.barber_id,
+          p_start_date: monthStart,
+          p_end_date: today,
+          p_status: undefined,
+        }),
+        supabase.rpc("get_barber_commission_summary", {
+          p_tenant_id: bData.tenant_id || bData.user_id,
+          p_barber_id: session.barber_id,
+          p_start_date: monthStart,
+          p_end_date: today,
+        }),
+      ]);
+      if (entriesError) throw new Error("Erro ao carregar comissões: " + entriesError.message);
+      if (summaryError) throw new Error("Erro ao carregar resumo de comissões: " + summaryError.message);
+      setCommissionEntries(Array.isArray(entries) ? entries : []);
+      setCommissionSummary(summary || null);
     } catch (e: any) {
       console.error("[PROFISSIONAL_FETCH_ERROR]", e);
       setError(e.message);
@@ -160,6 +166,7 @@ function ProfessionalDashboard() {
       const channel = supabase
         .channel(`prof-realtime-${bId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, fetchData)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'barber_commissions', filter: `barber_id=eq.${bId}` }, fetchData)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `barber_id=eq.${bId}` }, fetchData)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'barbers', filter: `id=eq.${bId}` }, fetchData)
         .subscribe();
@@ -638,13 +645,10 @@ function ProfessionalDashboard() {
 
           <TabsContent value="commission" className="mt-8 space-y-6">
             {(() => {
-              const now = new Date();
-              const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-              const monthEntries = commissionEntries.filter(e => new Date(e.earned_at) >= monthStart);
-              const totalMonth = monthEntries.reduce((s, e) => s + Number(e.commission_amount || 0), 0);
-              const paidMonth = monthEntries.reduce((s, e) => s + Number(e.paid_amount || 0), 0);
-              const pendingMonth = totalMonth - paidMonth;
-              const productionMonth = monthEntries.reduce((s, e) => s + Number(e.service_amount || 0), 0);
+              const totalMonth = Number(commissionSummary?.commission_total || stats?.commissionMonth || 0);
+              const paidMonth = Number(commissionSummary?.commission_paid || stats?.commissionPaid || 0);
+              const pendingMonth = Number(commissionSummary?.commission_pending || stats?.commissionPending || 0);
+              const productionMonth = Number(commissionSummary?.production_total || stats?.revenueMonth || 0);
               const goal = Number(barber?.monthly_goal || 0);
               const goalPct = goal > 0 ? Math.min(100, (productionMonth / goal) * 100) : 0;
 
@@ -697,27 +701,31 @@ function ProfessionalDashboard() {
                           <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
                             <tr>
                               <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
                               <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor do Serviço</th>
                               <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Comissão</th>
                               <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#D4AF37]/5">
                             {commissionEntries.length === 0 ? (
-                              <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum lançamento de comissão ainda.</td></tr>
+                              <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">Nenhum lançamento de comissão ainda.</td></tr>
                             ) : commissionEntries.slice(0, 15).map(e => (
                               <tr key={e.id} className="hover:bg-[#D4AF37]/5">
-                                <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(e.earned_at), "dd/MM/yyyy")}</td>
-                                <td className="px-6 py-3 text-sm text-gray-300">R$ {Number(e.service_amount).toFixed(2)}</td>
+                                <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(e.appointment_date || e.created_at), "dd/MM/yyyy")}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">{e.customer_name || "Cliente"}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">{e.service_name || "Serviço"}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">R$ {Number(e.service_amount || 0).toFixed(2)}</td>
                                 <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(e.commission_amount).toFixed(2)}</td>
                                 <td className="px-6 py-3">
                                   <Badge className={cn(
                                     "text-[9px] font-black px-2 py-0.5 uppercase border-0",
                                     e.status === 'paid' ? "bg-green-600/20 text-green-500" :
-                                    e.status === 'partially_paid' ? "bg-yellow-600/20 text-yellow-500" :
-                                    "bg-gray-600/20 text-gray-400"
+                                    e.status === 'cancelled' ? "bg-red-600/20 text-red-500" :
+                                    "bg-yellow-600/20 text-yellow-500"
                                   )}>
-                                    {e.status === 'paid' ? 'PAGO' : e.status === 'partially_paid' ? 'PARCIAL' : 'PENDENTE'}
+                                    {e.status === 'paid' ? 'PAGO' : e.status === 'cancelled' ? 'CANCELADO' : 'PENDENTE'}
                                   </Badge>
                                 </td>
                               </tr>
@@ -728,48 +736,11 @@ function ProfessionalDashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl overflow-hidden">
-                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
-                      <CardTitle className="text-xl font-black text-white">Histórico de Pagamentos</CardTitle>
-                      <CardDescription className="text-gray-400 font-medium">Fechamentos realizados pela barbearia.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
-                            <tr>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Período</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor Total</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Pago em</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#D4AF37]/5">
-                            {commissionClosings.length === 0 ? (
-                              <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum pagamento registrado ainda.</td></tr>
-                            ) : commissionClosings.map(c => (
-                              <tr key={c.id} className="hover:bg-[#D4AF37]/5">
-                                <td className="px-6 py-3 text-sm text-white font-bold">
-                                  {format(new Date(c.period_start), "dd/MM/yy")} - {format(new Date(c.period_end), "dd/MM/yy")}
-                                </td>
-                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(c.paid_amount || c.total_amount).toFixed(2)}</td>
-                                <td className="px-6 py-3 text-sm text-gray-300">
-                                  {c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : "—"}
-                                </td>
-                                <td className="px-6 py-3">
-                                  <Badge className={cn(
-                                    "text-[9px] font-black px-2 py-0.5 uppercase border-0",
-                                    c.status === 'paid' ? "bg-green-600/20 text-green-500" : "bg-yellow-600/20 text-yellow-500"
-                                  )}>
-                                    {c.status === 'paid' ? 'PAGO' : (c.status || 'PENDENTE').toUpperCase()}
-                                  </Badge>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
+                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl p-6">
+                    <CardTitle className="text-xl font-black text-white mb-2">Ciclo de Pagamento</CardTitle>
+                    <CardDescription className="text-gray-400 font-medium">
+                      As comissões nascem como pendentes e só entram como recebidas após autorização do administrador.
+                    </CardDescription>
                   </Card>
                 </>
               );
@@ -778,29 +749,21 @@ function ProfessionalDashboard() {
 
           <TabsContent value="finances" className="mt-8 space-y-6">
             {(() => {
-              const now = new Date();
-              const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-              const myAppts = appointments;
-              const monthAppts = myAppts.filter(a => new Date(a.start_time) >= monthStart);
-              const completed = monthAppts.filter(a => a.status === 'completed');
-              const cancelled = monthAppts.filter(a => a.status === 'cancelled');
-              const revenue = completed.reduce((s, a) => s + Number(a.total_price || 0), 0);
-              const avgTicket = completed.length ? revenue / completed.length : 0;
-
-              const monthEntries = commissionEntries.filter(e => new Date(e.earned_at) >= monthStart);
-              const totalCommission = monthEntries.reduce((s, e) => s + Number(e.commission_amount || 0), 0);
-              const paidCommission = monthEntries.reduce((s, e) => s + Number(e.paid_amount || 0), 0);
-              const pendingCommission = totalCommission - paidCommission;
+              const completedCount = Number(commissionSummary?.completed_appointments || stats?.month || 0);
+              const revenue = Number(commissionSummary?.production_total || stats?.revenueMonth || 0);
+              const avgTicket = Number(commissionSummary?.average_ticket || stats?.avgTicket || 0);
+              const totalCommission = Number(commissionSummary?.commission_total || stats?.commissionMonth || 0);
+              const paidCommission = Number(commissionSummary?.commission_paid || stats?.commissionPaid || 0);
+              const pendingCommission = Number(commissionSummary?.commission_pending || stats?.commissionPending || 0);
 
               const cards = [
-                { title: 'Atendimentos Concluídos', value: String(completed.length), icon: CheckCircle2 },
+                { title: 'Atendimentos Concluídos', value: String(completedCount), icon: CheckCircle2 },
                 { title: 'Faturamento Gerado', value: `R$ ${revenue.toFixed(2)}`, icon: CircleDollarSign },
                 { title: 'Ticket Médio', value: `R$ ${avgTicket.toFixed(2)}`, icon: TrendingUp },
-                { title: 'Cancelamentos', value: String(cancelled.length), icon: X },
                 { title: 'Comissão Gerada', value: `R$ ${totalCommission.toFixed(2)}`, icon: Crown },
                 { title: 'Comissão Paga', value: `R$ ${paidCommission.toFixed(2)}`, icon: CheckCircle2 },
                 { title: 'Comissão Pendente', value: `R$ ${pendingCommission.toFixed(2)}`, icon: Clock },
-                { title: 'Atendimentos no Mês', value: String(monthAppts.length), icon: Calendar },
+                { title: 'Atendimentos no Mês', value: String(completedCount), icon: Calendar },
               ];
 
               return (
@@ -840,14 +803,14 @@ function ProfessionalDashboard() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#D4AF37]/5">
-                            {completed.length === 0 ? (
+                            {commissionEntries.length === 0 ? (
                               <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum atendimento concluído este mês.</td></tr>
-                            ) : completed.slice(0, 20).map(a => (
-                              <tr key={a.id} className="hover:bg-[#D4AF37]/5">
-                                <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(a.start_time), "dd/MM HH:mm")}</td>
-                                <td className="px-6 py-3 text-sm text-gray-300">{a.customers?.name || 'Cliente'}</td>
-                                <td className="px-6 py-3 text-sm text-gray-300">{a.services?.name}</td>
-                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(a.total_price || 0).toFixed(2)}</td>
+                            ) : commissionEntries.slice(0, 20).map(e => (
+                              <tr key={e.id} className="hover:bg-[#D4AF37]/5">
+                                <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(e.appointment_date || e.created_at), "dd/MM HH:mm")}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">{e.customer_name || 'Cliente'}</td>
+                                <td className="px-6 py-3 text-sm text-gray-300">{e.service_name || 'Serviço'}</td>
+                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(e.service_amount || 0).toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>

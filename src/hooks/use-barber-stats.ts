@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Single source of truth for barber dashboard / commission / financial tabs.
- * Reads from get_barber_dashboard_summary (SECURITY DEFINER RPC) and also
+ * Reads from get_barber_dashboard_summary / barber_commissions (SECURITY DEFINER RPC) and also
  * pulls next appointment + cancellations from the same data the agenda uses.
  */
 export async function fetchBarberStats(barberId: string) {

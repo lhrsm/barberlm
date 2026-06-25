@@ -44,6 +44,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
@@ -74,6 +75,7 @@ function BarbersComponent() {
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [commissionSummaries, setCommissionSummaries] = useState<Record<string, any>>({});
   const [services, setServices] = useState<any[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -165,7 +167,20 @@ function BarbersComponent() {
       console.error(error);
       throw error;
     } else {
-      setBarbers(data || []);
+      const list = data || [];
+      setBarbers(list);
+      const summaries = await Promise.all(
+        list.map(async (barber: any) => {
+          const { data: summary } = await supabase.rpc("get_barber_commission_summary", {
+            p_tenant_id: user.id,
+            p_barber_id: barber.id,
+            p_start_date: undefined,
+            p_end_date: undefined,
+          });
+          return [barber.id, summary || {}] as const;
+        })
+      );
+      setCommissionSummaries(Object.fromEntries(summaries));
     }
   }
 
@@ -821,7 +836,12 @@ function BarbersComponent() {
               <p className="text-sm mt-1">Tente ajustar seus filtros ou busca.</p>
             </div>
           ) : (
-            filteredBarbers.map((barber) => (
+            filteredBarbers.map((barber) => {
+              const summary = commissionSummaries[barber.id] || {};
+              const pendingCommission = Number(summary.commission_pending || 0);
+              const pendingCount = pendingCommission > 0 ? Number(summary.pending_count || summary.completed_appointments || 0) : 0;
+
+              return (
               <div 
                 key={barber.id} 
                 className="group relative p-6 border border-amber-500/20 rounded-[20px] bg-[#0b0f17] shadow-xl hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-1 flex flex-col justify-between"
@@ -897,10 +917,27 @@ function BarbersComponent() {
                       </div>
                       <span>{barber.appointments?.[0]?.count || 0} Atendimentos</span>
                     </div>
+                    {pendingCommission > 0 && (
+                      <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-yellow-400">Comissão pendente</p>
+                        <p className="text-lg font-black text-white mt-1">R$ {pendingCommission.toFixed(2)}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-white/5">
+                  {pendingCommission > 0 && user?.id && (
+                    <PayCommissionDialog
+                      tenantId={user.id}
+                      barberId={barber.id}
+                      barberName={barber.name}
+                      pendingAmount={pendingCommission}
+                      pendingCount={pendingCount}
+                      triggerClassName="flex-1"
+                      onPaid={fetchBarbers}
+                    />
+                  )}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -985,7 +1022,8 @@ function BarbersComponent() {
                   </div>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

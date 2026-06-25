@@ -1820,6 +1820,66 @@ export type Database = {
           },
         ]
       }
+      barber_commissions: {
+        Row: {
+          appointment_id: string
+          barber_id: string
+          commission_amount: number
+          commission_fixed_amount: number
+          commission_percentage: number
+          commission_type: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          paid_at: string | null
+          paid_by: string | null
+          service_amount: number
+          service_id: string | null
+          service_name: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          barber_id: string
+          commission_amount?: number
+          commission_fixed_amount?: number
+          commission_percentage?: number
+          commission_type?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          service_amount?: number
+          service_id?: string | null
+          service_name?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          barber_id?: string
+          commission_amount?: number
+          commission_fixed_amount?: number
+          commission_percentage?: number
+          commission_type?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          service_amount?: number
+          service_id?: string | null
+          service_name?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       barber_services: {
         Row: {
           barber_id: string | null
@@ -6154,6 +6214,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_barber_commission_for_appointment: {
+        Args: { p_appointment_id: string }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_barber_id?: string
@@ -6264,6 +6328,42 @@ export type Database = {
         }[]
       }
       get_barber_appointments: { Args: { p_barber_id: string }; Returns: Json }
+      get_barber_commission_summary: {
+        Args: {
+          p_barber_id: string
+          p_end_date?: string
+          p_start_date?: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      get_barber_commissions: {
+        Args: {
+          p_barber_id: string
+          p_end_date?: string
+          p_start_date?: string
+          p_status?: string
+          p_tenant_id: string
+        }
+        Returns: {
+          appointment_date: string
+          appointment_id: string
+          commission_amount: number
+          commission_fixed_amount: number
+          commission_percentage: number
+          commission_type: string
+          created_at: string
+          customer_id: string
+          customer_name: string
+          id: string
+          paid_at: string
+          paid_by: string
+          service_amount: number
+          service_id: string
+          service_name: string
+          status: string
+        }[]
+      }
       get_barber_dashboard_summary: {
         Args: {
           p_barber_id: string
@@ -6272,6 +6372,27 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: Json
+      }
+      get_barber_pending_commissions: {
+        Args: {
+          p_barber_id: string
+          p_end_date?: string
+          p_start_date?: string
+          p_tenant_id: string
+        }
+        Returns: {
+          appointment_date: string
+          appointment_id: string
+          commission_amount: number
+          created_at: string
+          customer_id: string
+          customer_name: string
+          id: string
+          service_amount: number
+          service_id: string
+          service_name: string
+          status: string
+        }[]
       }
       get_cron_status: {
         Args: never
@@ -6357,6 +6478,15 @@ export type Database = {
           p_pause_until?: string
           p_reason?: string
           p_subscription_id: string
+        }
+        Returns: Json
+      }
+      pay_barber_commissions: {
+        Args: {
+          p_barber_id: string
+          p_commission_ids: string[]
+          p_paid_by?: string
+          p_tenant_id: string
         }
         Returns: Json
       }
