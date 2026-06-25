@@ -2083,24 +2083,45 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="barbers" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
+            <div className="flex flex-wrap gap-3 items-end bg-card p-4 border border-border rounded-xl text-foreground">
               <div className="space-y-2">
-                <Label htmlFor="barber-filter-date">Filtrar por Data</Label>
-                <input 
-                  id="barber-filter-date" 
-                  type="date" 
-                  className="flex h-10 w-[180px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-                  value={barberDateFilter}
-                  onChange={(e) => setBarberDateFilter(e.target.value)}
-                />
+                <Label>Período</Label>
+                <Select value={barberPeriodPreset} onValueChange={setBarberPeriodPreset}>
+                  <SelectTrigger className="w-[200px] h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Hoje</SelectItem>
+                    <SelectItem value="yesterday">Ontem</SelectItem>
+                    <SelectItem value="week">Esta semana</SelectItem>
+                    <SelectItem value="month">Este mês</SelectItem>
+                    <SelectItem value="prev_month">Mês anterior</SelectItem>
+                    <SelectItem value="custom">Personalizado</SelectItem>
+                    <SelectItem value="all">Todas as Datas</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Button 
-                variant="ghost" 
-                onClick={() => setBarberDateFilter("")}
-                className="h-10 hover:bg-accent hover:text-accent-foreground"
-              >
-                Todas as Datas
-              </Button>
+              {barberPeriodPreset === "custom" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="barber-start">Data inicial</Label>
+                    <input id="barber-start" type="date" value={barberCustomStart}
+                      onChange={(e) => setBarberCustomStart(e.target.value)}
+                      className="flex h-10 w-[170px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="barber-end">Data final</Label>
+                    <input id="barber-end" type="date" value={barberCustomEnd}
+                      onChange={(e) => setBarberCustomEnd(e.target.value)}
+                      className="flex h-10 w-[170px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                  </div>
+                </>
+              )}
+              {barberPeriodRange.start && (
+                <div className="text-xs text-muted-foreground self-center">
+                  {barberPeriodRange.start === barberPeriodRange.end
+                    ? `Em ${barberPeriodRange.start}`
+                    : `${barberPeriodRange.start} → ${barberPeriodRange.end ?? "hoje"}`}
+                </div>
+              )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
