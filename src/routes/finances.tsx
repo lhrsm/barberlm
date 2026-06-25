@@ -2129,7 +2129,7 @@ function FinancesComponent() {
                 const barberTransactions = transactions.filter(t => 
                   t.barber_id === barber.id && 
                   t.type === 'income' &&
-                  (!barberDateFilter || t.date === barberDateFilter)
+                  inBarberRange(t.date)
                 );
                 const bApptIds = new Set();
                 const totalReceived = barberTransactions.reduce((acc, t) => {
@@ -2197,7 +2197,7 @@ function FinancesComponent() {
                       const generalTransactions = transactions.filter(t => 
                         !t.barber_id && 
                         t.type === 'income' &&
-                        (!barberDateFilter || t.date === barberDateFilter)
+                        inBarberRange(t.date)
                       );
                       const totalGeneralOnly = generalTransactions.reduce((acc, t) => {
                         // Para lançamentos gerais (sem barbeiro), usamos o valor da transação + créditos se houver
@@ -2218,7 +2218,7 @@ function FinancesComponent() {
                         const bTransactions = transactions.filter(t => 
                           t.barber_id === barber.id && 
                           t.type === 'income' &&
-                          (!barberDateFilter || t.date === barberDateFilter)
+                          inBarberRange(t.date)
                         );
                         const bApptIds = new Set();
                         const bTotal = bTransactions.reduce((tAcc, t) => {
