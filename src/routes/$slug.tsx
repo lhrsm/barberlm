@@ -2607,62 +2607,53 @@ function ShopPageComponent() {
           </section>
         )}
 
-        {/* Cupons / Promoções */}
+        {/* Promoções — banners sem expor códigos */}
         {couponsEnabled && publicActiveCoupons.length > 0 && (
           <section id="promocoes" className="py-20 bg-black">
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center space-y-3 mb-12">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Aproveite</span>
-                <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Promoções Ativas</h3>
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Campanhas</span>
+                <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Ofertas Especiais Disponíveis</h3>
+                <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
+                  Aproveite condições exclusivas. Use o seu cupom no momento do agendamento.
+                </p>
               </div>
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {publicActiveCoupons.map((c) => (
+                {publicActiveCoupons.slice(0, 3).map((c, idx) => (
                   <motion.div
                     key={c.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
                     viewport={{ once: true }}
-                    className="group relative rounded-3xl border border-[#F5C542]/20 bg-white/[0.02] p-6 flex flex-col gap-4 transition-all duration-300 hover:border-[#F5C542]/60 hover:bg-white/[0.03] hover:shadow-[0_20px_50px_rgba(245,197,66,0.15)] hover:-translate-y-1"
+                    className="group relative rounded-3xl border border-[#F5C542]/20 bg-gradient-to-br from-[#0B1324] via-black to-black p-7 flex flex-col gap-5 transition-all duration-300 hover:border-[#F5C542]/60 hover:shadow-[0_20px_50px_rgba(245,197,66,0.18)] hover:-translate-y-1 overflow-hidden"
                   >
-                    {/* Notch decorative */}
-                    <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
-                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-black border border-[#F5C542]/20" />
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#F5C542]/20 to-[#D4A017]/10 flex items-center justify-center border border-[#F5C542]/30">
-                          <TicketPercent size={16} className="text-[#F5C542]" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#F5C542]">Cupom Premium</span>
+                    <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-[#F5C542]/10 blur-3xl pointer-events-none" />
+                    <div className="relative flex items-center gap-3">
+                      <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#F5C542]/25 to-[#D4A017]/10 flex items-center justify-center border border-[#F5C542]/30">
+                        <TicketPercent size={18} className="text-[#F5C542]" />
                       </div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#F5C542]">Oferta Especial</span>
                     </div>
-
-                    <div>
-                      <p className="text-4xl font-black text-white tracking-tighter leading-none">
-                        {c.type === 'percent' || c.type === 'percentage' ? `${Number(c.value)}% OFF` : `R$ ${Number(c.value || 0).toFixed(2)}`}
+                    <div className="relative space-y-2">
+                      <h4 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white leading-tight">
+                        Condição exclusiva disponível
+                      </h4>
+                      <p className="text-sm text-slate-400 leading-relaxed">
+                        Já tem o cupom? Aplique no momento do agendamento e garanta o seu benefício.
                       </p>
-                      {!(c.type === 'percent' || c.type === 'percentage') && (
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">de desconto</p>
-                      )}
                     </div>
-
-                    <div className="rounded-xl border border-dashed border-[#F5C542]/30 bg-[#F5C542]/[0.04] px-4 py-3">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Código</p>
-                      <p className="text-base font-black text-white tracking-[0.15em]">{c.code}</p>
-                    </div>
-
                     {c.expires_at && (
-                      <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1.5">
+                      <p className="relative text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1.5">
                         <Calendar size={12} className="text-[#F5C542]/70" />
                         Válido até {format(parseISO(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     )}
-
                     <Button
-                      className="mt-auto h-12 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] font-black uppercase tracking-widest text-[11px] shadow-[0_8px_20px_rgba(245,197,66,0.28)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.4)] hover:-translate-y-0.5 transition-all"
+                      className="relative mt-auto h-12 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] font-black uppercase tracking-widest text-[11px] shadow-[0_8px_20px_rgba(245,197,66,0.28)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.4)] hover:-translate-y-0.5 transition-all"
                       onClick={handleBookingAction}
                     >
-                      <Calendar size={14} className="mr-2" /> Agendar com Cupom
+                      <Calendar size={14} className="mr-2" /> Agendar agora
                     </Button>
                   </motion.div>
                 ))}
@@ -2670,6 +2661,7 @@ function ShopPageComponent() {
             </div>
           </section>
         )}
+
 
         {/* Programa de Fidelidade */}
         {loyaltyEnabled && publicLoyaltySettings?.enabled && (
