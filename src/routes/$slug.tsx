@@ -2115,7 +2115,7 @@ function ShopPageComponent() {
 
       <main className={cn("space-y-0 pb-24 md:pb-0", isEmbedded && "py-0 pb-0")}>
         {/* Hero Section */}
-        <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+        <section id="inicio" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(92px+env(safe-area-inset-top)+24px)] pb-12 md:pt-0 md:pb-0 md:h-screen md:min-h-[700px]">
           {/* Background Image with Parallax effect could be added here */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10" />
           <div className="absolute inset-0 z-0">
