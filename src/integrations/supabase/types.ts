@@ -6108,6 +6108,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cleanup_invalid_cashback: { Args: { p_tenant_id: string }; Returns: Json }
       clear_barbershop_financial_data: {
         Args: { p_tenant_id: string }
         Returns: Json
@@ -6263,6 +6264,15 @@ export type Database = {
         }[]
       }
       get_barber_appointments: { Args: { p_barber_id: string }; Returns: Json }
+      get_barber_dashboard_summary: {
+        Args: {
+          p_barber_id: string
+          p_end_date?: string
+          p_start_date?: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       get_cron_status: {
         Args: never
         Returns: {
