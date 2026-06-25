@@ -85,7 +85,43 @@ function FinancesComponent() {
   const [financeTab, setFinanceTab] = useState<string>("transactions");
 
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
+  const [barberCustomStart, setBarberCustomStart] = useState<string>("");
+  const [barberCustomEnd, setBarberCustomEnd] = useState<string>("");
+  const barberPeriodRange = useMemo(() => {
+    const toISO = (d: Date) => d.toISOString().split('T')[0];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let start: Date | null = today;
+    let end: Date | null = today;
+    if (barberPeriodPreset === "today") { start = today; end = today; }
+    else if (barberPeriodPreset === "yesterday") {
+      const y = new Date(today); y.setDate(y.getDate() - 1); start = y; end = y;
+    }
+    else if (barberPeriodPreset === "week") {
+      const s = new Date(today); s.setDate(s.getDate() - s.getDay()); start = s; end = today;
+    }
+    else if (barberPeriodPreset === "month") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1); end = today;
+    }
+    else if (barberPeriodPreset === "prev_month") {
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
+    }
+    else if (barberPeriodPreset === "all") { start = null; end = null; }
+    else if (barberPeriodPreset === "custom") {
+      start = barberCustomStart ? new Date(barberCustomStart + "T00:00:00") : null;
+      end = barberCustomEnd ? new Date(barberCustomEnd + "T00:00:00") : null;
+    }
+    return { start: start ? toISO(start) : null, end: end ? toISO(end) : null };
+  }, [barberPeriodPreset, barberCustomStart, barberCustomEnd]);
+  const inBarberRange = (date?: string | null) => {
+    if (!date) return false;
+    const d = String(date).slice(0, 10);
+    if (barberPeriodRange.start && d < barberPeriodRange.start) return false;
+    if (barberPeriodRange.end && d > barberPeriodRange.end) return false;
+    return true;
+  };
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
@@ -2047,24 +2083,45 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="barbers" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
+            <div className="flex flex-wrap gap-3 items-end bg-card p-4 border border-border rounded-xl text-foreground">
               <div className="space-y-2">
-                <Label htmlFor="barber-filter-date">Filtrar por Data</Label>
-                <input 
-                  id="barber-filter-date" 
-                  type="date" 
-                  className="flex h-10 w-[180px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-                  value={barberDateFilter}
-                  onChange={(e) => setBarberDateFilter(e.target.value)}
-                />
+                <Label>Período</Label>
+                <Select value={barberPeriodPreset} onValueChange={setBarberPeriodPreset}>
+                  <SelectTrigger className="w-[200px] h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Hoje</SelectItem>
+                    <SelectItem value="yesterday">Ontem</SelectItem>
+                    <SelectItem value="week">Esta semana</SelectItem>
+                    <SelectItem value="month">Este mês</SelectItem>
+                    <SelectItem value="prev_month">Mês anterior</SelectItem>
+                    <SelectItem value="custom">Personalizado</SelectItem>
+                    <SelectItem value="all">Todas as Datas</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Button 
-                variant="ghost" 
-                onClick={() => setBarberDateFilter("")}
-                className="h-10 hover:bg-accent hover:text-accent-foreground"
-              >
-                Todas as Datas
-              </Button>
+              {barberPeriodPreset === "custom" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="barber-start">Data inicial</Label>
+                    <input id="barber-start" type="date" value={barberCustomStart}
+                      onChange={(e) => setBarberCustomStart(e.target.value)}
+                      className="flex h-10 w-[170px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="barber-end">Data final</Label>
+                    <input id="barber-end" type="date" value={barberCustomEnd}
+                      onChange={(e) => setBarberCustomEnd(e.target.value)}
+                      className="flex h-10 w-[170px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                  </div>
+                </>
+              )}
+              {barberPeriodRange.start && (
+                <div className="text-xs text-muted-foreground self-center">
+                  {barberPeriodRange.start === barberPeriodRange.end
+                    ? `Em ${barberPeriodRange.start}`
+                    : `${barberPeriodRange.start} → ${barberPeriodRange.end ?? "hoje"}`}
+                </div>
+              )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -2072,7 +2129,7 @@ function FinancesComponent() {
                 const barberTransactions = transactions.filter(t => 
                   t.barber_id === barber.id && 
                   t.type === 'income' &&
-                  (!barberDateFilter || t.date === barberDateFilter)
+                  inBarberRange(t.date)
                 );
                 const bApptIds = new Set();
                 const totalReceived = barberTransactions.reduce((acc, t) => {
@@ -2103,6 +2160,8 @@ function FinancesComponent() {
                 const commissionRate = Number(barber.commission_rate || 0);
                 const barberPart = totalReceived * (commissionRate / 100);
                 const barbershopPartFromBarber = totalReceived - barberPart;
+                const apptCount = bApptIds.size;
+                const avgTicket = apptCount > 0 ? totalReceived / apptCount : 0;
 
                 return (
                   <Card key={barber.id} className="bg-card border-border text-foreground">
@@ -2124,6 +2183,14 @@ function FinancesComponent() {
                           <span>Parte da Barbearia</span>
                           <span className="text-primary font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
                         </div>
+                        <div className="flex justify-between items-center text-sm pt-2 border-t border-border">
+                          <span className="text-muted-foreground">Atendimentos</span>
+                          <span className="font-bold text-white">{apptCount}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Ticket Médio</span>
+                          <span className="font-medium text-white">R$ {avgTicket.toFixed(2)}</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -2140,7 +2207,7 @@ function FinancesComponent() {
                       const generalTransactions = transactions.filter(t => 
                         !t.barber_id && 
                         t.type === 'income' &&
-                        (!barberDateFilter || t.date === barberDateFilter)
+                        inBarberRange(t.date)
                       );
                       const totalGeneralOnly = generalTransactions.reduce((acc, t) => {
                         // Para lançamentos gerais (sem barbeiro), usamos o valor da transação + créditos se houver
@@ -2161,7 +2228,7 @@ function FinancesComponent() {
                         const bTransactions = transactions.filter(t => 
                           t.barber_id === barber.id && 
                           t.type === 'income' &&
-                          (!barberDateFilter || t.date === barberDateFilter)
+                          inBarberRange(t.date)
                         );
                         const bApptIds = new Set();
                         const bTotal = bTransactions.reduce((tAcc, t) => {

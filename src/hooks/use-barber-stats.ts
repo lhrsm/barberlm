@@ -1,84 +1,67 @@
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
+/**
+ * Single source of truth for barber dashboard / commission / financial tabs.
+ * Reads from get_barber_dashboard_summary (SECURITY DEFINER RPC) and also
+ * pulls next appointment + cancellations from the same data the agenda uses.
+ */
 export async function fetchBarberStats(barberId: string) {
-  const now = new Date();
-  const tStart = startOfDay(now).toISOString();
-  const tEnd = endOfDay(now).toISOString();
-  const wStart = startOfWeek(now, { weekStartsOn: 0 }).toISOString();
-  const wEnd = endOfWeek(now, { weekStartsOn: 0 }).toISOString();
-  const mStart = startOfMonth(now).toISOString();
-  const mEnd = endOfMonth(now).toISOString();
-
+  // discover tenant from barbers table
   const { data: barber } = await supabase
     .from("barbers")
-    .select("commission_rate")
+    .select("tenant_id, commission_rate")
     .eq("id", barberId)
     .maybeSingle();
 
-  // IMPORTANT: barber panel runs under the anon session (custom barber auth),
-  // so direct SELECT on appointments is blocked by RLS for confirmed/completed
-  // rows. Always go through the SECURITY DEFINER RPC, same source the
-  // appointments list uses — keeps dashboard, history, commissions and
-  // financial screens in sync.
-  const { data: rpcData, error } = await supabase
-    .rpc("get_barber_appointments", { p_barber_id: barberId });
+  if (!barber?.tenant_id) {
+    return {
+      today: 0, week: 0, month: 0,
+      revenueMonth: 0, commissionMonth: 0, commissionPaid: 0, commissionPending: 0,
+      avgTicket: 0, customerCount: 0, nextApp: null, cancelledMonth: 0,
+    };
+  }
+
+  const { data, error } = await supabase.rpc("get_barber_dashboard_summary", {
+    p_tenant_id: barber.tenant_id,
+    p_barber_id: barberId,
+  });
 
   if (error) {
-    console.error("[BARBER_STATS_RPC_ERROR]", error);
+    console.error("[BARBER_DASH_RPC_ERROR]", error);
     throw error;
   }
 
-  const allApps: any[] = Array.isArray(rpcData) ? rpcData : [];
+  const s: any = data || {};
 
-  const inRange = (a: any, s: string, e: string) =>
-    a.start_time >= s && a.start_time <= e;
-
-  const todayApps = allApps.filter(a => inRange(a, tStart, tEnd) && a.status !== 'cancelled');
-  const weekApps = allApps.filter(a => inRange(a, wStart, wEnd) && a.status !== 'cancelled');
-  const monthApps = allApps.filter(a => inRange(a, mStart, mEnd));
-
-  const monthCompletedApps = monthApps.filter(a => a.status === 'completed');
-  const monthCancelledApps = monthApps.filter(a => a.status === 'cancelled');
-
-  const totalRevenueMonth = monthCompletedApps.reduce(
-    (acc, a) => acc + Number(a.total_price || 0), 0
-  );
-
-  const commissionRate = Number(barber?.commission_rate || 0) / 100;
-  const commissionMonth = totalRevenueMonth * commissionRate;
-
-  const distinctCustomers = new Set(
-    allApps.filter(a => a.status === 'completed').map(a => a.customer_id)
-  ).size;
-  const avgTicket = monthCompletedApps.length > 0
-    ? totalRevenueMonth / monthCompletedApps.length
-    : 0;
-
-  const nextApp = allApps
-    .filter(a => new Date(a.start_time) > now && (a.status === 'scheduled' || a.status === 'confirmed'))
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
+  // distinct customer count (best effort; uses agenda RPC, already RLS-safe)
+  let customerCount = 0;
+  let nextApp: any = s.next_appointment ? { start_time: s.next_appointment } : null;
+  try {
+    const { data: apps } = await supabase.rpc("get_barber_appointments", { p_barber_id: barberId });
+    const list: any[] = Array.isArray(apps) ? apps : [];
+    customerCount = new Set(list.filter(a => a.status === "completed").map(a => a.customer_id)).size;
+    if (!nextApp) {
+      const now = Date.now();
+      nextApp = list
+        .filter(a => new Date(a.start_time).getTime() > now && (a.status === "scheduled" || a.status === "confirmed"))
+        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0] || null;
+    }
+  } catch {}
 
   const result = {
-    today: todayApps.length,
-    week: weekApps.length,
-    month: monthApps.filter(a => a.status !== 'cancelled').length,
-    revenueMonth: totalRevenueMonth,
-    commissionMonth,
-    avgTicket,
-    customerCount: distinctCustomers,
+    today: Number(s.appointments_today || 0),
+    week: Number(s.appointments_week || 0),
+    month: Number(s.appointments_month || 0),
+    revenueMonth: Number(s.gross_production || 0),
+    commissionMonth: Number(s.commission_generated || 0),
+    commissionPaid: Number(s.commission_paid || 0),
+    commissionPending: Number(s.commission_pending || 0),
+    avgTicket: Number(s.average_ticket || 0),
+    customerCount,
     nextApp,
-    cancelledMonth: monthCancelledApps.length,
+    cancelledMonth: Number(s.cancelled_count || 0),
   };
 
-  console.log("[BARBER_STATS_COMPUTED]", {
-    barberId,
-    totalAppointments: allApps.length,
-    completedThisMonth: monthCompletedApps.length,
-    revenueMonth: totalRevenueMonth,
-    commissionRate,
-    commissionMonth,
-  });
-
+  console.log("[BARBER_STATS_COMPUTED]", { barberId, ...result });
   return result;
 }
