@@ -2388,23 +2388,23 @@ function ShopPageComponent() {
                     </div>
 
                     <div 
-                      className="p-7 flex flex-col flex-1 space-y-4 cursor-pointer"
+                      className="p-[18px] md:p-7 flex flex-col flex-1 space-y-3 md:space-y-4 cursor-pointer"
                       onClick={() => setSelectedProductProductForModal(product)}
                     >
                       <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{product.category || 'Cuidados'}</p>
-                        <h4 className="text-xl font-black uppercase tracking-tight leading-tight text-white group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any}>{product.name}</h4>
+                        <h4 className="text-base md:text-xl font-black uppercase tracking-tight leading-tight text-white group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any}>{product.name}</h4>
                         {product.brand && <p className="text-xs font-bold text-zinc-400">{product.brand}</p>}
                       </div>
 
-                      <p className="text-zinc-400 text-sm line-clamp-2 leading-relaxed flex-1 font-medium">
+                      <p className="text-zinc-400 text-xs md:text-sm line-clamp-2 leading-relaxed flex-1 font-medium">
                         {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
                       </p>
 
-                      <div className="pt-4 border-t border-white/5 space-y-4">
+                      <div className="pt-3 md:pt-4 border-t border-white/5 space-y-3 md:space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
-                            <span className="text-2xl font-black text-white" style={{ color: primaryColor }}>R$ {Number(product.price).toFixed(2)}</span>
+                            <span className="text-lg md:text-2xl font-black text-white" style={{ color: primaryColor }}>R$ {Number(product.price).toFixed(2)}</span>
                             {product.promotional_price && (
                               <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
                             )}
