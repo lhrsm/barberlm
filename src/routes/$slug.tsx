@@ -2974,15 +2974,8 @@ function ShopPageComponent() {
           );
         })()}
 
-        {/* Mobile Bottom CTA */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-40">
-          <Button 
-            className="w-full h-14 rounded-2xl shadow-2xl bg-black text-white border-2 border-[#D4AF37] font-black uppercase tracking-tighter text-lg scale-100 active:scale-95 transition-all"
-            onClick={handleBookingAction}
-          >
-            {shop.scheduling_mode === 'manual' ? 'Agendar WhatsApp' : 'Agendar Agora'}
-          </Button>
-        </div>
+        {/* Mobile Bottom CTA removed — header + hero CTAs are sufficient */}
+
       </main>
     </>
   ) : isProfessionalsRoute ? (
