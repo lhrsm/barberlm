@@ -2572,8 +2572,11 @@ function ShopPageComponent() {
                         )}
                       </div>
                       <div className="flex items-baseline gap-1 mb-6">
-                        <span className="text-5xl font-black text-white">R$ {Number(plan.monthly_price || 0).toFixed(2)}</span>
-                        <span className="text-sm text-slate-500 font-bold">/mês</span>
+                        <span className="font-black text-white leading-none" style={{ fontSize: 'clamp(34px, 9vw, 56px)' }}>
+                          <span className="font-black text-white/90 mr-1" style={{ fontSize: 'clamp(20px, 5.5vw, 32px)' }}>R$</span>
+                          {Number(plan.monthly_price || 0).toFixed(2)}
+                        </span>
+                        <span className="text-sm md:text-base text-slate-500 font-bold" style={{ fontSize: 'clamp(14px, 3vw, 18px)' }}>/mês</span>
                       </div>
                       {plan.max_uses_per_month != null && (
                         <p className="text-xs uppercase tracking-widest font-bold text-[#D4AF37] mb-4">
