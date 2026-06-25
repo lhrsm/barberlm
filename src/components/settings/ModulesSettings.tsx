@@ -26,19 +26,19 @@ interface ModuleDef {
   name: string;
   description: string;
   icon: LucideIcon;
-  requiredPlan: "starter" | "professional" | "elite" | "enterprise";
+  requiredPlan: "starter" | "pro" | "elite";
 }
 
 const MODULES: ModuleDef[] = [
   { key: "support", name: "Suporte", description: "Abrir chamados e receber ajuda da equipe Barbex.", icon: Headset, requiredPlan: "starter" },
-  { key: "commissions", name: "Comissões", description: "Calcule comissões dos barbeiros automaticamente.", icon: CircleDollarSign, requiredPlan: "professional" },
-  { key: "loyalty", name: "Fidelidade", description: "Programa de pontos por atendimentos realizados.", icon: Gift, requiredPlan: "professional" },
-  { key: "campaigns", name: "Campanhas", description: "Envie campanhas promocionais para seus clientes.", icon: Megaphone, requiredPlan: "professional" },
-  { key: "coupons", name: "Cupons", description: "Crie cupons de desconto para campanhas.", icon: Ticket, requiredPlan: "professional" },
-  { key: "whatsapp", name: "WhatsApp", description: "Configure o número de WhatsApp da barbearia.", icon: Phone, requiredPlan: "professional" },
-  { key: "subscriptions", name: "Assinaturas", description: "Crie planos recorrentes para seus clientes.", icon: CreditCard, requiredPlan: "elite" },
-  { key: "cashback", name: "Cashback", description: "Devolva uma porcentagem em créditos para o cliente.", icon: Coins, requiredPlan: "elite" },
-  { key: "products", name: "Loja / Produtos", description: "Venda produtos como pomadas, shampoos e acessórios.", icon: ShoppingBag, requiredPlan: "elite" },
+  { key: "whatsapp", name: "WhatsApp", description: "Configure o número de WhatsApp da barbearia.", icon: Phone, requiredPlan: "starter" },
+  { key: "commissions", name: "Comissões", description: "Calcule comissões dos barbeiros automaticamente.", icon: CircleDollarSign, requiredPlan: "pro" },
+  { key: "loyalty", name: "Fidelidade", description: "Programa de pontos por atendimentos realizados.", icon: Gift, requiredPlan: "pro" },
+  { key: "campaigns", name: "Campanhas", description: "Envie campanhas promocionais para seus clientes.", icon: Megaphone, requiredPlan: "pro" },
+  { key: "coupons", name: "Cupons", description: "Crie cupons de desconto para campanhas.", icon: Ticket, requiredPlan: "pro" },
+  { key: "subscriptions", name: "Assinaturas", description: "Crie planos recorrentes para seus clientes.", icon: CreditCard, requiredPlan: "pro" },
+  { key: "cashback", name: "Cashback", description: "Devolva uma porcentagem em créditos para o cliente.", icon: Coins, requiredPlan: "pro" },
+  { key: "products", name: "Loja / Produtos", description: "Venda produtos como pomadas, shampoos e acessórios.", icon: ShoppingBag, requiredPlan: "pro" },
   { key: "automations", name: "Automações", description: "Mensagens automáticas de confirmação, lembrete e retorno.", icon: MessageSquare, requiredPlan: "elite" },
   { key: "integrations", name: "Integrações", description: "Conecte com WhatsApp, Z-API, Stripe e outros.", icon: Share2, requiredPlan: "elite" },
   { key: "tutorials", name: "Tutoriais", description: "Acesso a vídeos e materiais de apoio.", icon: GraduationCap, requiredPlan: "elite" },
@@ -47,13 +47,12 @@ const MODULES: ModuleDef[] = [
 
 const PLAN_LABELS: Record<string, string> = {
   starter: "Starter",
-  professional: "Professional",
+  pro: "Pro",
   elite: "Elite",
-  enterprise: "Enterprise",
 };
 
 const PLAN_TIER: Record<string, number> = {
-  starter: 1, professional: 2, elite: 3, enterprise: 4,
+  starter: 1, pro: 2, elite: 3,
 };
 
 export function ModulesSettings() {
@@ -162,7 +161,7 @@ export function ModulesSettings() {
         </div>
       )}
 
-      {plan && currentTier < 4 && (
+      {plan && currentTier < 3 && (
         <div className="mt-2 p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h4 className="text-sm sm:text-base font-bold text-white">Desbloqueie mais recursos</h4>

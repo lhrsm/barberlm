@@ -3303,6 +3303,7 @@ export type Database = {
         Row: {
           active: boolean | null
           allowed_modules: Json
+          automation_limit: number | null
           created_at: string
           description: string | null
           features: Json
@@ -3320,6 +3321,7 @@ export type Database = {
         Insert: {
           active?: boolean | null
           allowed_modules?: Json
+          automation_limit?: number | null
           created_at?: string
           description?: string | null
           features?: Json
@@ -3337,6 +3339,7 @@ export type Database = {
         Update: {
           active?: boolean | null
           allowed_modules?: Json
+          automation_limit?: number | null
           created_at?: string
           description?: string | null
           features?: Json
