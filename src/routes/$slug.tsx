@@ -2767,40 +2767,58 @@ function ShopPageComponent() {
           </div>
         </section>
 
-        {/* Portal CTA Section */}
-        <section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
+        {/* Portal CTA Section — Premium with image */}
+        <section className="py-20 md:py-24 bg-[#0a0a0a] relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[120px] rounded-full pointer-events-none" style={{ backgroundColor: `${primaryColor}05` }} />
-          
-          <div className="max-w-4xl mx-auto px-4 relative z-10">
-            <div className="glass p-12 md:p-20 rounded-[4rem] text-center space-y-10 border border-white/10 shadow-2xl">
-              <div className="space-y-4">
-                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Pronto para elevar seu visual?</h3>
-                <p className="text-slate-400 text-lg md:text-xl max-w-xl mx-auto font-medium leading-relaxed">
-                  Agende seu horário agora e experimente o padrão de excelência que você merece.
-                </p>
+
+          <div className="max-w-6xl mx-auto px-4 relative z-10">
+            <div
+              className="grid md:grid-cols-2 overflow-hidden rounded-[28px] md:rounded-[32px] border border-[#F5C542]/20 bg-[rgba(5,11,24,0.92)] shadow-[0_24px_70px_rgba(0,0,0,0.35)]"
+            >
+              {/* Image — top on mobile, right on desktop */}
+              <div className="relative h-[220px] sm:h-[280px] md:h-auto md:min-h-[420px] md:order-2">
+                <img
+                  src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1600&auto=format&fit=crop"
+                  alt="Barbearia premium — cliente sendo atendido"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(5,11,24,0.95)] via-[rgba(5,11,24,0.35)] to-transparent md:bg-gradient-to-r md:from-[rgba(5,11,24,0.95)] md:via-[rgba(5,11,24,0.25)] md:to-transparent" />
+                <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5C542] text-black text-[10px] font-black uppercase tracking-[0.18em] shadow-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-black animate-pulse" />
+                  Agenda aberta
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Button 
-                  size="lg"
-                  className="h-16 px-12 rounded-full shadow-2xl hover:scale-105 transition-all gap-3 text-lg font-black uppercase tracking-tighter w-full sm:w-auto"
-                  style={{ backgroundColor: primaryColor }}
-                  onClick={handleBookingAction}
-                >
-                  Agendar meu horário
-                </Button>
-                <Button 
-                  variant="link" 
-                  size="lg" 
-                  className="text-white hover:text-primary transition-colors font-bold text-lg underline-offset-8" 
-                  asChild
-                >
-                  <a href={`/${slug}/portal`}>Acessar meu portal</a>
-                </Button>
+              {/* Content */}
+              <div className="p-8 sm:p-10 md:p-14 flex flex-col justify-center space-y-6 md:order-1">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Sua vez</span>
+                <h3 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white leading-[1.02]">
+                  Pronto para elevar seu visual?
+                </h3>
+                <p className="text-slate-300/90 text-base md:text-lg leading-relaxed max-w-xl">
+                  Agende seu horário agora e experimente o padrão de excelência que você merece.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
+                  <Button
+                    className="h-[52px] px-7 rounded-full font-black uppercase tracking-widest text-[12px] text-[#050505] bg-gradient-to-br from-[#F5C542] to-[#D4A017] shadow-[0_12px_30px_rgba(245,197,66,0.32)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(245,197,66,0.45)] transition-all"
+                    onClick={handleBookingAction}
+                  >
+                    Agendar meu horário
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-[52px] px-7 rounded-full font-black uppercase tracking-widest text-[12px] bg-[#0B1324] border border-[#F5C542]/40 text-white hover:bg-[#F5C542]/[0.08] hover:border-[#F5C542] hover:text-[#F5C542] transition-all"
+                  >
+                    <a href={`/${slug}/portal`}>Acessar meu portal</a>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </section>
+
 
         {/* Footer */}
         {(() => {
