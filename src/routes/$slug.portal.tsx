@@ -1550,19 +1550,21 @@ function ClientPortalComponent() {
                                )}>
                                  {app.status === 'completed' ? 'Concluído' : 'Agendado'}
                                </Badge>
-                               {app.status === 'completed' && !app._review_id && (
-                                 <Button
-                                   size="sm"
-                                   variant="outline"
-                                   onClick={(e) => { e.stopPropagation(); setReviewAppointment(app); setIsReviewOpen(true); }}
-                                   className="h-7 text-[10px] border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10"
-                                 >
-                                   ★ Avaliar
-                                 </Button>
-                               )}
-                               {app.status === 'completed' && app._review_id && (
-                                 <span className="text-[10px] text-emerald-500 font-bold">★ Avaliado</span>
-                               )}
+                                {app.status === 'completed' && !app._review_id && (
+                                  <Button
+                                    size="sm"
+                                    onClick={(e) => { e.stopPropagation(); setReviewAppointment(app); setIsReviewOpen(true); }}
+                                    className="group relative h-7 px-3 text-[10px] font-bold tracking-wide uppercase rounded-full border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37]/15 via-[#F5C95A]/10 to-[#D4AF37]/15 text-[#F5C95A] shadow-[0_0_0_rgba(212,175,55,0)] transition-all duration-300 hover:border-[#F5C95A] hover:from-[#D4AF37] hover:via-[#F5C95A] hover:to-[#D4AF37] hover:text-black hover:shadow-[0_6px_20px_-4px_rgba(212,175,55,0.6)] hover:-translate-y-0.5"
+                                  >
+                                    <span className="mr-1 transition-transform duration-300 group-hover:rotate-[18deg] group-hover:scale-110">★</span>
+                                    Avaliar
+                                  </Button>
+                                )}
+                                {app.status === 'completed' && app._review_id && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                                    <span>★</span> Avaliado
+                                  </span>
+                                )}
                              </div>
                            )}
                            {app.status === 'scheduled' && (
