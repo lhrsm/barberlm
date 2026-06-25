@@ -2160,6 +2160,8 @@ function FinancesComponent() {
                 const commissionRate = Number(barber.commission_rate || 0);
                 const barberPart = totalReceived * (commissionRate / 100);
                 const barbershopPartFromBarber = totalReceived - barberPart;
+                const apptCount = bApptIds.size;
+                const avgTicket = apptCount > 0 ? totalReceived / apptCount : 0;
 
                 return (
                   <Card key={barber.id} className="bg-card border-border text-foreground">
@@ -2180,6 +2182,14 @@ function FinancesComponent() {
                         <div className="flex justify-between items-center text-sm">
                           <span>Parte da Barbearia</span>
                           <span className="text-primary font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm pt-2 border-t border-border">
+                          <span className="text-muted-foreground">Atendimentos</span>
+                          <span className="font-bold text-white">{apptCount}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Ticket Médio</span>
+                          <span className="font-medium text-white">R$ {avgTicket.toFixed(2)}</span>
                         </div>
                       </div>
                     </CardContent>
