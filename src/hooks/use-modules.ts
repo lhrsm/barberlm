@@ -98,10 +98,15 @@ export function useModules() {
       let slug: string | null = null;
       const trialActive = prof?.trial_end && new Date(prof.trial_end as any) > new Date();
       if (trialActive) {
-        slug = "professional"; // trial dá acesso ao nível pro/professional
+        slug = "pro"; // trial dá acesso ao nível Pro
       } else {
         const raw = ((prof?.effective_plan as string) || (prof?.plan as string) || "").toLowerCase();
-        if (raw && raw !== "free") slug = raw === "pro" ? "professional" : raw;
+        if (raw && raw !== "free") {
+          // Normaliza nomes legados
+          if (raw === "professional") slug = "pro";
+          else if (raw === "enterprise") slug = "elite";
+          else slug = raw;
+        }
       }
 
       let planRow: any = null;

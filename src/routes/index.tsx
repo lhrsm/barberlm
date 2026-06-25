@@ -58,9 +58,11 @@ function LandingPageComponent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const planPrices = {
-    monthly: { starter: "R$ 49,90", professional: "R$ 99,90", elite: "R$ 149,90", enterprise: "R$ 249,90" },
-    annual:  { starter: "R$ 39,90", professional: "R$ 79,90", elite: "R$ 119,90", enterprise: "R$ 199,90" },
+    monthly: { starter: "R$ 59,90", pro: "R$ 99,90", elite: "R$ 149,90" },
+    annual:  { starter: "R$ 47,90", pro: "R$ 79,90", elite: "R$ 119,90" },
   } as const;
+  const WHATSAPP_COMERCIAL = "5571981708086";
+  const personalizadoUrl = `https://wa.me/${WHATSAPP_COMERCIAL}?text=${encodeURIComponent("Olá! Tenho interesse em um Plano Personalizado do BarberX para minha barbearia.")}`;
   const prices = planPrices[billingCycle];
   const priceSuffix = billingCycle === "annual" ? "/mês · cobrado anualmente" : "/mês";
 
@@ -454,31 +456,70 @@ function LandingPageComponent() {
       {/* Automation Flow Section */}
       <section id="automações" className="py-24 lg:py-40 px-6 bg-zinc-950/40 relative">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
+          <div className="text-center mb-16 lg:mb-20">
             <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">Automações</h2>
-            <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight">Relacionamento no <br /><span className="text-primary italic">automático.</span></h3>
+            <h3 className="text-4xl lg:text-6xl font-black text-white tracking-tight mb-4">Automações que <span className="text-primary italic">trabalham por você</span></h3>
+            <p className="text-base lg:text-lg text-white/60 max-w-2xl mx-auto">Enquanto você corta cabelo, o BarberX trabalha para aumentar seu faturamento. Quanto maior seu plano, mais inteligente sua barbearia se torna.</p>
           </div>
 
-          <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 max-w-5xl mx-auto">
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent hidden md:block -z-10" />
-            
-            {[
-              { title: "Agendamento", icon: <Calendar />, desc: "Cliente agenda no seu link personalizado" },
-              { title: "Confirmação", icon: <MessageSquare />, desc: "WhatsApp enviado na hora para confirmar" },
-              { title: "Lembrete", icon: <Zap />, desc: "Aviso enviado 2h antes do horário marcado" },
-              { title: "Fidelização", icon: <Star />, desc: "Cashback e convite para próxima visita" },
-            ].map((step, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center text-center space-y-4">
-                <div className="w-20 h-20 rounded-[2rem] bg-zinc-900 border border-white/10 flex items-center justify-center text-primary shadow-2xl group-hover:bg-primary transition-all">
-                  {step.icon}
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
+            {/* Starter */}
+            <div className="p-7 rounded-[2rem] bg-zinc-900/50 border border-white/10 flex flex-col h-full hover:border-white/20 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70"><Zap className="w-5 h-5" /></div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Plano Starter</div>
+                  <h4 className="text-lg font-black text-white">3 automações essenciais</h4>
                 </div>
-                <h4 className="text-lg font-black text-white">{step.title}</h4>
-                <p className="text-xs text-white/40 font-bold max-w-[150px]">{step.desc}</p>
               </div>
-            ))}
+              <p className="text-xs text-white/50 mb-5">Ideal para começar a automatizar sua barbearia.</p>
+              <ul className="space-y-2.5 flex-1 text-sm text-white/80">
+                <li className="flex gap-2"><Check className="w-4 h-4 text-white/40 shrink-0 mt-0.5" /> Confirmação automática</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-white/40 shrink-0 mt-0.5" /> Cancelamento automático</li>
+                <li className="flex gap-2"><Check className="w-4 h-4 text-white/40 shrink-0 mt-0.5" /> Lembrete de atendimento</li>
+              </ul>
+            </div>
+
+            {/* Pro — destaque */}
+            <div className="p-7 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_30px_60px_-20px_rgba(245,197,66,0.45)] lg:scale-[1.04]">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">⭐ Mais Vendido</div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center text-primary"><Zap className="w-5 h-5" /></div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-primary">Plano Pro</div>
+                  <h4 className="text-lg font-black text-white">8 automações inteligentes</h4>
+                </div>
+              </div>
+              <p className="text-xs text-white/60 mb-5">Automatize atendimento, fidelização e vendas.</p>
+              <ul className="space-y-2.5 flex-1 text-sm text-white/90">
+                {["Reagendamento automático","Mensagem de aniversário","Cliente inativo","Pós-atendimento","Avaliações Google","Recuperação de cancelados","Promoções programadas","Fluxos inteligentes"].map(a => (
+                  <li key={a} className="flex gap-2"><Check className="w-4 h-4 text-primary shrink-0 mt-0.5" /> {a}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Elite */}
+            <div className="p-7 rounded-[2rem] bg-zinc-900/50 border border-emerald-500/30 shadow-[0_0_24px_-12px_rgba(16,185,129,0.5)] flex flex-col h-full hover:border-emerald-500/60 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400"><Star className="w-5 h-5" /></div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Plano Elite</div>
+                  <h4 className="text-lg font-black text-white">Automações ilimitadas com IA</h4>
+                </div>
+              </div>
+              <p className="text-xs text-white/60 mb-5">Uma verdadeira equipe digital trabalhando 24 horas por dia.</p>
+              <ul className="space-y-2.5 flex-1 text-sm text-white/90">
+                {["IA Agendadora","IA Comercial","IA Atendimento","IA Campanhas","IA Fidelização","IA WhatsApp","IA Produtos","IA Assinaturas","IA Pós-venda","IA Google Reviews"].map(a => (
+                  <li key={a} className="flex gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> {a}</li>
+                ))}
+              </ul>
+            </div>
           </div>
+
+          <p className="text-center text-sm text-white/50 mt-10 italic">"Seu atendente nunca dorme." — Quanto maior seu plano, mais inteligente sua barbearia se torna.</p>
         </div>
       </section>
+
 
       {/* Pricing Section */}
       <section id="planos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
@@ -511,20 +552,20 @@ function LandingPageComponent() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-stretch">
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
             {/* Starter */}
             <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Starter</h4>
-              <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias iniciantes.</p>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbeiros autônomos e pequenas barbearias.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.starter}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
-              <p className="text-[11px] text-white/40 mb-6">Até 3 barbeiros</p>
+              <p className="text-[11px] text-white/40 mb-6">Até 3 barbeiros · 300 clientes</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Agenda online" />
-                <PricingItem text="Clientes & barbeiros" />
-                <PricingItem text="Serviços" />
-                <PricingItem text="Financeiro básico" />
+                <PricingItem text="Clientes, barbeiros e serviços" />
                 <PricingItem text="Portal do cliente" />
-                <PricingItem text="Relatórios básicos" />
+                <PricingItem text="WhatsApp" />
+                <PricingItem text="Financeiro básico" />
+                <PricingItem text="3 automações essenciais" />
               </ul>
               <Button
                 className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
@@ -534,20 +575,21 @@ function LandingPageComponent() {
               </Button>
             </div>
 
-            {/* Professional — destaque */}
-            <div className="p-8 lg:p-10 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(245,197,66,0.5)] z-10 lg:scale-[1.04] hover:shadow-[0_50px_100px_-20px_rgba(245,197,66,0.65)] transition-all duration-300">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">Mais Escolhido</div>
-              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Professional</h4>
-              <p className="text-xs text-white/40 font-bold mb-6 italic">Para barbearias em crescimento.</p>
-              <div className="text-3xl font-black text-white mb-1">{prices.professional}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
-              <p className="text-[11px] text-white/40 mb-6">Até 10 barbeiros</p>
+            {/* Pro — destaque máximo */}
+            <div className="p-8 lg:p-10 rounded-[2rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(245,197,66,0.55)] z-10 lg:scale-[1.06] hover:shadow-[0_50px_100px_-20px_rgba(245,197,66,0.7)] transition-all duration-300">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">⭐ Mais Vendido</div>
+              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Pro</h4>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Recomendado para a maioria das barbearias.</p>
+              <div className="text-3xl font-black text-white mb-1">{prices.pro}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
+              <p className="text-[11px] text-white/40 mb-6">Até 10 barbeiros · Clientes ilimitados</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <PricingItem text="Tudo do Starter" />
-                <PricingItem text="Comissões automáticas" />
-                <PricingItem text="Fidelidade & Cupons" />
-                <PricingItem text="WhatsApp" />
-                <PricingItem text="Campanhas" />
-                <PricingItem text="Relatórios avançados" />
+                <PricingItem text="Estoque, Loja & Cupons" />
+                <PricingItem text="Cashback & Fidelidade" />
+                <PricingItem text="Assinaturas & Gateway de Pagamento" />
+                <PricingItem text="Financeiro completo & Dashboard avançado" />
+                <PricingItem text="8 automações inteligentes" />
+                <PricingItem text="Suporte prioritário" />
               </ul>
               <Button
                 className="w-full h-12 rounded-xl bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black font-black text-sm shadow-[0_15px_30px_-10px_rgba(245,197,66,0.6)] italic uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-95"
@@ -560,16 +602,16 @@ function LandingPageComponent() {
             {/* Elite */}
             <div className="p-8 rounded-[2rem] bg-zinc-900/50 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
               <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Elite</h4>
-              <p className="text-xs text-white/40 font-bold mb-6 italic">Premium — recorrência e crescimento.</p>
+              <p className="text-xs text-white/40 font-bold mb-6 italic">Inteligência artificial e escala ilimitada.</p>
               <div className="text-3xl font-black text-white mb-1">{prices.elite}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
-              <p className="text-[11px] text-white/40 mb-6">Barbeiros ilimitados</p>
+              <p className="text-[11px] text-white/40 mb-6">Barbeiros e admins ilimitados</p>
               <ul className="space-y-3 mb-8 flex-1">
-                <PricingItem text="Tudo do Professional" />
-                <PricingItem text="Assinaturas / Clube Premium" />
-                <PricingItem text="Cashback" />
-                <PricingItem text="Loja online" />
-                <PricingItem text="Automações" />
-                <PricingItem text="Portal Premium & Relatórios premium" />
+                <PricingItem text="Tudo do Pro" />
+                <PricingItem text="12 IAs (Agendadora, Comercial, WhatsApp...)" />
+                <PricingItem text="Automações ilimitadas" />
+                <PricingItem text="API aberta & Integrações" />
+                <PricingItem text="White Label parcial" />
+                <PricingItem text="Prioridade máxima no suporte" />
               </ul>
               <Button
                 className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
@@ -578,29 +620,30 @@ function LandingPageComponent() {
                 Assinar Elite
               </Button>
             </div>
+          </div>
 
-            {/* Enterprise */}
-            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-zinc-900/80 to-zinc-900/30 border border-primary/20 shadow-[0_10px_30px_-15px_rgba(245,197,66,0.25)] hover:border-primary/40 hover:shadow-[0_18px_40px_-15px_rgba(245,197,66,0.35)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
-              <h4 className="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Enterprise</h4>
-              <p className="text-xs text-white/40 font-bold mb-6 italic">Para redes de barbearias.</p>
-              <div className="text-3xl font-black text-white mb-1">{prices.enterprise}<span className="text-xs text-white/40 font-bold">{priceSuffix}</span></div>
-              <p className="text-[11px] text-white/40 mb-6">Usuários ilimitados</p>
-              <ul className="space-y-3 mb-8 flex-1">
-                <PricingItem text="Tudo do Elite" />
-                <PricingItem text="Múltiplas unidades" />
-                <PricingItem text="Dashboard consolidado" />
-                <PricingItem text="White Label & API" />
-                <PricingItem text="Relatórios corporativos" />
-                <PricingItem text="Gerente de conta dedicado" />
-              </ul>
+          {/* Plano Personalizado — card separado */}
+          <div className="mt-10 max-w-5xl mx-auto">
+            <div className="p-8 lg:p-10 rounded-[2rem] bg-gradient-to-br from-zinc-900 via-zinc-900/80 to-zinc-950 border border-white/10 hover:border-white/20 transition-all flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-10">
+              <div className="flex-1">
+                <span className="inline-block text-[10px] font-black px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 uppercase tracking-widest mb-3">Serviço Premium</span>
+                <h4 className="text-2xl lg:text-3xl font-black text-white mb-3 tracking-tight">Plano Personalizado</h4>
+                <p className="text-sm text-white/60 mb-4 leading-relaxed">Sua barbearia tem necessidades específicas? Montamos um plano exclusivo: desenvolvimento personalizado, integrações, APIs, consultoria, migração, treinamentos, módulos exclusivos, fluxos e automações sob medida.</p>
+                <div className="flex flex-wrap gap-2">
+                  {["Consultoria", "Integrações", "API dedicada", "Treinamentos", "Módulos exclusivos", "Migração assistida"].map(t => (
+                    <span key={t} className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 font-bold">{t}</span>
+                  ))}
+                </div>
+              </div>
               <Button
-                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-sm border border-primary/30 hover:border-primary/60 italic uppercase tracking-wider transition-all"
-                onClick={() => setShowSignupModal(true)}
+                asChild
+                className="w-full lg:w-auto h-12 px-8 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-white font-black text-sm shadow-[0_15px_30px_-10px_rgba(16,185,129,0.6)] italic uppercase tracking-wider transition-all whitespace-nowrap"
               >
-                Falar com vendas
+                <a href={personalizadoUrl} target="_blank" rel="noopener noreferrer">Solicitar Orçamento</a>
               </Button>
             </div>
           </div>
+
 
           {/* Trial bar */}
           <div className="mt-12 max-w-4xl mx-auto p-6 rounded-2xl bg-primary/5 border border-primary/20 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm text-white/70">

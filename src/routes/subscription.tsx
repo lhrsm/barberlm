@@ -35,17 +35,18 @@ import {
 const PLAN_PRICE_IDS: Record<'sandbox' | 'live', Record<string, string>> = {
   sandbox: {
     starter: "starter_monthly",
-    professional: "professional_monthly",
+    pro: "professional_monthly",
     elite: "elite_monthly",
-    enterprise: "enterprise_monthly",
   },
   live: {
     starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
-    professional: "price_1TVtOVPKG6q10Ujre6zMGYpk",
+    pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
     elite: "price_1TVtgWPKG6q10UjrxRUCnyg1",
-    enterprise: "",
   }
 };
+
+const WHATSAPP_COMERCIAL = "5571981708086";
+const personalizadoUrl = `https://wa.me/${WHATSAPP_COMERCIAL}?text=${encodeURIComponent("Olá! Tenho interesse em um Plano Personalizado do BarberX para minha barbearia.")}`;
 
 
 export const Route = createFileRoute("/subscription")({
@@ -79,7 +80,7 @@ function SubscriptionComponent() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<PlanType | null>(null);
 
-  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, professional: 2, elite: 3, enterprise: 4 };
+  const planRank: Record<string, number> = { free: 0, starter: 1, pro: 2, professional: 2, elite: 3 };
 
   const requestPlanChange = (newPlan: PlanType) => {
     const current = planRank[plan ?? 'free'] ?? 0;
@@ -115,8 +116,8 @@ function SubscriptionComponent() {
       const forcedTestMode = systemSettings?.payments_test_mode;
 
       const env = forcedTestMode ? 'sandbox' : getStripeEnvironment();
-      // Mapeia legado: 'pro' -> 'professional'
-      const planKey = (newPlan === 'pro' ? 'professional' : newPlan) as string;
+      // Normaliza nome legado para 'pro'
+      const planKey = (newPlan === 'professional' as any ? 'pro' : newPlan) as string;
       const priceId = PLAN_PRICE_IDS[env][planKey];
       
       console.log("[Subscription] 🆔 Configuração de checkout:", { 
@@ -206,30 +207,31 @@ function SubscriptionComponent() {
     {
       id: "starter" as PlanType,
       name: "Starter",
-      price: "49,90",
-      description: "Ideal para profissionais individuais.",
+      price: "59,90",
+      description: "Para barbeiros autônomos e pequenas barbearias.",
       icon: <Zap className="text-amber-500 w-5 h-5" />,
       features: [
-        "1 Profissional",
-        "Serviços Ilimitados",
-        "Agenda completa",
-        "Cadastro de clientes",
-        "Financeiro básico",
+        "Até 3 barbeiros",
+        "Até 300 clientes",
+        "Até 15 serviços",
+        "WhatsApp + Portal do cliente",
+        "3 automações essenciais",
       ],
       highlight: false,
     },
     {
-      id: "professional" as PlanType,
-      name: "Professional",
+      id: "pro" as PlanType,
+      name: "Pro",
       price: "99,90",
-      description: "Para barbearias em crescimento.",
+      description: "Recomendado para a maioria das barbearias.",
       icon: <Crown className="text-amber-500 w-5 h-5" />,
       features: [
-        "Até 5 Profissionais",
-        "Comissões e fechamentos",
-        "Programa de Fidelidade",
-        "Campanhas e Cupons",
-        "WhatsApp integrado",
+        "Até 10 barbeiros · Clientes ilimitados",
+        "Estoque, Loja, Cupons, Cashback, Fidelidade",
+        "Assinaturas + Gateway de Pagamento",
+        "Financeiro completo + Dashboard avançado",
+        "8 automações inteligentes",
+        "Suporte prioritário",
       ],
       highlight: true,
     },
@@ -237,29 +239,14 @@ function SubscriptionComponent() {
       id: "elite" as PlanType,
       name: "Elite",
       price: "149,90",
-      description: "Operação completa, sem limites.",
+      description: "IA completa e escala ilimitada.",
       icon: <Rocket className="text-amber-500 w-5 h-5" />,
       features: [
-        "Profissionais Ilimitados",
-        "Clube de Assinaturas",
-        "Cashback e Produtos",
-        "Automações WhatsApp",
-        "Integrações + PIX",
-      ],
-      highlight: false,
-    },
-    {
-      id: "enterprise" as PlanType,
-      name: "Enterprise",
-      price: "249,90",
-      description: "Multi-unidade e white-label.",
-      icon: <Crown className="text-amber-500 w-5 h-5" />,
-      features: [
-        "Tudo do Elite",
-        "Multi-unidades",
-        "White-label",
-        "Acesso à API",
-        "Relatórios corporativos",
+        "Barbeiros e admins ilimitados",
+        "12 IAs (Agendadora, Comercial, WhatsApp...)",
+        "Automações ilimitadas",
+        "API aberta + Integrações + White Label",
+        "Prioridade máxima no suporte",
       ],
       highlight: false,
     },
@@ -357,7 +344,7 @@ function SubscriptionComponent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-zinc-800/80">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 grid place-items-center shrink-0">
-                  {plan === 'elite' || (plan as any) === 'enterprise' ? <Rocket className="h-5 w-5 text-emerald-400" /> :
+                  {(plan === 'elite' || (plan as any) === 'enterprise') ? <Rocket className="h-5 w-5 text-emerald-400" /> :
                    (plan === 'pro' || (plan as any) === 'professional') ? <Crown className="h-5 w-5 text-emerald-400" /> :
                    plan === 'starter' ? <Zap className="h-5 w-5 text-emerald-400" /> :
                    <Star className="h-5 w-5 text-emerald-400" />}
@@ -366,9 +353,8 @@ function SubscriptionComponent() {
                   <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Plano Atual</div>
                   <div className="text-xl font-black text-white">
                     {plan === 'starter' ? 'Starter' :
-                     (plan === 'pro' || (plan as any) === 'professional') ? 'Professional' :
-                     plan === 'elite' ? 'Elite' :
-                     (plan as any) === 'enterprise' ? 'Enterprise' :
+                     (plan === 'pro' || (plan as any) === 'professional') ? 'Pro' :
+                     (plan === 'elite' || (plan as any) === 'enterprise') ? 'Elite' :
                      (!plan || plan === 'free') ? 'Grátis' : plan}
                   </div>
                 </div>
@@ -407,7 +393,7 @@ function SubscriptionComponent() {
               <div className="h-px flex-1 bg-zinc-800" />
             </div>
 
-            <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 pt-4">
+            <div className="grid gap-5 grid-cols-1 md:grid-cols-3 pt-4">
               {planConfigs.map((config) => {
                 let isCurrentPlan = false;
                 let isUpgrade = false;
@@ -491,7 +477,27 @@ function SubscriptionComponent() {
                 );
               })}
             </div>
+
+            {/* PLANO PERSONALIZADO */}
+            <div className="mt-8 p-6 md:p-7 rounded-2xl bg-gradient-to-br from-zinc-900 via-[#0b0f17] to-zinc-950 border border-zinc-700/60 hover:border-emerald-500/40 transition-all flex flex-col md:flex-row items-start md:items-center gap-5">
+              <div className="flex-1">
+                <span className="inline-block text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 uppercase tracking-widest mb-2">Serviço Premium</span>
+                <h3 className="text-xl md:text-2xl font-black text-white mb-1.5">Plano Personalizado</h3>
+                <p className="text-sm text-zinc-400 mb-3">Sua barbearia tem necessidades específicas? Montamos um plano exclusivo com desenvolvimento, integrações, APIs, consultoria, migração, treinamentos, módulos e automações sob medida.</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Consultoria","Integrações","API dedicada","Treinamentos","Módulos exclusivos","Migração"].map(t => (
+                    <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400 font-bold">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <a href={personalizadoUrl} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto">
+                <Button className="w-full md:w-auto h-11 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.35)] whitespace-nowrap">
+                  Solicitar Orçamento
+                </Button>
+              </a>
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -530,18 +536,28 @@ function SubscriptionComponent() {
                 </tr>
               </thead>
               <tbody className="[&>tr]:border-b [&>tr]:border-zinc-800/60">
-                <tr><td className="py-3 px-3 text-zinc-300">Preço mensal</td><td className="text-center font-bold">R$ 19,90</td><td className="text-center font-bold text-emerald-400">R$ 39,90</td><td className="text-center font-bold">R$ 59,90</td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Profissionais</td><td className="text-center">{PLAN_LIMITS.starter.barbers}</td><td className="text-center text-emerald-400">{PLAN_LIMITS.pro.barbers}</td><td className="text-center">∞</td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Serviços</td><td className="text-center">∞</td><td className="text-center text-emerald-400">∞</td><td className="text-center">∞</td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Produtos</td><td className="text-center">∞</td><td className="text-center text-emerald-400">∞</td><td className="text-center">∞</td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Agendamentos</td><td className="text-center">∞</td><td className="text-center text-emerald-400">∞</td><td className="text-center">∞</td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Conexões WhatsApp</td><td className="text-center">1</td><td className="text-center text-emerald-400">2</td><td className="text-center">∞</td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Financeiro Completo</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Automações WhatsApp</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Programa de Fidelidade</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Assinaturas / Clube</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Relatórios Avançados</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
-                <tr><td className="py-3 px-3 text-zinc-300">Suporte Prioritário</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300 font-semibold">Preço mensal</td><td className="text-center font-bold">R$ 59,90</td><td className="text-center font-black text-emerald-400 bg-emerald-500/5">R$ 99,90</td><td className="text-center font-bold">R$ 149,90</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Agenda Online</td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Profissionais</td><td className="text-center">3</td><td className="text-center text-emerald-400 font-bold bg-emerald-500/5">10</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Clientes</td><td className="text-center">300</td><td className="text-center text-emerald-400 bg-emerald-500/5">∞</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Serviços</td><td className="text-center">15</td><td className="text-center text-emerald-400 bg-emerald-500/5">∞</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Administradores</td><td className="text-center">1</td><td className="text-center text-emerald-400 bg-emerald-500/5">3</td><td className="text-center">∞</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Portal do Cliente</td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">WhatsApp</td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300 font-semibold">Quantidade de automações</td><td className="text-center font-bold">3</td><td className="text-center text-emerald-400 font-black bg-emerald-500/5">8</td><td className="text-center font-bold">∞ + IA</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Financeiro</td><td className="text-center text-xs">Básico</td><td className="text-center text-emerald-400 font-bold bg-emerald-500/5 text-xs">Completo</td><td className="text-center text-xs">Premium</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Relatórios</td><td className="text-center text-xs">Básicos</td><td className="text-center text-emerald-400 font-bold bg-emerald-500/5 text-xs">Avançados</td><td className="text-center text-xs">Corporativos</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Estoque</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Loja Virtual</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Assinaturas</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Gateway de Pagamento</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Cashback</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Fidelidade</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><Check className="inline w-4 h-4 text-emerald-400" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300 font-semibold">Inteligência Artificial</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center font-bold text-emerald-400">12 IAs</td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">API aberta</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Integrações</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">White Label</td><td className="text-center"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center bg-emerald-500/5"><X className="inline w-4 h-4 text-zinc-600" /></td><td className="text-center"><Check className="inline w-4 h-4 text-emerald-400" /></td></tr>
+                <tr><td className="py-3 px-3 text-zinc-300">Suporte</td><td className="text-center text-xs">Padrão</td><td className="text-center text-emerald-400 font-bold bg-emerald-500/5 text-xs">Prioritário</td><td className="text-center text-xs">Máxima Prioridade</td></tr>
               </tbody>
             </table>
           </div>
