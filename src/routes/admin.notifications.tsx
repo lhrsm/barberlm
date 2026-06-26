@@ -173,7 +173,7 @@ function AdminNotificationsPage() {
 
   const handleClick = (n: NotificationRow) => {
     if (!n.is_read) markRead.mutate(n.id);
-    if (n.action_url) navigate({ to: n.action_url as any });
+    if (n.action_url) navigate({ to: n.action_url as any, params: {} as any });
   };
 
   return (
