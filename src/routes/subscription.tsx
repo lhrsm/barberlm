@@ -118,18 +118,36 @@ function SubscriptionComponent() {
       const env = forcedTestMode ? 'sandbox' : getStripeEnvironment();
       // Normaliza nome legado para 'pro'
       const planKey = (newPlan === 'professional' as any ? 'pro' : newPlan) as string;
-      const priceId = PLAN_PRICE_IDS[env][planKey];
-      
-      console.log("[Subscription] 🆔 Configuração de checkout:", { 
-        env, 
-        plan: newPlan, 
-        priceId 
-      });
-      
-      if (!priceId) {
-        throw new Error(`Price ID não configurado para o plano ${newPlan} no ambiente ${env}`);
+
+      // 1. Tentar resolver price_id a partir da tabela `plans` (configurável via /admin/plans)
+      let priceId: string | null = null;
+      const { data: planRow } = await supabase
+        .from("plans")
+        .select("stripe_price_id_test, stripe_price_id_live")
+        .eq("slug", planKey)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (planRow) {
+        priceId = env === 'live'
+          ? (planRow as any).stripe_price_id_live
+          : (planRow as any).stripe_price_id_test;
       }
-      
+
+      // 2. Fallback para IDs hardcoded (legado)
+      if (!priceId) {
+        priceId = PLAN_PRICE_IDS[env]?.[planKey] || null;
+      }
+
+      console.log("[Subscription] 🆔 Configuração de checkout:", { env, plan: newPlan, priceId, source: planRow ? 'db' : 'fallback' });
+
+      if (!priceId) {
+        throw new Error(
+          `Price ID do plano ${newPlan.toUpperCase()} (${env}) não está configurado. ` +
+          `Peça ao admin para configurar em /admin/plans.`
+        );
+      }
+
       console.log("[Subscription] 🚀 Abrindo modal de checkout...");
       openCheckout({
         priceId,
@@ -145,6 +163,7 @@ function SubscriptionComponent() {
       setTimeout(() => setUpdating(false), 500);
     }
   };
+
 
 
   const handleManageSubscription = async () => {
