@@ -32,6 +32,7 @@ interface ModuleDef {
 const MODULES: ModuleDef[] = [
   { key: "support", name: "Suporte", description: "Abrir chamados e receber ajuda da equipe Barbex.", icon: Headset, requiredPlan: "starter" },
   { key: "whatsapp", name: "WhatsApp", description: "Configure o número de WhatsApp da barbearia.", icon: Phone, requiredPlan: "starter" },
+  { key: "automations_basic" as any, name: "Automações Básicas", description: "Mensagens automáticas de confirmação e lembrete.", icon: MessageSquare, requiredPlan: "starter" },
   { key: "commissions", name: "Comissões", description: "Calcule comissões dos barbeiros automaticamente.", icon: CircleDollarSign, requiredPlan: "pro" },
   { key: "loyalty", name: "Fidelidade", description: "Programa de pontos por atendimentos realizados.", icon: Gift, requiredPlan: "pro" },
   { key: "campaigns", name: "Campanhas", description: "Envie campanhas promocionais para seus clientes.", icon: Megaphone, requiredPlan: "pro" },
@@ -39,11 +40,18 @@ const MODULES: ModuleDef[] = [
   { key: "subscriptions", name: "Assinaturas", description: "Crie planos recorrentes para seus clientes.", icon: CreditCard, requiredPlan: "pro" },
   { key: "cashback", name: "Cashback", description: "Devolva uma porcentagem em créditos para o cliente.", icon: Coins, requiredPlan: "pro" },
   { key: "products", name: "Loja / Produtos", description: "Venda produtos como pomadas, shampoos e acessórios.", icon: ShoppingBag, requiredPlan: "pro" },
-  { key: "automations", name: "Automações", description: "Mensagens automáticas de confirmação, lembrete e retorno.", icon: MessageSquare, requiredPlan: "elite" },
+  { key: "stock" as any, name: "Estoque", description: "Controle o estoque dos produtos vendidos.", icon: ShoppingBag, requiredPlan: "pro" },
+  { key: "payment_gateway" as any, name: "Gateway de Pagamento", description: "Receba pagamentos online via cartão/PIX.", icon: CreditCard, requiredPlan: "pro" },
+  { key: "advanced_finance" as any, name: "Financeiro Completo", description: "Fluxo de caixa, DRE, conciliação e mais.", icon: CircleDollarSign, requiredPlan: "pro" },
+  { key: "automations_smart" as any, name: "Automações Inteligentes", description: "Automações condicionais e workflows avançados.", icon: MessageSquare, requiredPlan: "pro" },
+  { key: "automations_unlimited" as any, name: "Automações Ilimitadas", description: "Sem limite de regras e disparos automáticos.", icon: MessageSquare, requiredPlan: "elite" },
+  { key: "ai" as any, name: "IA (Suite Completa)", description: "Atendente, recomendações e mensagens com IA.", icon: Crown, requiredPlan: "elite" },
+  { key: "api" as any, name: "API Pública", description: "Acesse seus dados via API REST.", icon: KeyRound, requiredPlan: "elite" },
   { key: "integrations", name: "Integrações", description: "Conecte com WhatsApp, Z-API, Stripe e outros.", icon: Share2, requiredPlan: "elite" },
   { key: "tutorials", name: "Tutoriais", description: "Acesso a vídeos e materiais de apoio.", icon: GraduationCap, requiredPlan: "elite" },
   { key: "pix_key", name: "Chave PIX", description: "Cadastre uma chave PIX para receber pagamentos.", icon: KeyRound, requiredPlan: "elite" },
 ];
+
 
 const PLAN_LABELS: Record<string, string> = {
   starter: "Starter",
