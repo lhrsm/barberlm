@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ProfessionalAuthProvider } from "@/components/professional/ProfessionalAuthProvider";
 import { CookieBanner } from "@/components/CookieBanner";
+import { AccessibilityProvider } from "@/components/accessibility/AccessibilityProvider";
+import { AccessibilityWidget } from "@/components/accessibility/AccessibilityWidget";
+import { SkipLink } from "@/components/accessibility/SkipLink";
 
 import appCss from "../styles.css?url";
 
@@ -90,11 +93,17 @@ function RootComponent() {
   });
   return (
     <QueryClientProvider client={queryClient}>
-      <ProfessionalAuthProvider>
-        <Outlet />
-        <Toaster />
-        <CookieBanner />
-      </ProfessionalAuthProvider>
+      <AccessibilityProvider>
+        <ProfessionalAuthProvider>
+          <SkipLink />
+          <div id="main-content">
+            <Outlet />
+          </div>
+          <AccessibilityWidget />
+          <Toaster />
+          <CookieBanner />
+        </ProfessionalAuthProvider>
+      </AccessibilityProvider>
     </QueryClientProvider>
   );
 }

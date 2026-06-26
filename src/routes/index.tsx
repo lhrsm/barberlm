@@ -28,6 +28,8 @@ import {
   LayoutDashboard,
   Megaphone,
   CreditCard,
+  Accessibility,
+  Lock,
   Briefcase,
   Menu,
   Search,
@@ -769,6 +771,70 @@ function LandingPageComponent() {
         </div>
       </section>
 
+      {/* Compromisso Barbex — Trust Badges */}
+      <section aria-labelledby="compromisso-barbex" className="bg-background py-24 px-6 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-block text-primary font-black uppercase tracking-widest text-xs mb-3">
+              Compromisso Barbex
+            </span>
+            <h2 id="compromisso-barbex" className="text-3xl md:text-5xl font-black text-white tracking-tighter">
+              Segurança, privacidade e acessibilidade em primeiro lugar
+            </h2>
+            <p className="text-white/50 mt-4 max-w-2xl mx-auto font-bold">
+              Construímos o Barbex com as melhores práticas para que você opere com confiança.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: ShieldCheck,
+                tag: "LGPD Ready",
+                title: "Proteção de Dados",
+                desc: "Desenvolvido seguindo as melhores práticas de proteção de dados pessoais, permitindo que sua barbearia opere com mais transparência e segurança.",
+                href: "/privacy",
+              },
+              {
+                icon: Accessibility as any,
+                tag: "WCAG 2.2 AA",
+                title: "Acessível para Todos",
+                desc: "A plataforma segue as recomendações da WCAG 2.2 AA para proporcionar uma experiência inclusiva para pessoas com deficiência visual, motora, auditiva e cognitiva.",
+                href: "/accessibility",
+              },
+              {
+                icon: Lock as any,
+                tag: "Segurança",
+                title: "Segurança da Informação",
+                desc: "Comunicação criptografada, autenticação segura, proteção de credenciais, controle de permissões e boas práticas para garantir a integridade dos dados.",
+                href: "/security",
+              },
+            ].map((c) => (
+              <Link
+                key={c.title}
+                to={c.href}
+                aria-label={`Saiba mais sobre ${c.title}`}
+                className="group relative rounded-2xl p-8 bg-gradient-to-br from-[#0A1020] to-[#0B1426] border border-primary/25 hover:border-primary/60 transition-all hover:-translate-y-1 hover:shadow-[0_20px_60px_-20px_rgba(255,184,0,.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-[radial-gradient(circle_at_top,rgba(255,184,0,.12),transparent_60%)]" />
+                <div className="relative">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/25 to-transparent border border-primary/40 flex items-center justify-center mb-5">
+                    <c.icon className="h-7 w-7 text-primary" aria-hidden="true" />
+                  </div>
+                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary/15 border border-primary/40 text-primary uppercase tracking-wider mb-3">
+                    {c.tag}
+                  </span>
+                  <h3 className="text-xl font-black text-white mb-2">{c.title}</h3>
+                  <p className="text-sm text-white/60 leading-relaxed font-medium">{c.desc}</p>
+                  <span className="inline-flex items-center gap-1 mt-5 text-primary text-sm font-bold">
+                    Saiba mais <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-background border-t border-white/5 py-24 px-6">
@@ -807,9 +873,16 @@ function LandingPageComponent() {
             <div className="text-white/20 text-sm font-bold">
               © 2026 Barbex. Todos os direitos reservados.
             </div>
-            <div className="flex gap-8 text-white/20 text-sm font-bold">
-              <span className="flex items-center gap-1"><Smartphone className="h-3 w-3" /> App Disponível</span>
-              <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> 100% Seguro</span>
+            <div className="flex flex-wrap gap-3 text-white/60 text-xs font-bold">
+              <Link to="/privacy" aria-label="LGPD Ready — Política de Privacidade" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> LGPD Ready
+              </Link>
+              <Link to="/accessibility" aria-label="Acessibilidade WCAG 2.2 AA" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors">
+                <Accessibility className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> WCAG 2.2 AA
+              </Link>
+              <Link to="/security" aria-label="Página de Segurança" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors">
+                <Lock className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> Segurança
+              </Link>
             </div>
           </div>
         </div>
