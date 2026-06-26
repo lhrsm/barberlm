@@ -50,6 +50,22 @@ function ProfessionalDashboard() {
   const [commissionEntries, setCommissionEntries] = useState<any[]>([]);
   const [commissionSummary, setCommissionSummary] = useState<any>(null);
   const [appointmentFilter, setAppointmentFilter] = useState<'today'|'week'|'month'|'completed'|'cancelled'|'pending'>('today');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await fetchData();
+      await queryClient.invalidateQueries();
+      toast.success("Painel atualizado com sucesso");
+    } catch (e) {
+      console.error("[MANUAL_REFRESH_ERROR]", e);
+      toast.error("Erro ao atualizar o painel");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   
   // Sync tab with URL
