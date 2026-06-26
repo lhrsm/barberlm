@@ -198,7 +198,7 @@ function AdminPlans() {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {plans?.map((plan) => {
           const isEditing = editing === plan.id;
           const current = isEditing && form ? form : plan;
