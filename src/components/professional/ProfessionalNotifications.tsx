@@ -30,14 +30,24 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
 
     const channel = supabase
       .channel(`prof-notifications-${barberId}`)
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
         table: 'notifications',
         filter: `barber_id=eq.${barberId}`
-      }, () => {
+      }, (payload: any) => {
+        const n = payload.new;
+        if (n?.title) {
+          toast(n.title, { description: n.message, duration: 5000 });
+        }
         fetchNotifications();
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `barber_id=eq.${barberId}`
+      }, () => fetchNotifications())
       .subscribe();
 
     return () => {
