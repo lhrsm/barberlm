@@ -868,9 +868,10 @@ function FinancesComponent() {
             <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
             <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
             {role !== 'barber' && (
-              <div className="flex flex-col md:flex-row gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
+              <>
+
                 <Button 
                   variant="outline" 
                   className="gap-2 whitespace-nowrap w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-accent hover:border-primary/40" 
