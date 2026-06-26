@@ -93,11 +93,17 @@ function RootComponent() {
   });
   return (
     <QueryClientProvider client={queryClient}>
-      <ProfessionalAuthProvider>
-        <Outlet />
-        <Toaster />
-        <CookieBanner />
-      </ProfessionalAuthProvider>
+      <AccessibilityProvider>
+        <ProfessionalAuthProvider>
+          <SkipLink />
+          <div id="main-content">
+            <Outlet />
+          </div>
+          <AccessibilityWidget />
+          <Toaster />
+          <CookieBanner />
+        </ProfessionalAuthProvider>
+      </AccessibilityProvider>
     </QueryClientProvider>
   );
 }
