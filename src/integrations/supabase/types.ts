@@ -6682,6 +6682,10 @@ export type Database = {
         Args: { p_subscription_id: string }
         Returns: number
       }
+      sync_barbershop_modules: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       update_barber_working_hours: {
         Args: { p_barber_id: string; p_working_hours: Json }
         Returns: boolean
