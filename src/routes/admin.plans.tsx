@@ -118,13 +118,14 @@ function AdminPlans() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active, stripe_price_id_test, stripe_price_id_live")
+        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active, stripe_price_id_test, stripe_price_id_live, automation_limit, limits")
         .order("tier", { ascending: true });
       if (error) throw error;
       return (data || []).map((p: any) => ({
         ...p,
         allowed_modules: Array.isArray(p.allowed_modules) ? p.allowed_modules : [],
         tier: p.tier ?? 0,
+        limits: (p.limits && typeof p.limits === "object") ? p.limits : {},
       })) as Plan[];
     },
   });
@@ -145,6 +146,8 @@ function AdminPlans() {
           active: plan.active,
           stripe_price_id_test: plan.stripe_price_id_test || null,
           stripe_price_id_live: plan.stripe_price_id_live || null,
+          automation_limit: plan.automation_limit ?? 0,
+          limits: plan.limits || {},
         } as any)
         .eq("id", plan.id);
       if (error) throw error;
