@@ -916,13 +916,14 @@ function FinancesComponent() {
                   <RefreshCcw size={18} /> Recalcular Saldos
                 </Button>
 
-              </div>
+              </>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black rounded-xl shadow-[0_8px_24px_rgba(245,197,66,0.3)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0">
-                <Plus size={18} strokeWidth={3} /> Nova Transação
+              <Button size="sm" className="gap-2 h-9 px-3 text-sm whitespace-nowrap bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-bold rounded-lg shadow-[0_4px_12px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0 w-full md:w-auto">
+                <Plus size={16} strokeWidth={3} /> Nova Transação
               </Button>
+
 
             </DialogTrigger>
             <DialogContent>
