@@ -28,6 +28,8 @@ interface Plan {
   is_recommended: boolean;
   allowed_modules: string[];
   active: boolean;
+  stripe_price_id_test: string | null;
+  stripe_price_id_live: string | null;
 }
 
 const MODULE_CATALOG: { key: string; label: string; group: string }[] = [
