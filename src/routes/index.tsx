@@ -28,6 +28,8 @@ import {
   LayoutDashboard,
   Megaphone,
   CreditCard,
+  Accessibility,
+  Lock,
   Briefcase,
   Menu,
   Search,
