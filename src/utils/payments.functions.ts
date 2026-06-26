@@ -304,6 +304,9 @@ export const createPlanCheckout = createServerFn({ method: "POST" })
 
     console.log("[createPlanCheckout] ✅ session created:", session.id);
     return session.client_secret;
+  });
+
+
 
 export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
