@@ -259,7 +259,7 @@ export const createPlanCheckout = createServerFn({ method: "POST" })
     const productName = product?.name || planRow.name;
 
     const customerId = await resolveOrCreateCustomer(stripe, {
-      email: data.customerEmail || profile?.email,
+      email: data.customerEmail || profile?.email || undefined,
       userId,
     });
 
