@@ -12,9 +12,14 @@ interface ModuleGuardProps {
 
 // Mapeamento de módulo → plano mínimo necessário
 const MODULE_REQUIRED_PLAN: Record<string, { slug: string; name: string }> = {
-  // Starter — incluso desde o plano básico (não aparece como bloqueado)
+  // Starter
   whatsapp: { slug: "starter", name: "Starter" },
-  // Pro — destaque comercial
+  automations_basic: { slug: "starter", name: "Starter" },
+  client_portal: { slug: "starter", name: "Starter" },
+  barber_panel: { slug: "starter", name: "Starter" },
+  basic_finance: { slug: "starter", name: "Starter" },
+  reports_basic: { slug: "starter", name: "Starter" },
+  // Pro
   commissions: { slug: "pro", name: "Pro" },
   loyalty: { slug: "pro", name: "Pro" },
   campaigns: { slug: "pro", name: "Pro" },
@@ -22,13 +27,19 @@ const MODULE_REQUIRED_PLAN: Record<string, { slug: string; name: string }> = {
   subscriptions: { slug: "pro", name: "Pro" },
   cashback: { slug: "pro", name: "Pro" },
   products: { slug: "pro", name: "Pro" },
+  stock: { slug: "pro", name: "Pro" },
   payment_gateway: { slug: "pro", name: "Pro" },
   store: { slug: "pro", name: "Pro" },
   dashboard_advanced: { slug: "pro", name: "Pro" },
   reports_advanced: { slug: "pro", name: "Pro" },
-  // Elite — IA, integrações e enterprise
+  advanced_finance: { slug: "pro", name: "Pro" },
+  automations_smart: { slug: "pro", name: "Pro" },
+  subscription_rewards: { slug: "pro", name: "Pro" },
+  // Elite
+  ai: { slug: "elite", name: "Elite" },
+  api: { slug: "elite", name: "Elite" },
   automations: { slug: "elite", name: "Elite" },
-  subscription_rewards: { slug: "elite", name: "Elite" },
+  automations_unlimited: { slug: "elite", name: "Elite" },
   integrations: { slug: "elite", name: "Elite" },
   tutorials: { slug: "elite", name: "Elite" },
   pix_key: { slug: "elite", name: "Elite" },
@@ -49,6 +60,7 @@ const MODULE_REQUIRED_PLAN: Record<string, { slug: string; name: string }> = {
   ai_upsell: { slug: "elite", name: "Elite" },
   ai_cross_sell: { slug: "elite", name: "Elite" },
 };
+
 
 export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
   const { isAllowed, isEnabled, plan, isLoading } = useModules();
