@@ -322,8 +322,48 @@ function AdminPlans() {
                   </div>
                 </div>
 
+                {/* Limits per plan */}
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                  <Label className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">
+                    Limites do plano
+                  </Label>
+                  <p className="text-[10px] text-white/40 -mt-1">Deixe vazio para ilimitado.</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {LIMIT_FIELDS.map((field) => {
+                      const value = current.limits?.[field.key];
+                      return (
+                        <div key={field.key}>
+                          <Label className="text-[10px] text-white/50">{field.label}</Label>
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              value={value ?? ""}
+                              placeholder="∞"
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                setForm({
+                                  ...current,
+                                  limits: {
+                                    ...(current.limits || {}),
+                                    [field.key]: raw === "" ? null : parseInt(raw, 10),
+                                  },
+                                });
+                              }}
+                              className="h-8 bg-black/30 border-white/10 text-xs mt-1"
+                            />
+                          ) : (
+                            <p className="text-sm font-bold text-white/80 mt-1">
+                              {value == null ? "∞" : value}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                {/* Allowed modules */}
+
                 <div>
                   <Label className="text-[10px] uppercase tracking-wider text-white/50">
                     Módulos permitidos ({current.allowed_modules.length})
