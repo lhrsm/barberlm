@@ -110,7 +110,7 @@ export function AdminNotifications() {
               description: n.message || n.description || undefined,
               action: n.action_url ? {
                 label: "Abrir",
-                onClick: () => navigate({ to: n.action_url, params: {} as any }),
+                onClick: () => navigate({ to: n.action_url as any, params: {} as any }),
               } : undefined,
             });
           });
@@ -148,7 +148,7 @@ export function AdminNotifications() {
       markAsReadMutation.mutate(notification.id);
     }
     if (notification.action_url) {
-      navigate({ to: notification.action_url, params: {} as any });
+      navigate({ to: notification.action_url as any, params: {} as any });
       return;
     }
     if (notification.type === 'new_ticket' || notification.type === 'ticket_reply' || notification.type?.startsWith('support_')) {
