@@ -161,17 +161,31 @@ function ProfessionalDashboard() {
 
   useEffect(() => {
     const bId = session?.barber_id;
-    if (bId) {
-      fetchData();
-      const channel = supabase
-        .channel(`prof-realtime-${bId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, fetchData)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'barber_commissions', filter: `barber_id=eq.${bId}` }, fetchData)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `barber_id=eq.${bId}` }, fetchData)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'barbers', filter: `id=eq.${bId}` }, fetchData)
-        .subscribe();
-      return () => { supabase.removeChannel(channel); };
-    }
+    if (!bId) return;
+    fetchData();
+    const channel = supabase
+      .channel(`prof-realtime-${bId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, (payload: any) => {
+        toast.success("Novo agendamento recebido", {
+          description: payload.new?.start_time ? format(new Date(payload.new.start_time), "dd/MM 'às' HH:mm") : undefined,
+        });
+        fetchData();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, (payload: any) => {
+        const oldS = payload.old?.status;
+        const newS = payload.new?.status;
+        if (oldS !== newS) {
+          if (newS === 'cancelled') toast("Agendamento cancelado");
+          else if (newS === 'completed') toast.success("Atendimento concluído");
+          else if (newS === 'confirmed') toast.success("Agendamento confirmado");
+        }
+        fetchData();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'barber_commissions', filter: `barber_id=eq.${bId}` }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'barbers', filter: `id=eq.${bId}` }, fetchData)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [session?.barber_id]);
 
   const handleAction = async (app: any, status: string) => {
@@ -322,18 +336,19 @@ function ProfessionalDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <ProfessionalNotifications barberId={session.barber_id} />
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={fetchData} 
-              className="h-10 w-10 rounded-full border-[#D4AF37]/30 bg-[#05070d] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]"
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowEditProfile(true)}
+              title="Meu perfil"
+              className="h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
             >
-              <RefreshCcw className="h-5 w-5" />
+              <UserIcon className="h-5 w-5" />
             </Button>
-            <Button 
-              variant="ghost" 
-              onClick={logout} 
-              className="text-red-400 hover:bg-red-950/30 rounded-xl h-10 px-4 font-bold text-sm"
+            <Button
+              variant="outline"
+              onClick={logout}
+              className="h-10 rounded-full px-4 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_18px_rgba(239,68,68,0.4)] transition-all duration-200 font-bold text-sm"
             >
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>

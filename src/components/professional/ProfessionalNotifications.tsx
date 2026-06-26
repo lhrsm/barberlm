@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   Bell, 
   CheckCircle2, 
@@ -30,14 +31,24 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
 
     const channel = supabase
       .channel(`prof-notifications-${barberId}`)
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
         table: 'notifications',
         filter: `barber_id=eq.${barberId}`
-      }, () => {
+      }, (payload: any) => {
+        const n = payload.new;
+        if (n?.title) {
+          toast(n.title, { description: n.message, duration: 5000 });
+        }
         fetchNotifications();
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `barber_id=eq.${barberId}`
+      }, () => fetchNotifications())
       .subscribe();
 
     return () => {
@@ -80,10 +91,10 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="relative h-10 w-10 rounded-full border-[#D4AF37]/30 bg-[#05070d] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37] transition-all"
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
