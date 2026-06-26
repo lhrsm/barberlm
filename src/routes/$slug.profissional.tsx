@@ -50,6 +50,22 @@ function ProfessionalDashboard() {
   const [commissionEntries, setCommissionEntries] = useState<any[]>([]);
   const [commissionSummary, setCommissionSummary] = useState<any>(null);
   const [appointmentFilter, setAppointmentFilter] = useState<'today'|'week'|'month'|'completed'|'cancelled'|'pending'>('today');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await fetchData();
+      await queryClient.invalidateQueries();
+      toast.success("Painel atualizado com sucesso");
+    } catch (e) {
+      console.error("[MANUAL_REFRESH_ERROR]", e);
+      toast.error("Erro ao atualizar o painel");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   
   // Sync tab with URL
@@ -336,6 +352,16 @@ function ProfessionalDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <ProfessionalNotifications barberId={session.barber_id} />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              title="Atualizar painel"
+              className="h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200 disabled:opacity-60"
+            >
+              <RefreshCcw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
+            </Button>
             <Button
               variant="outline"
               size="icon"
