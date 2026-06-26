@@ -868,9 +868,10 @@ function FinancesComponent() {
             <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
             <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
             {role !== 'barber' && (
-              <div className="flex flex-col md:flex-row gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
+              <>
+
                 <Button 
                   variant="outline" 
                   className="gap-2 whitespace-nowrap w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-accent hover:border-primary/40" 
@@ -915,13 +916,14 @@ function FinancesComponent() {
                   <RefreshCcw size={18} /> Recalcular Saldos
                 </Button>
 
-              </div>
+              </>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black rounded-xl shadow-[0_8px_24px_rgba(245,197,66,0.3)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0">
-                <Plus size={18} strokeWidth={3} /> Nova Transação
+              <Button size="sm" className="gap-2 h-9 px-3 text-sm whitespace-nowrap bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-bold rounded-lg shadow-[0_4px_12px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0 w-full md:w-auto">
+                <Plus size={16} strokeWidth={3} /> Nova Transação
               </Button>
+
 
             </DialogTrigger>
             <DialogContent>
