@@ -16,31 +16,58 @@ export type Database = {
     Tables: {
       admin_notifications: {
         Row: {
+          action_url: string | null
+          archived: boolean
           created_at: string
           description: string | null
           id: string
           is_read: boolean | null
+          message: string | null
+          priority: string
+          read_at: string | null
           reference_id: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          tenant_id: string | null
           title: string
           type: string
+          user_id: string | null
         }
         Insert: {
+          action_url?: string | null
+          archived?: boolean
           created_at?: string
           description?: string | null
           id?: string
           is_read?: boolean | null
+          message?: string | null
+          priority?: string
+          read_at?: string | null
           reference_id?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          tenant_id?: string | null
           title: string
           type: string
+          user_id?: string | null
         }
         Update: {
+          action_url?: string | null
+          archived?: boolean
           created_at?: string
           description?: string | null
           id?: string
           is_read?: boolean | null
+          message?: string | null
+          priority?: string
+          read_at?: string | null
           reference_id?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          tenant_id?: string | null
           title?: string
           type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -6264,6 +6291,20 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: Json
+      }
+      create_admin_notification: {
+        Args: {
+          p_action_url?: string
+          p_message?: string
+          p_priority?: string
+          p_related_entity_id?: string
+          p_related_entity_type?: string
+          p_tenant_id?: string
+          p_title: string
+          p_type: string
+          p_user_id?: string
+        }
+        Returns: string
       }
       create_barber_commission_for_appointment: {
         Args: { p_appointment_id: string }
