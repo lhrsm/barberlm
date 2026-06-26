@@ -33,6 +33,7 @@ import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AutomationsRouteImport } from './routes/automations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AccessibilityRouteImport } from './routes/accessibility'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -178,6 +179,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccessibilityRoute = AccessibilityRouteImport.update({
+  id: '/accessibility',
+  path: '/accessibility',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SlugRoute = SlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -305,6 +311,7 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/automations': typeof AutomationsRoute
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/accessibility': typeof AccessibilityRoute
   '/auth': typeof AuthRoute
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/automations': typeof AutomationsRoute
@@ -457,6 +466,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$slug'
+    | '/accessibility'
     | '/admin'
     | '/auth'
     | '/automations'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$slug'
+    | '/accessibility'
     | '/auth'
     | '/automations'
     | '/barbers'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$slug'
+    | '/accessibility'
     | '/admin'
     | '/auth'
     | '/automations'
@@ -607,6 +619,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRouteWithChildren
+  AccessibilityRoute: typeof AccessibilityRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   AutomationsRoute: typeof AutomationsRoute
@@ -807,6 +820,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accessibility': {
+      id: '/accessibility'
+      path: '/accessibility'
+      fullPath: '/accessibility'
+      preLoaderRoute: typeof AccessibilityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -1041,6 +1061,7 @@ const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
+  AccessibilityRoute: AccessibilityRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   AutomationsRoute: AutomationsRoute,
