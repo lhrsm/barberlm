@@ -75,7 +75,7 @@ function AdminPlans() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active")
+        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active, stripe_price_id_test, stripe_price_id_live")
         .order("tier", { ascending: true });
       if (error) throw error;
       return (data || []).map((p: any) => ({
