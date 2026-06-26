@@ -249,3 +249,56 @@ div[style*="Edit with Lovable"],
   z-index: -9999 !important;
 }
 
+/* ===== Accessibility Layer (WCAG 2.2 AA helpers) ===== */
+html.a11y-high-contrast {
+  filter: contrast(1.35) saturate(1.15);
+}
+html.a11y-grayscale {
+  filter: grayscale(1);
+}
+html.a11y-high-contrast.a11y-grayscale {
+  filter: contrast(1.35) saturate(1.15) grayscale(1);
+}
+html.a11y-line-spacing body,
+html.a11y-line-spacing body * {
+  line-height: 1.85 !important;
+}
+html.a11y-letter-spacing body,
+html.a11y-letter-spacing body * {
+  letter-spacing: 0.06em !important;
+}
+html.a11y-big-cursor,
+html.a11y-big-cursor * {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><polygon points='4,2 4,30 12,22 18,36 24,33 18,20 30,20' fill='%23ffcc00' stroke='black' stroke-width='2'/></svg>") 4 2, auto !important;
+}
+html.a11y-highlight-links a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  outline: 1px dashed currentColor;
+  outline-offset: 2px;
+}
+html.a11y-highlight-focus *:focus-visible {
+  outline: 3px solid #ffcc00 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.35) !important;
+}
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+/* Ensure minimum tap target on icon buttons */
+button[aria-label]:not(:disabled) {
+  min-height: 36px;
+  min-width: 36px;
+}
+
