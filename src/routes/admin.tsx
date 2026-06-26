@@ -47,6 +47,7 @@ const adminNavItems = [
   { label: "Relatórios", icon: BarChart3, to: "/admin/reports" },
   { label: "Analytics", icon: LineChartIcon, to: "/admin/analytics" },
   { label: "Logs do Sistema", icon: History, to: "/admin/errors" },
+  { label: "Notificações", icon: Bell, to: "/admin/notifications" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
   { label: "Tutoriais", icon: GraduationCap, to: "/admin/tutorials" },
   { label: "Configurações", icon: Settings, to: "/admin/settings" },

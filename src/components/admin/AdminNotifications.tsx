@@ -77,10 +77,48 @@ export function AdminNotifications() {
 
   useEffect(() => {
     const channelName = `admin-notifications-realtime-${instanceId}`;
+    const soundEnabled = typeof window !== "undefined" && localStorage.getItem("admin_notif_sound") !== "0";
+    const toastEnabled = typeof window !== "undefined" && localStorage.getItem("admin_notif_toast") !== "0";
+    const playBeep = () => {
+      try {
+        const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = "sine"; o.frequency.value = 880;
+        g.gain.setValueAtTime(0.0001, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+        o.start(); o.stop(ctx.currentTime + 0.36);
+      } catch {}
+    };
+    // Lazy import toast to avoid SSR
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { 
-        event: '*', 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        table: 'admin_notifications',
+        schema: 'public'
+      }, (payload: any) => {
+        queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
+        const n = payload.new;
+        if (toastEnabled) {
+          import("sonner").then(({ toast }) => {
+            toast(n.title || "Nova notificação", {
+              description: n.message || n.description || undefined,
+              action: n.action_url ? {
+                label: "Abrir",
+                onClick: () => navigate({ to: n.action_url as any, params: {} as any }),
+              } : undefined,
+            });
+          });
+        }
+        if (soundEnabled) playBeep();
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
         table: 'admin_notifications',
         schema: 'public'
       }, () => {
@@ -91,7 +129,7 @@ export function AdminNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, instanceId]);
+  }, [queryClient, instanceId, navigate]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -109,8 +147,11 @@ export function AdminNotifications() {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
     }
-
-    if (notification.type === 'new_ticket' || notification.type === 'ticket_reply') {
+    if (notification.action_url) {
+      navigate({ to: notification.action_url as any, params: {} as any });
+      return;
+    }
+    if (notification.type === 'new_ticket' || notification.type === 'ticket_reply' || notification.type?.startsWith('support_')) {
       navigate({ to: "/admin/support" });
     }
   };
@@ -193,8 +234,8 @@ export function AdminNotifications() {
         </ScrollArea>
         <DropdownMenuSeparator className="m-0" />
         <div className="p-2">
-          <Button variant="ghost" className="w-full text-xs font-medium h-8" onClick={() => navigate({ to: "/admin/dashboard" })}>
-            Ver todas as atividades
+          <Button variant="ghost" className="w-full text-xs font-medium h-8" onClick={() => navigate({ to: "/admin/notifications" })}>
+            Ver todas as notificações
           </Button>
         </div>
       </DropdownMenuContent>
