@@ -77,7 +77,7 @@ const PERIODS = [
 
 function AdminNotificationsPage() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
   const [period, setPeriod] = useState<string>("30d");
   const [search, setSearch] = useState("");
