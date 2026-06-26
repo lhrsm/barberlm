@@ -100,6 +100,8 @@ function AdminPlans() {
           is_recommended: plan.is_recommended,
           allowed_modules: plan.allowed_modules,
           active: plan.active,
+          stripe_price_id_test: plan.stripe_price_id_test || null,
+          stripe_price_id_live: plan.stripe_price_id_live || null,
         } as any)
         .eq("id", plan.id);
       if (error) throw error;
