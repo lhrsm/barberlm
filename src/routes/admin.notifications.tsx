@@ -159,7 +159,7 @@ function AdminNotificationsPage() {
       if (f) {
         if (f.id === "unread" && n.is_read) return false;
         if (f.id === "high" && !(n.priority === "high" || n.priority === "critical")) return false;
-        if ("types" in f && f.types && !f.types.includes(n.type)) return false;
+        if ("types" in f && (f as any).types && !(f as any).types.includes(n.type)) return false;
       }
       if (search.trim()) {
         const q = search.toLowerCase();
