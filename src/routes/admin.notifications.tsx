@@ -40,7 +40,7 @@ const PRIORITY_STYLES: Record<string, string> = {
   critical: "border-red-500/50 bg-red-500/15 text-red-200",
 };
 
-const TYPE_ICON: Record<string, JSX.Element> = {
+const TYPE_ICON: Record<string, React.ReactNode> = {
   new_tenant: <Building2 className="h-4 w-4 text-emerald-400" />,
   trial_started: <Building2 className="h-4 w-4 text-emerald-400" />,
   subscription_paid: <CreditCard className="h-4 w-4 text-emerald-400" />,
