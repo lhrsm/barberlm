@@ -355,6 +355,16 @@ function ProfessionalDashboard() {
             <Button
               variant="outline"
               size="icon"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              title="Atualizar painel"
+              className="h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200 disabled:opacity-60"
+            >
+              <RefreshCcw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setShowEditProfile(true)}
               title="Meu perfil"
               className="h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
