@@ -234,8 +234,8 @@ export function AdminNotifications() {
         </ScrollArea>
         <DropdownMenuSeparator className="m-0" />
         <div className="p-2">
-          <Button variant="ghost" className="w-full text-xs font-medium h-8" onClick={() => navigate({ to: "/admin/dashboard" })}>
-            Ver todas as atividades
+          <Button variant="ghost" className="w-full text-xs font-medium h-8" onClick={() => navigate({ to: "/admin/notifications" })}>
+            Ver todas as notificações
           </Button>
         </div>
       </DropdownMenuContent>
