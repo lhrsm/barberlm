@@ -16,6 +16,14 @@ export const Route = createFileRoute("/admin/plans")({
   component: AdminPlans,
 });
 
+interface PlanLimits {
+  barbers?: number | null;
+  clients?: number | null;
+  services?: number | null;
+  admins?: number | null;
+  automations?: number | null;
+}
+
 interface Plan {
   id: string;
   name: string;
@@ -30,40 +38,75 @@ interface Plan {
   active: boolean;
   stripe_price_id_test: string | null;
   stripe_price_id_live: string | null;
+  automation_limit: number | null;
+  limits: PlanLimits;
 }
 
 const MODULE_CATALOG: { key: string; label: string; group: string }[] = [
-  // Core
-  { key: "dashboard", label: "Dashboard", group: "Core" },
-  { key: "calendar", label: "Agenda", group: "Core" },
-  { key: "customers", label: "Clientes", group: "Core" },
-  { key: "barbers", label: "Barbeiros", group: "Core" },
-  { key: "services", label: "Serviços", group: "Core" },
-  { key: "finances", label: "Financeiro", group: "Core" },
-  { key: "support", label: "Suporte", group: "Core" },
-  // Growth
-  { key: "commissions", label: "Comissões", group: "Crescimento" },
-  { key: "loyalty", label: "Fidelidade", group: "Crescimento" },
-  { key: "campaigns", label: "Campanhas", group: "Crescimento" },
-  { key: "coupons", label: "Cupons", group: "Crescimento" },
-  { key: "whatsapp", label: "WhatsApp", group: "Crescimento" },
+  // Essenciais
+  { key: "dashboard", label: "Dashboard", group: "Essenciais" },
+  { key: "calendar", label: "Agenda", group: "Essenciais" },
+  { key: "customers", label: "Clientes", group: "Essenciais" },
+  { key: "barbers", label: "Barbeiros", group: "Essenciais" },
+  { key: "services", label: "Serviços", group: "Essenciais" },
+  { key: "client_portal", label: "Portal do Cliente", group: "Essenciais" },
+  { key: "barber_panel", label: "Painel do Barbeiro", group: "Essenciais" },
+  { key: "support", label: "Suporte", group: "Essenciais" },
+  // Financeiro
+  { key: "basic_finance", label: "Financeiro Básico", group: "Financeiro" },
+  { key: "advanced_finance", label: "Financeiro Completo", group: "Financeiro" },
+  { key: "payment_gateway", label: "Gateway de Pagamento", group: "Financeiro" },
+  { key: "commissions", label: "Comissões", group: "Financeiro" },
+  { key: "pix_key", label: "Chave PIX", group: "Financeiro" },
+  // Marketing
+  { key: "campaigns", label: "Campanhas", group: "Marketing" },
+  { key: "coupons", label: "Cupons", group: "Marketing" },
+  { key: "cashback", label: "Cashback", group: "Marketing" },
+  { key: "loyalty", label: "Fidelidade", group: "Marketing" },
+  { key: "subscription_rewards", label: "Recompensas Assinante", group: "Marketing" },
+  // Automação
+  { key: "whatsapp", label: "WhatsApp", group: "Automação" },
+  { key: "automations_basic", label: "Automações Básicas", group: "Automação" },
+  { key: "automations_smart", label: "Automações Inteligentes", group: "Automação" },
+  { key: "automations_unlimited", label: "Automações Ilimitadas", group: "Automação" },
+  // Vendas
+  { key: "products", label: "Produtos", group: "Vendas" },
+  { key: "stock", label: "Estoque", group: "Vendas" },
+  { key: "store", label: "Loja Virtual", group: "Vendas" },
+  { key: "subscriptions", label: "Assinaturas", group: "Vendas" },
   // Premium
-  { key: "subscriptions", label: "Assinaturas", group: "Premium" },
-  { key: "cashback", label: "Cashback", group: "Premium" },
-  { key: "products", label: "Loja / Produtos", group: "Premium" },
-  { key: "automations", label: "Automações", group: "Premium" },
-  { key: "subscription_rewards", label: "Benefícios de assinatura", group: "Premium" },
-  { key: "integrations", label: "Integrações", group: "Premium" },
+  { key: "reports_basic", label: "Relatórios Básicos", group: "Premium" },
+  { key: "reports_advanced", label: "Relatórios Avançados", group: "Premium" },
+  { key: "dashboard_advanced", label: "Dashboard Avançado", group: "Premium" },
   { key: "tutorials", label: "Tutoriais", group: "Premium" },
-  { key: "pix_key", label: "Chave PIX", group: "Premium" },
-  // Enterprise
-  { key: "multi_units", label: "Multi-unidades", group: "Enterprise" },
-  { key: "white_label", label: "White Label", group: "Enterprise" },
-  { key: "api_access", label: "API", group: "Enterprise" },
-  { key: "corporate_reports", label: "Relatórios corporativos", group: "Enterprise" },
+  { key: "corporate_reports", label: "Relatórios Corporativos", group: "Premium" },
+  // IA e Integrações
+  { key: "ai", label: "IA (Suite Completa)", group: "IA e Integrações" },
+  { key: "api", label: "API Pública", group: "IA e Integrações" },
+  { key: "api_access", label: "API Access (legado)", group: "IA e Integrações" },
+  { key: "integrations", label: "Integrações", group: "IA e Integrações" },
+  { key: "white_label", label: "White Label", group: "IA e Integrações" },
+  { key: "multi_units", label: "Multi-unidades", group: "IA e Integrações" },
 ];
 
-const GROUPS = ["Core", "Crescimento", "Premium", "Enterprise"] as const;
+const GROUPS = [
+  "Essenciais",
+  "Financeiro",
+  "Marketing",
+  "Automação",
+  "Vendas",
+  "Premium",
+  "IA e Integrações",
+] as const;
+
+const LIMIT_FIELDS: { key: keyof PlanLimits; label: string }[] = [
+  { key: "barbers", label: "Barbeiros" },
+  { key: "clients", label: "Clientes" },
+  { key: "services", label: "Serviços" },
+  { key: "admins", label: "Administradores" },
+  { key: "automations", label: "Automações" },
+];
+
 
 function AdminPlans() {
   const qc = useQueryClient();
