@@ -873,9 +873,16 @@ function LandingPageComponent() {
             <div className="text-white/20 text-sm font-bold">
               © 2026 Barbex. Todos os direitos reservados.
             </div>
-            <div className="flex gap-8 text-white/20 text-sm font-bold">
-              <span className="flex items-center gap-1"><Smartphone className="h-3 w-3" /> App Disponível</span>
-              <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> 100% Seguro</span>
+            <div className="flex flex-wrap gap-3 text-white/60 text-xs font-bold">
+              <Link to="/privacy" aria-label="LGPD Ready — Política de Privacidade" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> LGPD Ready
+              </Link>
+              <Link to="/accessibility" aria-label="Acessibilidade WCAG 2.2 AA" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors">
+                <Accessibility className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> WCAG 2.2 AA
+              </Link>
+              <Link to="/security" aria-label="Página de Segurança" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors">
+                <Lock className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> Segurança
+              </Link>
             </div>
           </div>
         </div>
