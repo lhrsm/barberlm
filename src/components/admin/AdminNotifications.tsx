@@ -147,8 +147,11 @@ export function AdminNotifications() {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
     }
-
-    if (notification.type === 'new_ticket' || notification.type === 'ticket_reply') {
+    if (notification.action_url) {
+      navigate({ to: notification.action_url, params: {} as any });
+      return;
+    }
+    if (notification.type === 'new_ticket' || notification.type === 'ticket_reply' || notification.type?.startsWith('support_')) {
       navigate({ to: "/admin/support" });
     }
   };
