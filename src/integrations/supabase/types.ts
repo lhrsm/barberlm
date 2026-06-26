@@ -3315,6 +3315,8 @@ export type Database = {
           price_monthly: number
           price_yearly: number
           slug: string | null
+          stripe_price_id_live: string | null
+          stripe_price_id_test: string | null
           tier: number
           updated_at: string
         }
@@ -3333,6 +3335,8 @@ export type Database = {
           price_monthly?: number
           price_yearly?: number
           slug?: string | null
+          stripe_price_id_live?: string | null
+          stripe_price_id_test?: string | null
           tier?: number
           updated_at?: string
         }
@@ -3351,6 +3355,8 @@ export type Database = {
           price_monthly?: number
           price_yearly?: number
           slug?: string | null
+          stripe_price_id_live?: string | null
+          stripe_price_id_test?: string | null
           tier?: number
           updated_at?: string
         }
@@ -3870,6 +3876,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saas_checkout_sessions: {
+        Row: {
+          created_at: string
+          environment: string
+          error_message: string | null
+          id: string
+          plan_key: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_price_id: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          environment: string
+          error_message?: string | null
+          id?: string
+          plan_key: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_price_id: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          environment?: string
+          error_message?: string | null
+          id?: string
+          plan_key?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_price_id?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       service_ratings: {
         Row: {
@@ -6423,6 +6471,10 @@ export type Database = {
       get_my_tenant_id: { Args: never; Returns: string }
       get_or_create_automation: {
         Args: { p_name?: string; p_tenant_id: string; p_type: string }
+        Returns: string
+      }
+      get_plan_slug_by_stripe_price: {
+        Args: { _env: string; _price_id: string }
         Returns: string
       }
       get_server_info: { Args: never; Returns: Json }

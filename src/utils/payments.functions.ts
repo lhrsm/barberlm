@@ -198,6 +198,116 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
   });
 
+/**
+ * createPlanCheckout
+ * Resolve o price_id do plano (Starter/Pro/Elite) a partir da tabela `plans`
+ * conforme o ambiente (sandbox/live) e abre o checkout Stripe.
+ * Também registra a tentativa em saas_checkout_sessions para auditoria.
+ */
+export const createPlanCheckout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: {
+    planKey: "starter" | "pro" | "elite";
+    environment: StripeEnv;
+    returnUrl: string;
+    customerEmail?: string;
+  }) => data)
+  .handler(async ({ data, context }) => {
+    const { userId, supabase: sb } = context;
+    console.log("[createPlanCheckout] 🚀", { planKey: data.planKey, env: data.environment, userId });
+
+    // 1. Resolve price_id from plans table
+    const { data: planRow, error: planErr } = await sb
+      .from("plans")
+      .select("id, slug, name, stripe_price_id_test, stripe_price_id_live")
+      .eq("slug", data.planKey)
+      .eq("active", true)
+      .maybeSingle();
+
+    if (planErr || !planRow) {
+      throw new Error(`Plano "${data.planKey}" não encontrado.`);
+    }
+
+    const priceId = data.environment === "live"
+      ? (planRow as any).stripe_price_id_live
+      : (planRow as any).stripe_price_id_test;
+
+    if (!priceId) {
+      throw new Error(
+        `Price ID do plano ${planRow.name} (${data.environment.toUpperCase()}) não está configurado. ` +
+        `Configure em /admin/plans.`
+      );
+    }
+
+    // 2. Get profile/tenant info
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("trial_end, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const trialEnd = profile?.trial_end ? new Date(profile.trial_end) : null;
+    const now = new Date();
+    const trialRemainingSeconds = trialEnd && trialEnd > now
+      ? Math.floor((trialEnd.getTime() - now.getTime()) / 1000)
+      : 0;
+
+    // 3. Create Stripe checkout
+    const stripe = createStripeClient(data.environment);
+    const stripePrice = await stripe.prices.retrieve(priceId, { expand: ["product"] });
+    const product = stripePrice.product as any;
+    const productName = product?.name || planRow.name;
+
+    const customerId = await resolveOrCreateCustomer(stripe, {
+      email: data.customerEmail || profile?.email || undefined,
+      userId,
+    });
+
+    const stripeTrialEnd = trialRemainingSeconds > 60
+      ? Math.floor(Date.now() / 1000) + trialRemainingSeconds
+      : undefined;
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [{ price: stripePrice.id, quantity: 1 }],
+      mode: "subscription",
+      ui_mode: "embedded",
+      customer_update: { address: "auto", name: "auto" },
+      billing_address_collection: "required",
+      return_url: data.returnUrl,
+      customer: customerId,
+      metadata: {
+        userId,
+        plan: productName,
+        planKey: data.planKey,
+        environment: data.environment,
+      },
+      subscription_data: {
+        metadata: { userId, planKey: data.planKey, environment: data.environment },
+        ...(stripeTrialEnd && { trial_end: stripeTrialEnd }),
+      },
+    } as any);
+
+    // 4. Audit
+    try {
+      await sb.from("saas_checkout_sessions").insert({
+        tenant_id: userId,
+        user_id: userId,
+        plan_key: data.planKey,
+        stripe_price_id: priceId,
+        stripe_checkout_session_id: session.id,
+        status: "pending",
+        environment: data.environment,
+      } as any);
+    } catch (e) {
+      console.warn("[createPlanCheckout] audit insert failed (non-fatal):", e);
+    }
+
+    console.log("[createPlanCheckout] ✅ session created:", session.id);
+    return session.client_secret;
+  });
+
+
+
 export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { returnUrl?: string; environment: StripeEnv }) => data)

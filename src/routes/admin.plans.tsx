@@ -28,6 +28,8 @@ interface Plan {
   is_recommended: boolean;
   allowed_modules: string[];
   active: boolean;
+  stripe_price_id_test: string | null;
+  stripe_price_id_live: string | null;
 }
 
 const MODULE_CATALOG: { key: string; label: string; group: string }[] = [
@@ -73,7 +75,7 @@ function AdminPlans() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active")
+        .select("id, name, slug, description, price_monthly, price_yearly, tier, max_barbers, is_recommended, allowed_modules, active, stripe_price_id_test, stripe_price_id_live")
         .order("tier", { ascending: true });
       if (error) throw error;
       return (data || []).map((p: any) => ({
@@ -98,6 +100,8 @@ function AdminPlans() {
           is_recommended: plan.is_recommended,
           allowed_modules: plan.allowed_modules,
           active: plan.active,
+          stripe_price_id_test: plan.stripe_price_id_test || null,
+          stripe_price_id_live: plan.stripe_price_id_live || null,
         } as any)
         .eq("id", plan.id);
       if (error) throw error;
@@ -238,6 +242,40 @@ function AdminPlans() {
                     />
                   </div>
                 )}
+
+                {/* Stripe Price IDs */}
+                <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                  <Label className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">
+                    Stripe Price IDs
+                  </Label>
+                  <div>
+                    <Label className="text-[10px] text-white/50">TEST (sandbox)</Label>
+                    {isEditing ? (
+                      <Input
+                        value={current.stripe_price_id_test ?? ""}
+                        placeholder="price_..."
+                        onChange={(e) => setForm({ ...current, stripe_price_id_test: e.target.value || null })}
+                        className="h-8 bg-black/30 border-white/10 text-xs font-mono mt-1"
+                      />
+                    ) : (
+                      <p className="text-xs font-mono text-white/70 mt-1 truncate">{plan.stripe_price_id_test || <span className="text-red-400">não configurado</span>}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-white/50">LIVE (produção)</Label>
+                    {isEditing ? (
+                      <Input
+                        value={current.stripe_price_id_live ?? ""}
+                        placeholder="price_..."
+                        onChange={(e) => setForm({ ...current, stripe_price_id_live: e.target.value || null })}
+                        className="h-8 bg-black/30 border-white/10 text-xs font-mono mt-1"
+                      />
+                    ) : (
+                      <p className="text-xs font-mono text-white/70 mt-1 truncate">{plan.stripe_price_id_live || <span className="text-red-400">não configurado</span>}</p>
+                    )}
+                  </div>
+                </div>
+
 
                 {/* Allowed modules */}
                 <div>
