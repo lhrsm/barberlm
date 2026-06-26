@@ -161,17 +161,31 @@ function ProfessionalDashboard() {
 
   useEffect(() => {
     const bId = session?.barber_id;
-    if (bId) {
-      fetchData();
-      const channel = supabase
-        .channel(`prof-realtime-${bId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, fetchData)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'barber_commissions', filter: `barber_id=eq.${bId}` }, fetchData)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `barber_id=eq.${bId}` }, fetchData)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'barbers', filter: `id=eq.${bId}` }, fetchData)
-        .subscribe();
-      return () => { supabase.removeChannel(channel); };
-    }
+    if (!bId) return;
+    fetchData();
+    const channel = supabase
+      .channel(`prof-realtime-${bId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, (payload: any) => {
+        toast.success("Novo agendamento recebido", {
+          description: payload.new?.start_time ? format(new Date(payload.new.start_time), "dd/MM 'às' HH:mm") : undefined,
+        });
+        fetchData();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, (payload: any) => {
+        const oldS = payload.old?.status;
+        const newS = payload.new?.status;
+        if (oldS !== newS) {
+          if (newS === 'cancelled') toast("Agendamento cancelado");
+          else if (newS === 'completed') toast.success("Atendimento concluído");
+          else if (newS === 'confirmed') toast.success("Agendamento confirmado");
+        }
+        fetchData();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'appointments', filter: `barber_id=eq.${bId}` }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'barber_commissions', filter: `barber_id=eq.${bId}` }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'barbers', filter: `id=eq.${bId}` }, fetchData)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [session?.barber_id]);
 
   const handleAction = async (app: any, status: string) => {
