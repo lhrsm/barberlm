@@ -15,6 +15,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SubscriptionRewardsRouteImport } from './routes/subscription-rewards'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SecurityRouteImport } from './routes/security'
@@ -45,6 +46,7 @@ import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
+import { Route as AdminStatusRouteImport } from './routes/admin.status'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
@@ -59,6 +61,7 @@ import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subs
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/public/hooks/status-check'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -88,6 +91,11 @@ const SubscriptionRewardsRoute = SubscriptionRewardsRouteImport.update({
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -240,6 +248,11 @@ const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminStatusRoute = AdminStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -313,6 +326,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksStatusCheckRoute =
+  ApiPublicHooksStatusCheckRouteImport.update({
+    id: '/api/public/hooks/status-check',
+    path: '/api/public/hooks/status-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -337,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
@@ -353,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
@@ -363,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -388,6 +410,7 @@ export interface FileRoutesByTo {
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
@@ -404,6 +427,7 @@ export interface FileRoutesByTo {
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
@@ -414,6 +438,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -441,6 +466,7 @@ export interface FileRoutesById {
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
@@ -457,6 +483,7 @@ export interface FileRoutesById {
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
@@ -467,6 +494,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -495,6 +523,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/services'
     | '/settings'
+    | '/status'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
@@ -511,6 +540,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/status'
     | '/admin/subscriptions'
     | '/admin/support'
     | '/admin/tenants'
@@ -521,6 +551,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
@@ -546,6 +577,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/services'
     | '/settings'
+    | '/status'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
@@ -562,6 +594,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/status'
     | '/admin/subscriptions'
     | '/admin/support'
     | '/admin/tenants'
@@ -572,6 +605,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
@@ -598,6 +632,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/services'
     | '/settings'
+    | '/status'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
@@ -614,6 +649,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/status'
     | '/admin/subscriptions'
     | '/admin/support'
     | '/admin/tenants'
@@ -624,6 +660,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
@@ -651,6 +688,7 @@ export interface RootRouteChildren {
   SecurityRoute: typeof SecurityRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
+  StatusRoute: typeof StatusRoute
   SubscriptionRoute: typeof SubscriptionRoute
   SubscriptionRewardsRoute: typeof SubscriptionRewardsRoute
   SubscriptionsRoute: typeof SubscriptionsRouteWithChildren
@@ -661,6 +699,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksStatusCheckRoute: typeof ApiPublicHooksStatusCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -707,6 +746,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -919,6 +965,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubscriptionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/status': {
+      id: '/admin/status'
+      path: '/status'
+      fullPath: '/admin/status'
+      preLoaderRoute: typeof AdminStatusRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/settings'
@@ -1017,6 +1070,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/status-check': {
+      id: '/api/public/hooks/status-check'
+      path: '/api/public/hooks/status-check'
+      fullPath: '/api/public/hooks/status-check'
+      preLoaderRoute: typeof ApiPublicHooksStatusCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1041,6 +1101,7 @@ interface AdminRouteChildren {
   AdminPlansRoute: typeof AdminPlansRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminStatusRoute: typeof AdminStatusRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTenantsRoute: typeof AdminTenantsRoute
@@ -1057,6 +1118,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlansRoute: AdminPlansRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminStatusRoute: AdminStatusRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminSupportRoute: AdminSupportRoute,
   AdminTenantsRoute: AdminTenantsRoute,
@@ -1101,6 +1163,7 @@ const rootRouteChildren: RootRouteChildren = {
   SecurityRoute: SecurityRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
+  StatusRoute: StatusRoute,
   SubscriptionRoute: SubscriptionRoute,
   SubscriptionRewardsRoute: SubscriptionRewardsRoute,
   SubscriptionsRoute: SubscriptionsRouteWithChildren,
@@ -1111,6 +1174,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksStatusCheckRoute: ApiPublicHooksStatusCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }

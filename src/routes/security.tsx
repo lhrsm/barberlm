@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShieldCheck, Lock, KeyRound, Database, Server, UserCheck, ArrowLeft, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Lock, KeyRound, Database, Server, UserCheck, ArrowLeft, AlertTriangle, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/security")({
   head: () => ({
@@ -66,6 +66,19 @@ function SecurityPage() {
             (operadora), que deve manter senhas fortes, controlar quem tem acesso ao painel e revisar
             permissões periodicamente.
           </p>
+        </section>
+
+        <section aria-labelledby="monitoring" className="mb-16 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6">
+          <h2 id="monitoring" className="text-2xl font-bold mb-3 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-emerald-400" aria-hidden="true" /> Monitoramento Contínuo
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            O Barbex monitora continuamente seus principais serviços, integrações e infraestrutura para
+            garantir alta disponibilidade e rápida resposta a incidentes.
+          </p>
+          <Link to="/status" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-sm font-semibold">
+            <Activity className="h-4 w-4" aria-hidden="true" /> Ver Status da Plataforma
+          </Link>
         </section>
 
         <section aria-labelledby="report">

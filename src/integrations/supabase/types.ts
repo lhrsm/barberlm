@@ -4062,6 +4062,164 @@ export type Database = {
           },
         ]
       }
+      status_checks: {
+        Row: {
+          checked_at: string
+          id: number
+          latency_ms: number | null
+          message: string | null
+          service_id: string
+          status: string
+          success: boolean
+        }
+        Insert: {
+          checked_at?: string
+          id?: number
+          latency_ms?: number | null
+          message?: string | null
+          service_id: string
+          status: string
+          success?: boolean
+        }
+        Update: {
+          checked_at?: string
+          id?: number
+          latency_ms?: number | null
+          message?: string | null
+          service_id?: string
+          status?: string
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "status_checks_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "status_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      status_incidents: {
+        Row: {
+          affected_services: string[]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          resolved_at: string | null
+          severity: string
+          started_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_services?: string[]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_services?: string[]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      status_maintenances: {
+        Row: {
+          affected_services: string[]
+          created_at: string
+          description: string | null
+          id: string
+          impact: string
+          scheduled_end: string
+          scheduled_start: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_services?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          impact?: string
+          scheduled_end: string
+          scheduled_start: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_services?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          impact?: string
+          scheduled_end?: string
+          scheduled_start?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      status_services: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number
+          enabled: boolean
+          id: string
+          manual_status: string | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          enabled?: boolean
+          id?: string
+          manual_status?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          enabled?: boolean
+          id?: string
+          manual_status?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_card_scans: {
         Row: {
           customer_id: string | null
