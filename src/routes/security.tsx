@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShieldCheck, Lock, KeyRound, Database, Server, UserCheck, ArrowLeft, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Lock, KeyRound, Database, Server, UserCheck, ArrowLeft, AlertTriangle, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/security")({
   head: () => ({
