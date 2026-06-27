@@ -10,24 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TutorialsRouteImport } from './routes/tutorials'
+import { Route as TrustRouteImport } from './routes/trust'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SubscriptionRewardsRouteImport } from './routes/subscription-rewards'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as SubprocessorsRouteImport } from './routes/subprocessors'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyFaqRouteImport } from './routes/privacy-faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
+import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CommissionsRouteImport } from './routes/commissions'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -51,6 +56,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
+import { Route as AdminLgpdRouteImport } from './routes/admin.lgpd'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
@@ -66,6 +72,11 @@ import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/publ
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
   path: '/tutorials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrustRoute = TrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -91,6 +102,11 @@ const SubscriptionRewardsRoute = SubscriptionRewardsRouteImport.update({
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubprocessorsRoute = SubprocessorsRouteImport.update({
+  id: '/subprocessors',
+  path: '/subprocessors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatusRoute = StatusRouteImport.update({
@@ -123,6 +139,11 @@ const ProductsRoute = ProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyFaqRoute = PrivacyFaqRouteImport.update({
+  id: '/privacy-faq',
+  path: '/privacy-faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -131,6 +152,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const LoyaltyRoute = LoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LgpdRoute = LgpdRouteImport.update({
+  id: '/lgpd',
+  path: '/lgpd',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegrationsRoute = IntegrationsRouteImport.update({
@@ -156,6 +182,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommissionsRoute = CommissionsRouteImport.update({
@@ -273,6 +304,11 @@ const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLgpdRoute = AdminLgpdRouteImport.update({
+  id: '/lgpd',
+  path: '/lgpd',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFinanceRoute = AdminFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
@@ -344,24 +380,29 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/commissions': typeof CommissionsRoute
+  '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
+  '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/status': typeof StatusRoute
+  '/subprocessors': typeof SubprocessorsRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -369,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -398,24 +440,29 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/commissions': typeof CommissionsRoute
+  '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
+  '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/status': typeof StatusRoute
+  '/subprocessors': typeof SubprocessorsRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -423,6 +470,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -454,24 +502,29 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/commissions': typeof CommissionsRoute
+  '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
+  '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/status': typeof StatusRoute
+  '/subprocessors': typeof SubprocessorsRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -479,6 +532,7 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -511,24 +565,29 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/commissions'
+    | '/cookies'
     | '/customers'
     | '/dashboard'
     | '/finances'
     | '/history'
     | '/integrations'
+    | '/lgpd'
     | '/loyalty'
     | '/privacy'
+    | '/privacy-faq'
     | '/products'
     | '/reviews'
     | '/security'
     | '/services'
     | '/settings'
     | '/status'
+    | '/subprocessors'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
     | '/support'
     | '/terms'
+    | '/trust'
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -536,6 +595,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/errors'
     | '/admin/finance'
+    | '/admin/lgpd'
     | '/admin/notifications'
     | '/admin/plans'
     | '/admin/reports'
@@ -565,24 +625,29 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/commissions'
+    | '/cookies'
     | '/customers'
     | '/dashboard'
     | '/finances'
     | '/history'
     | '/integrations'
+    | '/lgpd'
     | '/loyalty'
     | '/privacy'
+    | '/privacy-faq'
     | '/products'
     | '/reviews'
     | '/security'
     | '/services'
     | '/settings'
     | '/status'
+    | '/subprocessors'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
     | '/support'
     | '/terms'
+    | '/trust'
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -590,6 +655,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/errors'
     | '/admin/finance'
+    | '/admin/lgpd'
     | '/admin/notifications'
     | '/admin/plans'
     | '/admin/reports'
@@ -620,24 +686,29 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/commissions'
+    | '/cookies'
     | '/customers'
     | '/dashboard'
     | '/finances'
     | '/history'
     | '/integrations'
+    | '/lgpd'
     | '/loyalty'
     | '/privacy'
+    | '/privacy-faq'
     | '/products'
     | '/reviews'
     | '/security'
     | '/services'
     | '/settings'
     | '/status'
+    | '/subprocessors'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
     | '/support'
     | '/terms'
+    | '/trust'
     | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -645,6 +716,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/errors'
     | '/admin/finance'
+    | '/admin/lgpd'
     | '/admin/notifications'
     | '/admin/plans'
     | '/admin/reports'
@@ -676,24 +748,29 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
   CommissionsRoute: typeof CommissionsRoute
+  CookiesRoute: typeof CookiesRoute
   CustomersRoute: typeof CustomersRoute
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
   HistoryRoute: typeof HistoryRoute
   IntegrationsRoute: typeof IntegrationsRoute
+  LgpdRoute: typeof LgpdRoute
   LoyaltyRoute: typeof LoyaltyRoute
   PrivacyRoute: typeof PrivacyRoute
+  PrivacyFaqRoute: typeof PrivacyFaqRoute
   ProductsRoute: typeof ProductsRoute
   ReviewsRoute: typeof ReviewsRoute
   SecurityRoute: typeof SecurityRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
   StatusRoute: typeof StatusRoute
+  SubprocessorsRoute: typeof SubprocessorsRoute
   SubscriptionRoute: typeof SubscriptionRoute
   SubscriptionRewardsRoute: typeof SubscriptionRewardsRoute
   SubscriptionsRoute: typeof SubscriptionsRouteWithChildren
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  TrustRoute: typeof TrustRoute
   TutorialsRoute: typeof TutorialsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -711,6 +788,13 @@ declare module '@tanstack/react-router' {
       path: '/tutorials'
       fullPath: '/tutorials'
       preLoaderRoute: typeof TutorialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trust': {
+      id: '/trust'
+      path: '/trust'
+      fullPath: '/trust'
+      preLoaderRoute: typeof TrustRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -746,6 +830,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subprocessors': {
+      id: '/subprocessors'
+      path: '/subprocessors'
+      fullPath: '/subprocessors'
+      preLoaderRoute: typeof SubprocessorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/status': {
@@ -790,6 +881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-faq': {
+      id: '/privacy-faq'
+      path: '/privacy-faq'
+      fullPath: '/privacy-faq'
+      preLoaderRoute: typeof PrivacyFaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -802,6 +900,13 @@ declare module '@tanstack/react-router' {
       path: '/loyalty'
       fullPath: '/loyalty'
       preLoaderRoute: typeof LoyaltyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lgpd': {
+      id: '/lgpd'
+      path: '/lgpd'
+      fullPath: '/lgpd'
+      preLoaderRoute: typeof LgpdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integrations': {
@@ -837,6 +942,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/commissions': {
@@ -1000,6 +1112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNotificationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/lgpd': {
+      id: '/admin/lgpd'
+      path: '/lgpd'
+      fullPath: '/admin/lgpd'
+      preLoaderRoute: typeof AdminLgpdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/finance': {
       id: '/admin/finance'
       path: '/finance'
@@ -1097,6 +1216,7 @@ interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminErrorsRoute: typeof AdminErrorsRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
+  AdminLgpdRoute: typeof AdminLgpdRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -1114,6 +1234,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminErrorsRoute: AdminErrorsRoute,
   AdminFinanceRoute: AdminFinanceRoute,
+  AdminLgpdRoute: AdminLgpdRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminReportsRoute: AdminReportsRoute,
@@ -1151,24 +1272,29 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
   CommissionsRoute: CommissionsRoute,
+  CookiesRoute: CookiesRoute,
   CustomersRoute: CustomersRoute,
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
   HistoryRoute: HistoryRoute,
   IntegrationsRoute: IntegrationsRoute,
+  LgpdRoute: LgpdRoute,
   LoyaltyRoute: LoyaltyRoute,
   PrivacyRoute: PrivacyRoute,
+  PrivacyFaqRoute: PrivacyFaqRoute,
   ProductsRoute: ProductsRoute,
   ReviewsRoute: ReviewsRoute,
   SecurityRoute: SecurityRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
   StatusRoute: StatusRoute,
+  SubprocessorsRoute: SubprocessorsRoute,
   SubscriptionRoute: SubscriptionRoute,
   SubscriptionRewardsRoute: SubscriptionRewardsRoute,
   SubscriptionsRoute: SubscriptionsRouteWithChildren,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  TrustRoute: TrustRoute,
   TutorialsRoute: TutorialsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
