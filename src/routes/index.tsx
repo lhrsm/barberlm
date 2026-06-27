@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState, useRef } from "react";
 import { SignupOnboardingModal } from "@/components/onboarding/SignupOnboardingModal";
+import { ManageCookiesLink } from "@/components/CookieBanner";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { 
@@ -839,19 +840,25 @@ function LandingPageComponent() {
       {/* Footer */}
       <footer className="bg-background border-t border-white/5 py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-16 mb-20">
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-8">
+          <div className="grid md:grid-cols-4 gap-12 mb-20">
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-2 mb-6">
                 <Scissors className="text-primary h-8 w-8" />
                 <span className="text-3xl font-black tracking-tighter text-white">Barbex</span>
               </div>
-              <p className="text-white/40 max-w-sm mb-8 text-lg font-bold leading-relaxed">
-                A plataforma premium definitiva para barbearias modernas que buscam escala, profissionalismo e lucro.
+              <p className="text-white/40 max-w-sm mb-6 text-sm font-bold leading-relaxed">
+                A plataforma premium definitiva para barbearias modernas.
               </p>
+              <Link
+                to="/trust"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" /> Central de Confiança
+              </Link>
             </div>
             <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-8">Produto</h4>
-              <ul className="space-y-4 text-white/40 font-bold">
+              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-6">Produto</h4>
+              <ul className="space-y-3 text-white/40 font-bold text-sm">
                 <li><a href="#recursos" className="hover:text-primary transition-colors">Recursos</a></li>
                 <li><a href="#automações" className="hover:text-primary transition-colors">Automações</a></li>
                 <li><a href="#planos" className="hover:text-primary transition-colors">Planos</a></li>
@@ -859,14 +866,28 @@ function LandingPageComponent() {
               </ul>
             </div>
             <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-8">Links Úteis</h4>
-              <ul className="space-y-4 text-white/40 font-bold">
+              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-6">Acesso</h4>
+              <ul className="space-y-3 text-white/40 font-bold text-sm">
                 <li><Link to="/auth" className="hover:text-primary transition-colors">Entrar</Link></li>
                 <li><Link to="/auth" className="hover:text-primary transition-colors">Criar conta</Link></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Suporte</a></li>
-                <li><Link to="/privacy" className="hover:text-primary transition-colors">Política de Privacidade</Link></li>
-                <li><Link to="/terms" className="hover:text-primary transition-colors">Termos de Uso</Link></li>
-                <li><Link to="/status" className="hover:text-primary transition-colors">Status da Plataforma</Link></li>
+                <li><Link to="/subscription" className="hover:text-primary transition-colors">Planos</Link></li>
+                <li><Link to="/support" className="hover:text-primary transition-colors">Suporte</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-6">Confiança</h4>
+              <ul className="space-y-3 text-white/40 font-bold text-sm">
+                <li><Link to="/trust" className="hover:text-primary transition-colors">Central de Confiança</Link></li>
+                <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacidade</Link></li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors">Termos</Link></li>
+                <li><Link to="/cookies" className="hover:text-primary transition-colors">Cookies</Link></li>
+                <li><Link to="/lgpd" className="hover:text-primary transition-colors">LGPD</Link></li>
+                <li><Link to="/security" className="hover:text-primary transition-colors">Segurança</Link></li>
+                <li><Link to="/accessibility" className="hover:text-primary transition-colors">Acessibilidade</Link></li>
+                <li><Link to="/status" className="hover:text-primary transition-colors">Status</Link></li>
+                <li><Link to="/subprocessors" className="hover:text-primary transition-colors">Subprocessadores</Link></li>
+                <li><Link to="/privacy-faq" className="hover:text-primary transition-colors">FAQ Privacidade</Link></li>
+                <li><ManageCookiesLink className="hover:text-primary transition-colors text-left" /></li>
               </ul>
             </div>
           </div>

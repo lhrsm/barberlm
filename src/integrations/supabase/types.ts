@@ -2461,6 +2461,75 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_consents: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          device: string | null
+          id: string
+          ip: string | null
+          marketing: boolean
+          necessary: boolean
+          policy_version: string
+          preferences: boolean
+          session_id: string | null
+          source: string | null
+          statistics: boolean
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          device?: string | null
+          id?: string
+          ip?: string | null
+          marketing?: boolean
+          necessary?: boolean
+          policy_version?: string
+          preferences?: boolean
+          session_id?: string | null
+          source?: string | null
+          statistics?: boolean
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          device?: string | null
+          id?: string
+          ip?: string | null
+          marketing?: boolean
+          necessary?: boolean
+          policy_version?: string
+          preferences?: boolean
+          session_id?: string | null
+          source?: string | null
+          statistics?: boolean
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cookie_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cookie_consents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           active: boolean | null
@@ -2822,12 +2891,15 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          policy_version_accepted: string | null
           privacy_accepted_at: string | null
           tenant_id: string | null
           terms_accepted_at: string | null
           total_spent: number | null
           updated_at: string | null
           user_id: string
+          whatsapp_marketing_consent: boolean
+          whatsapp_transactional_consent: boolean
         }
         Insert: {
           allow_marketing?: boolean
@@ -2852,12 +2924,15 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          policy_version_accepted?: string | null
           privacy_accepted_at?: string | null
           tenant_id?: string | null
           terms_accepted_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
           user_id: string
+          whatsapp_marketing_consent?: boolean
+          whatsapp_transactional_consent?: boolean
         }
         Update: {
           allow_marketing?: boolean
@@ -2882,12 +2957,15 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          policy_version_accepted?: string | null
           privacy_accepted_at?: string | null
           tenant_id?: string | null
           terms_accepted_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
           user_id?: string
+          whatsapp_marketing_consent?: boolean
+          whatsapp_transactional_consent?: boolean
         }
         Relationships: [
           {
@@ -3008,6 +3086,81 @@ export type Database = {
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lgpd_requests: {
+        Row: {
+          contact_email: string | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          ip: string | null
+          notes: string | null
+          payload: Json
+          request_type: string
+          requested_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          response: Json | null
+          status: string
+          tenant_id: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          ip?: string | null
+          notes?: string | null
+          payload?: Json
+          request_type: string
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          response?: Json | null
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          ip?: string | null
+          notes?: string | null
+          payload?: Json
+          request_type?: string
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          response?: Json | null
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lgpd_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lgpd_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4217,6 +4370,51 @@ export type Database = {
           name?: string
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subprocessors: {
+        Row: {
+          active: boolean
+          category: string
+          country: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          privacy_url: string | null
+          purpose: string
+          sort_order: number
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          privacy_url?: string | null
+          purpose: string
+          sort_order?: number
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          privacy_url?: string | null
+          purpose?: string
+          sort_order?: number
+          updated_at?: string
+          website_url?: string | null
         }
         Relationships: []
       }
