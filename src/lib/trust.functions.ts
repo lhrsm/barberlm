@@ -72,7 +72,7 @@ export const submitLgpdRequest = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { ip, user_agent } = clientMeta();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await supabaseAdmin
+    const { data: row, error } = await (supabaseAdmin as any)
       .from("lgpd_requests")
       .insert({
         request_type: data.request_type,
