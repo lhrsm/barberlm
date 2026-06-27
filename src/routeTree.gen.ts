@@ -15,6 +15,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SubscriptionRewardsRouteImport } from './routes/subscription-rewards'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SecurityRouteImport } from './routes/security'
@@ -88,6 +89,11 @@ const SubscriptionRewardsRoute = SubscriptionRewardsRouteImport.update({
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -337,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
@@ -388,6 +395,7 @@ export interface FileRoutesByTo {
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
@@ -441,6 +449,7 @@ export interface FileRoutesById {
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
   '/subscription': typeof SubscriptionRoute
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
@@ -495,6 +504,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/services'
     | '/settings'
+    | '/status'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
@@ -546,6 +556,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/services'
     | '/settings'
+    | '/status'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
@@ -598,6 +609,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/services'
     | '/settings'
+    | '/status'
     | '/subscription'
     | '/subscription-rewards'
     | '/subscriptions'
@@ -651,6 +663,7 @@ export interface RootRouteChildren {
   SecurityRoute: typeof SecurityRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
+  StatusRoute: typeof StatusRoute
   SubscriptionRoute: typeof SubscriptionRoute
   SubscriptionRewardsRoute: typeof SubscriptionRewardsRoute
   SubscriptionsRoute: typeof SubscriptionsRouteWithChildren
@@ -707,6 +720,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -1101,6 +1121,7 @@ const rootRouteChildren: RootRouteChildren = {
   SecurityRoute: SecurityRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
+  StatusRoute: StatusRoute,
   SubscriptionRoute: SubscriptionRoute,
   SubscriptionRewardsRoute: SubscriptionRewardsRoute,
   SubscriptionsRoute: SubscriptionsRouteWithChildren,
