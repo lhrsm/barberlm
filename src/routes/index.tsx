@@ -866,6 +866,7 @@ function LandingPageComponent() {
                 <li><a href="#" className="hover:text-primary transition-colors">Suporte</a></li>
                 <li><Link to="/privacy" className="hover:text-primary transition-colors">Política de Privacidade</Link></li>
                 <li><Link to="/terms" className="hover:text-primary transition-colors">Termos de Uso</Link></li>
+                <li><Link to="/status" className="hover:text-primary transition-colors">Status da Plataforma</Link></li>
               </ul>
             </div>
           </div>
