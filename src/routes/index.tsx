@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState, useRef } from "react";
 import { SignupOnboardingModal } from "@/components/onboarding/SignupOnboardingModal";
+import { ManageCookiesLink } from "@/components/CookieBanner";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { 
