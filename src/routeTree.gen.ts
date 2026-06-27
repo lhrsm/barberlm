@@ -61,6 +61,7 @@ import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subs
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/public/hooks/status-check'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -325,6 +326,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksStatusCheckRoute =
+  ApiPublicHooksStatusCheckRouteImport.update({
+    id: '/api/public/hooks/status-check',
+    path: '/api/public/hooks/status-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -377,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -430,6 +438,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -485,6 +494,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -541,6 +551,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
@@ -594,6 +605,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
@@ -648,6 +660,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/agendamentos/grupo/$token'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
@@ -686,6 +699,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksStatusCheckRoute: typeof ApiPublicHooksStatusCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -1056,6 +1070,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/status-check': {
+      id: '/api/public/hooks/status-check'
+      path: '/api/public/hooks/status-check'
+      fullPath: '/api/public/hooks/status-check'
+      preLoaderRoute: typeof ApiPublicHooksStatusCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1153,6 +1174,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksStatusCheckRoute: ApiPublicHooksStatusCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }
