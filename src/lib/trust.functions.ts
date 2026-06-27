@@ -23,8 +23,7 @@ function clientMeta() {
 
 export const listSubprocessors = createServerFn({ method: "GET" }).handler(async () => {
   const sb = serverPublic();
-  const { data, error } = await sb
-    .from("subprocessors")
+  const { data, error } = await (sb as any).from("subprocessors")
     .select("id,name,purpose,category,country,privacy_url,website_url,logo_url,sort_order")
     .eq("active", true)
     .order("sort_order", { ascending: true });
@@ -45,7 +44,7 @@ export const submitCookieConsent = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { ip, user_agent } = clientMeta();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("cookie_consents").insert({
+    const { error } = await (supabaseAdmin as any).from("cookie_consents").insert({
       tenant_id: data.tenant_id ?? null,
       necessary: true,
       preferences: !!data.preferences,
@@ -93,13 +92,11 @@ export const submitLgpdRequest = createServerFn({ method: "POST" })
 export const myLgpdHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: requests } = await context.supabase
-      .from("lgpd_requests")
+    const { data: requests } = await (context.supabase as any).from("lgpd_requests")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
-    const { data: consents } = await context.supabase
-      .from("privacy_consents")
+    const { data: consents } = await (context.supabase as any).from("privacy_consents")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
@@ -116,8 +113,7 @@ export const adminListLgpdRequests = createServerFn({ method: "GET" })
     });
     if (!isAdmin) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = supabaseAdmin
-      .from("lgpd_requests")
+    let q = (supabaseAdmin as any).from("lgpd_requests")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(200);
@@ -139,8 +135,7 @@ export const adminResolveLgpdRequest = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("lgpd_requests")
+    const { error } = await (supabaseAdmin as any).from("lgpd_requests")
       .update({
         status: data.status,
         response: data.response ? { note: data.response } : null,
