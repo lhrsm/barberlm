@@ -115,6 +115,7 @@ function SettingsComponent() {
     loyalty_benefit_description: "Serviço grátis",
     loyalty_max_benefit_value: 0,
     loyalty_validity_days: 0,
+    loyalty_premium_enabled: false,
     address: "",
     google_maps_url: "",
     font_family: "Inter",
