@@ -84,7 +84,7 @@ const barberNavItems = (slug: string) => [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const instanceId = useId().replace(/:/g, "");
-  const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
+  const { tenantProfile, isImpersonating, stopImpersonation, tenantId, isLoading: tenantLoading } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
   const navigate = useNavigate();
@@ -181,7 +181,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Só exibimos a tela de bloqueio se o trial acabou e não há plano/assinatura detectada.
   // IMPORTANTE: isExpired já vem com essa lógica do hook usePlanLimits.
   const isProfissionalRoute = pathname.includes('/profissional');
-  const shouldBlock = isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin' && !planLoading && !loading;
+  // Só decide bloqueio depois que TUDO carregou: auth, tenant, plano e assinatura.
+  // Sem isso, plan='free' inicial faz isExpired=true durante 1 frame e mostra "Trial expirado".
+  const accessReady = !loading && !tenantLoading && !planLoading && !!tenantId;
+  const shouldBlock = accessReady && isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin';
 
 
   return (

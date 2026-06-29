@@ -73,6 +73,23 @@ function LoyaltyDashboardPage() {
     .slice(0, 10);
 
   const moduleActive = !!(settings as any)?.enabled;
+  const accessChecking = loading || !user || loadingData;
+
+  if (accessChecking) {
+    return (
+      <AppLayout>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
+          <div className="h-12 w-12 rounded-full border-2 border-[#ea580c]/30 border-t-[#ea580c] animate-spin mb-5" />
+          <h2 className="text-xl font-black uppercase italic tracking-wider text-white">
+            Carregando Fidelidade
+          </h2>
+          <p className="text-sm text-slate-400 mt-2 max-w-sm">
+            Estamos verificando suas configurações e permissões.
+          </p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (loading || !user) return null;
 
