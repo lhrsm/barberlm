@@ -92,7 +92,7 @@ function TemplatesPage() {
     setAiOpen(true);
     setAiLoading(true);
     try {
-      const res: any = await suggestFn({ data: {} });
+      const res: any = await (suggestFn as any)();
       setAiSuggestions(res?.suggestions || []);
     } catch (e: any) {
       toast.error("Erro IA: " + (e?.message || e));
