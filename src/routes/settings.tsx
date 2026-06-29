@@ -362,6 +362,7 @@ function SettingsComponent() {
         benefit_description: updatedData.loyalty_benefit_description || 'Serviço grátis',
         max_benefit_value: Number(updatedData.loyalty_max_benefit_value) || 0,
         validity_days: Math.max(0, parseInt(String(updatedData.loyalty_validity_days)) || 0),
+        premium_enabled: !!updatedData.loyalty_premium_enabled,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'tenant_id' });
 
