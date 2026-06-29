@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Gift, Trophy, TrendingDown, Users, Settings } from "lucide-react";
+import { Gift, Trophy, TrendingDown, Users, Settings, LayoutDashboard, ListChecks, Sparkles } from "lucide-react";
 import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/loyalty")({
@@ -89,25 +89,16 @@ function LoyaltyDashboardPage() {
               Acompanhe o progresso dos clientes, recompensas e economia gerada.
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button asChild size="sm" className="gap-2 bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-black font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)]">
-              <Link to="/loyalty/templates">
-                <Trophy className="h-3.5 w-3.5" /> Templates Premium
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="gap-2 border-zinc-800 text-zinc-300 hover:text-white">
-              <Link to="/loyalty/campaigns">Minhas campanhas</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="gap-2 border-zinc-800 text-zinc-300 hover:text-white">
-              <Link to="/loyalty/dashboard">Dashboard</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="gap-2 border-zinc-800 text-zinc-300 hover:text-white">
-              <Link to="/settings">
-                <Settings className="h-3.5 w-3.5" /> Configurar
-              </Link>
-            </Button>
+          <div className="-mx-1 px-1 overflow-x-auto">
+            <div className="flex gap-2 min-w-max">
+              <LoyaltyNavButton to="/loyalty/templates" icon={<Sparkles className="h-4 w-4" />} label="Templates Premium" active />
+              <LoyaltyNavButton to="/loyalty/campaigns" icon={<ListChecks className="h-4 w-4" />} label="Minhas Campanhas" />
+              <LoyaltyNavButton to="/loyalty/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Dashboard" />
+              <LoyaltyNavButton to="/settings" icon={<Settings className="h-4 w-4" />} label="Configurar" />
+            </div>
           </div>
         </div>
+
 
 
         {!moduleActive && (
@@ -294,10 +285,35 @@ function LoyaltyDashboardPage() {
   );
 }
 
+function LoyaltyNavButton({
+  to,
+  icon,
+  label,
+  active = false,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+}) {
+  const base =
+    "shrink-0 inline-flex items-center gap-2 h-11 px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5";
+  const cls = active
+    ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black border border-[#f59e0b] shadow-[0_4px_16px_rgba(245,158,11,0.35)] hover:shadow-[0_8px_28px_rgba(245,158,11,0.55)]"
+    : "bg-[#0b0f17] text-white border border-[#f59e0b]/30 [&_svg]:text-[#f59e0b] hover:border-[#f59e0b]/70 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]";
+  return (
+    <Link to={to as any} className={`${base} ${cls}`}>
+      {icon}
+      <span>{label}</span>
+    </Link>
+  );
+}
+
 function KpiCard({ label, value, icon }: { label: string; value: any; icon: React.ReactNode }) {
   return (
     <Card className="bg-[#0b0f17] border border-[#1f2937] text-white">
       <CardContent className="p-5 flex items-center justify-between">
+
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
           <p className="text-2xl font-black italic mt-1">{value}</p>
