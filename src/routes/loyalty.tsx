@@ -296,16 +296,21 @@ function LoyaltyNavButton({
   label: string;
   active?: boolean;
 }) {
+  const navigate = useNavigate();
   const base =
-    "shrink-0 inline-flex items-center gap-2 h-11 px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5";
+    "shrink-0 inline-flex items-center gap-2 h-11 px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 cursor-pointer";
   const cls = active
     ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black border border-[#f59e0b] shadow-[0_4px_16px_rgba(245,158,11,0.35)] hover:shadow-[0_8px_28px_rgba(245,158,11,0.55)]"
     : "bg-[#0b0f17] text-white border border-[#f59e0b]/30 [&_svg]:text-[#f59e0b] hover:border-[#f59e0b]/70 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]";
   return (
-    <Link to={to as any} className={`${base} ${cls}`}>
+    <button
+      type="button"
+      onClick={() => navigate({ to: to as any })}
+      className={`${base} ${cls}`}
+    >
       {icon}
       <span>{label}</span>
-    </Link>
+    </button>
   );
 }
 
