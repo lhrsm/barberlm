@@ -118,6 +118,12 @@ function LoyaltyDashboard() {
             </div>
           </div>
 
+          {loadError && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
+              Não foi possível carregar todas as métricas. <button onClick={() => location.reload()} className="underline font-bold">Tentar novamente</button>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {cards.map((c) => (
               <div key={c.label} className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5">
@@ -125,10 +131,25 @@ function LoyaltyDashboard() {
                   <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-zinc-400">{c.label}</p>
                   <c.icon className="h-5 w-5" style={{ color: c.color }} />
                 </div>
-                <p className="text-2xl md:text-3xl font-black" style={{ color: c.color }}>{c.value}</p>
+                {loading ? (
+                  <div className="h-8 w-20 rounded bg-zinc-800/60 animate-pulse" />
+                ) : (
+                  <p className="text-2xl md:text-3xl font-black" style={{ color: c.color }}>{c.value}</p>
+                )}
               </div>
             ))}
           </div>
+
+          {!loading && !hasData && (
+            <div className="text-center py-12 border-2 border-dashed border-zinc-800 rounded-2xl bg-[#0b0f17]">
+              <Trophy className="h-10 w-10 text-zinc-600 mx-auto mb-3" />
+              <p className="text-zinc-300 font-bold">Ainda não há dados de fidelidade para exibir.</p>
+              <p className="text-sm text-zinc-500 mt-1">Ative uma campanha em Templates Premium para começar.</p>
+              <Link to="/loyalty/templates" className="inline-block mt-4 px-5 h-10 leading-10 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black font-bold">
+                Ver templates
+              </Link>
+            </div>
+          )}
 
           {stats.topCampaign && (
             <div className="bg-gradient-to-br from-[#f59e0b]/10 to-[#ea580c]/5 border border-[#f59e0b]/30 rounded-2xl p-6">
