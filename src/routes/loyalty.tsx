@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Gift, Trophy, TrendingDown, Users, Settings } from "lucide-react";
+import { Gift, Trophy, TrendingDown, Users, Settings, LayoutDashboard, ListChecks, Sparkles } from "lucide-react";
 import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/loyalty")({
