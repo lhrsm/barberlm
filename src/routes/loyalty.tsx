@@ -91,7 +91,7 @@ function LoyaltyDashboardPage() {
           </div>
           <div className="-mx-1 px-1 overflow-x-auto">
             <div className="flex gap-2 min-w-max">
-              <LoyaltyNavButton to="/loyalty/templates" icon={<Sparkles className="h-4 w-4" />} label="Templates Premium" active />
+              <LoyaltyNavButton to="/loyalty/templates" icon={<Sparkles className="h-4 w-4" />} label="Templates Premium" />
               <LoyaltyNavButton to="/loyalty/campaigns" icon={<ListChecks className="h-4 w-4" />} label="Minhas Campanhas" />
               <LoyaltyNavButton to="/loyalty/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Dashboard" />
               <LoyaltyNavButton to="/settings" icon={<Settings className="h-4 w-4" />} label="Configurar" />
