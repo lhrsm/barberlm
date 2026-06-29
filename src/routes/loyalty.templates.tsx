@@ -38,18 +38,22 @@ function TemplatesPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [premiumEnabled, setPremiumEnabled] = useState<boolean | null>(null);
   const suggestFn = useServerFn(suggestLoyaltyCampaigns);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("loyalty_campaign_templates" as any)
-        .select("*")
-        .order("sort_order");
-      setTemplates((data as any) || []);
+      const [tplRes, settingsRes] = await Promise.all([
+        supabase.from("loyalty_campaign_templates" as any).select("*").order("sort_order"),
+        user
+          ? supabase.from("loyalty_settings" as any).select("premium_enabled").eq("tenant_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+      ]);
+      setTemplates((tplRes.data as any) || []);
+      setPremiumEnabled(((settingsRes as any)?.data?.premium_enabled as boolean) ?? false);
       setLoading(false);
     })();
-  }, []);
+  }, [user]);
 
   const filtered = useMemo(() => {
     return templates.filter((t) => {
