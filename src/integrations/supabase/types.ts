@@ -3448,6 +3448,7 @@ export type Database = {
           enabled: boolean
           id: string
           max_benefit_value: number
+          premium_enabled: boolean
           tenant_id: string
           updated_at: string
           validity_days: number
@@ -3461,6 +3462,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           max_benefit_value?: number
+          premium_enabled?: boolean
           tenant_id: string
           updated_at?: string
           validity_days?: number
@@ -3474,6 +3476,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           max_benefit_value?: number
+          premium_enabled?: boolean
           tenant_id?: string
           updated_at?: string
           validity_days?: number

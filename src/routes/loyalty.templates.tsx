@@ -38,18 +38,22 @@ function TemplatesPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [premiumEnabled, setPremiumEnabled] = useState<boolean | null>(null);
   const suggestFn = useServerFn(suggestLoyaltyCampaigns);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("loyalty_campaign_templates" as any)
-        .select("*")
-        .order("sort_order");
-      setTemplates((data as any) || []);
+      const [tplRes, settingsRes] = await Promise.all([
+        supabase.from("loyalty_campaign_templates" as any).select("*").order("sort_order"),
+        user
+          ? supabase.from("loyalty_settings" as any).select("premium_enabled").eq("tenant_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+      ]);
+      setTemplates((tplRes.data as any) || []);
+      setPremiumEnabled(((settingsRes as any)?.data?.premium_enabled as boolean) ?? false);
       setLoading(false);
     })();
-  }, []);
+  }, [user]);
 
   const filtered = useMemo(() => {
     return templates.filter((t) => {
@@ -99,6 +103,30 @@ function TemplatesPage() {
     } finally {
       setAiLoading(false);
     }
+  }
+
+  if (premiumEnabled === false) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen bg-[#05070d] text-white grid place-items-center p-6">
+          <div className="max-w-md w-full bg-gradient-to-b from-[#0b0f17] to-[#05070d] border border-[#D4AF37]/30 rounded-2xl p-8 text-center space-y-4">
+            <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-transparent border border-[#D4AF37]/40 grid place-items-center">
+              <Sparkles className="h-8 w-8 text-[#D4AF37]" />
+            </div>
+            <h2 className="text-2xl font-black">Fidelidade Premium desativada</h2>
+            <p className="text-sm text-zinc-400">
+              Ative a Fidelidade Premium em Configurações para usar templates e campanhas avançadas.
+            </p>
+            <Button
+              onClick={() => navigate({ to: "/settings" })}
+              className="w-full h-11 rounded-xl bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider"
+            >
+              Ir para Configurações
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
   }
 
   return (
