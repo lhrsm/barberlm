@@ -1314,34 +1314,47 @@ function SettingsComponent() {
                       <div className="min-w-0">
                         <CardTitle className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2 flex-wrap">
                           Fidelidade Premium
-                          <Badge variant="outline" className="border-[#D4AF37]/40 text-[#D4AF37]">
-                            Por tempo
+                          <Badge variant="outline" className={formData.loyalty_premium_enabled ? "border-[#D4AF37]/40 text-[#D4AF37]" : "border-slate-600/40 text-slate-500"}>
+                            {formData.loyalty_premium_enabled ? "Ativo" : "Inativo"}
                           </Badge>
                         </CardTitle>
                         <CardDescription className="text-slate-400 mt-1">
-                          Recompensas desbloqueadas pelo tempo de permanência do cliente na assinatura.
-                          Ex.: 3 meses → hidratação grátis · 6 meses → barba grátis · 12 meses → kit exclusivo.
+                          Campanhas avançadas, templates personalizados e benefícios exclusivos para assinantes (3, 6, 12 meses, indicação e mais).
                         </CardDescription>
                       </div>
                     </div>
+                    <Switch
+                      checked={formData.loyalty_premium_enabled}
+                      onCheckedChange={(checked) => setFormData({ ...formData, loyalty_premium_enabled: checked })}
+                      className="data-[state=checked]:bg-[#D4AF37]"
+                    />
                   </div>
                 </CardHeader>
+                {formData.loyalty_premium_enabled && (
                 <CardContent className="p-6 space-y-4">
                   <div className="bg-[#05070d] border border-[#1f2937] rounded-2xl p-5 space-y-3">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">Como funciona</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">O que está incluído</p>
                     <ul className="text-[11px] text-slate-300 space-y-1.5 leading-relaxed">
-                      <li>• Disponível apenas para clientes <strong>assinantes</strong> ativos.</li>
-                      <li>• Recompensas configuráveis por meses de permanência.</li>
-                      <li>• Não acumula com Fidelidade Tradicional nem Cashback em serviços cobertos pelo plano.</li>
-                      <li>• Integrada com cada plano de assinatura (ativa/inativa por plano).</li>
+                      <li>• Biblioteca com 20 templates prontos (Clube dos 10, Cashback Progressivo, VIP, Aniversariante e mais).</li>
+                      <li>• Campanhas personalizadas com regras, recompensas e mensagens automáticas.</li>
+                      <li>• Benefícios para assinantes por tempo (3, 6 e 12 meses) e indicação.</li>
+                      <li>• Dashboard de desempenho e sugestões com IA.</li>
                     </ul>
                   </div>
-                  <Button asChild className="w-full sm:w-auto bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider h-11 rounded-xl">
-                    <Link to="/subscription-rewards">
-                      <Trophy className="h-4 w-4 mr-2" /> Gerenciar Fidelidade Premium
-                    </Link>
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button asChild className="flex-1 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider h-11 rounded-xl">
+                      <Link to="/loyalty/templates">
+                        <Trophy className="h-4 w-4 mr-2" /> Gerenciar Fidelidade Premium
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="flex-1 border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold uppercase tracking-wider h-11 rounded-xl">
+                      <Link to="/subscription-rewards">
+                        Recompensas de Assinantes
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
+                )}
               </Card>
             </TabsContent>
 
