@@ -105,6 +105,30 @@ function TemplatesPage() {
     }
   }
 
+  if (premiumEnabled === false) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen bg-[#05070d] text-white grid place-items-center p-6">
+          <div className="max-w-md w-full bg-gradient-to-b from-[#0b0f17] to-[#05070d] border border-[#D4AF37]/30 rounded-2xl p-8 text-center space-y-4">
+            <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-transparent border border-[#D4AF37]/40 grid place-items-center">
+              <Sparkles className="h-8 w-8 text-[#D4AF37]" />
+            </div>
+            <h2 className="text-2xl font-black">Fidelidade Premium desativada</h2>
+            <p className="text-sm text-zinc-400">
+              Ative a Fidelidade Premium em Configurações para usar templates e campanhas avançadas.
+            </p>
+            <Button
+              onClick={() => navigate({ to: "/settings" })}
+              className="w-full h-11 rounded-xl bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider"
+            >
+              Ir para Configurações
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="min-h-screen bg-[#05070d] text-white">
