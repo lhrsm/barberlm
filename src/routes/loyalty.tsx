@@ -89,12 +89,26 @@ function LoyaltyDashboardPage() {
               Acompanhe o progresso dos clientes, recompensas e economia gerada.
             </p>
           </div>
-          <Button asChild size="sm" className="gap-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
-            <Link to="/settings">
-              <Settings className="h-3.5 w-3.5" /> Configurar
-            </Link>
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button asChild size="sm" className="gap-2 bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-black font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)]">
+              <Link to="/loyalty/templates">
+                <Trophy className="h-3.5 w-3.5" /> Templates Premium
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="gap-2 border-zinc-800 text-zinc-300 hover:text-white">
+              <Link to="/loyalty/campaigns">Minhas campanhas</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="gap-2 border-zinc-800 text-zinc-300 hover:text-white">
+              <Link to="/loyalty/dashboard">Dashboard</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="gap-2 border-zinc-800 text-zinc-300 hover:text-white">
+              <Link to="/settings">
+                <Settings className="h-3.5 w-3.5" /> Configurar
+              </Link>
+            </Button>
+          </div>
         </div>
+
 
         {!moduleActive && (
           <Card className="bg-amber-500/5 border-amber-500/30 text-amber-200">
