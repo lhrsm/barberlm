@@ -228,6 +228,7 @@ function SettingsComponent() {
           loyalty_benefit_description: (loyaltyData as any)?.benefit_description ?? "Serviço grátis",
           loyalty_max_benefit_value: Number((loyaltyData as any)?.max_benefit_value ?? 0),
           loyalty_validity_days: (loyaltyData as any)?.validity_days ?? 0,
+          loyalty_premium_enabled: (loyaltyData as any)?.premium_enabled ?? false,
 
           address: profile.address || "",
           google_maps_url: profile.google_maps_url || "",
