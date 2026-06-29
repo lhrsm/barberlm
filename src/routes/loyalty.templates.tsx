@@ -41,18 +41,37 @@ function TemplatesPage() {
   const [premiumEnabled, setPremiumEnabled] = useState<boolean | null>(null);
   const suggestFn = useServerFn(suggestLoyaltyCampaigns);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const [tplRes, settingsRes] = await Promise.all([
-        supabase.from("loyalty_campaign_templates" as any).select("*").order("sort_order"),
-        user
-          ? supabase.from("loyalty_settings" as any).select("premium_enabled").eq("tenant_id", user.id).maybeSingle()
-          : Promise.resolve({ data: null } as any),
-      ]);
-      setTemplates((tplRes.data as any) || []);
-      setPremiumEnabled(((settingsRes as any)?.data?.premium_enabled as boolean) ?? false);
-      setLoading(false);
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const [tplRes, settingsRes] = await Promise.all([
+          supabase.from("loyalty_campaign_templates" as any).select("*").order("sort_order"),
+          user
+            ? supabase.from("loyalty_settings" as any).select("premium_enabled").eq("tenant_id", user.id).maybeSingle()
+            : Promise.resolve({ data: null } as any),
+        ]);
+        if (cancelled) return;
+        const rows = ((tplRes as any)?.data as any[]) || [];
+        setTemplates(rows.length ? rows : FALLBACK_TEMPLATES);
+        setPremiumEnabled(((settingsRes as any)?.data?.premium_enabled as boolean) ?? true);
+      } catch (e: any) {
+        if (cancelled) return;
+        console.error("[loyalty/templates] load error", e);
+        setLoadError(e?.message || "Erro ao carregar templates");
+        setTemplates(FALLBACK_TEMPLATES);
+        setPremiumEnabled(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const filtered = useMemo(() => {
