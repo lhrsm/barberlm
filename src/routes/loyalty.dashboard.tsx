@@ -24,61 +24,73 @@ function LoyaltyDashboard() {
     topCampaign: null as any,
   });
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      if (!user) return;
-      const [campsRes, partsRes, cashbackRes] = await Promise.all([
-        supabase.from("loyalty_campaigns" as any).select("id,name,status").eq("tenant_id", user.id),
-        supabase.from("loyalty_campaign_participations" as any).select("id,campaign_id,unlocked_at,redeemed_at,reward_granted,current_value").eq("tenant_id", user.id),
-        supabase.from("cashback_transactions" as any).select("amount,type").eq("tenant_id", user.id),
-      ]);
-      const camps = (campsRes.data as any[]) || [];
-      const parts = (partsRes.data as any[]) || [];
-      const active = camps.filter((c) => c.status === "active").length;
-      const unlocked = parts.filter((p) => p.unlocked_at).length;
-      const granted = parts.filter((p) => p.redeemed_at).length;
-      const valueGranted = parts.reduce(
-        (s, p) => s + Number(p.reward_granted?.amount || p.reward_granted?.value || 0),
-        0,
-      );
-      const cb = (cashbackRes.data as any[]) || [];
-      const cashback = cb.filter((t) => t.type === "credit").reduce((s, t) => s + Number(t.amount || 0), 0);
-
-      const byCamp = new Map<string, number>();
-      parts.forEach((p) => byCamp.set(p.campaign_id, (byCamp.get(p.campaign_id) || 0) + 1));
-      let topId: string | null = null;
-      let topCount = 0;
-      byCamp.forEach((n, id) => {
-        if (n > topCount) {
-          topId = id;
-          topCount = n;
+      setLoading(true);
+      setLoadError(null);
+      try {
+        if (!user) {
+          if (!cancelled) setLoading(false);
+          return;
         }
-      });
-      const topCampaign = topId ? { ...camps.find((c) => c.id === topId), participants: topCount } : null;
+        const [campsRes, partsRes, cashbackRes] = await Promise.all([
+          supabase.from("loyalty_campaigns" as any).select("id,name,status").eq("tenant_id", user.id),
+          supabase.from("loyalty_campaign_participations" as any).select("id,campaign_id,unlocked_at,redeemed_at,reward_granted,current_value").eq("tenant_id", user.id),
+          supabase.from("cashback_transactions" as any).select("amount,type").eq("tenant_id", user.id),
+        ]);
+        const camps = (campsRes.data as any[]) || [];
+        const parts = (partsRes.data as any[]) || [];
+        const active = camps.filter((c) => c.status === "active").length;
+        const unlocked = parts.filter((p) => p.unlocked_at).length;
+        const granted = parts.filter((p) => p.redeemed_at).length;
+        const valueGranted = parts.reduce(
+          (s, p) => s + Number(p.reward_granted?.amount || p.reward_granted?.value || 0),
+          0,
+        );
+        const cb = (cashbackRes.data as any[]) || [];
+        const cashback = cb.filter((t) => t.type === "credit").reduce((s, t) => s + Number(t.amount || 0), 0);
 
-      setStats({
-        activeCampaigns: active,
-        participating: parts.length,
-        rewardsGranted: granted,
-        valueGranted,
-        cashback,
-        credits: 0,
-        conversionRate: parts.length > 0 ? (unlocked / parts.length) * 100 : 0,
-        topCampaign,
-      });
-      setLoading(false);
+        const byCamp = new Map<string, number>();
+        parts.forEach((p) => byCamp.set(p.campaign_id, (byCamp.get(p.campaign_id) || 0) + 1));
+        let topId: string | null = null;
+        let topCount = 0;
+        byCamp.forEach((n, id) => {
+          if (n > topCount) {
+            topId = id;
+            topCount = n;
+          }
+        });
+        const topCampaign = topId ? { ...camps.find((c) => c.id === topId), participants: topCount } : null;
+
+        if (cancelled) return;
+        setStats({
+          activeCampaigns: active,
+          participating: parts.length,
+          rewardsGranted: granted,
+          valueGranted,
+          cashback,
+          credits: 0,
+          conversionRate: parts.length > 0 ? (unlocked / parts.length) * 100 : 0,
+          topCampaign,
+        });
+      } catch (e: any) {
+        if (cancelled) return;
+        console.error("[loyalty/dashboard] load error", e);
+        setLoadError(e?.message || "Erro ao carregar métricas");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="min-h-screen bg-[#05070d] grid place-items-center">
-          <Loader2 className="h-10 w-10 animate-spin text-[#f59e0b]" />
-        </div>
-      </AppLayout>
-    );
-  }
+  const hasData =
+    stats.activeCampaigns + stats.participating + stats.rewardsGranted + stats.valueGranted + stats.cashback > 0;
 
   const cards = [
     { label: "Campanhas ativas", value: stats.activeCampaigns, icon: Award, color: "#f59e0b" },
