@@ -3165,6 +3165,214 @@ export type Database = {
           },
         ]
       }
+      loyalty_campaign_participations: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          current_value: number
+          customer_id: string
+          id: string
+          notes: string | null
+          progress: Json
+          redeemed_at: string | null
+          reward_granted: Json | null
+          target_value: number | null
+          tenant_id: string
+          unlocked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          current_value?: number
+          customer_id: string
+          id?: string
+          notes?: string | null
+          progress?: Json
+          redeemed_at?: string | null
+          reward_granted?: Json | null
+          target_value?: number | null
+          tenant_id: string
+          unlocked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          current_value?: number
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          progress?: Json
+          redeemed_at?: string | null
+          reward_granted?: Json | null
+          target_value?: number | null
+          tenant_id?: string
+          unlocked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_campaign_participations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_campaign_templates: {
+        Row: {
+          benefits: Json
+          category: string
+          color: string | null
+          created_at: string
+          default_config: Json
+          description: string
+          difficulty: string
+          icon: string | null
+          id: string
+          is_featured: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          benefits?: Json
+          category: string
+          color?: string | null
+          created_at?: string
+          default_config?: Json
+          description: string
+          difficulty?: string
+          icon?: string | null
+          id?: string
+          is_featured?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          benefits?: Json
+          category?: string
+          color?: string | null
+          created_at?: string
+          default_config?: Json
+          description?: string
+          difficulty?: string
+          icon?: string | null
+          id?: string
+          is_featured?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loyalty_campaigns: {
+        Row: {
+          allow_combine: boolean
+          allow_stacking: boolean
+          badge: string | null
+          category: string | null
+          color: string | null
+          config: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          limit_per_campaign: number | null
+          limit_per_customer: number | null
+          message_template: string | null
+          name: string
+          notify_email: boolean
+          notify_portal: boolean
+          notify_push: boolean
+          notify_whatsapp: boolean
+          reward: Json
+          rule_type: string
+          starts_at: string | null
+          status: string
+          template_slug: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          allow_combine?: boolean
+          allow_stacking?: boolean
+          badge?: string | null
+          category?: string | null
+          color?: string | null
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          limit_per_campaign?: number | null
+          limit_per_customer?: number | null
+          message_template?: string | null
+          name: string
+          notify_email?: boolean
+          notify_portal?: boolean
+          notify_push?: boolean
+          notify_whatsapp?: boolean
+          reward?: Json
+          rule_type: string
+          starts_at?: string | null
+          status?: string
+          template_slug?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          allow_combine?: boolean
+          allow_stacking?: boolean
+          badge?: string | null
+          category?: string | null
+          color?: string | null
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          limit_per_campaign?: number | null
+          limit_per_customer?: number | null
+          message_template?: string | null
+          name?: string
+          notify_email?: boolean
+          notify_portal?: boolean
+          notify_push?: boolean
+          notify_whatsapp?: boolean
+          reward?: Json
+          rule_type?: string
+          starts_at?: string | null
+          status?: string
+          template_slug?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_campaigns_template_slug_fkey"
+            columns: ["template_slug"]
+            isOneToOne: false
+            referencedRelation: "loyalty_campaign_templates"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       loyalty_rewards: {
         Row: {
           appointments_count: number
