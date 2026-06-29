@@ -121,6 +121,13 @@ function CampaignsPage() {
             </Button>
           </div>
 
+          {loadError && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300 flex items-center justify-between gap-3">
+              <span>Não foi possível carregar as campanhas.</span>
+              <Button size="sm" variant="outline" onClick={load} className="border-red-500/40 text-red-200 hover:text-white">Tentar novamente</Button>
+            </div>
+          )}
+
           {loading ? (
             <div className="grid place-items-center py-20">
               <Loader2 className="h-10 w-10 animate-spin text-[#f59e0b]" />
