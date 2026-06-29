@@ -45,6 +45,9 @@ import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
+import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
+import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
+import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
@@ -64,6 +67,7 @@ import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subscription-card.validate.$token'
+import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaigns.$id'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -249,6 +253,21 @@ const SubscriptionsReportsRoute = SubscriptionsReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => SubscriptionsRoute,
 } as any)
+const LoyaltyTemplatesRoute = LoyaltyTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => LoyaltyRoute,
+} as any)
+const LoyaltyDashboardRoute = LoyaltyDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => LoyaltyRoute,
+} as any)
+const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => LoyaltyRoute,
+} as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -345,6 +364,11 @@ const SubscriptionCardValidateTokenRoute =
     path: '/subscription-card/validate/$token',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LoyaltyCampaignsIdRoute = LoyaltyCampaignsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LoyaltyCampaignsRoute,
+} as any)
 const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
   id: '/agendamentos/grupo/$token',
   path: '/agendamentos/grupo/$token',
@@ -387,7 +411,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/lgpd': typeof LgpdRoute
-  '/loyalty': typeof LoyaltyRoute
+  '/loyalty': typeof LoyaltyRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -422,9 +446,13 @@ export interface FileRoutesByFullPath {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
+  '/loyalty/dashboard': typeof LoyaltyDashboardRoute
+  '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -447,7 +475,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/lgpd': typeof LgpdRoute
-  '/loyalty': typeof LoyaltyRoute
+  '/loyalty': typeof LoyaltyRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -482,9 +510,13 @@ export interface FileRoutesByTo {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
+  '/loyalty/dashboard': typeof LoyaltyDashboardRoute
+  '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -509,7 +541,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/lgpd': typeof LgpdRoute
-  '/loyalty': typeof LoyaltyRoute
+  '/loyalty': typeof LoyaltyRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -544,9 +576,13 @@ export interface FileRoutesById {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
+  '/loyalty/dashboard': typeof LoyaltyDashboardRoute
+  '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin/': typeof AdminIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -607,9 +643,13 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/loyalty/campaigns'
+    | '/loyalty/dashboard'
+    | '/loyalty/templates'
     | '/subscriptions/reports'
     | '/admin/'
     | '/agendamentos/grupo/$token'
+    | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
@@ -667,9 +707,13 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/loyalty/campaigns'
+    | '/loyalty/dashboard'
+    | '/loyalty/templates'
     | '/subscriptions/reports'
     | '/admin'
     | '/agendamentos/grupo/$token'
+    | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
@@ -728,9 +772,13 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/loyalty/campaigns'
+    | '/loyalty/dashboard'
+    | '/loyalty/templates'
     | '/subscriptions/reports'
     | '/admin/'
     | '/agendamentos/grupo/$token'
+    | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
@@ -755,7 +803,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   IntegrationsRoute: typeof IntegrationsRoute
   LgpdRoute: typeof LgpdRoute
-  LoyaltyRoute: typeof LoyaltyRoute
+  LoyaltyRoute: typeof LoyaltyRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   PrivacyFaqRoute: typeof PrivacyFaqRoute
   ProductsRoute: typeof ProductsRoute
@@ -1035,6 +1083,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionsReportsRouteImport
       parentRoute: typeof SubscriptionsRoute
     }
+    '/loyalty/templates': {
+      id: '/loyalty/templates'
+      path: '/templates'
+      fullPath: '/loyalty/templates'
+      preLoaderRoute: typeof LoyaltyTemplatesRouteImport
+      parentRoute: typeof LoyaltyRoute
+    }
+    '/loyalty/dashboard': {
+      id: '/loyalty/dashboard'
+      path: '/dashboard'
+      fullPath: '/loyalty/dashboard'
+      preLoaderRoute: typeof LoyaltyDashboardRouteImport
+      parentRoute: typeof LoyaltyRoute
+    }
+    '/loyalty/campaigns': {
+      id: '/loyalty/campaigns'
+      path: '/campaigns'
+      fullPath: '/loyalty/campaigns'
+      preLoaderRoute: typeof LoyaltyCampaignsRouteImport
+      parentRoute: typeof LoyaltyRoute
+    }
     '/checkout/return': {
       id: '/checkout/return'
       path: '/checkout/return'
@@ -1168,6 +1237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionCardValidateTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loyalty/campaigns/$id': {
+      id: '/loyalty/campaigns/$id'
+      path: '/$id'
+      fullPath: '/loyalty/campaigns/$id'
+      preLoaderRoute: typeof LoyaltyCampaignsIdRouteImport
+      parentRoute: typeof LoyaltyCampaignsRoute
+    }
     '/agendamentos/grupo/$token': {
       id: '/agendamentos/grupo/$token'
       path: '/agendamentos/grupo/$token'
@@ -1249,6 +1325,32 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface LoyaltyCampaignsRouteChildren {
+  LoyaltyCampaignsIdRoute: typeof LoyaltyCampaignsIdRoute
+}
+
+const LoyaltyCampaignsRouteChildren: LoyaltyCampaignsRouteChildren = {
+  LoyaltyCampaignsIdRoute: LoyaltyCampaignsIdRoute,
+}
+
+const LoyaltyCampaignsRouteWithChildren =
+  LoyaltyCampaignsRoute._addFileChildren(LoyaltyCampaignsRouteChildren)
+
+interface LoyaltyRouteChildren {
+  LoyaltyCampaignsRoute: typeof LoyaltyCampaignsRouteWithChildren
+  LoyaltyDashboardRoute: typeof LoyaltyDashboardRoute
+  LoyaltyTemplatesRoute: typeof LoyaltyTemplatesRoute
+}
+
+const LoyaltyRouteChildren: LoyaltyRouteChildren = {
+  LoyaltyCampaignsRoute: LoyaltyCampaignsRouteWithChildren,
+  LoyaltyDashboardRoute: LoyaltyDashboardRoute,
+  LoyaltyTemplatesRoute: LoyaltyTemplatesRoute,
+}
+
+const LoyaltyRouteWithChildren =
+  LoyaltyRoute._addFileChildren(LoyaltyRouteChildren)
+
 interface SubscriptionsRouteChildren {
   SubscriptionsReportsRoute: typeof SubscriptionsReportsRoute
 }
@@ -1279,7 +1381,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   IntegrationsRoute: IntegrationsRoute,
   LgpdRoute: LgpdRoute,
-  LoyaltyRoute: LoyaltyRoute,
+  LoyaltyRoute: LoyaltyRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   PrivacyFaqRoute: PrivacyFaqRoute,
   ProductsRoute: ProductsRoute,
