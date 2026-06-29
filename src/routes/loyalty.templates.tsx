@@ -27,6 +27,54 @@ const CATEGORIES = [
   { id: "personalizadas", label: "Personalizadas" },
 ];
 
+const mkTpl = (
+  slug: string,
+  name: string,
+  description: string,
+  category: string,
+  icon: string,
+  color: string,
+  benefits: string[],
+  rule_type = "visits",
+  difficulty: "easy" | "medium" | "advanced" = "easy",
+  is_featured = false,
+) => ({
+  id: `fallback-${slug}`,
+  slug,
+  name,
+  description,
+  category,
+  icon,
+  color,
+  benefits,
+  difficulty,
+  is_featured,
+  default_config: { rule_type, reward: { type: "discount" } },
+});
+
+const FALLBACK_TEMPLATES = [
+  mkTpl("clube-dos-10", "Clube dos 10", "A cada 10 atendimentos, 1 corte grátis.", "recorrencia", "Trophy", "#f59e0b", ["Aumenta recorrência", "Mecânica simples", "Cliente sabe a meta"], "visits", "easy", true),
+  mkTpl("cashback-progressivo", "Cashback Progressivo", "Devolução escalonada conforme gasto mensal.", "cashback", "PiggyBank", "#10b981", ["Eleva ticket médio", "Premia gasto maior", "Crédito reutilizável"], "spend", "medium", true),
+  mkTpl("cliente-ouro", "Cliente Ouro", "Status premium após 20 visitas com benefícios exclusivos.", "recorrencia", "Crown", "#eab308", ["Status VIP", "Atendimento prioritário", "Brindes mensais"], "visits", "medium"),
+  mkTpl("aniversariante-premium", "Aniversariante Premium", "Brinde + 30% off no mês do aniversário.", "datas", "Cake", "#ec4899", ["Engajamento sazonal", "Lembrança automática", "Conversão alta"], "birthday", "easy"),
+  mkTpl("indique-um-amigo", "Indique um Amigo", "Cliente e amigo ganham crédito ao concluir 1 serviço.", "crescimento", "Users", "#3b82f6", ["Crescimento orgânico", "CAC zero", "Premiação dupla"], "referral", "easy", true),
+  mkTpl("cliente-vip", "Cliente VIP", "Acesso a horários exclusivos e produtos premium.", "recorrencia", "Star", "#a855f7", ["Exclusividade real", "Fideliza topo de base", "Diferencial competitivo"], "tier", "advanced"),
+  mkTpl("desafio-mensal", "Desafio Mensal", "Quem atingir X atendimentos no mês ganha bônus.", "recorrencia", "Target", "#f97316", ["Gera urgência", "Mecânica gamificada", "Renova todo mês"], "monthly_goal", "medium"),
+  mkTpl("clube-da-barba", "Clube da Barba", "A cada 5 barbas, 1 grátis ou tratamento exclusivo.", "recorrencia", "Scissors", "#84cc16", ["Foco em serviço específico", "Aumenta frequência da barba"], "visits", "easy"),
+  mkTpl("clube-do-cabelo", "Clube do Cabelo", "A cada 6 cortes, 1 corte premium grátis.", "recorrencia", "Scissors", "#06b6d4", ["Recorrência no carro-chefe", "Meta clara"], "visits", "easy"),
+  mkTpl("combo-premiado", "Combo Premiado", "Levou corte + barba? Ganha pontos extras.", "recorrencia", "Gift", "#f59e0b", ["Aumenta ticket por visita", "Estimula combo"], "combo", "easy"),
+  mkTpl("cliente-frequente", "Cliente Frequente", "3 visitas em 60 dias = desconto na próxima.", "recorrencia", "Repeat", "#22c55e", ["Reduz intervalo", "Premia constância"], "frequency", "medium"),
+  mkTpl("cliente-sem-falta", "Cliente Sem Falta", "Zero faltas em 3 meses = brinde.", "recorrencia", "ShieldCheck", "#0ea5e9", ["Reduz no-show", "Premia compromisso"], "no_show", "medium"),
+  mkTpl("assinante-premium-3", "Assinante Premium 3 Meses", "3 meses de assinatura = brinde exclusivo.", "assinaturas", "BadgeCheck", "#D4AF37", ["Reduz cancelamento", "Premia constância do plano"], "subscription_tenure", "easy"),
+  mkTpl("assinante-premium-6", "Assinante Premium 6 Meses", "6 meses de assinatura = upgrade + brinde.", "assinaturas", "BadgeCheck", "#D4AF37", ["Marca milestone", "Aumenta LTV"], "subscription_tenure", "medium"),
+  mkTpl("assinante-premium-12", "Assinante Premium 12 Meses", "1 ano = mês grátis + kit premium.", "assinaturas", "Crown", "#D4AF37", ["Retenção anual", "Diferencial forte"], "subscription_tenure", "advanced", true),
+  mkTpl("assinante-indica", "Assinante Indica", "Assinante que indica outro assinante ganha bônus.", "assinaturas", "Users", "#a855f7", ["Crescimento da base premium", "Recompensa dupla"], "referral", "medium"),
+  mkTpl("compra-de-produtos", "Compra de Produtos", "A cada R$ X em produtos, ganhe crédito.", "cashback", "ShoppingBag", "#f97316", ["Gira estoque", "Aumenta venda cruzada"], "product_spend", "easy"),
+  mkTpl("black-friday", "Black Friday", "Pontos em dobro durante a campanha.", "datas", "Tag", "#ef4444", ["Pico sazonal", "Cria urgência"], "seasonal", "easy"),
+  mkTpl("natal", "Natal", "Brinde de Natal para clientes frequentes.", "datas", "Gift", "#dc2626", ["Lembrança afetiva", "Reativa base"], "seasonal", "easy"),
+  mkTpl("fidelidade-personalizada", "Fidelidade Personalizada", "Crie suas próprias regras do zero.", "personalizadas", "Settings", "#64748b", ["Total flexibilidade", "Adapte ao seu negócio"], "custom", "advanced"),
+];
+
 function TemplatesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -41,18 +89,37 @@ function TemplatesPage() {
   const [premiumEnabled, setPremiumEnabled] = useState<boolean | null>(null);
   const suggestFn = useServerFn(suggestLoyaltyCampaigns);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const [tplRes, settingsRes] = await Promise.all([
-        supabase.from("loyalty_campaign_templates" as any).select("*").order("sort_order"),
-        user
-          ? supabase.from("loyalty_settings" as any).select("premium_enabled").eq("tenant_id", user.id).maybeSingle()
-          : Promise.resolve({ data: null } as any),
-      ]);
-      setTemplates((tplRes.data as any) || []);
-      setPremiumEnabled(((settingsRes as any)?.data?.premium_enabled as boolean) ?? false);
-      setLoading(false);
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const [tplRes, settingsRes] = await Promise.all([
+          supabase.from("loyalty_campaign_templates" as any).select("*").order("sort_order"),
+          user
+            ? supabase.from("loyalty_settings" as any).select("premium_enabled").eq("tenant_id", user.id).maybeSingle()
+            : Promise.resolve({ data: null } as any),
+        ]);
+        if (cancelled) return;
+        const rows = ((tplRes as any)?.data as any[]) || [];
+        setTemplates(rows.length ? rows : FALLBACK_TEMPLATES);
+        setPremiumEnabled(((settingsRes as any)?.data?.premium_enabled as boolean) ?? true);
+      } catch (e: any) {
+        if (cancelled) return;
+        console.error("[loyalty/templates] load error", e);
+        setLoadError(e?.message || "Erro ao carregar templates");
+        setTemplates(FALLBACK_TEMPLATES);
+        setPremiumEnabled(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const filtered = useMemo(() => {

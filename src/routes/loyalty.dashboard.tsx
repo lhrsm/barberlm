@@ -24,61 +24,73 @@ function LoyaltyDashboard() {
     topCampaign: null as any,
   });
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      if (!user) return;
-      const [campsRes, partsRes, cashbackRes] = await Promise.all([
-        supabase.from("loyalty_campaigns" as any).select("id,name,status").eq("tenant_id", user.id),
-        supabase.from("loyalty_campaign_participations" as any).select("id,campaign_id,unlocked_at,redeemed_at,reward_granted,current_value").eq("tenant_id", user.id),
-        supabase.from("cashback_transactions" as any).select("amount,type").eq("tenant_id", user.id),
-      ]);
-      const camps = (campsRes.data as any[]) || [];
-      const parts = (partsRes.data as any[]) || [];
-      const active = camps.filter((c) => c.status === "active").length;
-      const unlocked = parts.filter((p) => p.unlocked_at).length;
-      const granted = parts.filter((p) => p.redeemed_at).length;
-      const valueGranted = parts.reduce(
-        (s, p) => s + Number(p.reward_granted?.amount || p.reward_granted?.value || 0),
-        0,
-      );
-      const cb = (cashbackRes.data as any[]) || [];
-      const cashback = cb.filter((t) => t.type === "credit").reduce((s, t) => s + Number(t.amount || 0), 0);
-
-      const byCamp = new Map<string, number>();
-      parts.forEach((p) => byCamp.set(p.campaign_id, (byCamp.get(p.campaign_id) || 0) + 1));
-      let topId: string | null = null;
-      let topCount = 0;
-      byCamp.forEach((n, id) => {
-        if (n > topCount) {
-          topId = id;
-          topCount = n;
+      setLoading(true);
+      setLoadError(null);
+      try {
+        if (!user) {
+          if (!cancelled) setLoading(false);
+          return;
         }
-      });
-      const topCampaign = topId ? { ...camps.find((c) => c.id === topId), participants: topCount } : null;
+        const [campsRes, partsRes, cashbackRes] = await Promise.all([
+          supabase.from("loyalty_campaigns" as any).select("id,name,status").eq("tenant_id", user.id),
+          supabase.from("loyalty_campaign_participations" as any).select("id,campaign_id,unlocked_at,redeemed_at,reward_granted,current_value").eq("tenant_id", user.id),
+          supabase.from("cashback_transactions" as any).select("amount,type").eq("tenant_id", user.id),
+        ]);
+        const camps = (campsRes.data as any[]) || [];
+        const parts = (partsRes.data as any[]) || [];
+        const active = camps.filter((c) => c.status === "active").length;
+        const unlocked = parts.filter((p) => p.unlocked_at).length;
+        const granted = parts.filter((p) => p.redeemed_at).length;
+        const valueGranted = parts.reduce(
+          (s, p) => s + Number(p.reward_granted?.amount || p.reward_granted?.value || 0),
+          0,
+        );
+        const cb = (cashbackRes.data as any[]) || [];
+        const cashback = cb.filter((t) => t.type === "credit").reduce((s, t) => s + Number(t.amount || 0), 0);
 
-      setStats({
-        activeCampaigns: active,
-        participating: parts.length,
-        rewardsGranted: granted,
-        valueGranted,
-        cashback,
-        credits: 0,
-        conversionRate: parts.length > 0 ? (unlocked / parts.length) * 100 : 0,
-        topCampaign,
-      });
-      setLoading(false);
+        const byCamp = new Map<string, number>();
+        parts.forEach((p) => byCamp.set(p.campaign_id, (byCamp.get(p.campaign_id) || 0) + 1));
+        let topId: string | null = null;
+        let topCount = 0;
+        byCamp.forEach((n, id) => {
+          if (n > topCount) {
+            topId = id;
+            topCount = n;
+          }
+        });
+        const topCampaign = topId ? { ...camps.find((c) => c.id === topId), participants: topCount } : null;
+
+        if (cancelled) return;
+        setStats({
+          activeCampaigns: active,
+          participating: parts.length,
+          rewardsGranted: granted,
+          valueGranted,
+          cashback,
+          credits: 0,
+          conversionRate: parts.length > 0 ? (unlocked / parts.length) * 100 : 0,
+          topCampaign,
+        });
+      } catch (e: any) {
+        if (cancelled) return;
+        console.error("[loyalty/dashboard] load error", e);
+        setLoadError(e?.message || "Erro ao carregar métricas");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="min-h-screen bg-[#05070d] grid place-items-center">
-          <Loader2 className="h-10 w-10 animate-spin text-[#f59e0b]" />
-        </div>
-      </AppLayout>
-    );
-  }
+  const hasData =
+    stats.activeCampaigns + stats.participating + stats.rewardsGranted + stats.valueGranted + stats.cashback > 0;
 
   const cards = [
     { label: "Campanhas ativas", value: stats.activeCampaigns, icon: Award, color: "#f59e0b" },
@@ -106,6 +118,12 @@ function LoyaltyDashboard() {
             </div>
           </div>
 
+          {loadError && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
+              Não foi possível carregar todas as métricas. <button onClick={() => location.reload()} className="underline font-bold">Tentar novamente</button>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {cards.map((c) => (
               <div key={c.label} className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-5">
@@ -113,10 +131,25 @@ function LoyaltyDashboard() {
                   <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-zinc-400">{c.label}</p>
                   <c.icon className="h-5 w-5" style={{ color: c.color }} />
                 </div>
-                <p className="text-2xl md:text-3xl font-black" style={{ color: c.color }}>{c.value}</p>
+                {loading ? (
+                  <div className="h-8 w-20 rounded bg-zinc-800/60 animate-pulse" />
+                ) : (
+                  <p className="text-2xl md:text-3xl font-black" style={{ color: c.color }}>{c.value}</p>
+                )}
               </div>
             ))}
           </div>
+
+          {!loading && !hasData && (
+            <div className="text-center py-12 border-2 border-dashed border-zinc-800 rounded-2xl bg-[#0b0f17]">
+              <Trophy className="h-10 w-10 text-zinc-600 mx-auto mb-3" />
+              <p className="text-zinc-300 font-bold">Ainda não há dados de fidelidade para exibir.</p>
+              <p className="text-sm text-zinc-500 mt-1">Ative uma campanha em Templates Premium para começar.</p>
+              <Link to="/loyalty/templates" className="inline-block mt-4 px-5 h-10 leading-10 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black font-bold">
+                Ver templates
+              </Link>
+            </div>
+          )}
 
           {stats.topCampaign && (
             <div className="bg-gradient-to-br from-[#f59e0b]/10 to-[#ea580c]/5 border border-[#f59e0b]/30 rounded-2xl p-6">

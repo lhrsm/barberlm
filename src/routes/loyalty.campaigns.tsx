@@ -26,16 +26,27 @@ function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   async function load() {
-    if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("loyalty_campaigns" as any)
-      .select("*")
-      .eq("tenant_id", user.id)
-      .order("created_at", { ascending: false });
-    setCampaigns((data as any) || []);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("loyalty_campaigns" as any)
+        .select("*")
+        .eq("tenant_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setCampaigns((data as any) || []);
+    } catch (e: any) {
+      console.error("[loyalty/campaigns] load error", e);
+      setLoadError(e?.message || "Erro ao carregar campanhas");
+      setCampaigns([]);
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(() => {
     load();
@@ -109,6 +120,13 @@ function CampaignsPage() {
               </Link>
             </Button>
           </div>
+
+          {loadError && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300 flex items-center justify-between gap-3">
+              <span>Não foi possível carregar as campanhas.</span>
+              <Button size="sm" variant="outline" onClick={load} className="border-red-500/40 text-red-200 hover:text-white">Tentar novamente</Button>
+            </div>
+          )}
 
           {loading ? (
             <div className="grid place-items-center py-20">
