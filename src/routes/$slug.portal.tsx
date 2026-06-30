@@ -1162,6 +1162,7 @@ function ClientPortalComponent() {
             onOpenCard={() => setCardOpen(true)}
             onReschedule={handleEditAppointment}
             onCancel={handleCancelAppointment}
+            onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
           />
         )}
 
