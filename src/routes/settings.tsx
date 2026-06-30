@@ -198,7 +198,7 @@ function SettingsComponent() {
       const { data: loyaltyData } = await supabase
         .from("loyalty_settings" as any)
         .select("*")
-        .eq("tenant_id", user.id)
+        .eq("tenant_id", effectiveTenantId)
         .maybeSingle();
 
 
