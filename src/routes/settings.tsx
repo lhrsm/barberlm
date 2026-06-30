@@ -1465,7 +1465,7 @@ function SettingsComponent() {
               <Button 
                 type="submit" 
                 className="gap-2 bg-[#ea580c] text-white hover:bg-[#ea580c]/90 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 h-12 px-8 w-full max-w-[320px] rounded-xl font-black uppercase text-xs tracking-widest shadow-lg group" 
-                disabled={saving}
+                disabled={saving || !dataLoaded}
               >
                 {saving ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
