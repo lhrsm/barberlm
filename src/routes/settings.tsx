@@ -260,6 +260,7 @@ function SettingsComponent() {
           social_youtube: (profile as any).social_links?.youtube || "",
           social_whatsapp: (profile as any).social_links?.whatsapp || "",
         });
+        setDataLoaded(true);
       } else {
         toast.error("Perfil não encontrado.");
       }
@@ -268,6 +269,7 @@ function SettingsComponent() {
       toast.error("Erro inesperado ao buscar dados.");
     }
   }
+
 
   async function handleForceSync() {
     setIsSyncing(true);
