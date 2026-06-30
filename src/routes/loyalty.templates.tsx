@@ -217,31 +217,25 @@ function TemplatesPage() {
                 <p className="text-sm text-zinc-400">Modelos prontos de fidelidade. Use, edite e ative em segundos.</p>
               </div>
             </div>
-            <div className="flex gap-2 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
-              <Button
-                asChild
-                variant="outline"
-                className="shrink-0 h-11 md:h-[42px] rounded-xl px-[18px] bg-[#0b0f17] border border-[#f59e0b]/30 text-white font-bold hover:bg-[#0b0f17] hover:border-[#f59e0b]/70 hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
+            <div className="flex items-center gap-2 md:gap-2.5 md:justify-end md:flex-wrap overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <Link
+                to="/loyalty/campaigns"
+                className="shrink-0 inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[12px] text-[13px] font-bold text-white bg-white/[0.03] border border-[#f5c542]/30 hover:bg-[#f5c542]/10 hover:border-[#f5c542]/65 hover:shadow-[0_8px_22px_rgba(245,197,66,0.16)] hover:-translate-y-px transition-all whitespace-nowrap md:min-w-[150px] md:max-w-[190px]"
               >
-                <Link to="/loyalty/campaigns">
-                  <ListChecks className="h-4 w-4 mr-2 text-[#f59e0b]" /> Minhas campanhas
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="shrink-0 h-11 md:h-[42px] rounded-xl px-[18px] bg-[#0b0f17] border border-[#f59e0b]/30 text-white font-bold hover:bg-[#0b0f17] hover:border-[#f59e0b]/70 hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
+                <ListChecks className="h-4 w-4 text-[#f5c542]" /> Minhas campanhas
+              </Link>
+              <Link
+                to="/loyalty/dashboard"
+                className="shrink-0 inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[12px] text-[13px] font-bold text-white bg-white/[0.03] border border-[#f5c542]/30 hover:bg-[#f5c542]/10 hover:border-[#f5c542]/65 hover:shadow-[0_8px_22px_rgba(245,197,66,0.16)] hover:-translate-y-px transition-all whitespace-nowrap md:min-w-[150px] md:max-w-[190px]"
               >
-                <Link to="/loyalty/dashboard">
-                  <LayoutDashboard className="h-4 w-4 mr-2 text-[#f59e0b]" /> Dashboard
-                </Link>
-              </Button>
-              <Button
+                <LayoutDashboard className="h-4 w-4 text-[#f5c542]" /> Dashboard
+              </Link>
+              <button
                 onClick={handleAiSuggest}
-                className="shrink-0 h-11 md:h-[42px] rounded-xl px-[18px] bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#c084fc] hover:to-[#f472b6] text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.35)] hover:shadow-[0_0_22px_rgba(168,85,247,0.55)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
+                className="shrink-0 inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[12px] text-[13px] font-extrabold text-white bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#c084fc] hover:to-[#f472b6] shadow-[0_4px_16px_rgba(168,85,247,0.35)] hover:shadow-[0_0_22px_rgba(168,85,247,0.55)] hover:-translate-y-px transition-all whitespace-nowrap md:min-w-[150px] md:max-w-[190px]"
               >
-                <Sparkles className="h-4 w-4 mr-2" /> Sugerir com IA
-              </Button>
+                <Sparkles className="h-4 w-4" /> Sugerir com IA
+              </button>
             </div>
           </div>
 
