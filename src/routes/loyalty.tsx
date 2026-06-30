@@ -72,9 +72,8 @@ function LoyaltyDashboardPage() {
     .slice(0, 10);
 
   const moduleActive = !!(settings as any)?.enabled;
-  const accessChecking = loading || !user || loadingData;
 
-  if (accessChecking) {
+  if (loading) {
     return (
       <AppLayout>
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
@@ -90,7 +89,7 @@ function LoyaltyDashboardPage() {
     );
   }
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   return (
     <AppLayout>
@@ -117,7 +116,14 @@ function LoyaltyDashboardPage() {
 
 
 
-        {!moduleActive && (
+        {loadingData ? (
+          <Card className="bg-[#0b0f17] border border-[#1f2937] text-white">
+            <CardContent className="p-5 flex items-center gap-3">
+              <div className="h-5 w-5 rounded-full border-2 border-[#ea580c]/30 border-t-[#ea580c] animate-spin" />
+              <p className="text-sm text-slate-400">Carregando dados da fidelidade...</p>
+            </CardContent>
+          </Card>
+        ) : !moduleActive && (
           <Card className="bg-amber-500/5 border-amber-500/30 text-amber-200">
             <CardContent className="p-5">
               <p className="text-sm font-bold uppercase tracking-wider">
