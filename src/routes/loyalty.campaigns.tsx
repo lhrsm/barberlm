@@ -95,30 +95,28 @@ function CampaignsPage() {
     <AppLayout>
       <div className="min-h-screen bg-[#05070d] text-white">
         <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto animate-in fade-in duration-500">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-3 min-w-0">
               <Link
                 to="/loyalty"
-                className="h-10 w-10 rounded-xl border border-zinc-800 grid place-items-center text-zinc-400 hover:text-white"
+                className="h-10 w-10 shrink-0 rounded-xl border border-zinc-800 grid place-items-center text-zinc-400 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center">
+              <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center">
                 <ListChecks className="h-7 w-7 text-[#f59e0b]" />
               </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-black">Minhas Campanhas</h1>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-black truncate">Minhas Campanhas</h1>
                 <p className="text-sm text-zinc-400">Gerencie todas as campanhas de fidelidade ativas e em rascunho.</p>
               </div>
             </div>
-            <Button
-              asChild
-              className="h-11 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black font-bold"
+            <Link
+              to="/loyalty/templates"
+              className="inline-flex items-center justify-center gap-2 w-full md:w-fit md:min-w-[190px] md:max-w-[240px] h-11 px-[22px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-bold text-sm shadow-[0_8px_24px_-8px_rgba(245,197,66,0.55)] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-8px_rgba(245,197,66,0.7)] transition-all duration-200"
             >
-              <Link to="/loyalty/templates">
-                <Plus className="h-4 w-4 mr-2" /> Nova campanha
-              </Link>
-            </Button>
+              <Plus className="h-4 w-4" /> Nova campanha
+            </Link>
           </div>
 
           {loadError && (
