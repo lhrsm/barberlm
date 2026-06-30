@@ -157,26 +157,26 @@ function SettingsComponent() {
   }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user && role !== 'super_admin') {
+    if (user && role !== 'super_admin' && effectiveTenantId) {
       fetchProfile();
     }
-  }, [user, role]);
+  }, [user, role, effectiveTenantId]);
 
   async function fetchProfile() {
-    if (!user) {
-      console.warn("fetchProfile called without user");
+    if (!effectiveTenantId) {
+      console.warn("fetchProfile called without effectiveTenantId");
       return;
     }
-    
-    console.log("Fetching profile for user ID:", user.id, "Email:", user.email);
-    
+
+    console.log("Fetching profile for tenant ID:", effectiveTenantId);
+
     try {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id);
-      
+        .eq("id", effectiveTenantId);
+
       if (profileError) {
         console.error("Supabase error fetching profile:", profileError);
         toast.error(`Erro ao carregar configurações: ${profileError.message}`);
@@ -187,7 +187,7 @@ function SettingsComponent() {
       const { data: settingsData, error: settingsError } = await supabase
         .from("barbershop_settings")
         .select("*")
-        .eq("barber_id", user.id)
+        .eq("barber_id", effectiveTenantId)
         .maybeSingle();
 
       if (settingsError) {
