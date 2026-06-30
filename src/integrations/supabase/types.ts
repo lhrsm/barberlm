@@ -3974,6 +3974,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          avatar_url: string | null
           barber_can_cancel: boolean | null
           barber_can_reschedule: boolean | null
           barbers_range: string | null
@@ -4024,6 +4025,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           barber_can_cancel?: boolean | null
           barber_can_reschedule?: boolean | null
           barbers_range?: string | null
@@ -4074,6 +4076,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           barber_can_cancel?: boolean | null
           barber_can_reschedule?: boolean | null
           barbers_range?: string | null

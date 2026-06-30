@@ -89,6 +89,8 @@ function SettingsComponent() {
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [saving, setSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
 
   const [formData, setFormData] = useState<any>({
     business_name: "",
@@ -101,7 +103,9 @@ function SettingsComponent() {
     primary_color: "#7c3aed",
     secondary_color: "#f4f4f5",
     logo_url: "",
+    avatar_url: "",
     barbershop_logo_url: "",
+
     loyalty_mode: "none" as "none" | "cashback" | "loyalty" | "subscription",
     cashback_enabled: false,
     cashback_percentage: 0,
@@ -215,7 +219,9 @@ function SettingsComponent() {
           primary_color: profile.primary_color || "#7c3aed",
           secondary_color: profile.secondary_color || "#f4f4f5",
           logo_url: profile.logo_url || "",
-          barbershop_logo_url: (profile as any).barbershop_logo_url || "",
+          avatar_url: (profile as any).avatar_url || "",
+          barbershop_logo_url: (profile as any).barbershop_logo_url || profile.logo_url || "",
+
           loyalty_mode: ((profile as any).loyalty_mode as any) || "none",
           cashback_enabled: profile.cashback_enabled || false,
           cashback_percentage: profile.cashback_percentage || 0,
@@ -254,6 +260,7 @@ function SettingsComponent() {
           social_youtube: (profile as any).social_links?.youtube || "",
           social_whatsapp: (profile as any).social_links?.whatsapp || "",
         });
+        setDataLoaded(true);
       } else {
         toast.error("Perfil não encontrado.");
       }
@@ -262,6 +269,7 @@ function SettingsComponent() {
       toast.error("Erro inesperado ao buscar dados.");
     }
   }
+
 
   async function handleForceSync() {
     setIsSyncing(true);
@@ -279,7 +287,11 @@ function SettingsComponent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    
+    if (!dataLoaded) {
+      toast.error("Aguarde o carregamento dos dados antes de salvar.");
+      return;
+    }
+
     setSaving(true);
 
     // Prevent saving gateway config for free plan
@@ -303,7 +315,9 @@ function SettingsComponent() {
         primary_color: profileUpdateData.primary_color,
         secondary_color: profileUpdateData.secondary_color,
         logo_url: profileUpdateData.logo_url,
+        avatar_url: profileUpdateData.avatar_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
+
         // loyalty_mode mantido por compatibilidade — derivado dos switches independentes
         loyalty_mode: profileUpdateData.loyalty_enabled
           ? 'loyalty'
@@ -442,7 +456,15 @@ function SettingsComponent() {
           </TabsContent>
 
 
+          {!dataLoaded && (
+            <div className="mt-4 mb-2 flex items-center gap-3 rounded-2xl border border-[#1f2937] bg-[#0b0f17] px-4 py-3 text-slate-400">
+              <RefreshCw className="h-4 w-4 animate-spin text-[#ea580c]" />
+              <span className="text-xs font-bold uppercase tracking-widest">Carregando suas configurações…</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
+
             <TabsContent value="profile" className="space-y-4">
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50">
@@ -456,8 +478,8 @@ function SettingsComponent() {
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                     <div className="flex flex-col items-center gap-4 shrink-0">
                       <div className="h-28 w-28 rounded-full bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#ea580c]/30 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
-                        {formData.logo_url ? (
-                          <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
+                        {formData.avatar_url ? (
+                          <img src={formData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
                         ) : (
                           <UserRound className="h-14 w-14 text-slate-700" />
                         )}
@@ -488,7 +510,7 @@ function SettingsComponent() {
                                 .from('barber-avatars')
                                 .getPublicUrl(fileName);
                               
-                              setFormData({ ...formData, logo_url: publicUrl });
+                              setFormData({ ...formData, avatar_url: publicUrl });
                               toast.success("Foto de perfil atualizada!");
                             } catch (error: any) {
                               toast.error("Erro ao carregar imagem: " + error.message);
@@ -499,6 +521,7 @@ function SettingsComponent() {
                         />
                       </div>
                     </div>
+
 
                     <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <div className="grid gap-2">
@@ -1442,7 +1465,7 @@ function SettingsComponent() {
               <Button 
                 type="submit" 
                 className="gap-2 bg-[#ea580c] text-white hover:bg-[#ea580c]/90 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 h-12 px-8 w-full max-w-[320px] rounded-xl font-black uppercase text-xs tracking-widest shadow-lg group" 
-                disabled={saving}
+                disabled={saving || !dataLoaded}
               >
                 {saving ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
