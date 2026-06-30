@@ -7264,6 +7264,10 @@ export type Database = {
         }
         Returns: Json
       }
+      request_subscription_plan_change: {
+        Args: { _new_plan_id: string; _subscription_id: string }
+        Returns: Json
+      }
       reschedule_appointment: {
         Args: {
           p_appointment_id: string
