@@ -16,14 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export function LogoutButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -49,11 +45,11 @@ export function LogoutButton() {
       <AlertDialogTrigger asChild>
         <Button 
           variant="ghost" 
-          className="w-full md:w-auto justify-start md:justify-center gap-3 px-4 py-3 md:p-2 text-sm font-medium transition-all duration-300 rounded-lg group hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] text-muted-foreground"
+          className="w-full justify-start gap-3 px-4 py-3 text-sm font-bold transition-all duration-300 rounded-xl group border border-white/10 bg-white/[0.03] hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] text-white/80"
           title="Sair do Sistema"
         >
           <LogOut size={20} className="transition-transform group-hover:-translate-x-1" />
-          <span className="md:hidden">Sair do Painel</span>
+          <span>Sair do Painel</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
@@ -7,10 +7,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Gift, Trophy, TrendingDown, Users, Settings, LayoutDashboard, ListChecks, Sparkles } from "lucide-react";
-import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/loyalty")({
-  component: withModule("loyalty", "Fidelidade", LoyaltyDashboardPage),
+  component: LoyaltyDashboardPage,
 });
 
 function LoyaltyDashboardPage() {
@@ -111,7 +110,7 @@ function LoyaltyDashboardPage() {
               <LoyaltyNavButton to="/loyalty/templates" icon={<Sparkles className="h-4 w-4" />} label="Templates Premium" />
               <LoyaltyNavButton to="/loyalty/campaigns" icon={<ListChecks className="h-4 w-4" />} label="Minhas Campanhas" />
               <LoyaltyNavButton to="/loyalty/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Dashboard" />
-              <LoyaltyNavButton to="/settings?tab=loyalty" icon={<Settings className="h-4 w-4" />} label="Configurar" />
+              <LoyaltyNavButton to="/settings" search={{ tab: "loyalty" }} icon={<Settings className="h-4 w-4" />} label="Configurar" />
             </div>
           </div>
         </div>
@@ -143,12 +142,7 @@ function LoyaltyDashboardPage() {
               </p>
               <p className="text-xs text-zinc-300 mt-1 leading-relaxed">
                 Esta página gerencia a <strong>fidelidade tradicional</strong> (por número de atendimentos).
-                Assinantes premium possuem regras próprias por tempo de assinatura — configure recompensas em
-                {" "}
-                <Link to="/subscription-rewards" className="text-[#D4AF37] underline font-bold">
-                  Fidelidade Premium
-                </Link>
-                . Cálculos nunca se misturam.
+                Assinantes premium possuem regras próprias por tempo de assinatura dentro desta mesma central. Cálculos nunca se misturam.
               </p>
             </div>
           </CardContent>
@@ -304,30 +298,32 @@ function LoyaltyDashboardPage() {
 
 function LoyaltyNavButton({
   to,
+  search,
   icon,
   label,
   active = false,
 }: {
   to: string;
+  search?: Record<string, string>;
   icon: React.ReactNode;
   label: string;
   active?: boolean;
 }) {
-  const navigate = useNavigate();
   const base =
     "shrink-0 inline-flex items-center gap-2 h-11 px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 cursor-pointer";
   const cls = active
     ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black border border-[#f59e0b] shadow-[0_4px_16px_rgba(245,158,11,0.35)] hover:shadow-[0_8px_28px_rgba(245,158,11,0.55)]"
     : "bg-[#0b0f17] text-white border border-[#f59e0b]/30 [&_svg]:text-[#f59e0b] hover:border-[#f59e0b]/70 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]";
   return (
-    <button
-      type="button"
-      onClick={() => navigate({ to: to as any })}
+    <Link
+      to={to as any}
+      search={search as any}
+      activeOptions={{ exact: true }}
       className={`${base} ${cls}`}
     >
       {icon}
       <span>{label}</span>
-    </button>
+    </Link>
   );
 }
 
