@@ -2088,21 +2088,8 @@ function ClientPortalComponent() {
                     </CardContent>
                   </Card>
 
-                  {/* legacy variables kept for modal compatibility */}
-                  {(() => {
-                    // referenced by the plan details modal below
-                    return null;
-                  })()}
+                  {/* Modal compatibility aliases */}
 
-                  {/* expose values for the modal scope */}
-                  {(() => null)()}
-
-                  {/* ===== Plan Details Modal vars ===== */}
-                  {(() => {
-                    return null;
-                  })()}
-
-                  {/* The plan details modal below still references totalCovered, usedThisPeriod, maxUses */}
 
 
                   {/* Modal de detalhes do plano */}
