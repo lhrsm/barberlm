@@ -217,28 +217,28 @@ function TemplatesPage() {
                 <p className="text-sm text-zinc-400">Modelos prontos de fidelidade. Use, edite e ative em segundos.</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-xl border-zinc-800 text-zinc-300 hover:text-white hover:border-[#f59e0b]/40"
+                className="shrink-0 h-11 md:h-[42px] rounded-xl px-[18px] bg-[#0b0f17] border border-[#f59e0b]/30 text-white font-bold hover:bg-[#0b0f17] hover:border-[#f59e0b]/70 hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
               >
                 <Link to="/loyalty/campaigns">
-                  <ListChecks className="h-4 w-4 mr-2" /> Minhas campanhas
+                  <ListChecks className="h-4 w-4 mr-2 text-[#f59e0b]" /> Minhas campanhas
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-xl border-zinc-800 text-zinc-300 hover:text-white hover:border-[#f59e0b]/40"
+                className="shrink-0 h-11 md:h-[42px] rounded-xl px-[18px] bg-[#0b0f17] border border-[#f59e0b]/30 text-white font-bold hover:bg-[#0b0f17] hover:border-[#f59e0b]/70 hover:shadow-[0_0_18px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
               >
                 <Link to="/loyalty/dashboard">
-                  <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+                  <LayoutDashboard className="h-4 w-4 mr-2 text-[#f59e0b]" /> Dashboard
                 </Link>
               </Button>
               <Button
                 onClick={handleAiSuggest}
-                className="h-11 rounded-xl bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#c084fc] hover:to-[#f472b6] text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.35)]"
+                className="shrink-0 h-11 md:h-[42px] rounded-xl px-[18px] bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#c084fc] hover:to-[#f472b6] text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.35)] hover:shadow-[0_0_22px_rgba(168,85,247,0.55)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
               >
                 <Sparkles className="h-4 w-4 mr-2" /> Sugerir com IA
               </Button>
