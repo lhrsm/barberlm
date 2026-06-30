@@ -89,6 +89,8 @@ function SettingsComponent() {
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [saving, setSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
 
   const [formData, setFormData] = useState<any>({
     business_name: "",
