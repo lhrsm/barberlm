@@ -287,7 +287,11 @@ function SettingsComponent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    
+    if (!dataLoaded) {
+      toast.error("Aguarde o carregamento dos dados antes de salvar.");
+      return;
+    }
+
     setSaving(true);
 
     // Prevent saving gateway config for free plan
@@ -311,7 +315,9 @@ function SettingsComponent() {
         primary_color: profileUpdateData.primary_color,
         secondary_color: profileUpdateData.secondary_color,
         logo_url: profileUpdateData.logo_url,
+        avatar_url: profileUpdateData.avatar_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
+
         // loyalty_mode mantido por compatibilidade — derivado dos switches independentes
         loyalty_mode: profileUpdateData.loyalty_enabled
           ? 'loyalty'
