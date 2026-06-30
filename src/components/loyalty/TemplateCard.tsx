@@ -61,19 +61,19 @@ export function TemplateCard({ template, onPreview, onUse }: Props) {
         ))}
       </ul>
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 flex flex-col sm:flex-row gap-2.5">
         <Button
           variant="outline"
           size="sm"
           onClick={onPreview}
-          className="flex-1 h-10 rounded-xl bg-transparent border-zinc-800 text-zinc-300 hover:text-white hover:border-[#f59e0b]/40"
+          className="group/btn flex-1 h-9 rounded-[10px] px-3.5 bg-transparent border border-[#f59e0b]/40 text-white font-bold hover:bg-[#f59e0b] hover:text-black hover:border-[#f59e0b] hover:shadow-[0_0_16px_rgba(245,158,11,0.4)] transition-all"
         >
-          <Eye className="h-4 w-4 mr-1.5" /> Visualizar
+          <Eye className="h-4 w-4 mr-1.5 text-[#f59e0b] group-hover/btn:text-black transition-colors" /> Visualizar
         </Button>
         <Button
           size="sm"
           onClick={onUse}
-          className="flex-1 h-10 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-black font-bold shadow-[0_4px_16px_rgba(245,158,11,0.25)]"
+          className="flex-1 h-9 rounded-[10px] px-4 bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-black font-extrabold shadow-[0_4px_16px_rgba(245,158,11,0.25)] hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 transition-all"
         >
           Usar modelo
         </Button>
