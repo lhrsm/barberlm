@@ -237,7 +237,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
           <nav className="p-4 flex flex-col h-full">
-            <div className="space-y-3 flex-1 pt-6">
+            {slug && slug !== "general" && (
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="inline-flex items-center justify-center gap-2 px-4 h-11 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#D4AF37] to-[#ea580c] text-black shadow-[0_0_12px_rgba(212,175,55,0.25)] mb-3"
+              >
+                <ExternalLink size={16} /> Ver Página Pública
+              </a>
+            )}
+            <div className="space-y-3 flex-1 pt-2">
               {navItems.map((item) => {
                 const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
                 return (
