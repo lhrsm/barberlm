@@ -28,7 +28,8 @@ import {
   History,
   User,
   Layout,
-  Gift
+  Gift,
+  ExternalLink
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
@@ -236,7 +237,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
           <nav className="p-4 flex flex-col h-full">
-            <div className="space-y-3 flex-1 pt-6">
+            {slug && slug !== "general" && (
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="inline-flex items-center justify-center gap-2 px-4 h-11 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#D4AF37] to-[#ea580c] text-black shadow-[0_0_12px_rgba(212,175,55,0.25)] mb-3"
+              >
+                <ExternalLink size={16} /> Ver Página Pública
+              </a>
+            )}
+            <div className="space-y-3 flex-1 pt-2">
               {navItems.map((item) => {
                 const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
                 return (
@@ -267,11 +279,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-[#D4AF37]/10 bg-[#0b0f17] shrink-0">
-          <div className="p-6 flex items-center justify-between border-b border-white/5 mb-2">
+          <div className="p-6 flex flex-col gap-3 border-b border-white/5 mb-2">
             <p className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </p>
+            {slug && slug !== "general" && (
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-3 h-9 rounded-xl text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-[#D4AF37] to-[#ea580c] text-black hover:brightness-110 transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)]"
+                title="Abrir página pública da barbearia"
+              >
+                <ExternalLink size={14} /> Ver Página Pública
+              </a>
+            )}
           </div>
+
 
           <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4">
             {navItems.map((item) => {
