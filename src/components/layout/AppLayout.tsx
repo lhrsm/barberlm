@@ -63,8 +63,7 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials", module: "tutorials" },
   { label: "Suporte", icon: Headset, to: "/support", module: "support" },
   { label: "Assinaturas", icon: CreditCard, to: "/subscriptions", module: "subscriptions" },
-  { label: "Fidelidade Premium", icon: Gift, to: "/subscription-rewards", module: "subscriptions" },
-  { label: "Fidelidade", icon: Gift, to: "/loyalty", module: "loyalty" },
+  { label: "Fidelidade", icon: Gift, to: "/loyalty" },
   { label: "Avaliações", icon: MessageSquare, to: "/reviews" },
 
   { label: "Minha Assinatura", icon: CreditCard, to: "/subscription" },
