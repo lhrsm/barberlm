@@ -135,8 +135,31 @@ export function SubscriberPanel({
     .map((ps) => ps?.services?.name)
     .filter(Boolean);
 
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
+  const [changePlanOpen, setChangePlanOpen] = React.useState(false);
+
   return (
     <div className="space-y-6">
+      <PlanDetailsModal
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        subscription={mySubscription}
+        planServices={subPlanServices}
+        usage={usage}
+        onChangePlan={() => {
+          setDetailsOpen(false);
+          setTimeout(() => setChangePlanOpen(true), 120);
+        }}
+      />
+      {mySubscription?.tenant_id && (
+        <ChangePlanModal
+          open={changePlanOpen}
+          onOpenChange={setChangePlanOpen}
+          tenantId={mySubscription.tenant_id}
+          subscriptionId={mySubscription.id}
+          currentPlanId={mySubscription.plan_id}
+        />
+      )}
       {/* HEADER PREMIUM */}
       <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#1a1408] via-black to-black p-6 shadow-[0_8px_40px_rgba(212,175,55,0.18)]">
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
