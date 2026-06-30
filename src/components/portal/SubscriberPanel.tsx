@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isAfter, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -13,7 +12,6 @@ import {
   Share2,
   Gift,
   Sparkles,
-  CheckCircle2,
   History,
   Scissors,
   Clock,
@@ -21,8 +19,11 @@ import {
   Star,
   Edit2,
   XCircle,
+  Plus,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
 
 type Props = {
   client: any;
@@ -40,9 +41,19 @@ type Props = {
   onOpenCard: () => void;
   onReschedule: (app: any) => void;
   onCancel: (app: any) => void;
+  onNewAppointment?: () => void;
 };
 
 const MILESTONES = [3, 6, 12, 24];
+
+const FUTURE_STATUSES = new Set([
+  "scheduled",
+  "confirmed",
+  "agendado",
+  "confirmado",
+  "pending",
+  "pendente",
+]);
 
 export function SubscriberPanel({
   client,
@@ -51,7 +62,6 @@ export function SubscriberPanel({
   mySubscription,
   appointments,
   subPlanServices,
-  benefitBalances,
   subRewards,
   subRewardsHistory,
   subUsageLogs,
@@ -59,38 +69,31 @@ export function SubscriberPanel({
   onOpenCard,
   onReschedule,
   onCancel,
+  onNewAppointment,
 }: Props) {
   const startedAt = mySubscription.started_at
     ? new Date(mySubscription.started_at)
     : new Date(mySubscription.created_at);
-  const renewalAt = mySubscription.next_billing_date
-    ? new Date(mySubscription.next_billing_date)
-    : mySubscription.current_period_end
-    ? new Date(mySubscription.current_period_end)
-    : null;
   const totalPausedDays = Number(mySubscription.total_paused_days || 0);
   const effectiveMs = Date.now() - startedAt.getTime() - totalPausedDays * 86400000;
   const monthsVip = Math.max(0, Math.floor(effectiveMs / (1000 * 60 * 60 * 24 * 30.4375)));
   const isPaused = mySubscription.status === "paused";
 
-  // utilization — fallback: sum per-service limits from subPlanServices when plan-level limit not set
-  const planUsageLimit = Number(mySubscription.plan?.usage_limit ?? 0);
-  const servicesSumLimit = (subPlanServices || []).reduce(
-    (acc: number, s: any) => acc + Number(s?.usage_limit ?? 0),
-    0,
-  );
-  const benefitsSumLimit = (benefitBalances || []).reduce(
-    (acc: number, b: any) => acc + Number(b?.limit ?? b?.total ?? 0),
-    0,
-  );
-  const usageMax = planUsageLimit > 0 ? planUsageLimit : servicesSumLimit > 0 ? servicesSumLimit : benefitsSumLimit;
-  const usageUsed = Number(mySubscription.usage_count ?? subUsageLogs.length ?? 0);
-  const usageRemaining = Math.max(0, usageMax - usageUsed);
-  const usagePct = usageMax > 0 ? Math.min(100, (usageUsed / usageMax) * 100) : 0;
+  // Unified usage calculation
+  const usage = getSubscriptionUsage(mySubscription, subPlanServices, subUsageLogs);
+  const renewalAt = usage.renewal_date;
+  const usagePct = usage.has_limits
+    ? Math.min(100, (usage.total_uses_consumed / usage.total_uses_allowed) * 100)
+    : 0;
 
-  // next appointment
+  // Next appointment — whitelist active future statuses only
   const nextApp = [...appointments]
-    .filter((a) => a.status !== "cancelled" && a.start_time && isAfter(parseISO(a.start_time), new Date()))
+    .filter((a) => {
+      if (!a.start_time) return false;
+      const status = String(a.status || "").toLowerCase();
+      if (!FUTURE_STATUSES.has(status)) return false;
+      return isAfter(parseISO(a.start_time), new Date());
+    })
     .sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())[0];
 
   // referral
@@ -124,6 +127,10 @@ export function SubscriberPanel({
     } catch {}
   };
 
+  const planServiceNames = (subPlanServices || [])
+    .map((ps) => ps?.services?.name)
+    .filter(Boolean);
+
   return (
     <div className="space-y-6">
       {/* HEADER PREMIUM */}
@@ -138,7 +145,7 @@ export function SubscriberPanel({
               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[#D4AF37]">Área Premium</p>
               <h1 className="text-2xl md:text-3xl font-black text-white mt-0.5">{client?.name}</h1>
               <p className="text-xs text-gray-400 mt-1">
-                Plano <span className="text-[#D4AF37] font-bold">{mySubscription.plan?.name || "Premium"}</span>
+                Plano <span className="text-[#D4AF37] font-bold">{usage.plan_name}</span>
               </p>
             </div>
           </div>
@@ -166,9 +173,12 @@ export function SubscriberPanel({
                 <CardDescription className="uppercase text-[10px] font-black tracking-[0.3em] text-[#D4AF37]">
                   Plano Ativo
                 </CardDescription>
-                <CardTitle className="text-2xl font-black text-white mt-1">
-                  {mySubscription.plan?.name || "Premium"}
-                </CardTitle>
+                <CardTitle className="text-2xl font-black text-white mt-1">{usage.plan_name}</CardTitle>
+                {usage.has_limits && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    {usage.total_uses_allowed} utilizações por ciclo
+                  </p>
+                )}
               </div>
               <Badge
                 className={cn(
@@ -183,35 +193,46 @@ export function SubscriberPanel({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="rounded-xl border border-white/10 bg-black/40 p-3">
-                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Utilizações restantes</p>
-                <p className="text-2xl font-black text-[#D4AF37] mt-1">
-                  {usageMax > 0 ? usageRemaining : "∞"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/40 p-3">
-                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Utilizações consumidas</p>
-                <p className="text-2xl font-black text-white mt-1">{usageUsed}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/40 p-3">
-                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Tempo VIP</p>
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Consumidas</p>
                 <p className="text-2xl font-black text-white mt-1">
-                  {monthsVip} <span className="text-xs text-gray-400">{monthsVip === 1 ? "mês" : "meses"}</span>
+                  {usage.total_uses_consumed}
+                  {usage.has_limits && (
+                    <span className="text-sm text-gray-400 font-bold"> / {usage.total_uses_allowed}</span>
+                  )}
                 </p>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/40 p-3">
-                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Renovação</p>
-                <p className="text-sm font-bold text-white mt-1">
-                  {renewalAt
-                    ? `${differenceInDays(renewalAt, new Date())} dias`
-                    : "—"}
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Restantes</p>
+                <p className="text-2xl font-black text-[#D4AF37] mt-1">
+                  {usage.has_limits ? usage.total_uses_remaining : "∞"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/40 p-3">
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Cortes</p>
+                <p className="text-2xl font-black text-white mt-1">
+                  {usage.haircut_used}
+                  {usage.haircut_allowed > 0 && (
+                    <span className="text-sm text-gray-400 font-bold"> / {usage.haircut_allowed}</span>
+                  )}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/40 p-3">
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Barbas</p>
+                <p className="text-2xl font-black text-white mt-1">
+                  {usage.beard_used}
+                  {usage.beard_allowed > 0 && (
+                    <span className="text-sm text-gray-400 font-bold"> / {usage.beard_allowed}</span>
+                  )}
                 </p>
               </div>
             </div>
-            {usageMax > 0 && (
+            {usage.has_limits && (
               <div>
                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
                   <span>Progresso do ciclo</span>
-                  <span className="text-[#D4AF37]">{usageUsed}/{usageMax}</span>
+                  <span className="text-[#D4AF37]">
+                    {usage.total_uses_consumed}/{usage.total_uses_allowed}
+                  </span>
                 </div>
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                   <div
@@ -221,6 +242,15 @@ export function SubscriberPanel({
                 </div>
               </div>
             )}
+            <div className="flex flex-wrap items-center gap-2 pt-2 text-[10px] text-gray-400">
+              <Clock className="h-3 w-3" />
+              <span>
+                Renovação em{" "}
+                <span className="text-white font-bold">
+                  {renewalAt ? `${differenceInDays(renewalAt, new Date())} dias` : "—"}
+                </span>
+              </span>
+            </div>
           </CardContent>
         </Card>
 
@@ -243,73 +273,103 @@ export function SubscriberPanel({
                   </p>
                   <p className="text-xs text-gray-400">Profissional: {nextApp.barbers?.name}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10"
                     onClick={() => onReschedule(nextApp)}
+                    className="flex-1 h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    <Edit2 className="h-3 w-3 mr-1" /> Reagendar
+                    <Edit2 className="h-4 w-4" /> Reagendar
                   </Button>
                   <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 border-red-500/40 text-red-300 hover:bg-red-500/10"
                     onClick={() => onCancel(nextApp)}
+                    variant="outline"
+                    className="flex-1 h-10 rounded-xl bg-red-500/10 border border-red-500/40 text-red-300 font-bold gap-2 hover:bg-red-500/15 hover:shadow-[0_6px_18px_rgba(239,68,68,0.25)] hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    <XCircle className="h-3 w-3 mr-1" /> Cancelar
+                    <XCircle className="h-4 w-4" /> Cancelar
                   </Button>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-6">Nenhum agendamento futuro.</p>
+              <div className="text-center py-6 space-y-3">
+                <div className="mx-auto h-12 w-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
+                  <CalendarClock className="h-6 w-6 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Nenhum próximo atendimento</p>
+                  <p className="text-xs text-gray-500 mt-1">Agende seu próximo horário quando quiser.</p>
+                </div>
+                {onNewAppointment && (
+                  <Button
+                    onClick={onNewAppointment}
+                    className="h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    <Plus className="h-4 w-4" /> Novo Agendamento
+                  </Button>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
 
-        {/* BENEFÍCIOS DISPONÍVEIS */}
+        {/* BENEFÍCIOS DO PLANO */}
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-[#D4AF37]" /> Benefícios do Plano
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {benefitBalances.length > 0 ? (
-              <ul className="space-y-2">
-                {benefitBalances.map((b: any, i: number) => (
-                  <li key={i} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/10">
-                    <span className="text-sm text-white font-bold">{b.category_name || b.name || "Benefício"}</span>
-                    <Badge className="bg-[#D4AF37]/15 text-[#D4AF37] border-[#D4AF37]/40">
-                      {b.remaining ?? b.balance ?? 0}/{b.limit ?? b.total ?? "∞"}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            ) : subPlanServices.length > 0 ? (
-              <ul className="space-y-2">
-                {subPlanServices.map((s: any) => (
-                  <li key={s.id} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/10">
-                    <span className="text-sm text-white">
-                      <CheckCircle2 className="h-3 w-3 text-[#D4AF37] inline mr-2" />
-                      {s.services?.name || "Serviço"}
-                    </span>
-                    {s.usage_limit ? (
-                      <Badge variant="outline" className="text-[10px] text-gray-300">
-                        {s.usage_limit}x / ciclo
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] text-[#D4AF37] border-[#D4AF37]/40">
-                        Ilimitado
-                      </Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500 text-center py-6">Nenhum benefício configurado.</p>
+            {usage.has_limits && (
+              <CardDescription className="text-gray-400 text-xs">
+                {usage.total_uses_allowed} utilizações no mês entre os serviços inclusos
+              </CardDescription>
             )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Counters */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-center">
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Barbas</p>
+                <p className="text-lg font-black text-white mt-1">
+                  {usage.beard_used}
+                  <span className="text-xs text-gray-400 font-bold">/{usage.beard_allowed || "∞"}</span>
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-center">
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Cortes</p>
+                <p className="text-lg font-black text-white mt-1">
+                  {usage.haircut_used}
+                  <span className="text-xs text-gray-400 font-bold">/{usage.haircut_allowed || "∞"}</span>
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-3 text-center">
+                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37]/80 font-bold">Total</p>
+                <p className="text-lg font-black text-[#D4AF37] mt-1">
+                  {usage.total_uses_consumed}
+                  <span className="text-xs text-[#D4AF37]/70 font-bold">/{usage.total_uses_allowed || "∞"}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Services list */}
+            {planServiceNames.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Serviços inclusos</p>
+                <ul className="space-y-1.5">
+                  {planServiceNames.map((name: string, idx: number) => (
+                    <li
+                      key={idx}
+                      className="flex items-center gap-2 text-sm text-white/90 bg-black/30 border border-white/10 rounded-lg px-3 py-2"
+                    >
+                      <Check className="h-3.5 w-3.5 text-[#D4AF37] shrink-0" />
+                      <span>{name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <p className="text-[11px] text-gray-500 italic leading-relaxed">
+              Combo Cabelo + Barba consome 2 utilizações: 1 corte + 1 barba.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -438,9 +498,9 @@ export function SubscriberPanel({
             </div>
             <Button
               onClick={shareWhatsapp}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black gap-2"
+              className="h-[34px] px-3 text-xs rounded-[10px] bg-emerald-500 hover:bg-emerald-400 text-black font-black gap-1.5 self-start"
             >
-              <Share2 className="h-4 w-4" /> Compartilhar no WhatsApp
+              <Share2 className="h-3.5 w-3.5" /> Compartilhar
             </Button>
           </CardContent>
         </Card>
@@ -454,11 +514,11 @@ export function SubscriberPanel({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {subUsageLogs.length === 0 ? (
+          {usage.usage_history.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-6">Nenhuma utilização registrada ainda.</p>
           ) : (
             <ul className="space-y-2">
-              {subUsageLogs.slice(0, 10).map((log: any) => (
+              {usage.usage_history.slice(0, 10).map((log) => (
                 <li
                   key={log.id}
                   className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/10"
@@ -468,15 +528,20 @@ export function SubscriberPanel({
                       <Scissors className="h-4 w-4 text-[#D4AF37]" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white">{log.services?.name || "Serviço"}</p>
+                      <p className="text-sm font-bold text-white">{log.service_name}</p>
                       <p className="text-[10px] text-gray-500 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {log.used_at ? format(parseISO(log.used_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "—"}
+                        {log.used_at
+                          ? format(parseISO(log.used_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                          : "—"}
+                        {log.category === "both" && (
+                          <span className="ml-1 text-[#D4AF37]">• 1 corte + 1 barba</span>
+                        )}
                       </p>
                     </div>
                   </div>
                   <Badge variant="outline" className="text-[10px] text-[#D4AF37] border-[#D4AF37]/30">
-                    Premium
+                    {log.total_consumed} util.
                   </Badge>
                 </li>
               ))}

@@ -1162,6 +1162,7 @@ function ClientPortalComponent() {
             onOpenCard={() => setCardOpen(true)}
             onReschedule={handleEditAppointment}
             onCancel={handleCancelAppointment}
+            onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
           />
         )}
 
@@ -2925,7 +2926,11 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
               <span className="block text-white/55 text-xs mt-0.5">Receber ofertas, descontos e novidades pelos canais da barbearia.</span>
             </span>
           </label>
-          <Button onClick={savePreferences} disabled={savingPrefs} className="w-full bg-[#D4AF37] text-black hover:brightness-110">
+          <Button
+            onClick={savePreferences}
+            disabled={savingPrefs}
+            className="w-full h-[42px] rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
+          >
             {savingPrefs ? 'Salvando...' : 'Salvar preferências'}
           </Button>
         </CardContent>
@@ -2937,8 +2942,12 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
           <CardDescription className="text-gray-400">Exporte uma cópia ou solicite exclusão (LGPD).</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button onClick={exportData} variant="outline" className="w-full border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]">
-            <Download size={16} className="mr-2" /> Baixar meus dados (JSON)
+          <Button
+            onClick={exportData}
+            variant="outline"
+            className="w-full h-[42px] rounded-xl bg-black/40 border border-[#D4AF37]/40 text-white font-semibold hover:bg-[#D4AF37]/10 hover:text-white hover:border-[#D4AF37]/70 hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <Download size={16} className="mr-2 text-[#D4AF37]" /> Baixar meus dados (JSON)
           </Button>
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
             <p className="text-xs text-white/70">
@@ -2954,7 +2963,7 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
                 onClick={requestDeletion}
                 disabled={requesting}
                 variant="outline"
-                className="w-full mt-3 border-red-500/40 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                className="w-full h-[42px] mt-3 rounded-xl bg-red-500/10 border border-red-500/40 text-red-300 font-semibold hover:bg-red-500/15 hover:text-red-200 hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(239,68,68,0.25)] transition-all duration-200"
               >
                 <Trash2 size={16} className="mr-2" /> {requesting ? 'Enviando...' : 'Solicitar exclusão dos meus dados'}
               </Button>
