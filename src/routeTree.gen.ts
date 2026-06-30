@@ -43,6 +43,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccessibilityRouteImport } from './routes/accessibility'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
@@ -242,6 +243,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LoyaltyIndexRoute = LoyaltyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LoyaltyRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -451,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin/': typeof AdminIndexRoute
+  '/loyalty/': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
@@ -475,7 +482,6 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/lgpd': typeof LgpdRoute
-  '/loyalty': typeof LoyaltyRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -515,6 +521,7 @@ export interface FileRoutesByTo {
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin': typeof AdminIndexRoute
+  '/loyalty': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
@@ -581,6 +588,7 @@ export interface FileRoutesById {
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/admin/': typeof AdminIndexRoute
+  '/loyalty/': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
@@ -648,6 +656,7 @@ export interface FileRouteTypes {
     | '/loyalty/templates'
     | '/subscriptions/reports'
     | '/admin/'
+    | '/loyalty/'
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
@@ -672,7 +681,6 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/lgpd'
-    | '/loyalty'
     | '/privacy'
     | '/privacy-faq'
     | '/products'
@@ -712,6 +720,7 @@ export interface FileRouteTypes {
     | '/loyalty/templates'
     | '/subscriptions/reports'
     | '/admin'
+    | '/loyalty'
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
@@ -777,6 +786,7 @@ export interface FileRouteTypes {
     | '/loyalty/templates'
     | '/subscriptions/reports'
     | '/admin/'
+    | '/loyalty/'
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
@@ -1069,6 +1079,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loyalty/': {
+      id: '/loyalty/'
+      path: '/'
+      fullPath: '/loyalty/'
+      preLoaderRoute: typeof LoyaltyIndexRouteImport
+      parentRoute: typeof LoyaltyRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -1340,12 +1357,14 @@ interface LoyaltyRouteChildren {
   LoyaltyCampaignsRoute: typeof LoyaltyCampaignsRouteWithChildren
   LoyaltyDashboardRoute: typeof LoyaltyDashboardRoute
   LoyaltyTemplatesRoute: typeof LoyaltyTemplatesRoute
+  LoyaltyIndexRoute: typeof LoyaltyIndexRoute
 }
 
 const LoyaltyRouteChildren: LoyaltyRouteChildren = {
   LoyaltyCampaignsRoute: LoyaltyCampaignsRouteWithChildren,
   LoyaltyDashboardRoute: LoyaltyDashboardRoute,
   LoyaltyTemplatesRoute: LoyaltyTemplatesRoute,
+  LoyaltyIndexRoute: LoyaltyIndexRoute,
 }
 
 const LoyaltyRouteWithChildren =
@@ -1409,12 +1428,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

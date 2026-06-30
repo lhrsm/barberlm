@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/loyalty")({
+export const Route = createFileRoute("/loyalty/")({
   component: LoyaltyDashboardPage,
 });
 
