@@ -269,14 +269,31 @@ export function SubscriberPanel({
                 </div>
               </div>
             )}
-            <div className="flex flex-wrap items-center gap-2 pt-2 text-[10px] text-gray-400">
-              <Clock className="h-3 w-3" />
-              <span>
-                Renovação em{" "}
-                <span className="text-white font-bold">
-                  {renewalAt ? `${differenceInDays(renewalAt, new Date())} dias` : "—"}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                <Clock className="h-3 w-3" />
+                <span>
+                  Renovação em{" "}
+                  <span className="text-white font-bold">
+                    {renewalAt ? `${differenceInDays(renewalAt, new Date())} dias` : "—"}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setDetailsOpen(true)}
+                  variant="outline"
+                  className="h-9 px-4 rounded-xl bg-transparent border border-[#D4AF37]/50 text-[#D4AF37] font-bold gap-2 hover:bg-[#D4AF37] hover:text-black hover:-translate-y-0.5 transition-all duration-250"
+                >
+                  <Info className="h-3.5 w-3.5" /> Detalhes do Plano
+                </Button>
+                <Button
+                  onClick={() => setChangePlanOpen(true)}
+                  className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all duration-250"
+                >
+                  <Crown className="h-3.5 w-3.5" /> Mudar de Plano
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
