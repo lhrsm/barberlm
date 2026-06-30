@@ -1348,7 +1348,7 @@ function SettingsComponent() {
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="flex-1 border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold uppercase tracking-wider h-11 rounded-xl">
-                      <Link to="/subscription-rewards">
+                      <Link to="/loyalty">
                         Recompensas de Assinantes
                       </Link>
                     </Button>
