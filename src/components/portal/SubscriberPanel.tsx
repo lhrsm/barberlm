@@ -498,9 +498,11 @@ export function SubscriberPanel({
             </div>
             <Button
               onClick={shareWhatsapp}
-              className="h-[34px] px-3 text-xs rounded-[10px] bg-emerald-500 hover:bg-emerald-400 text-black font-black gap-1.5 self-start"
+              aria-label="Compartilhar no WhatsApp"
+              title="Compartilhar no WhatsApp"
+              className="h-8 w-8 shrink-0 self-start rounded-full bg-emerald-500 p-0 text-black shadow-[0_6px_16px_rgba(16,185,129,0.22)] hover:bg-emerald-400 hover:scale-105"
             >
-              <Share2 className="h-3.5 w-3.5" /> Compartilhar
+              <Share2 className="h-3.5 w-3.5" />
             </Button>
           </CardContent>
         </Card>
