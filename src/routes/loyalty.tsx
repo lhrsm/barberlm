@@ -242,7 +242,21 @@ function LoyaltyDashboardPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
+          <div className="h-12 w-12 rounded-full border-2 border-[#ea580c]/30 border-t-[#ea580c] animate-spin mb-5" />
+          <h2 className="text-xl font-black uppercase italic tracking-wider text-white">
+            Carregando Fidelidade
+          </h2>
+          <p className="text-sm text-slate-400 mt-2 max-w-sm">
+            Estamos preparando seu painel.
+          </p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
