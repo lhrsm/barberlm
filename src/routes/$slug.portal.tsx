@@ -1722,6 +1722,10 @@ function ClientPortalComponent() {
               const usage = getSubscriptionUsage(mySubscription, subPlanServices, subUsageLogs);
               const nextBilling = usage.renewal_date;
               const periodStart = usage.cycle_start;
+              // Aliases for the plan details modal below
+              const usedThisPeriod = usage.total_uses_consumed;
+              const maxUses = usage.has_limits ? usage.total_uses_allowed : 0;
+              const totalCovered = usage.usage_history.reduce((s, e) => s + e.covered_amount, 0);
 
               // Per-service price lookup (from plan services) for economy calc
               const priceByCategory: Record<string, number> = { haircut: 0, beard: 0 };
