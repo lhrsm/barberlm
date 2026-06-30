@@ -83,6 +83,8 @@ function normalizeSocial(kind: "instagram" | "facebook" | "tiktok" | "youtube" |
 
 function SettingsComponent() {
   const { user, loading, role } = useAuth();
+  const { tenantId } = useTenant();
+  const effectiveTenantId = tenantId || user?.id || null;
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [saving, setSaving] = useState(false);
