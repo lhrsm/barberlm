@@ -2926,7 +2926,11 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
               <span className="block text-white/55 text-xs mt-0.5">Receber ofertas, descontos e novidades pelos canais da barbearia.</span>
             </span>
           </label>
-          <Button onClick={savePreferences} disabled={savingPrefs} className="w-full bg-[#D4AF37] text-black hover:brightness-110">
+          <Button
+            onClick={savePreferences}
+            disabled={savingPrefs}
+            className="w-full h-[42px] rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
+          >
             {savingPrefs ? 'Salvando...' : 'Salvar preferências'}
           </Button>
         </CardContent>
