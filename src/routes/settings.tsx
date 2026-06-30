@@ -456,7 +456,15 @@ function SettingsComponent() {
           </TabsContent>
 
 
+          {!dataLoaded && (
+            <div className="mt-4 mb-2 flex items-center gap-3 rounded-2xl border border-[#1f2937] bg-[#0b0f17] px-4 py-3 text-slate-400">
+              <RefreshCw className="h-4 w-4 animate-spin text-[#ea580c]" />
+              <span className="text-xs font-bold uppercase tracking-widest">Carregando suas configurações…</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
+
             <TabsContent value="profile" className="space-y-4">
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50">
