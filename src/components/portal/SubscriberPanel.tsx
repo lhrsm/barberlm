@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,12 @@ import {
   XCircle,
   Plus,
   Check,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
+import { PlanDetailsModal } from "@/components/portal/PlanDetailsModal";
+import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 
 type Props = {
   client: any;
