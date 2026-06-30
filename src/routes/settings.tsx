@@ -470,8 +470,8 @@ function SettingsComponent() {
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                     <div className="flex flex-col items-center gap-4 shrink-0">
                       <div className="h-28 w-28 rounded-full bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#ea580c]/30 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
-                        {formData.logo_url ? (
-                          <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
+                        {formData.avatar_url ? (
+                          <img src={formData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
                         ) : (
                           <UserRound className="h-14 w-14 text-slate-700" />
                         )}
@@ -502,7 +502,7 @@ function SettingsComponent() {
                                 .from('barber-avatars')
                                 .getPublicUrl(fileName);
                               
-                              setFormData({ ...formData, logo_url: publicUrl });
+                              setFormData({ ...formData, avatar_url: publicUrl });
                               toast.success("Foto de perfil atualizada!");
                             } catch (error: any) {
                               toast.error("Erro ao carregar imagem: " + error.message);
@@ -513,6 +513,7 @@ function SettingsComponent() {
                         />
                       </div>
                     </div>
+
 
                     <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <div className="grid gap-2">
