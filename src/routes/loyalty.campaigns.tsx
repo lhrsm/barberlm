@@ -95,30 +95,28 @@ function CampaignsPage() {
     <AppLayout>
       <div className="min-h-screen bg-[#05070d] text-white">
         <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto animate-in fade-in duration-500">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-3 min-w-0">
               <Link
                 to="/loyalty"
-                className="h-10 w-10 rounded-xl border border-zinc-800 grid place-items-center text-zinc-400 hover:text-white"
+                className="h-10 w-10 shrink-0 rounded-xl border border-zinc-800 grid place-items-center text-zinc-400 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center">
+              <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center">
                 <ListChecks className="h-7 w-7 text-[#f59e0b]" />
               </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-black">Minhas Campanhas</h1>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-black truncate">Minhas Campanhas</h1>
                 <p className="text-sm text-zinc-400">Gerencie todas as campanhas de fidelidade ativas e em rascunho.</p>
               </div>
             </div>
-            <Button
-              asChild
-              className="h-11 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black font-bold"
+            <Link
+              to="/loyalty/templates"
+              className="inline-flex items-center justify-center gap-2 w-full md:w-fit md:min-w-[190px] md:max-w-[240px] h-11 px-[22px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-bold text-sm shadow-[0_8px_24px_-8px_rgba(245,197,66,0.55)] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-8px_rgba(245,197,66,0.7)] transition-all duration-200"
             >
-              <Link to="/loyalty/templates">
-                <Plus className="h-4 w-4 mr-2" /> Nova campanha
-              </Link>
-            </Button>
+              <Plus className="h-4 w-4" /> Nova campanha
+            </Link>
           </div>
 
           {loadError && (
@@ -153,7 +151,7 @@ function CampaignsPage() {
                 return (
                   <div
                     key={c.id}
-                    className="bg-[#0b0f17] border border-zinc-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4 hover:border-[#f59e0b]/30 transition-all"
+                    className="bg-[#0b0f17] border border-zinc-800 rounded-[20px] p-6 flex flex-col md:flex-row md:items-center gap-4 md:gap-6 hover:border-[#f59e0b]/30 transition-all"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -170,19 +168,31 @@ function CampaignsPage() {
                         Tipo: <span className="text-zinc-300">{c.rule_type}</span>
                       </p>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                      <Button size="sm" variant="outline" onClick={() => toggleStatus(c)} className="border-zinc-800 text-zinc-300 hover:text-white">
-                        {c.status === "active" ? <><Pause className="h-3.5 w-3.5 mr-1.5" />Pausar</> : <><Play className="h-3.5 w-3.5 mr-1.5" />Ativar</>}
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => navigate({ to: "/loyalty/campaigns/$id", params: { id: c.id } })} className="border-zinc-800 text-zinc-300 hover:text-white">
-                        <Edit className="h-3.5 w-3.5 mr-1.5" />Editar
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => duplicate(c)} className="border-zinc-800 text-zinc-300 hover:text-white">
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => remove(c)} className="border-zinc-800 text-red-400 hover:text-red-300 hover:border-red-500/40">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:justify-end md:gap-2 shrink-0">
+                      <button
+                        onClick={() => toggleStatus(c)}
+                        className="inline-flex items-center justify-center gap-1.5 h-[38px] px-[14px] rounded-[10px] text-[13px] font-bold bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] shadow-[0_4px_14px_-4px_rgba(245,197,66,0.5)] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-4px_rgba(245,197,66,0.7)] transition-all duration-200"
+                      >
+                        {c.status === "active" ? <><Pause className="h-3.5 w-3.5" />Pausar</> : <><Play className="h-3.5 w-3.5" />Ativar</>}
+                      </button>
+                      <button
+                        onClick={() => navigate({ to: "/loyalty/campaigns/$id", params: { id: c.id } })}
+                        className="inline-flex items-center justify-center gap-1.5 h-[38px] px-[14px] rounded-[10px] text-[13px] font-bold bg-white/[0.04] border border-[#F5C542]/35 text-white hover:bg-white/[0.08] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-4px_rgba(245,197,66,0.35)] transition-all duration-200"
+                      >
+                        <Edit className="h-3.5 w-3.5" />Editar
+                      </button>
+                      <button
+                        onClick={() => duplicate(c)}
+                        className="inline-flex items-center justify-center gap-1.5 h-[38px] px-[14px] rounded-[10px] text-[13px] font-bold bg-white/[0.04] border border-[#F5C542]/35 text-white hover:bg-white/[0.08] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-4px_rgba(245,197,66,0.35)] transition-all duration-200"
+                      >
+                        <Copy className="h-3.5 w-3.5" />Duplicar
+                      </button>
+                      <button
+                        onClick={() => remove(c)}
+                        className="inline-flex items-center justify-center gap-1.5 h-[38px] px-[14px] rounded-[10px] text-[13px] font-bold bg-red-500/10 border border-red-500/35 text-red-400 hover:bg-red-500/15 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-4px_rgba(239,68,68,0.4)] transition-all duration-200"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />Excluir
+                      </button>
                     </div>
                   </div>
                 );
