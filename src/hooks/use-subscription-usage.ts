@@ -24,12 +24,18 @@ export type SubscriptionUsage = {
   total_uses_allowed: number;
   total_uses_consumed: number;
   total_uses_remaining: number;
+  total_uses_reserved: number;
+  total_uses_available: number;
   haircut_allowed: number;
   haircut_used: number;
   haircut_remaining: number;
+  haircut_reserved: number;
+  haircut_available: number;
   beard_allowed: number;
   beard_used: number;
   beard_remaining: number;
+  beard_reserved: number;
+  beard_available: number;
   has_limits: boolean;
   usage_history: UsageEntry[];
 };
