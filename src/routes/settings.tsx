@@ -221,18 +221,18 @@ function SettingsComponent() {
           shopData?.logo_url ||
           "";
         setFormData({
-          business_name: profile.business_name || "",
+          business_name: profile.business_name || shopData?.name || "",
           responsible_name: (profile as any).responsible_name || "",
-          slug: profile.slug || "",
+          slug: profile.slug || shopData?.slug || "",
           whatsapp_enabled: profile.whatsapp_enabled || false,
           scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
           payment_gateway_provider: profile.payment_gateway_provider || "none",
           payment_gateway_key: profile.payment_gateway_key || "",
-          primary_color: profile.primary_color || "#7c3aed",
-          secondary_color: profile.secondary_color || "#f4f4f5",
-          logo_url: profile.logo_url || "",
+          primary_color: profile.primary_color || "",
+          secondary_color: profile.secondary_color || "",
+          logo_url: profile.logo_url || shopData?.logo_url || "",
           avatar_url: (profile as any).avatar_url || "",
-          barbershop_logo_url: (profile as any).barbershop_logo_url || profile.logo_url || "",
+          barbershop_logo_url: businessLogo,
 
           loyalty_mode: ((profile as any).loyalty_mode as any) || "none",
           cashback_enabled: profile.cashback_enabled || false,
