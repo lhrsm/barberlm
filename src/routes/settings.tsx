@@ -38,6 +38,7 @@ import {
   Info,
   Layout,
   ShieldCheck,
+  AlertTriangle,
   Coins,
   Trophy
 } from "lucide-react";
