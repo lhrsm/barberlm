@@ -6826,6 +6826,10 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: Json
       }
+      clear_barbershop_test_data: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       complete_appointment: {
         Args: {
           p_appointment_id: string

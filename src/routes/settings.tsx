@@ -38,6 +38,7 @@ import {
   Info,
   Layout,
   ShieldCheck,
+  AlertTriangle,
   Coins,
   Trophy
 } from "lucide-react";
@@ -46,6 +47,7 @@ import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
 import { LgpdSettings } from "@/components/settings/LgpdSettings";
+import { DangerZone } from "@/components/settings/DangerZone";
 import { CouponManagement } from "@/components/admin/CouponManagement";
 
 import {
@@ -509,6 +511,7 @@ function SettingsComponent() {
                 { value: "loyalty", icon: Gift, label: "Fidelidade" },
                 { value: "pix", icon: QrCode, label: "PIX" },
                 { value: "lgpd", icon: ShieldCheck, label: "LGPD" },
+                { value: "danger", icon: AlertTriangle, label: "Zona de Perigo" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
@@ -531,6 +534,11 @@ function SettingsComponent() {
           <TabsContent value="lgpd" className="space-y-4">
             <LgpdSettings />
           </TabsContent>
+
+          <TabsContent value="danger" className="space-y-4">
+            <DangerZone />
+          </TabsContent>
+
 
 
           {!dataLoaded && (
