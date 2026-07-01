@@ -178,6 +178,7 @@ function ShopPageComponent() {
   const activeSubscription = subscriptionsEnabled ? _activeSubscription : null;
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
+  const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
   const [benefitBalances, setBenefitBalances] = useState<any[]>([]);
   const [planBenefitServices, setPlanBenefitServices] = useState<any[]>([]); // {service_id, consume_quantity, benefit_key, benefit_name}
   const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
