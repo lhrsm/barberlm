@@ -3440,13 +3440,23 @@ function ShopPageComponent() {
                   <div className="grid gap-3">
                     <button
                       type="button"
-                      disabled={noBenefit}
-                      onClick={() => setBookingMode('benefit')}
+                      disabled={subPlanServices.length === 0}
+                      onClick={() => {
+                        if (available !== null && available === 0) {
+                          setExhaustedReason('empty');
+                          setExhaustedServiceName(null);
+                          setExhaustedOpen(true);
+                          return;
+                        }
+                        setBookingMode('benefit');
+                      }}
                       className={cn(
                         "group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition-all",
-                        noBenefit
+                        subPlanServices.length === 0
                           ? "border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed"
-                          : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
+                          : (available !== null && available === 0)
+                            ? "border-amber-400/70 bg-gradient-to-br from-amber-50 via-white to-amber-50 hover:border-amber-500 hover:shadow-lg cursor-pointer"
+                            : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -3457,9 +3467,11 @@ function ShopPageComponent() {
                           <div>
                             <p className="font-black uppercase tracking-tight text-base text-black">Utilizar Benefício</p>
                             <p className="text-[11px] text-zinc-600 font-medium">
-                              {noBenefit
-                                ? remaining === 0 ? "Limite mensal atingido" : "Plano sem serviços vinculados"
-                                : `${subPlanServices.length} serviço(s) incluso(s) • R$ 0,00`}
+                              {subPlanServices.length === 0
+                                ? "Plano sem serviços vinculados"
+                                : (available !== null && available === 0)
+                                  ? "Utilizações esgotadas neste ciclo • ver opções"
+                                  : `${subPlanServices.length} serviço(s) incluso(s) • R$ 0,00`}
                             </p>
                           </div>
                         </div>
