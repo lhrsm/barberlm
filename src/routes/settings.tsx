@@ -535,6 +535,11 @@ function SettingsComponent() {
             <LgpdSettings />
           </TabsContent>
 
+          <TabsContent value="danger" className="space-y-4">
+            <DangerZone />
+          </TabsContent>
+
+
 
           {!dataLoaded && (
             <div className="mt-4 mb-2 flex items-center gap-3 rounded-2xl border border-[#1f2937] bg-[#0b0f17] px-4 py-3 text-slate-400">
