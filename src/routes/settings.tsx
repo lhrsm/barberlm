@@ -475,6 +475,25 @@ function SettingsComponent() {
           )}
         </div>
 
+        {/* TEMPORARY DEBUG PANEL — remover após validação */}
+        {debugInfo && (
+          <details className="rounded-2xl border border-amber-500/40 bg-amber-500/5 p-4 text-[11px] text-amber-100" open>
+            <summary className="cursor-pointer text-amber-300 font-black uppercase tracking-widest text-[11px]">
+              🔎 Debug Settings Data (temporário)
+            </summary>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 font-mono">
+              {Object.entries(debugInfo).map(([k, v]) => (
+                <div key={k} className="flex gap-2 border-b border-amber-500/10 py-1">
+                  <span className="text-amber-400 min-w-[170px]">{k}:</span>
+                  <span className="break-all text-white/90">
+                    {v === null || v === undefined ? <em className="text-red-400">null</em> : typeof v === "object" ? JSON.stringify(v) : String(v)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
         <Tabs defaultValue="general" className="space-y-0">
           <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2 -mx-4 sm:mx-0 rounded-t-[24px]">
             <TabsList className="flex w-max min-w-full items-end gap-1 bg-transparent p-0 h-auto">
