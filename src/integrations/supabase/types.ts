@@ -5906,11 +5906,15 @@ export type Database = {
       tutorials: {
         Row: {
           category_id: string | null
-          content_url: string
+          content_url: string | null
           created_at: string | null
           description: string | null
+          estimated_time: string | null
+          icon: string | null
           id: string
           is_featured: boolean | null
+          level: string | null
+          long_description: string | null
           order: number | null
           thumbnail_url: string | null
           title: string
@@ -5919,11 +5923,15 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
-          content_url: string
+          content_url?: string | null
           created_at?: string | null
           description?: string | null
+          estimated_time?: string | null
+          icon?: string | null
           id?: string
           is_featured?: boolean | null
+          level?: string | null
+          long_description?: string | null
           order?: number | null
           thumbnail_url?: string | null
           title: string
@@ -5932,11 +5940,15 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
-          content_url?: string
+          content_url?: string | null
           created_at?: string | null
           description?: string | null
+          estimated_time?: string | null
+          icon?: string | null
           id?: string
           is_featured?: boolean | null
+          level?: string | null
+          long_description?: string | null
           order?: number | null
           thumbnail_url?: string | null
           title?: string
