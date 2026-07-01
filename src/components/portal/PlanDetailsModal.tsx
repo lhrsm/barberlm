@@ -155,28 +155,34 @@ export function PlanDetailsModal({
             )}
           </div>
 
-          {/* FOOTER */}
-          <div className="px-6 sm:px-8 py-5 border-t border-white/5 flex flex-col sm:flex-row gap-3 sm:justify-end bg-black/40">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className={cn(
-                "h-11 px-6 rounded-xl bg-transparent border border-[#D4AF37] text-[#D4AF37] font-bold",
-                "transition-all duration-250 hover:bg-[#D4AF37] hover:text-black hover:-translate-y-0.5",
-              )}
-            >
-              Fechar
-            </Button>
-            <Button
+          {/* FOOTER — sticky */}
+          <div className="sticky bottom-0 px-6 sm:px-8 pt-5 pb-6 border-t border-[#D4AF37]/15 bg-gradient-to-b from-black/60 via-black/85 to-black flex flex-col gap-3 mt-auto">
+            <button
+              type="button"
               onClick={onChangePlan}
               className={cn(
-                "h-11 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black gap-2",
-                "shadow-[0_6px_20px_rgba(212,175,55,0.35)] transition-all duration-250",
-                "hover:shadow-[0_10px_28px_rgba(212,175,55,0.5)] hover:-translate-y-0.5",
+                "w-full h-12 rounded-[14px] inline-flex items-center justify-center gap-2",
+                "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold text-[15px]",
+                "shadow-[0_6px_20px_rgba(212,175,55,0.35)] transition-all duration-250 cursor-pointer",
+                "hover:from-[#E6C24C] hover:to-[#FFDD75] hover:shadow-[0_12px_32px_rgba(212,175,55,0.55)] hover:-translate-y-0.5",
+                "active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50",
               )}
             >
               <Crown className="h-4 w-4" /> Mudar de Plano
-            </Button>
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className={cn(
+                "w-full h-12 rounded-[14px] inline-flex items-center justify-center gap-2",
+                "bg-transparent border border-[#D4AF37] text-white font-semibold text-[15px]",
+                "transition-all duration-250 cursor-pointer",
+                "hover:bg-[#D4AF37] hover:text-black hover:scale-[1.02] hover:shadow-[0_6px_20px_rgba(212,175,55,0.35)]",
+                "[&:hover_svg]:text-black active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50",
+              )}
+            >
+              <X className="h-4 w-4" /> Fechar
+            </button>
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
