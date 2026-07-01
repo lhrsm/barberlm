@@ -3574,6 +3574,16 @@ function ShopPageComponent() {
                             toast.error("Por favor, informe seu nome primeiro.");
                             return;
                           }
+                          // Block benefit usage when service consumes more than available
+                          if (bookingMode === 'benefit' && subUsage.has_limits) {
+                            const need = totalConsume > 0 ? totalConsume : 1;
+                            if (subUsage.total_uses_available < need) {
+                              setExhaustedReason(need > 1 ? 'combo' : 'empty');
+                              setExhaustedServiceName(s.name);
+                              setExhaustedOpen(true);
+                              return;
+                            }
+                          }
                           setSelectedService(s);
                           setBookingStep(3);
                         }}
