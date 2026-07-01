@@ -22,7 +22,7 @@ import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
 import { usePublicModules } from "@/hooks/use-public-modules";
-import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
+import { getSubscriptionUsage, categorizeService } from "@/hooks/use-subscription-usage";
 import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
 import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 
