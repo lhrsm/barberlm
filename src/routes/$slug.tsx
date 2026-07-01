@@ -3325,10 +3325,12 @@ function ShopPageComponent() {
 
             {bookingStep === 2 && activeSubscription && !bookingMode && (() => {
               const plan = activeSubscription.plan;
-              const used = activeSubscription.uses_this_period || 0;
-              const max = plan?.max_uses_per_month;
+              const used = subUsage.total_uses_consumed;
+              const max = subUsage.total_uses_allowed || (plan?.max_uses_per_month ?? null);
+              const reserved = subUsage.total_uses_reserved;
+              const available = max ? Math.max(0, max - used - reserved) : null;
               const remaining = max ? Math.max(0, max - used) : null;
-              const noBenefit = remaining === 0 || subPlanServices.length === 0;
+              const noBenefit = (available !== null && available === 0) || subPlanServices.length === 0;
               return (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
@@ -3377,28 +3379,55 @@ function ShopPageComponent() {
                         </div>
                       </div>
                     ) : (
-                      <div className="relative grid grid-cols-3 gap-2 mt-4">
-                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
-                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
-                          <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                      <div className="relative space-y-2 mt-4">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
+                            <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
+                          </div>
+                          <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
+                            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
+                            <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
+                          </div>
+                          <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                            <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
+                            <p className="text-[11px] font-black text-white mt-0.5">
+                              {activeSubscription.next_billing_at
+                                ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
+                                : activeSubscription.current_period_end
+                                  ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
+                                  : "—"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
-                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
-                          <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
-                        </div>
-                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
-                          <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
-                          <p className="text-[11px] font-black text-white mt-0.5">
-                            {activeSubscription.next_billing_at
-                              ? format(parseISO(activeSubscription.next_billing_at), "dd/MM", { locale: ptBR })
-                              : activeSubscription.current_period_end
-                                ? format(parseISO(activeSubscription.current_period_end), "dd/MM", { locale: ptBR })
-                                : "—"}
-                          </p>
-                        </div>
+                        {(subUsage.haircut_allowed > 0 || subUsage.beard_allowed > 0) && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                              <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Cortes</p>
+                              <p className="text-sm font-black text-white mt-0.5">{subUsage.haircut_used}/{subUsage.haircut_allowed}</p>
+                            </div>
+                            <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                              <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Barbas</p>
+                              <p className="text-sm font-black text-white mt-0.5">{subUsage.beard_used}/{subUsage.beard_allowed}</p>
+                            </div>
+                          </div>
+                        )}
+                        {reserved > 0 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-black/40 border border-amber-400/30 rounded-lg p-2">
+                              <p className="text-[9px] text-amber-300/80 uppercase tracking-widest font-bold">Reservados</p>
+                              <p className="text-sm font-black text-amber-300 mt-0.5">{reserved}</p>
+                            </div>
+                            <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-2">
+                              <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Disp. p/ agendar</p>
+                              <p className="text-sm font-black text-emerald-400 mt-0.5">{available ?? "∞"}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
+
 
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Como deseja agendar?</h5>
 
