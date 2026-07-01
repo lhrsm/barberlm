@@ -191,6 +191,48 @@ export function SubscriberPanel({
         </div>
       </div>
 
+      {/* Alerta: usos esgotados */}
+      {usage.has_limits && usage.total_uses_available <= 0 && (
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/10 via-black to-black p-5 shadow-[0_8px_28px_rgba(245,158,11,0.15)]">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 grid place-items-center shrink-0">
+                <Crown className="h-5 w-5 text-black" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300">
+                  Utilizações esgotadas
+                </p>
+                <p className="text-white font-bold text-sm mt-1">
+                  Você utilizou todos os benefícios deste ciclo ({usage.total_uses_consumed}/{usage.total_uses_allowed}).
+                </p>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Faça upgrade para mais utilizações ou continue agendando pagando avulso.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                onClick={() => setChangePlanOpen(true)}
+                className="h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all"
+              >
+                <Crown className="h-3.5 w-3.5" /> Mudar de Plano
+              </Button>
+              {onNewAppointment && (
+                <Button
+                  onClick={onNewAppointment}
+                  variant="outline"
+                  className="h-10 rounded-xl bg-transparent border border-white/25 text-white font-bold gap-2 hover:bg-white/10 hover:border-white/50 transition-all"
+                >
+                  <Scissors className="h-3.5 w-3.5" /> Agendar Avulso
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* CARD PRINCIPAL DO PLANO */}
         <Card className="bg-gradient-to-br from-[#D4AF37]/10 via-black/60 to-black border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(212,175,55,0.18)] lg:col-span-2">
