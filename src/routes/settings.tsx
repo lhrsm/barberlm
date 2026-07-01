@@ -47,6 +47,7 @@ import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
 import { LgpdSettings } from "@/components/settings/LgpdSettings";
+import { DangerZone } from "@/components/settings/DangerZone";
 import { CouponManagement } from "@/components/admin/CouponManagement";
 
 import {
