@@ -3492,9 +3492,8 @@ function ShopPageComponent() {
               >
                 {/* Premium benefit ribbon when in benefit mode */}
                 {activeSubscription && bookingMode === 'benefit' && (() => {
-                  const used = activeSubscription.uses_this_period || 0;
-                  const max = activeSubscription.plan?.max_uses_per_month;
-                  const remaining = max ? Math.max(0, max - used) : null;
+                  const max = subUsage.total_uses_allowed || (activeSubscription.plan?.max_uses_per_month ?? null);
+                  const remaining = max ? Math.max(0, max - subUsage.total_uses_consumed - subUsage.total_uses_reserved) : null;
                   return (
                     <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#1a1408] to-[#0a0a0a] p-3 text-white shadow-[0_8px_24px_rgba(212,175,55,0.2)]">
                       <div className="flex items-center gap-2 min-w-0">
