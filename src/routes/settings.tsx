@@ -749,6 +749,17 @@ function SettingsComponent() {
                           className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>
+                      <div className="grid gap-2 md:col-span-2">
+                        <Label htmlFor="address" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Endereço completo</Label>
+                        <Input
+                          id="address"
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          placeholder="Rua, número, bairro, cidade - UF"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                        />
+                        <p className="text-[10px] text-slate-600 font-medium italic">Aparece no rodapé e no mapa da página pública da barbearia.</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
