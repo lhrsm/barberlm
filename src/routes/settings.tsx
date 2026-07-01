@@ -160,7 +160,13 @@ function SettingsComponent() {
     }
   }, [user, loading, role, navigate]);
 
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
   useEffect(() => {
+    console.log("[/settings] AUTH USER:", user);
+    console.log("[/settings] USER ID:", user?.id);
+    console.log("[/settings] ROLE:", role);
+    console.log("[/settings] TENANT ID RESOLVIDO:", effectiveTenantId);
     if (user && role !== 'super_admin' && effectiveTenantId) {
       fetchProfile();
     }
@@ -168,11 +174,11 @@ function SettingsComponent() {
 
   async function fetchProfile() {
     if (!effectiveTenantId) {
-      console.warn("fetchProfile called without effectiveTenantId");
+      console.warn("[/settings] fetchProfile called without effectiveTenantId");
       return;
     }
 
-    console.log("Fetching profile for tenant ID:", effectiveTenantId);
+    console.log("[/settings] Fetching profile for tenant ID:", effectiveTenantId);
 
     try {
       // Fetch profile
@@ -181,8 +187,11 @@ function SettingsComponent() {
         .select("*")
         .eq("id", effectiveTenantId);
 
+      console.log("[/settings] PROFILE RESULT:", profileData);
+      console.log("[/settings] PROFILE ERROR:", profileError);
+
       if (profileError) {
-        console.error("Supabase error fetching profile:", profileError);
+        console.error("[/settings] Supabase error fetching profile:", profileError);
         toast.error(`Erro ao carregar configurações: ${profileError.message}`);
         return;
       }
@@ -195,15 +204,18 @@ function SettingsComponent() {
         .maybeSingle();
 
       if (settingsError) {
-        console.error("Error fetching barbershop settings:", settingsError);
+        console.error("[/settings] Error fetching barbershop settings:", settingsError);
       }
 
       // Fetch barbershops row (business-level source of truth for logo/name/slug)
-      const { data: shopData } = await supabase
+      const { data: shopData, error: shopError } = await supabase
         .from("barbershops")
         .select("name, slug, logo_url")
         .eq("owner_id", effectiveTenantId)
         .maybeSingle();
+
+      console.log("[/settings] BARBERSHOP RESULT:", shopData);
+      console.log("[/settings] BARBERSHOP ERROR:", shopError);
 
       // Fetch loyalty settings (novo módulo)
       const { data: loyaltyData } = await supabase
@@ -211,6 +223,29 @@ function SettingsComponent() {
         .select("*")
         .eq("tenant_id", effectiveTenantId)
         .maybeSingle();
+
+      // Snapshot for on-screen debug panel
+      const profileRow = profileData && profileData[0];
+      setDebugInfo({
+        user_id: user?.id,
+        tenant_id: effectiveTenantId,
+        profile_id: profileRow?.id ?? null,
+        profile_error: profileError,
+        shop_error: shopError,
+        business_name: profileRow?.business_name ?? null,
+        slug: profileRow?.slug ?? null,
+        logo_url: profileRow?.logo_url ?? null,
+        barbershop_logo_url: (profileRow as any)?.barbershop_logo_url ?? null,
+        avatar_url: (profileRow as any)?.avatar_url ?? null,
+        primary_color: profileRow?.primary_color ?? null,
+        secondary_color: profileRow?.secondary_color ?? null,
+        pix_key: profileRow?.pix_key ?? null,
+        pix_qr_code_url: profileRow?.pix_qr_code_url ?? null,
+        opening_date: profileRow?.opening_date ?? null,
+        shop_name: shopData?.name ?? null,
+        shop_slug: shopData?.slug ?? null,
+        shop_logo_url: shopData?.logo_url ?? null,
+      });
 
 
       if (profileData && profileData.length > 0) {
