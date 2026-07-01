@@ -121,37 +121,56 @@ export function getSubscriptionUsage(
     const s = normalize(log.status);
     return !s || COMPLETED_STATUSES.has(s);
   };
+  const RESERVED_STATUSES = new Set(["scheduled", "confirmed", "agendado", "confirmado", "reserved", "reservado", "pending"]);
+  const isReserved = (log: any): boolean => {
+    const s = normalize(log.status);
+    return RESERVED_STATUSES.has(s);
+  };
+
+  const buildEntry = (l: any): UsageEntry => {
+    const name = l.services?.name || l.service_name || "Serviço";
+    const category = categorizeService(name);
+    const isCombo = category === "both";
+    const haircut_consumed = category === "haircut" || isCombo ? 1 : 0;
+    const beard_consumed = category === "beard" || isCombo ? 1 : 0;
+    const total_consumed = haircut_consumed + beard_consumed || Number(l.consume_quantity || 1);
+    return {
+      id: l.id,
+      used_at: l.used_at,
+      service_name: name,
+      category,
+      haircut_consumed,
+      beard_consumed,
+      total_consumed,
+      covered_amount: Number(l.covered_amount || 0),
+      extra_amount: Number(l.extra_amount || 0),
+      status: l.status || "consumed",
+    };
+  };
 
   const usage_history: UsageEntry[] = (usageLogs || [])
     .filter((l) => isCompleted(l) && inCycle(l))
-    .map((l) => {
-      const name = l.services?.name || l.service_name || "Serviço";
-      const category = categorizeService(name);
-      const isCombo = category === "both";
-      const haircut_consumed = category === "haircut" || isCombo ? 1 : 0;
-      const beard_consumed = category === "beard" || isCombo ? 1 : 0;
-      const total_consumed = haircut_consumed + beard_consumed || Number(l.consume_quantity || 1);
-      return {
-        id: l.id,
-        used_at: l.used_at,
-        service_name: name,
-        category,
-        haircut_consumed,
-        beard_consumed,
-        total_consumed,
-        covered_amount: Number(l.covered_amount || 0),
-        extra_amount: Number(l.extra_amount || 0),
-        status: l.status || "consumed",
-      };
-    });
+    .map(buildEntry);
+
+  const reservedEntries: UsageEntry[] = (usageLogs || [])
+    .filter((l) => isReserved(l) && inCycle(l))
+    .map(buildEntry);
 
   const haircut_used = usage_history.reduce((s, e) => s + e.haircut_consumed, 0);
   const beard_used = usage_history.reduce((s, e) => s + e.beard_consumed, 0);
   const total_uses_consumed = usage_history.reduce((s, e) => s + e.total_consumed, 0);
 
+  const haircut_reserved = reservedEntries.reduce((s, e) => s + e.haircut_consumed, 0);
+  const beard_reserved = reservedEntries.reduce((s, e) => s + e.beard_consumed, 0);
+  const total_uses_reserved = reservedEntries.reduce((s, e) => s + e.total_consumed, 0);
+
   const haircut_remaining = Math.max(0, haircut_allowed - haircut_used);
   const beard_remaining = Math.max(0, beard_allowed - beard_used);
   const total_uses_remaining = Math.max(0, total_uses_allowed - total_uses_consumed);
+
+  const haircut_available = Math.max(0, haircut_allowed - haircut_used - haircut_reserved);
+  const beard_available = Math.max(0, beard_allowed - beard_used - beard_reserved);
+  const total_uses_available = Math.max(0, total_uses_allowed - total_uses_consumed - total_uses_reserved);
 
   return {
     plan_name: planName,
@@ -161,12 +180,18 @@ export function getSubscriptionUsage(
     total_uses_allowed,
     total_uses_consumed,
     total_uses_remaining,
+    total_uses_reserved,
+    total_uses_available,
     haircut_allowed,
     haircut_used,
     haircut_remaining,
+    haircut_reserved,
+    haircut_available,
     beard_allowed,
     beard_used,
     beard_remaining,
+    beard_reserved,
+    beard_available,
     has_limits: total_uses_allowed > 0,
     usage_history,
   };
