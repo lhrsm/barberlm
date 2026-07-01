@@ -127,7 +127,17 @@ export function useModules() {
       }
 
 
-      // 2) Fallback: barbershops.plan_id (legado)
+      let planRow: any = null;
+      if (slug) {
+        const { data } = await supabase
+          .from("plans")
+          .select("id, slug, name, tier, allowed_modules, price_monthly")
+          .eq("slug", slug)
+          .maybeSingle();
+        planRow = data;
+      }
+
+      // 3) Fallback: barbershops.plan_id (legado)
       if (!planRow) {
         const { data: bsh } = await supabase
           .from("barbershops" as any)
