@@ -308,7 +308,18 @@ function SettingsComponent() {
           social_whatsapp: (profile as any).social_links?.whatsapp || "",
         });
         setDataLoaded(true);
+        console.log("[/settings] SETTINGS FORM VALUES applied for profile:", profile.id, {
+          business_name: profile.business_name,
+          slug: profile.slug,
+          logo_url: profile.logo_url,
+          barbershop_logo_url: (profile as any).barbershop_logo_url,
+          avatar_url: (profile as any).avatar_url,
+          primary_color: profile.primary_color,
+          pix_key: profile.pix_key,
+          pix_qr_code_url: profile.pix_qr_code_url,
+        });
       } else {
+        console.warn("[/settings] Perfil não encontrado para id:", effectiveTenantId);
         toast.error("Perfil não encontrado.");
       }
     } catch (e: any) {
