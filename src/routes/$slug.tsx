@@ -23,6 +23,8 @@ import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
 import { usePublicModules } from "@/hooks/use-public-modules";
 import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
+import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
+import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -186,6 +188,10 @@ function ShopPageComponent() {
   );
   const [planBenefitServices, setPlanBenefitServices] = useState<any[]>([]); // {service_id, consume_quantity, benefit_key, benefit_name}
   const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
+  const [exhaustedOpen, setExhaustedOpen] = useState(false);
+  const [exhaustedReason, setExhaustedReason] = useState<'empty' | 'combo'>('empty');
+  const [exhaustedServiceName, setExhaustedServiceName] = useState<string | null>(null);
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
   const [premiumSuccess, setPremiumSuccess] = useState<null | {
     plan: string;
     service: string;
@@ -3434,13 +3440,23 @@ function ShopPageComponent() {
                   <div className="grid gap-3">
                     <button
                       type="button"
-                      disabled={noBenefit}
-                      onClick={() => setBookingMode('benefit')}
+                      disabled={subPlanServices.length === 0}
+                      onClick={() => {
+                        if (available !== null && available === 0) {
+                          setExhaustedReason('empty');
+                          setExhaustedServiceName(null);
+                          setExhaustedOpen(true);
+                          return;
+                        }
+                        setBookingMode('benefit');
+                      }}
                       className={cn(
                         "group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition-all",
-                        noBenefit
+                        subPlanServices.length === 0
                           ? "border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed"
-                          : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
+                          : (available !== null && available === 0)
+                            ? "border-amber-400/70 bg-gradient-to-br from-amber-50 via-white to-amber-50 hover:border-amber-500 hover:shadow-lg cursor-pointer"
+                            : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -3451,9 +3467,11 @@ function ShopPageComponent() {
                           <div>
                             <p className="font-black uppercase tracking-tight text-base text-black">Utilizar Benefício</p>
                             <p className="text-[11px] text-zinc-600 font-medium">
-                              {noBenefit
-                                ? remaining === 0 ? "Limite mensal atingido" : "Plano sem serviços vinculados"
-                                : `${subPlanServices.length} serviço(s) incluso(s) • R$ 0,00`}
+                              {subPlanServices.length === 0
+                                ? "Plano sem serviços vinculados"
+                                : (available !== null && available === 0)
+                                  ? "Utilizações esgotadas neste ciclo • ver opções"
+                                  : `${subPlanServices.length} serviço(s) incluso(s) • R$ 0,00`}
                             </p>
                           </div>
                         </div>
@@ -3555,6 +3573,16 @@ function ShopPageComponent() {
                           if (!isEmbedded && (!customerName || customerName.length < 3)) {
                             toast.error("Por favor, informe seu nome primeiro.");
                             return;
+                          }
+                          // Block benefit usage when service consumes more than available
+                          if (bookingMode === 'benefit' && subUsage.has_limits) {
+                            const need = totalConsume > 0 ? totalConsume : 1;
+                            if (subUsage.total_uses_available < need) {
+                              setExhaustedReason(need > 1 ? 'combo' : 'empty');
+                              setExhaustedServiceName(s.name);
+                              setExhaustedOpen(true);
+                              return;
+                            }
                           }
                           setSelectedService(s);
                           setBookingStep(3);
@@ -4487,6 +4515,40 @@ function ShopPageComponent() {
         </div>
       </DialogContent>
     </Dialog>
+
+      {/* Modal: Utilizações esgotadas */}
+      <ExhaustedUsesModal
+        open={exhaustedOpen}
+        onOpenChange={setExhaustedOpen}
+        planName={activeSubscription?.plan?.name || subUsage.plan_name}
+        usedLabel={
+          subUsage.has_limits
+            ? `${subUsage.total_uses_consumed}/${subUsage.total_uses_allowed} utilizados`
+            : undefined
+        }
+        renewalDate={subUsage.renewal_date}
+        reason={exhaustedReason}
+        serviceName={exhaustedServiceName}
+        onChangePlan={() => {
+          setExhaustedOpen(false);
+          setTimeout(() => setChangePlanOpen(true), 120);
+        }}
+        onPayStandalone={() => {
+          setExhaustedOpen(false);
+          setBookingMode('standalone');
+        }}
+      />
+
+      {activeSubscription?.id && activeSubscription?.plan_id && shop?.id && (
+        <ChangePlanModal
+          open={changePlanOpen}
+          onOpenChange={setChangePlanOpen}
+          tenantId={shop.id}
+          subscriptionId={activeSubscription.id}
+          currentPlanId={activeSubscription.plan_id}
+        />
+      )}
+
 
       {/* Floating Cart Button */}
       {selectedProducts.length > 0 && (
