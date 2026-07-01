@@ -511,6 +511,7 @@ function SettingsComponent() {
                 { value: "loyalty", icon: Gift, label: "Fidelidade" },
                 { value: "pix", icon: QrCode, label: "PIX" },
                 { value: "lgpd", icon: ShieldCheck, label: "LGPD" },
+                { value: "danger", icon: AlertTriangle, label: "Zona de Perigo" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
