@@ -23,6 +23,8 @@ import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
 import { usePublicModules } from "@/hooks/use-public-modules";
 import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
+import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
+import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
