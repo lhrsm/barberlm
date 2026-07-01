@@ -305,6 +305,7 @@ function ShopPageComponent() {
         setActiveSubscription(null);
         setServiceEligibility({});
         setSubPlanServices([]);
+        setSubUsageLogs([]);
         setBookingMode(null);
         return;
       }
@@ -320,13 +321,23 @@ function ShopPageComponent() {
       setActiveSubscription(data || null);
       setServiceEligibility({});
       if (data?.plan_id) {
-        const { data: planSvcs } = await supabase
-          .from("subscription_plan_services")
-          .select("*, services(*)")
-          .eq("plan_id", data.plan_id);
+        const [{ data: planSvcs }, { data: logs }] = await Promise.all([
+          supabase
+            .from("subscription_plan_services")
+            .select("*, services(*)")
+            .eq("plan_id", data.plan_id),
+          supabase
+            .from("subscription_usage_logs" as any)
+            .select("*, services(name)")
+            .eq("customer_id", customerId)
+            .eq("subscription_id", data.id)
+            .order("used_at", { ascending: false }),
+        ]);
         setSubPlanServices(planSvcs || []);
+        setSubUsageLogs((logs as any[]) || []);
       } else {
         setSubPlanServices([]);
+        setSubUsageLogs([]);
       }
     }
     loadActiveSub();
