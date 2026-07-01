@@ -4516,6 +4516,40 @@ function ShopPageComponent() {
       </DialogContent>
     </Dialog>
 
+      {/* Modal: Utilizações esgotadas */}
+      <ExhaustedUsesModal
+        open={exhaustedOpen}
+        onOpenChange={setExhaustedOpen}
+        planName={activeSubscription?.plan?.name || subUsage.plan_name}
+        usedLabel={
+          subUsage.has_limits
+            ? `${subUsage.total_uses_consumed}/${subUsage.total_uses_allowed} utilizados`
+            : undefined
+        }
+        renewalDate={subUsage.renewal_date}
+        reason={exhaustedReason}
+        serviceName={exhaustedServiceName}
+        onChangePlan={() => {
+          setExhaustedOpen(false);
+          setTimeout(() => setChangePlanOpen(true), 120);
+        }}
+        onPayStandalone={() => {
+          setExhaustedOpen(false);
+          setBookingMode('standalone');
+        }}
+      />
+
+      {activeSubscription?.id && activeSubscription?.plan_id && shop?.id && (
+        <ChangePlanModal
+          open={changePlanOpen}
+          onOpenChange={setChangePlanOpen}
+          tenantId={shop.id}
+          subscriptionId={activeSubscription.id}
+          currentPlanId={activeSubscription.plan_id}
+        />
+      )}
+
+
       {/* Floating Cart Button */}
       {selectedProducts.length > 0 && (
         <Button 
