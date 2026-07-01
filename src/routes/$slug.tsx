@@ -180,6 +180,10 @@ function ShopPageComponent() {
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
   const [benefitBalances, setBenefitBalances] = useState<any[]>([]);
+  const subUsage = useMemo(
+    () => getSubscriptionUsage(activeSubscription, subPlanServices, subUsageLogs),
+    [activeSubscription, subPlanServices, subUsageLogs],
+  );
   const [planBenefitServices, setPlanBenefitServices] = useState<any[]>([]); // {service_id, consume_quantity, benefit_key, benefit_name}
   const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
   const [premiumSuccess, setPremiumSuccess] = useState<null | {
