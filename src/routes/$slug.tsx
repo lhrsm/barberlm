@@ -1513,9 +1513,9 @@ function ShopPageComponent() {
       if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
         const appt = createdAppointments[0] as any;
         const item = finalCart.find((i) => i.service_id === appt.service_id) || finalCart[0];
-        const max = activeSubscription.plan?.max_uses_per_month;
-        const used = (activeSubscription.uses_this_period || 0) + 1;
-        const remaining = max ? Math.max(0, max - used) : null;
+        const max = subUsage.total_uses_allowed || (activeSubscription.plan?.max_uses_per_month ?? null);
+        // After booking (not yet completed), reserve = existing reserved + this one
+        const remaining = max ? Math.max(0, max - subUsage.total_uses_consumed - subUsage.total_uses_reserved - 1) : null;
         setPremiumSuccess({
           plan: activeSubscription.plan?.name || "Assinatura",
           service: item?.service_name || "Serviço",
