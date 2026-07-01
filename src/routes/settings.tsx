@@ -198,6 +198,13 @@ function SettingsComponent() {
         console.error("Error fetching barbershop settings:", settingsError);
       }
 
+      // Fetch barbershops row (business-level source of truth for logo/name/slug)
+      const { data: shopData } = await supabase
+        .from("barbershops")
+        .select("name, slug, logo_url")
+        .eq("owner_id", effectiveTenantId)
+        .maybeSingle();
+
       // Fetch loyalty settings (novo módulo)
       const { data: loyaltyData } = await supabase
         .from("loyalty_settings" as any)
@@ -208,6 +215,11 @@ function SettingsComponent() {
 
       if (profileData && profileData.length > 0) {
         const profile = profileData[0];
+        const businessLogo =
+          (profile as any).barbershop_logo_url ||
+          profile.logo_url ||
+          shopData?.logo_url ||
+          "";
         setFormData({
           business_name: profile.business_name || "",
           responsible_name: (profile as any).responsible_name || "",
