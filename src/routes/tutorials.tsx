@@ -288,9 +288,9 @@ function TutorialsPage() {
                       </DialogDescription>
                     </DialogHeader>
 
-                    {selectedTutorial.type === 'video' ? (
+                    {selectedTutorial.type === 'video' && selectedTutorial.content_url ? (
                       <VideoPlayer url={selectedTutorial.content_url} thumbnail={selectedTutorial.thumbnail_url} />
-                    ) : selectedTutorial.type === 'pdf' ? (
+                    ) : selectedTutorial.type === 'pdf' && selectedTutorial.content_url ? (
                       <div className="p-12 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-4 bg-[#05070d]">
                         <FileText size={64} className="text-[#f59e0b] opacity-60" />
                         <div className="text-center">
@@ -303,7 +303,7 @@ function TutorialsPage() {
                           </a>
                         </Button>
                       </div>
-                    ) : (
+                    ) : selectedTutorial.type === 'link' && selectedTutorial.content_url ? (
                       <div className="p-12 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-4 bg-[#05070d]">
                         <ExternalLink size={64} className="text-[#f59e0b] opacity-60" />
                         <div className="text-center">
@@ -316,16 +316,24 @@ function TutorialsPage() {
                           </a>
                         </Button>
                       </div>
-                    )}
+                    ) : null}
 
                     <div className="bg-[#05070d] rounded-2xl p-6 border border-zinc-800">
-                      <h5 className="font-bold mb-4 flex items-center gap-2">
-                        <PlayCircle className="text-[#f59e0b] h-4 w-4" />
-                        Resumo do Tutorial
+                      <h5 className="font-bold mb-4 flex items-center gap-2 text-white">
+                        <BookOpen className="text-[#f59e0b] h-4 w-4" />
+                        Passo a passo
                       </h5>
-                      <div className="prose prose-invert prose-sm max-w-none text-zinc-400">
+                      <div className="text-sm text-zinc-300 whitespace-pre-line leading-relaxed">
                         {selectedTutorial.long_description || selectedTutorial.description || "Nenhum detalhe adicional disponível."}
                       </div>
+                      {selectedTutorial.estimated_time && (
+                        <div className="mt-5 pt-4 border-t border-zinc-800 flex items-center gap-4 text-xs text-zinc-400">
+                          <span>⏱ Tempo estimado: <span className="text-white font-semibold">{selectedTutorial.estimated_time}</span></span>
+                          {selectedTutorial.level && (
+                            <span>📚 Nível: <span className="text-white font-semibold capitalize">{selectedTutorial.level}</span></span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="p-6 border-t border-zinc-800 flex justify-end bg-[#05070d]">
