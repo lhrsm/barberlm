@@ -188,6 +188,10 @@ function ShopPageComponent() {
   );
   const [planBenefitServices, setPlanBenefitServices] = useState<any[]>([]); // {service_id, consume_quantity, benefit_key, benefit_name}
   const [bookingMode, setBookingMode] = useState<'benefit' | 'standalone' | null>(null);
+  const [exhaustedOpen, setExhaustedOpen] = useState(false);
+  const [exhaustedReason, setExhaustedReason] = useState<'empty' | 'combo'>('empty');
+  const [exhaustedServiceName, setExhaustedServiceName] = useState<string | null>(null);
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
   const [premiumSuccess, setPremiumSuccess] = useState<null | {
     plan: string;
     service: string;
