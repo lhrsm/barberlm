@@ -1519,9 +1519,18 @@ function ShopPageComponent() {
       if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
         const appt = createdAppointments[0] as any;
         const item = finalCart.find((i) => i.service_id === appt.service_id) || finalCart[0];
-        const max = subUsage.total_uses_allowed || (activeSubscription.plan?.max_uses_per_month ?? null);
-        // After booking (not yet completed), reserve = existing reserved + this one
-        const remaining = max ? Math.max(0, max - subUsage.total_uses_consumed - subUsage.total_uses_reserved - 1) : null;
+
+        // Refetch usage logs so the reserved log created by the DB trigger is included.
+        const { data: freshLogs } = await supabase
+          .from("subscription_usage_logs" as any)
+          .select("*, services(name)")
+          .eq("customer_id", finalCustId)
+          .eq("subscription_id", activeSubscription.id);
+        setSubUsageLogs((freshLogs as any[]) || []);
+        const freshUsage = getSubscriptionUsage(activeSubscription, subPlanServices, (freshLogs as any[]) || []);
+        const max = freshUsage.total_uses_allowed || (activeSubscription.plan?.max_uses_per_month ?? null);
+        const remaining = max ? freshUsage.total_uses_available : null;
+
         setPremiumSuccess({
           plan: activeSubscription.plan?.name || "Assinatura",
           service: item?.service_name || "Serviço",
