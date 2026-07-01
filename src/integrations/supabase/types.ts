@@ -6774,6 +6774,11 @@ export type Database = {
       }
     }
     Functions: {
+      _compute_consume_quantity: {
+        Args: { _service_name: string }
+        Returns: number
+      }
+      _norm_pt: { Args: { _txt: string }; Returns: string }
       calculate_commission_for_appointment: {
         Args: { p_appointment_id: string }
         Returns: undefined
