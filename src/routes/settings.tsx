@@ -100,8 +100,8 @@ function SettingsComponent() {
     scheduling_mode: "automatic" as "manual" | "automatic",
     payment_gateway_provider: "none",
     payment_gateway_key: "",
-    primary_color: "#7c3aed",
-    secondary_color: "#f4f4f5",
+    primary_color: "",
+    secondary_color: "",
     logo_url: "",
     avatar_url: "",
     barbershop_logo_url: "",
@@ -198,6 +198,13 @@ function SettingsComponent() {
         console.error("Error fetching barbershop settings:", settingsError);
       }
 
+      // Fetch barbershops row (business-level source of truth for logo/name/slug)
+      const { data: shopData } = await supabase
+        .from("barbershops")
+        .select("name, slug, logo_url")
+        .eq("owner_id", effectiveTenantId)
+        .maybeSingle();
+
       // Fetch loyalty settings (novo módulo)
       const { data: loyaltyData } = await supabase
         .from("loyalty_settings" as any)
@@ -208,19 +215,24 @@ function SettingsComponent() {
 
       if (profileData && profileData.length > 0) {
         const profile = profileData[0];
+        const businessLogo =
+          (profile as any).barbershop_logo_url ||
+          profile.logo_url ||
+          shopData?.logo_url ||
+          "";
         setFormData({
-          business_name: profile.business_name || "",
+          business_name: profile.business_name || shopData?.name || "",
           responsible_name: (profile as any).responsible_name || "",
-          slug: profile.slug || "",
+          slug: profile.slug || shopData?.slug || "",
           whatsapp_enabled: profile.whatsapp_enabled || false,
           scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
           payment_gateway_provider: profile.payment_gateway_provider || "none",
           payment_gateway_key: profile.payment_gateway_key || "",
-          primary_color: profile.primary_color || "#7c3aed",
-          secondary_color: profile.secondary_color || "#f4f4f5",
-          logo_url: profile.logo_url || "",
+          primary_color: profile.primary_color || "",
+          secondary_color: profile.secondary_color || "",
+          logo_url: profile.logo_url || shopData?.logo_url || "",
           avatar_url: (profile as any).avatar_url || "",
-          barbershop_logo_url: (profile as any).barbershop_logo_url || profile.logo_url || "",
+          barbershop_logo_url: businessLogo,
 
           loyalty_mode: ((profile as any).loyalty_mode as any) || "none",
           cashback_enabled: profile.cashback_enabled || false,
@@ -312,8 +324,8 @@ function SettingsComponent() {
         scheduling_mode: profileUpdateData.scheduling_mode,
         payment_gateway_provider: profileUpdateData.payment_gateway_provider === "none" ? null : profileUpdateData.payment_gateway_provider,
         payment_gateway_key: profileUpdateData.payment_gateway_key,
-        primary_color: profileUpdateData.primary_color,
-        secondary_color: profileUpdateData.secondary_color,
+        ...(profileUpdateData.primary_color ? { primary_color: profileUpdateData.primary_color } : {}),
+        ...(profileUpdateData.secondary_color ? { secondary_color: profileUpdateData.secondary_color } : {}),
         logo_url: profileUpdateData.logo_url,
         avatar_url: profileUpdateData.avatar_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
