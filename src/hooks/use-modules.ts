@@ -88,36 +88,44 @@ export function useModules() {
     queryFn: async (): Promise<PlanInfo | null> => {
       if (!tenantId) return null;
 
-      // 1) Tenta resolver pelo profile (plan/effective_plan), com mapping legacy.
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("plan, effective_plan, trial_end")
-        .eq("id", tenantId)
+      // 1) Prioridade máxima: assinatura SaaS ativa (fonte de verdade real do plano pago)
+      let slug: string | null = null;
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status, price_id, current_period_end")
+        .eq("user_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      let slug: string | null = null;
-      const trialActive = prof?.trial_end && new Date(prof.trial_end as any) > new Date();
-      if (trialActive) {
-        slug = "pro"; // trial dá acesso ao nível Pro
-      } else {
-        const raw = ((prof?.effective_plan as string) || (prof?.plan as string) || "").toLowerCase();
-        if (raw && raw !== "free") {
-          // Normaliza nomes legados
-          if (raw === "professional") slug = "pro";
-          else if (raw === "enterprise") slug = "elite";
-          else slug = raw;
+      const subStatus = (sub?.status || "").toLowerCase();
+      const subActive = ["active", "trialing", "past_due", "paid"].includes(subStatus);
+      if (subActive && sub?.price_id) {
+        const fromPrice = String(sub.price_id).split("_")[0].toLowerCase();
+        if (["starter", "pro", "elite"].includes(fromPrice)) slug = fromPrice;
+      }
+
+      // 2) Fallback: profile plan/effective_plan (com trial e mapping legacy)
+      if (!slug) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("plan, effective_plan, trial_end")
+          .eq("id", tenantId)
+          .maybeSingle();
+
+        const trialActive = prof?.trial_end && new Date(prof.trial_end as any) > new Date();
+        if (trialActive) {
+          slug = "pro";
+        } else {
+          const raw = ((prof?.effective_plan as string) || (prof?.plan as string) || "").toLowerCase();
+          if (raw && raw !== "free") {
+            if (raw === "professional") slug = "pro";
+            else if (raw === "enterprise") slug = "elite";
+            else slug = raw;
+          }
         }
       }
 
-      let planRow: any = null;
-      if (slug) {
-        const { data } = await supabase
-          .from("plans")
-          .select("id, slug, name, tier, allowed_modules, price_monthly")
-          .eq("slug", slug)
-          .maybeSingle();
-        planRow = data;
-      }
 
       // 2) Fallback: barbershops.plan_id (legado)
       if (!planRow) {
