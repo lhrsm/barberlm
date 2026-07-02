@@ -2897,7 +2897,7 @@ export type Database = {
           terms_accepted_at: string | null
           total_spent: number | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
           whatsapp_marketing_consent: boolean
           whatsapp_transactional_consent: boolean
         }
@@ -2930,7 +2930,7 @@ export type Database = {
           terms_accepted_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
           whatsapp_marketing_consent?: boolean
           whatsapp_transactional_consent?: boolean
         }
@@ -2963,7 +2963,7 @@ export type Database = {
           terms_accepted_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
           whatsapp_marketing_consent?: boolean
           whatsapp_transactional_consent?: boolean
         }
