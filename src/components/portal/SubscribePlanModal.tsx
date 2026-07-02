@@ -153,7 +153,41 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
         customerId = created.id;
       }
 
-      // Create pending subscription record
+      // Se o gateway ativo suporta checkout online → cria via server function
+      // (valida cliente, cria preapproval no provider e redireciona).
+      if (gateway && ONLINE_CHECKOUT_PROVIDERS.has(gateway)) {
+        // Garante client_auth pra passar na validação do server fn
+        try {
+          const { data: existingAuth } = await supabase
+            .from("client_auth")
+            .select("customer_id")
+            .eq("phone", normalizedPhone)
+            .maybeSingle();
+          if (!existingAuth) {
+            await supabase.from("client_auth").insert({ phone: normalizedPhone, customer_id: customerId } as any);
+          }
+        } catch { /* non-fatal — server fn falhará se realmente inválido */ }
+
+        const returnUrl = `${window.location.origin}/${slug}/portal?subscribed=1`;
+        const result = await startCheckout({
+          data: {
+            tenantId,
+            planId: plan.id,
+            phone: normalizedPhone,
+            email: email.trim(),
+            returnUrl,
+          },
+        });
+
+        if (result?.checkoutUrl) {
+          // Redireciona pro checkout do provider (Mercado Pago hospedado)
+          window.location.href = result.checkoutUrl;
+          return;
+        }
+        throw new Error("Gateway não devolveu URL de checkout");
+      }
+
+      // Fluxo manual (sem gateway online): registra pending e avisa admin
       const now = new Date();
       const { error: subErr } = await supabase.from("customer_subscriptions").insert({
         tenant_id: tenantId,
@@ -180,7 +214,6 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
       });
       if (subErr) throw subErr;
 
-      // Notify admin
       try {
         await supabase.from("admin_notifications").insert({
           tenant_id: tenantId,
