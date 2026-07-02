@@ -2629,7 +2629,7 @@ function ShopPageComponent() {
                       )}
                       <Button
                         className="w-full h-12 rounded-xl bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
-                        onClick={handleBookingAction}
+                        onClick={() => setSubscribeModal({ open: true, plan })}
                       >
                         Assinar agora
                       </Button>
