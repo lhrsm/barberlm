@@ -1135,13 +1135,14 @@ function ClientPortalComponent() {
           onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
         />
 
-        <JourneyInsights
+        <JourneyBarbex
           appointments={appointments}
           customerData={customerData}
           mySubscription={mySubscription}
           loyaltyRewards={loyaltyRewards}
-          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+          sales={sales}
         />
+
 
         {mySubscription && (
           <SubscriberPanel
