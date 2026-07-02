@@ -71,6 +71,7 @@ import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subs
 import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaigns.$id'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
+import { Route as ApiPublicSubscriptionsWebhookRouteImport } from './routes/api/public/subscriptions/webhook'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/public/hooks/status-check'
 
@@ -386,6 +387,12 @@ const ApiWebhooksZapiBarbershopIdRoute =
     path: '/api/webhooks/zapi/$barbershopId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSubscriptionsWebhookRoute =
+  ApiPublicSubscriptionsWebhookRouteImport.update({
+    id: '/api/public/subscriptions/webhook',
+    path: '/api/public/subscriptions/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -463,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscriptions/webhook': typeof ApiPublicSubscriptionsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
 export interface FileRoutesByTo {
@@ -527,6 +535,7 @@ export interface FileRoutesByTo {
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscriptions/webhook': typeof ApiPublicSubscriptionsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
 export interface FileRoutesById {
@@ -594,6 +603,7 @@ export interface FileRoutesById {
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/subscriptions/webhook': typeof ApiPublicSubscriptionsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
 export interface FileRouteTypes {
@@ -662,6 +672,7 @@ export interface FileRouteTypes {
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
+    | '/api/public/subscriptions/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -726,6 +737,7 @@ export interface FileRouteTypes {
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
+    | '/api/public/subscriptions/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
     | '__root__'
@@ -792,6 +804,7 @@ export interface FileRouteTypes {
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
+    | '/api/public/subscriptions/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
 }
@@ -836,6 +849,7 @@ export interface RootRouteChildren {
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
   ApiPublicHooksStatusCheckRoute: typeof ApiPublicHooksStatusCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicSubscriptionsWebhookRoute: typeof ApiPublicSubscriptionsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
 
@@ -1275,6 +1289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWebhooksZapiBarbershopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/subscriptions/webhook': {
+      id: '/api/public/subscriptions/webhook'
+      path: '/api/public/subscriptions/webhook'
+      fullPath: '/api/public/subscriptions/webhook'
+      preLoaderRoute: typeof ApiPublicSubscriptionsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -1423,6 +1444,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
   ApiPublicHooksStatusCheckRoute: ApiPublicHooksStatusCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicSubscriptionsWebhookRoute: ApiPublicSubscriptionsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }
 export const routeTree = rootRouteImport

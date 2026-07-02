@@ -2732,6 +2732,7 @@ export type Database = {
       }
       customer_subscriptions: {
         Row: {
+          amount: number | null
           auto_renew: boolean
           canceled_at: string | null
           card_token: string | null
@@ -2742,22 +2743,29 @@ export type Database = {
           coupon_first_month_only: boolean
           coupon_id: string | null
           created_at: string
+          currency: string | null
           current_period_end: string
           current_period_start: string
           customer_id: string
           external_ref: string | null
+          gateway_id: string | null
           id: string
           metadata: Json
           next_billing_at: string | null
+          next_payment: string | null
           pause_notes: string | null
           pause_reason: string | null
           pause_until: string | null
           paused_at: string | null
           payment_method: string
           plan_id: string
+          provider: string | null
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
           referral_code: string | null
           referred_by_code: string | null
           referred_by_subscription_id: string | null
+          renewal_date: string | null
           resumed_at: string | null
           started_at: string
           status: string
@@ -2767,6 +2775,7 @@ export type Database = {
           uses_this_period: number
         }
         Insert: {
+          amount?: number | null
           auto_renew?: boolean
           canceled_at?: string | null
           card_token?: string | null
@@ -2777,22 +2786,29 @@ export type Database = {
           coupon_first_month_only?: boolean
           coupon_id?: string | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string
           current_period_start?: string
           customer_id: string
           external_ref?: string | null
+          gateway_id?: string | null
           id?: string
           metadata?: Json
           next_billing_at?: string | null
+          next_payment?: string | null
           pause_notes?: string | null
           pause_reason?: string | null
           pause_until?: string | null
           paused_at?: string | null
           payment_method?: string
           plan_id: string
+          provider?: string | null
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           referral_code?: string | null
           referred_by_code?: string | null
           referred_by_subscription_id?: string | null
+          renewal_date?: string | null
           resumed_at?: string | null
           started_at?: string
           status?: string
@@ -2802,6 +2818,7 @@ export type Database = {
           uses_this_period?: number
         }
         Update: {
+          amount?: number | null
           auto_renew?: boolean
           canceled_at?: string | null
           card_token?: string | null
@@ -2812,22 +2829,29 @@ export type Database = {
           coupon_first_month_only?: boolean
           coupon_id?: string | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string
           current_period_start?: string
           customer_id?: string
           external_ref?: string | null
+          gateway_id?: string | null
           id?: string
           metadata?: Json
           next_billing_at?: string | null
+          next_payment?: string | null
           pause_notes?: string | null
           pause_reason?: string | null
           pause_until?: string | null
           paused_at?: string | null
           payment_method?: string
           plan_id?: string
+          provider?: string | null
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           referral_code?: string | null
           referred_by_code?: string | null
           referred_by_subscription_id?: string | null
+          renewal_date?: string | null
           resumed_at?: string | null
           started_at?: string
           status?: string
@@ -2849,6 +2873,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_subscriptions_gateway_id_fkey"
+            columns: ["gateway_id"]
+            isOneToOne: false
+            referencedRelation: "payment_gateways"
             referencedColumns: ["id"]
           },
           {
@@ -4878,6 +4909,84 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          error_message: string | null
+          gateway_id: string | null
+          id: string
+          invoice_url: string | null
+          paid_at: string | null
+          payment_method: string | null
+          pix_code: string | null
+          pix_qr_code_base64: string | null
+          provider: string
+          provider_payment_id: string | null
+          raw_payload: Json
+          status: string
+          subscription_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          error_message?: string | null
+          gateway_id?: string | null
+          id?: string
+          invoice_url?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_code?: string | null
+          pix_qr_code_base64?: string | null
+          provider: string
+          provider_payment_id?: string | null
+          raw_payload?: Json
+          status?: string
+          subscription_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error_message?: string | null
+          gateway_id?: string | null
+          id?: string
+          invoice_url?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_code?: string | null
+          pix_qr_code_base64?: string | null
+          provider?: string
+          provider_payment_id?: string | null
+          raw_payload?: Json
+          status?: string
+          subscription_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_gateway_id_fkey"
+            columns: ["gateway_id"]
+            isOneToOne: false
+            referencedRelation: "payment_gateways"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "customer_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plan_benefit_services: {
         Row: {
