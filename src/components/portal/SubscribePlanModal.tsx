@@ -11,6 +11,12 @@ import { Crown, CheckCircle2, Loader2, ShieldAlert, ArrowRight } from "lucide-re
 import { PhoneInput } from "react-international-phone";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useServerFn } from "@tanstack/react-start";
+import { createCustomerSubscription } from "@/lib/payments/subscriptions.functions";
+
+// Providers com checkout online funcional (via createCustomerSubscription).
+// Os demais caem no fluxo manual (WhatsApp).
+const ONLINE_CHECKOUT_PROVIDERS = new Set(["mercadopago"]);
 
 interface Props {
   open: boolean;
