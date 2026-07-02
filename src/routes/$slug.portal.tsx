@@ -71,6 +71,7 @@ import { ReviewModal } from "@/components/portal/ReviewModal";
 import { getSubscriptionUsage, categorizeService } from "@/hooks/use-subscription-usage";
 import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
+import { JourneyBarbex } from "@/components/portal/premium/journey/JourneyBarbex";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
 import { ClubBarbexUpgrade } from "@/components/portal/premium/ClubBarbexUpgrade";
