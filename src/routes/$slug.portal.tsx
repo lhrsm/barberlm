@@ -69,6 +69,10 @@ import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetail
 import { SubscriberPanel } from "@/components/portal/SubscriberPanel";
 import { ReviewModal } from "@/components/portal/ReviewModal";
 import { getSubscriptionUsage, categorizeService } from "@/hooks/use-subscription-usage";
+import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
+import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
+import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
+import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
