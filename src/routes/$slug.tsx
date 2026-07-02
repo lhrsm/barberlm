@@ -25,6 +25,7 @@ import { usePublicModules } from "@/hooks/use-public-modules";
 import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
 import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
 import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
+import { SubscribePlanModal } from "@/components/portal/SubscribePlanModal";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -66,6 +67,7 @@ function ShopPageComponent() {
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
+  const [subscribeModal, setSubscribeModal] = useState<{ open: boolean; plan: any | null }>({ open: false, plan: null });
 
   // Public modules — hide sections disabled by the barbershop owner in Settings > Modules
   const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
@@ -2627,7 +2629,7 @@ function ShopPageComponent() {
                       )}
                       <Button
                         className="w-full h-12 rounded-xl bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
-                        onClick={handleBookingAction}
+                        onClick={() => setSubscribeModal({ open: true, plan })}
                       >
                         Assinar agora
                       </Button>
@@ -4557,6 +4559,19 @@ function ShopPageComponent() {
           currentPlanId={activeSubscription.plan_id}
         />
       )}
+
+      {shop?.id && (
+        <SubscribePlanModal
+          open={subscribeModal.open}
+          onClose={() => setSubscribeModal({ open: false, plan: null })}
+          plan={subscribeModal.plan}
+          tenantId={shop.id}
+          slug={slug}
+          defaultName={initialName}
+          defaultPhone={initialPhone}
+        />
+      )}
+
 
 
       {/* Floating Cart Button */}
