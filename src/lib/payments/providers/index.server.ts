@@ -1,34 +1,39 @@
 import type { PaymentProvider, ProviderKey } from "../types";
 import { mercadoPagoProvider } from "./mercadopago.server";
+import { asaasProvider } from "./asaas.server";
+import { pagarmeProvider } from "./pagarme.server";
+import { stripeProvider } from "./stripe.server";
+import { pagseguroProvider } from "./pagseguro.server";
+import { paypalProvider } from "./paypal.server";
+import { paggueProvider } from "./paggue.server";
+import { infinitepayProvider } from "./infinitepay.server";
 
 /**
- * Stub base para providers ainda não implementados. Mantém a UI funcional
- * (permite salvar credenciais) mas rejeita testConnection com mensagem clara.
+ * Stub para providers marcados como "custom" — barbearia usa webhook próprio
+ * ou fluxo manual. Só valida presença de credencial genérica.
  */
-function stub(key: ProviderKey, displayName: string): PaymentProvider {
-  return {
-    key,
-    displayName,
-    supportsSubscriptions: false,
-    async testConnection() {
-      return {
-        ok: false,
-        message: `Provider "${displayName}" ainda não implementado. Credenciais salvas para uso futuro.`,
-      };
-    },
-  };
-}
+const customProvider: PaymentProvider = {
+  key: "custom",
+  displayName: "Personalizado",
+  supportsSubscriptions: false,
+  async testConnection() {
+    return {
+      ok: true,
+      message: "Gateway personalizado — credenciais armazenadas. Integre via webhook manual.",
+    };
+  },
+};
 
 const REGISTRY: Record<ProviderKey, PaymentProvider> = {
   mercadopago: mercadoPagoProvider,
-  asaas: stub("asaas", "Asaas"),
-  stripe: stub("stripe", "Stripe"),
-  pagseguro: stub("pagseguro", "PagSeguro"),
-  pagarme: stub("pagarme", "Pagar.me"),
-  paypal: stub("paypal", "PayPal"),
-  paggue: stub("paggue", "Paggue"),
-  infinitepay: stub("infinitepay", "InfinitePay"),
-  custom: stub("custom", "Personalizado"),
+  asaas: asaasProvider,
+  stripe: stripeProvider,
+  pagseguro: pagseguroProvider,
+  pagarme: pagarmeProvider,
+  paypal: paypalProvider,
+  paggue: paggueProvider,
+  infinitepay: infinitepayProvider,
+  custom: customProvider,
 };
 
 export function getProvider(key: ProviderKey): PaymentProvider {
