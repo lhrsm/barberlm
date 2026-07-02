@@ -2679,6 +2679,14 @@ function ClientPortalComponent() {
         </Tabs>
       </main>
 
+      {!mySubscription && subscriptionsEnabled && (
+        <FloatingUpgradeCTA
+          onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
+        />
+      )}
+
+
+
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-[425px] border-[#D4AF37] border-2">
           <DialogHeader>
