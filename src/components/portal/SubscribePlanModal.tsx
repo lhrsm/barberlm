@@ -31,6 +31,7 @@ interface Props {
 type Step = "form" | "duplicate" | "success" | "pending";
 
 export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaultName = "", defaultPhone = "" }: Props) {
+  const startCheckout = useServerFn(createCustomerSubscription);
   const [step, setStep] = useState<Step>("form");
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState(defaultName);
