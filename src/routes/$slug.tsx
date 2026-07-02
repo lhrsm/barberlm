@@ -4560,6 +4560,19 @@ function ShopPageComponent() {
         />
       )}
 
+      {shop?.id && (
+        <SubscribePlanModal
+          open={subscribeModal.open}
+          onClose={() => setSubscribeModal({ open: false, plan: null })}
+          plan={subscribeModal.plan}
+          tenantId={shop.id}
+          slug={slug}
+          defaultName={initialName}
+          defaultPhone={initialPhone}
+        />
+      )}
+
+
 
       {/* Floating Cart Button */}
       {selectedProducts.length > 0 && (
