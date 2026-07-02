@@ -37,7 +37,7 @@ export function AccessibilityWidget() {
         <button
           type="button"
           aria-label="Abrir menu de acessibilidade"
-          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-xl ring-2 ring-primary/40 hover:scale-105 transition-transform flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/60"
+          className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-xl ring-2 ring-primary/40 hover:scale-105 transition-transform flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/60"
         >
           <Accessibility className="h-6 w-6" aria-hidden="true" />
         </button>
