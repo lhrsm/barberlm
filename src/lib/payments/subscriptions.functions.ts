@@ -46,20 +46,88 @@ export const testGatewayConnection = createServerFn({ method: "POST" })
   });
 
 /**
+ * Normaliza telefone (só dígitos) — mesma lógica do portal do cliente.
+ */
+function normalizePhone(p: string): string {
+  return String(p ?? "").replace(/\D+/g, "");
+}
+
+/**
  * Cria uma assinatura para o cliente final usando o gateway PRINCIPAL da barbearia.
- * Chamado pelo checkout público (fluxo do cliente final da barbearia).
+ *
+ * SEGURANÇA: endpoint público, mas exige que o chamador prove ser o cliente
+ * enviando `phone`. Validamos que o telefone bate com customers.phone daquele
+ * tenant e com client_auth (mesmo contrato do login do portal). Sem essa
+ * validação, qualquer um poderia criar assinaturas em nome de terceiros.
  */
 export const createCustomerSubscription = createServerFn({ method: "POST" })
   .inputValidator((data: {
     tenantId: string;
     planId: string;
-    customer: { id: string; name?: string; email?: string; document?: string; phone?: string };
+    phone: string;
+    email?: string;
     returnUrl: string;
-  }) => data)
+  }) => {
+    if (!data.tenantId || !data.planId || !data.phone || !data.returnUrl) {
+      throw new Error("tenantId, planId, phone e returnUrl são obrigatórios");
+    }
+    return data;
+  })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const phone = normalizePhone(data.phone);
+    if (phone.length < 8) throw new Error("Telefone inválido");
 
-    // 1. Gateway principal ativo da barbearia
+    // 1. Autentica o cliente: phone tem que existir neste tenant E ter client_auth
+    const { data: customer, error: custErr } = await supabaseAdmin
+      .from("customers")
+      .select("id, name, email, phone, user_id")
+      .eq("user_id", data.tenantId)
+      .eq("phone", phone)
+      .maybeSingle();
+
+    if (custErr || !customer) {
+      throw new Error("Cliente não encontrado. Faça login no portal primeiro.");
+    }
+
+    const { data: auth } = await supabaseAdmin
+      .from("client_auth")
+      .select("customer_id")
+      .eq("phone", phone)
+      .maybeSingle();
+
+    if (!auth) {
+      throw new Error("Sessão do cliente inválida. Faça login no portal primeiro.");
+    }
+
+    const customerId = (customer as any).id;
+
+    // 2. Idempotência: já existe assinatura ativa/pendente do mesmo cliente+plano?
+    const { data: existing } = await supabaseAdmin
+      .from("customer_subscriptions")
+      .select("id, status, metadata")
+      .eq("tenant_id", data.tenantId)
+      .eq("customer_id", customerId)
+      .eq("plan_id", data.planId)
+      .in("status", ["active", "pending_payment", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      const existingUrl = (existing as any).metadata?.checkout_url;
+      if ((existing as any).status === "pending_payment" && existingUrl) {
+        // reaproveita checkout pendente
+        return { checkoutUrl: existingUrl, provider: null, reused: true };
+      }
+      throw new Error(
+        (existing as any).status === "active"
+          ? "Você já tem uma assinatura ativa neste plano."
+          : "Já existe uma solicitação de assinatura em andamento."
+      );
+    }
+
+    // 3. Gateway principal ativo da barbearia
     const { data: gw, error: gwErr } = await supabaseAdmin
       .from("payment_gateways")
       .select("*")
@@ -72,7 +140,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
       throw new Error("Esta barbearia ainda não configurou um gateway de pagamento.");
     }
 
-    // 2. Plano
+    // 4. Plano
     const { data: plan, error: planErr } = await supabaseAdmin
       .from("subscription_plans")
       .select("id, name, price, currency, billing_cycle")
@@ -87,11 +155,16 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
       throw new Error(`Provider ${provider.displayName} ainda não suporta assinaturas via API.`);
     }
 
-    // 3. Cria no provider
+    // 5. Cria no provider
     const result = await provider.createSubscription({
       gateway: gw as unknown as PaymentGatewayRow,
       tenantId: data.tenantId,
-      customer: data.customer,
+      customer: {
+        id: customerId,
+        name: (customer as any).name,
+        email: data.email ?? (customer as any).email,
+        phone,
+      },
       plan: {
         id: (plan as any).id,
         name: (plan as any).name,
@@ -100,13 +173,13 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
         intervalMonths: 1,
       },
       returnUrl: data.returnUrl,
-      metadata: { tenant_id: data.tenantId, customer_id: data.customer.id },
+      metadata: { tenant_id: data.tenantId, customer_id: customerId },
     });
 
-    // 4. Registra em customer_subscriptions (pending_payment até webhook confirmar)
+    // 6. Registra em customer_subscriptions (pending_payment até webhook confirmar)
     await supabaseAdmin.from("customer_subscriptions").insert({
       tenant_id: data.tenantId,
-      customer_id: data.customer.id,
+      customer_id: customerId,
       plan_id: (plan as any).id,
       status: "pending_payment",
       payment_method: (gw as any).provider,
@@ -122,5 +195,6 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
       checkoutUrl: result.checkoutUrl,
       providerSubscriptionId: result.providerSubscriptionId,
       provider: (gw as any).provider,
+      reused: false,
     };
   });
