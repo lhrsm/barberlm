@@ -73,6 +73,10 @@ import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
+import { ClubBarbexUpgrade } from "@/components/portal/premium/ClubBarbexUpgrade";
+import { LoyaltyTierProgress } from "@/components/portal/premium/LoyaltyTierProgress";
+import { WhySubscribeCard } from "@/components/portal/premium/WhySubscribeCard";
+import { FloatingUpgradeCTA } from "@/components/portal/premium/FloatingUpgradeCTA";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
@@ -1159,8 +1163,13 @@ function ClientPortalComponent() {
           />
         )}
 
-        {!mySubscription && (
+        {!mySubscription && subscriptionsEnabled && (
           <>
+            <ClubBarbexUpgrade
+              shopId={shop?.id}
+              onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
+            />
+
             <PremiumDashboard
               appointments={appointments}
               sales={sales}
@@ -1169,34 +1178,24 @@ function ClientPortalComponent() {
               loyaltyRewards={loyaltyRewards}
             />
 
-            <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black p-6 md:p-8 shadow-[0_20px_60px_-20px_rgba(212,175,55,0.35)]">
-              <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[#D4AF37]/20 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#F59E0B]/15 blur-3xl" />
-              <div className="relative grid md:grid-cols-[1fr_auto] gap-6 items-center">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Exclusivo</p>
-                  <h3 className="text-2xl md:text-3xl font-black text-white mt-1">Clube Barbex</h3>
-                  <p className="text-sm text-gray-300 mt-2 max-w-xl">
-                    Assine um plano e aproveite benefícios exclusivos, atendimento prioritário,
-                    cashback, programa de fidelidade premium e descontos que só assinantes têm.
-                  </p>
-                  <ul className="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-300">
-                    {["Economia mensal","Atendimento prioritário","Programa premium","Cashback exclusivo","Fidelidade acelerada","Descontos exclusivos"].map((b) => (
-                      <li key={b} className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" /> {b}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <button
-                  onClick={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
-                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs shadow-[0_8px_24px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-0.5 transition-all whitespace-nowrap"
-                >
-                  Assinar agora
-                </button>
-              </div>
-            </div>
+            <LoyaltyTierProgress appointments={appointments} />
+
+            <WhySubscribeCard
+              appointments={appointments}
+              shopId={shop?.id}
+              onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
+            />
           </>
+        )}
+
+        {!mySubscription && !subscriptionsEnabled && (
+          <PremiumDashboard
+            appointments={appointments}
+            sales={sales}
+            customerData={customerData}
+            mySubscription={mySubscription}
+            loyaltyRewards={loyaltyRewards}
+          />
         )}
 
         {mySubscription && false && (
