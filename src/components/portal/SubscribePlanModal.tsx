@@ -16,7 +16,7 @@ import { createCustomerSubscription } from "@/lib/payments/subscriptions.functio
 
 // Providers com checkout online funcional (via createCustomerSubscription).
 // Os demais caem no fluxo manual (WhatsApp).
-const ONLINE_CHECKOUT_PROVIDERS = new Set(["mercadopago"]);
+const ONLINE_CHECKOUT_PROVIDERS = new Set(["mercadopago", "asaas", "pagarme", "stripe"]);
 
 interface Props {
   open: boolean;
