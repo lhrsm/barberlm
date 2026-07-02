@@ -67,6 +67,7 @@ function ShopPageComponent() {
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
+  const [subscribeModal, setSubscribeModal] = useState<{ open: boolean; plan: any | null }>({ open: false, plan: null });
 
   // Public modules — hide sections disabled by the barbershop owner in Settings > Modules
   const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
