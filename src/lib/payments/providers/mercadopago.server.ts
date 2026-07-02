@@ -30,6 +30,83 @@ async function mpFetch(path: string, gateway: PaymentGatewayRow, init: RequestIn
   return { ok: res.ok, status: res.status, body: json ?? text };
 }
 
+/**
+ * Verifica a assinatura HMAC-SHA256 do webhook do Mercado Pago.
+ * Template oficial: `id:{data.id};request-id:{x-request-id};ts:{ts};`
+ * Secret vem de gateway.webhook_secret (configurado no painel MP).
+ * Retorna true se válido, false caso contrário. Se secret não estiver configurado,
+ * retorna false (fail-closed) — nunca aceita webhook sem verificação.
+ */
+async function verifyMpSignature(
+  headers: Record<string, string>,
+  dataId: string,
+  secret: string | null | undefined,
+): Promise<boolean> {
+  if (!secret) return false;
+  const sigHeader = headers["x-signature"] ?? headers["X-Signature"];
+  const requestId = headers["x-request-id"] ?? headers["X-Request-Id"];
+  if (!sigHeader || !requestId || !dataId) return false;
+
+  // Parse "ts=...,v1=..."
+  let ts: string | undefined;
+  let v1: string | undefined;
+  for (const part of sigHeader.split(",")) {
+    const [k, v] = part.split("=", 2).map((s) => s.trim());
+    if (k === "ts") ts = v;
+    if (k === "v1") v1 = v;
+  }
+  if (!ts || !v1) return false;
+
+  // Freshness (5 min)
+  const age = Math.abs(Date.now() / 1000 - Number(ts));
+  if (!Number.isFinite(age) || age > 300) return false;
+
+  const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signed = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
+  const expected = Array.from(new Uint8Array(signed))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  // timing-safe compare
+  if (expected.length !== v1.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ v1.charCodeAt(i);
+  return diff === 0;
+}
+
+/** Mapeia status do PAGAMENTO MP → status normalizado. */
+function mapPaymentStatus(s: string | undefined): WebhookEvent["status"] {
+  switch (s) {
+    case "approved": return "paid";
+    case "refunded":
+    case "charged_back": return "refunded";
+    case "rejected":
+    case "cancelled": return "failed";
+    case "pending":
+    case "in_process":
+    case "authorized": return "pending";
+    default: return "unknown";
+  }
+}
+
+/** Mapeia status da PREAPPROVAL (assinatura) MP → status normalizado. */
+function mapPreapprovalStatus(s: string | undefined): WebhookEvent["status"] {
+  switch (s) {
+    case "authorized": return "paid";       // ativa → dispara "active" no handler
+    case "paused":
+    case "cancelled": return "canceled";
+    case "pending": return "pending";
+    default: return "unknown";
+  }
+}
+
 export const mercadoPagoProvider: PaymentProvider = {
   key: "mercadopago",
   displayName: "Mercado Pago",
@@ -40,7 +117,6 @@ export const mercadoPagoProvider: PaymentProvider = {
       const token = gateway.credentials?.access_token;
       if (!token) return { ok: false, message: "Access Token ausente" };
 
-      // Detecta modo pelo prefixo do token
       const isSandbox = token.startsWith("TEST-");
       const expectedSandbox = gateway.environment === "sandbox";
       if (expectedSandbox !== isSandbox) {
@@ -50,7 +126,6 @@ export const mercadoPagoProvider: PaymentProvider = {
         };
       }
 
-      // /users/me valida token e retorna dados da conta
       const res = await mpFetch("/users/me", gateway, { method: "GET" });
       if (!res.ok) {
         return {
@@ -75,6 +150,10 @@ export const mercadoPagoProvider: PaymentProvider = {
 
   async createSubscription(input: CreateSubscriptionInput): Promise<CreateSubscriptionResult> {
     const { gateway, customer, plan, returnUrl, metadata } = input;
+
+    if (!/^https:\/\//i.test(returnUrl)) {
+      throw new Error("Mercado Pago exige returnUrl HTTPS público (não funciona em preview local).");
+    }
 
     const body = {
       reason: plan.name,
@@ -112,24 +191,59 @@ export const mercadoPagoProvider: PaymentProvider = {
     };
   },
 
-  async parseWebhook(payload, _headers, _gateway): Promise<WebhookEvent | null> {
+  async parseWebhook(payload, headers, gateway): Promise<WebhookEvent | null> {
     const p = payload as any;
     if (!p) return null;
 
-    // MP envia { type, data: { id } } ou { topic, resource }
-    const eventType = p.type ?? p.topic ?? "unknown";
-    const providerId = p.data?.id ?? p.resource ?? undefined;
+    const eventType: string = String(p.type ?? p.topic ?? "unknown");
+    const dataId: string = String(p.data?.id ?? p.resource ?? "");
+    if (!dataId) return null;
 
-    // Normaliza tópicos comuns
-    let status: WebhookEvent["status"] = "unknown";
-    if (eventType.includes("payment")) status = "pending";
-    if (eventType.includes("preapproval")) status = "pending";
+    // ── SEGURANÇA: verifica assinatura HMAC antes de aceitar qualquer coisa ──
+    const valid = await verifyMpSignature(headers, dataId, gateway.webhook_secret);
+    if (!valid) {
+      throw new Error("Assinatura do webhook Mercado Pago inválida ou ausente");
+    }
+
+    // Busca o recurso real no MP pra saber o status verdadeiro
+    if (eventType.includes("payment")) {
+      const res = await mpFetch(`/v1/payments/${dataId}`, gateway, { method: "GET" });
+      if (!res.ok) return null;
+      const pay = res.body as any;
+      // preapproval_id conecta o pagamento à assinatura recorrente
+      const preapprovalId: string | undefined = pay.metadata?.preapproval_id ?? pay.preapproval_id ?? undefined;
+      return {
+        provider: "mercadopago",
+        eventType,
+        providerPaymentId: String(pay.id),
+        providerSubscriptionId: preapprovalId ? String(preapprovalId) : undefined,
+        status: mapPaymentStatus(pay.status),
+        amount: typeof pay.transaction_amount === "number" ? pay.transaction_amount : undefined,
+        currency: pay.currency_id,
+        raw: pay,
+      };
+    }
+
+    if (eventType.includes("preapproval") || eventType.includes("subscription")) {
+      const res = await mpFetch(`/preapproval/${dataId}`, gateway, { method: "GET" });
+      if (!res.ok) return null;
+      const pre = res.body as any;
+      return {
+        provider: "mercadopago",
+        eventType,
+        providerSubscriptionId: String(pre.id),
+        status: mapPreapprovalStatus(pre.status),
+        amount: typeof pre.auto_recurring?.transaction_amount === "number"
+          ? pre.auto_recurring.transaction_amount : undefined,
+        currency: pre.auto_recurring?.currency_id,
+        raw: pre,
+      };
+    }
 
     return {
       provider: "mercadopago",
-      eventType: String(eventType),
-      providerPaymentId: String(providerId ?? ""),
-      status,
+      eventType,
+      status: "unknown",
       raw: p,
     };
   },
