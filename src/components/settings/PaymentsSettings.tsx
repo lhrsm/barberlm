@@ -400,27 +400,23 @@ export function PaymentsSettings() {
   const handleTestExisting = async (gw: any) => {
     if (!tenantId) return;
     toast.loading("Testando conexão...", { id: `test-${gw.id}` });
-    await new Promise(r => setTimeout(r, 800));
-    await Promise.all([
-      supabase
-        .from("payment_gateways")
-        .update({ status: "connected", status_message: "Teste OK", last_sync_at: new Date().toISOString() })
-        .eq("id", gw.id),
-      supabase.from("payment_gateway_logs").insert({
-        tenant_id: tenantId,
-        gateway_id: gw.id,
-        event: "connection_test",
-        status: "success",
-        message: "Teste manual realizado",
-      }),
-    ]);
-    toast.success("✓ Conectado com sucesso", { id: `test-${gw.id}` });
+    try {
+      const { testGatewayConnection } = await import("@/lib/payments/subscriptions.functions");
+      const result = await testGatewayConnection({ data: { gatewayId: gw.id } });
+      if (result.ok) {
+        toast.success(`✓ ${result.message}`, { id: `test-${gw.id}` });
+      } else {
+        toast.error(`✕ ${result.message}`, { id: `test-${gw.id}` });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao testar conexão", { id: `test-${gw.id}` });
+    }
     fetchGateways();
     fetchLogs();
   };
 
   const webhookUrl = (gw: any) =>
-    `${typeof window !== "undefined" ? window.location.origin : "https://barbex.shop"}/api/public/payments/webhook?gateway=${gw.id}`;
+    `${typeof window !== "undefined" ? window.location.origin : "https://barbex.shop"}/api/public/subscriptions/webhook?gateway=${gw.id}`;
 
   const copyWebhook = async (gw: any) => {
     try {
