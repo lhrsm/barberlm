@@ -141,7 +141,7 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
           allow_notifications: acceptWhatsApp,
           privacy_accepted_at: new Date().toISOString(),
           terms_accepted_at: new Date().toISOString(),
-        }).select("id").single();
+        } as any).select("id").single();
         if (error) throw error;
         customerId = created.id;
       }
