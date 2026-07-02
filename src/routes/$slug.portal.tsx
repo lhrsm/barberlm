@@ -1113,42 +1113,30 @@ function ClientPortalComponent() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            {customerData?.avatar_url ? (
-              <img 
-                src={customerData.avatar_url} 
-                alt={client.name} 
-                className="h-16 w-16 rounded-full object-cover border-2 border-[#D4AF37]"
-              />
-            ) : (
-              <div className="h-16 w-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] border-2 border-[#D4AF37]">
-                <UserIcon size={32} />
-              </div>
-            )}
-            <div>
-              <h2 className="text-2xl font-bold text-white">Olá, {client.name}!</h2>
-              <p className="text-sm text-gray-400">Bem-vindo à sua área exclusiva na <span className="font-semibold text-white">{shop?.business_name}</span>.</p>
-            </div>
-          </div>
-          <Button 
-            onClick={() => {
-              // Limpar estados do agendamento local para garantir que a modal padrão abra do zero
-              // Mas aqui vamos apenas redirecionar ou emitir um evento se quisermos usar o componente pai.
-              // Como estamos em /$slug/portal, o componente pai ShopPageComponent está ativo e tem o isBookingOpen.
-              // Podemos tentar emitir um evento ou usar o contexto se disponível.
-              // No BarberLM, o $slug.tsx envolve o Outlet.
-              
-              // Emitir evento para o pai (ShopPageComponent)
-              window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
-            }} 
-            className="w-full md:w-auto gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
-          >
-            <Calendar size={18} /> Novo Agendamento
-          </Button>
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        <PremiumHeroCard
+          client={client}
+          shop={shop}
+          customerData={customerData}
+          mySubscription={mySubscription}
+          appointments={appointments}
+        />
 
-        </div>
+        <NextAppointmentCard
+          appointments={appointments}
+          shop={shop}
+          onReschedule={handleEditAppointment}
+          onCancel={handleCancelAppointment}
+          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+        />
+
+        <JourneyInsights
+          appointments={appointments}
+          customerData={customerData}
+          mySubscription={mySubscription}
+          loyaltyRewards={loyaltyRewards}
+          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+        />
 
         {mySubscription && (
           <SubscriberPanel
@@ -1172,7 +1160,48 @@ function ClientPortalComponent() {
         )}
 
         {!mySubscription && (
+          <>
+            <PremiumDashboard
+              appointments={appointments}
+              sales={sales}
+              customerData={customerData}
+              mySubscription={mySubscription}
+              loyaltyRewards={loyaltyRewards}
+            />
+
+            <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black p-6 md:p-8 shadow-[0_20px_60px_-20px_rgba(212,175,55,0.35)]">
+              <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[#D4AF37]/20 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#F59E0B]/15 blur-3xl" />
+              <div className="relative grid md:grid-cols-[1fr_auto] gap-6 items-center">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Exclusivo</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-white mt-1">Clube Barbex</h3>
+                  <p className="text-sm text-gray-300 mt-2 max-w-xl">
+                    Assine um plano e aproveite benefícios exclusivos, atendimento prioritário,
+                    cashback, programa de fidelidade premium e descontos que só assinantes têm.
+                  </p>
+                  <ul className="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-300">
+                    {["Economia mensal","Atendimento prioritário","Programa premium","Cashback exclusivo","Fidelidade acelerada","Descontos exclusivos"].map((b) => (
+                      <li key={b} className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" /> {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
+                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs shadow-[0_8px_24px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-0.5 transition-all whitespace-nowrap"
+                >
+                  Assinar agora
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {mySubscription && false && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
           <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
               <CardDescription className="text-gray-400">Total de Serviços</CardDescription>
