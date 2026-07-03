@@ -287,6 +287,7 @@ function ShopPageComponent() {
           setCustomerCashback(data.cashback_balance || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
+          await fetchActiveSubscriptionFor(data.id);
           
           // Removed auto-advancing behavior - user must click Continue
           console.log('Customer identified, waiting for user to click Continue');
