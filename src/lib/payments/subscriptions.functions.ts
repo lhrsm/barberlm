@@ -156,25 +156,58 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     }
 
     // 5. Cria no provider
-    const result = await provider.createSubscription({
-      gateway: gw as unknown as PaymentGatewayRow,
+    const resolvedEmail = data.email ?? (customer as any).email;
+    console.log("[createCustomerSubscription] input", {
       tenantId: data.tenantId,
-      customer: {
-        id: customerId,
-        name: (customer as any).name,
-        email: data.email ?? (customer as any).email,
-        phone,
-      },
-      plan: {
-        id: (plan as any).id,
-        name: (plan as any).name,
-        amount: Number((plan as any).monthly_price),
-        currency: "BRL",
-        intervalMonths: 1,
-      },
+      customerId,
+      planId: data.planId,
+      provider: (gw as any).provider,
+      environment: (gw as any).environment,
+      hasAccessToken: !!(gw as any).credentials?.access_token,
+      hasPublicKey: !!(gw as any).credentials?.public_key,
+      planName: (plan as any).name,
+      amount: Number((plan as any).monthly_price),
+      resolvedEmail,
       returnUrl: data.returnUrl,
-      metadata: { tenant_id: data.tenantId, customer_id: customerId },
     });
+
+    let result;
+    try {
+      result = await provider.createSubscription({
+        gateway: gw as unknown as PaymentGatewayRow,
+        tenantId: data.tenantId,
+        customer: {
+          id: customerId,
+          name: (customer as any).name,
+          email: resolvedEmail,
+          phone,
+        },
+        plan: {
+          id: (plan as any).id,
+          name: (plan as any).name,
+          amount: Number((plan as any).monthly_price),
+          currency: "BRL",
+          intervalMonths: 1,
+        },
+        returnUrl: data.returnUrl,
+        metadata: { tenant_id: data.tenantId, customer_id: customerId },
+      });
+    } catch (err: any) {
+      console.error("[createCustomerSubscription] provider error", {
+        provider: (gw as any).provider,
+        message: err?.message,
+        stack: err?.stack,
+      });
+      // Log em payment_gateway_logs para auditoria
+      await supabaseAdmin.from("payment_gateway_logs").insert({
+        tenant_id: data.tenantId,
+        gateway_id: (gw as any).id,
+        event: "create_subscription",
+        status: "error",
+        message: String(err?.message ?? err).slice(0, 500),
+      });
+      throw new Error(err?.message ?? "Falha ao criar assinatura");
+    }
 
     // 6. Registra em customer_subscriptions (pending_payment até webhook confirmar)
     await supabaseAdmin.from("customer_subscriptions").insert({
