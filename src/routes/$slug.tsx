@@ -889,6 +889,21 @@ function ShopPageComponent() {
   const handleBookingAction = async () => {
     console.log('DEBUG: handleBookingAction triggered, isBookingOpen:', isBookingOpen);
 
+    // Always invalidate cached customer/subscription/module data when opening the
+    // booking modal so Chrome/Edge don't render stale "não assinante" state.
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["public-barbershop-modules", shop?.id] }),
+        queryClient.invalidateQueries({ queryKey: ["customer"] }),
+        queryClient.invalidateQueries({ queryKey: ["customer-subscription"] }),
+        queryClient.invalidateQueries({ queryKey: ["subscription-usage"] }),
+        queryClient.invalidateQueries({ queryKey: ["booking-flow"] }),
+      ]);
+    } catch (e) {
+      console.warn('[booking] invalidate cache failed', e);
+    }
+
+
     if (shop?.scheduling_mode === 'manual') {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
