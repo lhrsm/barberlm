@@ -932,6 +932,15 @@ function ShopPageComponent() {
               setCustomerCredits(data.credits || 0);
               setCustomerLoyaltyPoints(data.loyalty_points || 0);
             }
+
+            // Force-refresh subscription so "Plano Ativo" renders consistently
+            // across browsers (avoids relying on stale client state).
+            try {
+              const fresh = await fetchActiveSubscriptionFor(parsedClient.customer_id);
+              console.log('[booking] fresh active subscription on open', fresh);
+            } catch (e) {
+              console.warn('[booking] failed to refresh subscription on open', e);
+            }
           }
           
           // Se já temos o customerId, pulamos a identificação (Step 1)
