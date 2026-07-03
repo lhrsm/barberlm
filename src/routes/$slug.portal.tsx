@@ -74,6 +74,7 @@ import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
 import { JourneyBarbex } from "@/components/portal/premium/journey/JourneyBarbex";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
+import { MemberDashboard } from "@/components/portal/premium/MemberDashboard";
 import { ClubBarbexUpgrade } from "@/components/portal/premium/ClubBarbexUpgrade";
 import { LoyaltyTierProgress } from "@/components/portal/premium/LoyaltyTierProgress";
 import { WhySubscribeCard } from "@/components/portal/premium/WhySubscribeCard";
