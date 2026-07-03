@@ -1243,12 +1243,15 @@ function ShopPageComponent() {
 
         // === Subscription coverage check ===
         const elig = serviceEligibility[item.service_id];
+        const benefitCovered = isBenefitCovered(item.service_id);
         const isCoveredFull =
-          elig?.has_active_subscription &&
-          elig?.service_included &&
-          !elig?.requires_payment &&
-          elig?.reason === "full_coverage";
+          benefitCovered ||
+          (elig?.has_active_subscription &&
+            elig?.service_included &&
+            !elig?.requires_payment &&
+            elig?.reason === "full_coverage");
         const isCoveredPartial =
+          !benefitCovered &&
           elig?.has_active_subscription &&
           elig?.service_included &&
           elig?.requires_payment &&
