@@ -314,13 +314,12 @@ export function PaymentsSettings() {
       return;
     }
     setTesting(true);
+    setTestResult({ status: "idle" });
     try {
-      // Validação estrutural — chamadas reais a APIs externas exigem credenciais válidas
-      // e tratamento de CORS server-side. Aqui registramos o teste e simulamos sucesso
-      // se as credenciais foram preenchidas com formato plausível.
       await new Promise(r => setTimeout(r, 900));
       const ok = def.fields.filter(f => f.required).every(f => (form.credentials[f.name] || "").length >= 4);
       if (!ok) {
+        setTestResult({ status: "error", message: "Credenciais incompletas ou inválidas" });
         toast.error("✕ Erro de autenticação: credenciais incompletas ou inválidas");
         if (editing && tenantId) {
           await supabase.from("payment_gateway_logs").insert({
@@ -333,6 +332,7 @@ export function PaymentsSettings() {
         }
         return;
       }
+      setTestResult({ status: "success", message: "Conexão realizada com sucesso" });
       toast.success("✓ Gateway conectado com sucesso");
       if (editing && tenantId) {
         await Promise.all([
