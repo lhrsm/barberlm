@@ -7218,6 +7218,21 @@ export type Database = {
         Args: { _env: string; _price_id: string }
         Returns: string
       }
+      get_public_active_customer_subscription: {
+        Args: { _customer_id: string; _tenant_id: string }
+        Returns: {
+          current_period_end: string
+          customer_id: string
+          id: string
+          next_billing_at: string
+          plan: Json
+          plan_id: string
+          started_at: string
+          status: string
+          tenant_id: string
+          uses_this_period: number
+        }[]
+      }
       get_server_info: { Args: never; Returns: Json }
       get_subscriber_months: {
         Args: { p_subscription_id: string }
