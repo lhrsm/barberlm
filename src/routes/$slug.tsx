@@ -965,14 +965,12 @@ function ShopPageComponent() {
   const fetchActiveSubscriptionFor = async (customerIdArg: string) => {
     if (!customerIdArg || !shop?.id) return null;
     try {
-      const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from("customer_subscriptions")
         .select("*, plan:subscription_plans(*)")
         .eq("customer_id", customerIdArg)
         .eq("tenant_id", shop.id)
         .eq("status", "active")
-        .or(`current_period_end.gte.${nowIso},next_billing_at.gte.${nowIso}`)
         .order("started_at", { ascending: false })
         .limit(1)
         .maybeSingle();
