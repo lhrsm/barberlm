@@ -287,6 +287,7 @@ function ShopPageComponent() {
           setCustomerCashback(data.cashback_balance || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
+          await fetchActiveSubscriptionFor(data.id);
           
           // Removed auto-advancing behavior - user must click Continue
           console.log('Customer identified, waiting for user to click Continue');
@@ -325,36 +326,8 @@ function ShopPageComponent() {
         setBookingMode(null);
         return;
       }
-      const { data } = await supabase
-        .from("customer_subscriptions")
-        .select("*, plan:subscription_plans(*)")
-        .eq("customer_id", customerId)
-        .eq("tenant_id", shop.id)
-        .eq("status", "active")
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      setActiveSubscription(data || null);
       setServiceEligibility({});
-      if (data?.plan_id) {
-        const [{ data: planSvcs }, { data: logs }] = await Promise.all([
-          supabase
-            .from("subscription_plan_services")
-            .select("*, services(*)")
-            .eq("plan_id", data.plan_id),
-          supabase
-            .from("subscription_usage_logs" as any)
-            .select("*, services(name)")
-            .eq("customer_id", customerId)
-            .eq("subscription_id", data.id)
-            .order("used_at", { ascending: false }),
-        ]);
-        setSubPlanServices(planSvcs || []);
-        setSubUsageLogs((logs as any[]) || []);
-      } else {
-        setSubPlanServices([]);
-        setSubUsageLogs([]);
-      }
+      await fetchActiveSubscriptionFor(customerId);
     }
     loadActiveSub();
   }, [customerId, shop?.id]);
@@ -965,16 +938,11 @@ function ShopPageComponent() {
   const fetchActiveSubscriptionFor = async (customerIdArg: string) => {
     if (!customerIdArg || !shop?.id) return null;
     try {
-      const nowIso = new Date().toISOString();
-      const { data, error } = await supabase
-        .from("customer_subscriptions")
-        .select("*, plan:subscription_plans(*)")
-        .eq("customer_id", customerIdArg)
-        .eq("tenant_id", shop.id)
-        .eq("status", "active")
-        .or(`current_period_end.gte.${nowIso},next_billing_at.gte.${nowIso}`)
-        .order("started_at", { ascending: false })
-        .limit(1)
+      const { data, error } = await (supabase as any)
+        .rpc("get_public_active_customer_subscription", {
+          _tenant_id: shop.id,
+          _customer_id: customerIdArg,
+        })
         .maybeSingle();
       if (error) {
         console.error("[PREMIUM FLOW] subscription lookup error", error);
@@ -983,14 +951,17 @@ function ShopPageComponent() {
       setActiveSubscription(data || null);
       setBookingMode(null);
       if (data?.plan_id) {
-        const { data: planSvcs } = await supabase
-          .from("subscription_plan_services")
-          .select("*, services(*)")
-          .eq("plan_id", data.plan_id);
-        setSubPlanServices(planSvcs || []);
-
-        // Load per-category benefit balances and benefit-service links (new system)
-        const [{ data: balances }, { data: linksRaw }] = await Promise.all([
+        const [{ data: planSvcs }, { data: logs }, { data: balances }, { data: linksRaw }] = await Promise.all([
+          supabase
+            .from("subscription_plan_services")
+            .select("*, services(*)")
+            .eq("plan_id", data.plan_id),
+          supabase
+            .from("subscription_usage_logs" as any)
+            .select("*, services(name)")
+            .eq("customer_id", customerIdArg)
+            .eq("subscription_id", data.id)
+            .order("used_at", { ascending: false }),
           (supabase as any).rpc("get_subscription_benefit_balance", { _subscription_id: data.id }),
           (supabase as any)
             .from("subscription_plan_benefit_services")
@@ -998,6 +969,8 @@ function ShopPageComponent() {
             .eq("plan_id", data.plan_id)
             .eq("active", true),
         ]);
+        setSubPlanServices(planSvcs || []);
+        setSubUsageLogs((logs as any[]) || []);
         setBenefitBalances((balances as any[]) || []);
         const links = ((linksRaw as any[]) || []).map((r) => ({
           service_id: r.service_id,
@@ -1008,6 +981,7 @@ function ShopPageComponent() {
         setPlanBenefitServices(links);
       } else {
         setSubPlanServices([]);
+        setSubUsageLogs([]);
         setBenefitBalances([]);
         setPlanBenefitServices([]);
       }
