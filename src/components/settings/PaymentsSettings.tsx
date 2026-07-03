@@ -195,6 +195,7 @@ export function PaymentsSettings() {
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ status: "idle" | "success" | "error"; message?: string }>({ status: "idle" });
 
   const providerDef = useMemo(
     () => PROVIDERS.find(p => p.key === form.provider) || PROVIDERS[0],
