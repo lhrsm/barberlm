@@ -591,10 +591,10 @@ function DashboardComponent() {
           {/* HEADER */}
           <header className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              {profile?.logo_url ? (
+              {profile?.avatar_url ? (
                 <img
-                  src={profile.logo_url}
-                  alt={profile.business_name}
+                  src={profile.avatar_url}
+                  alt={profile.responsible_name || profile.business_name}
                   className="shrink-0 h-14 w-14 rounded-2xl object-cover border border-[#f59e0b]/30 shadow-[0_4px_20px_rgba(245,158,11,0.15)]"
                 />
               ) : (
