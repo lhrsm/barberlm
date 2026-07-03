@@ -657,7 +657,7 @@ export function PaymentsSettings() {
       </Tabs>
 
       {/* MODAL */}
-      <Dialog open={isModalOpen} onOpenChange={(o) => { setIsModalOpen(o); if (!o) resetForm(); }}>
+      <Dialog open={isModalOpen} onOpenChange={(o) => { setIsModalOpen(o); if (!o) { resetForm(); setTestResult({ status: "idle" }); } }}>
         <DialogContent className="bg-[#0b0f17] border border-[#1f2937] text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">
