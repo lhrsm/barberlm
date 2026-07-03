@@ -178,8 +178,12 @@ function ShopPageComponent() {
 
   // Subscription state
   const [_activeSubscription, setActiveSubscription] = useState<any>(null);
-  // Mask subscription when the module is disabled — keeps the booking flow as a regular client
-  const activeSubscription = subscriptionsEnabled ? _activeSubscription : null;
+  // Source of truth is the DB record itself. Do NOT gate on the "subscriptions"
+  // module flag here — that flag can be undefined/false briefly while the
+  // barbershop_modules query loads, which caused inconsistent rendering across
+  // browsers (Chrome/Edge) where cached module data raced with the subscription
+  // fetch and hid the "Plano Ativo" card for actual active subscribers.
+  const activeSubscription = _activeSubscription;
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
@@ -885,6 +889,21 @@ function ShopPageComponent() {
   const handleBookingAction = async () => {
     console.log('DEBUG: handleBookingAction triggered, isBookingOpen:', isBookingOpen);
 
+    // Always invalidate cached customer/subscription/module data when opening the
+    // booking modal so Chrome/Edge don't render stale "não assinante" state.
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["public-barbershop-modules", shop?.id] }),
+        queryClient.invalidateQueries({ queryKey: ["customer"] }),
+        queryClient.invalidateQueries({ queryKey: ["customer-subscription"] }),
+        queryClient.invalidateQueries({ queryKey: ["subscription-usage"] }),
+        queryClient.invalidateQueries({ queryKey: ["booking-flow"] }),
+      ]);
+    } catch (e) {
+      console.warn('[booking] invalidate cache failed', e);
+    }
+
+
     if (shop?.scheduling_mode === 'manual') {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -912,6 +931,15 @@ function ShopPageComponent() {
               setCustomerCashback(data.cashback_balance || 0);
               setCustomerCredits(data.credits || 0);
               setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            }
+
+            // Force-refresh subscription so "Plano Ativo" renders consistently
+            // across browsers (avoids relying on stale client state).
+            try {
+              const fresh = await fetchActiveSubscriptionFor(parsedClient.customer_id);
+              console.log('[booking] fresh active subscription on open', fresh);
+            } catch (e) {
+              console.warn('[booking] failed to refresh subscription on open', e);
             }
           }
           
