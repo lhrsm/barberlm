@@ -777,7 +777,7 @@ function AppointmentManagementPage() {
 
       {/* Pix Refund Form Dialog */}
       <Dialog open={cancellationStep === 'pix_refund_form'} onOpenChange={(open) => !open && setCancellationStep('financial_decision')}>
-        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
+        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] sm:max-w-md w-[90%] p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <DollarSign className="text-primary w-8 h-8" />
