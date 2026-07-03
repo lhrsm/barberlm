@@ -774,7 +774,7 @@ export function PaymentsSettings() {
               </div>
             )}
 
-            {/* Row 1: Test connection — centered, fixed width */}
+            {/* Ações — 3 botões alinhados em linha única */}
             {(() => {
               const credentialsFilled = providerDef.fields
                 .filter(f => f.required)
@@ -783,13 +783,14 @@ export function PaymentsSettings() {
               const isSuccess = testResult.status === "success";
               const isError = testResult.status === "error";
               return (
-                <div className="flex justify-center w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-4">
+                  {/* Testar conexão */}
                   <button
                     type="button"
                     onClick={handleTestConnection}
                     disabled={testDisabled}
                     title={!credentialsFilled ? "Preencha os dados do gateway primeiro." : undefined}
-                    style={{ height: 44 }}
+                    style={{ height: 48 }}
                     className={cn(
                       "w-full sm:w-[180px] rounded-[12px] border font-semibold text-sm tracking-wide",
                       "inline-flex items-center justify-center gap-2 transition-all duration-200",
@@ -806,53 +807,52 @@ export function PaymentsSettings() {
                     ) : isSuccess ? (
                       <><CheckCircle2 className="h-4 w-4" /> Conectado</>
                     ) : isError ? (
-                      <><X className="h-4 w-4" /> Falha na conexão</>
+                      <><X className="h-4 w-4" /> Falha</>
                     ) : (
                       <><ShieldCheck className="h-4 w-4" /> Testar conexão</>
+                    )}
+                  </button>
+
+                  {/* Cancelar */}
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    disabled={saving}
+                    style={{ height: 48 }}
+                    className={cn(
+                      "w-full sm:w-[170px] rounded-[12px] border border-[#2A2F3A] bg-[#111827] text-white font-semibold text-sm",
+                      "inline-flex items-center justify-center gap-2 transition-all duration-200",
+                      "hover:bg-[#1B2330] hover:border-[#D4AF37] hover:text-[#D4AF37]",
+                      saving && "opacity-40 cursor-not-allowed",
+                    )}
+                  >
+                    <X className="h-4 w-4" /> Cancelar
+                  </button>
+
+                  {/* Adicionar Gateway (CTA principal) */}
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving}
+                    style={{ height: 48 }}
+                    className={cn(
+                      "w-full sm:w-[240px] rounded-[12px] font-bold text-sm text-black",
+                      "inline-flex items-center justify-center gap-2 transition-all duration-200",
+                      "bg-gradient-to-r from-[#D4AF37] to-[#F59E0B]",
+                      "hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(212,175,55,0.35)]",
+                      "active:scale-[0.99]",
+                      saving && "opacity-80 cursor-wait hover:scale-100 hover:shadow-none",
+                    )}
+                  >
+                    {saving ? (
+                      <><RefreshCw className="h-4 w-4 animate-spin" /> Salvando Gateway...</>
+                    ) : (
+                      <><CreditCard className="h-4 w-4" /> {editing ? "Salvar alterações" : "Adicionar Gateway"}</>
                     )}
                   </button>
                 </div>
               );
             })()}
-
-            {/* Row 2: Cancel + Primary CTA */}
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                disabled={saving}
-                style={{ height: 48 }}
-                className={cn(
-                  "w-full sm:w-[170px] rounded-[12px] border border-[#2A2F3A] bg-[#111827] text-white font-semibold text-sm",
-                  "inline-flex items-center justify-center gap-2 transition-all duration-200",
-                  "hover:bg-[#1B2330] hover:border-[#D4AF37] hover:text-[#D4AF37]",
-                  saving && "opacity-40 cursor-not-allowed",
-                )}
-              >
-                <X className="h-4 w-4" /> Cancelar
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                style={{ height: 48 }}
-                className={cn(
-                  "w-full sm:w-[240px] rounded-[12px] font-bold text-sm text-black",
-                  "inline-flex items-center justify-center gap-2 transition-all duration-200",
-                  "bg-gradient-to-r from-[#D4AF37] to-[#F59E0B]",
-                  "hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(212,175,55,0.35)]",
-                  "active:scale-[0.99]",
-                  saving && "opacity-80 cursor-wait hover:scale-100 hover:shadow-none",
-                )}
-              >
-                {saving ? (
-                  <><RefreshCw className="h-4 w-4 animate-spin" /> Salvando Gateway...</>
-                ) : (
-                  <><CreditCard className="h-4 w-4" /> {editing ? "Salvar alterações" : "Adicionar Gateway"}</>
-                )}
-              </button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
