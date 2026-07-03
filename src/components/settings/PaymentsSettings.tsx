@@ -668,7 +668,7 @@ export function PaymentsSettings() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5 py-2">
+          <div className={cn("space-y-5 py-2 transition-opacity", saving && "pointer-events-none opacity-60")}>
             <div className="grid gap-2">
               <Label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Provedor</Label>
               <Select
