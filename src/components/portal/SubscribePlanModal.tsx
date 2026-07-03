@@ -16,7 +16,16 @@ import { createCustomerSubscription } from "@/lib/payments/subscriptions.functio
 
 // Providers com checkout online funcional (via createCustomerSubscription).
 // Os demais caem no fluxo manual (WhatsApp).
-const ONLINE_CHECKOUT_PROVIDERS = new Set(["mercadopago", "asaas", "pagarme", "stripe"]);
+const ONLINE_CHECKOUT_PROVIDERS = new Set([
+  "mercadopago",
+  "asaas",
+  "pagarme",
+  "stripe",
+  "pagseguro",
+  "paypal",
+  "paggue",
+  "infinitepay",
+]);
 
 interface Props {
   open: boolean;
@@ -67,7 +76,7 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
     if (!open || !tenantId || !plan?.id) return;
     (async () => {
       const [gwRes, svcRes] = await Promise.all([
-        supabase.from("payment_gateways").select("provider, is_active, is_default").eq("tenant_id", tenantId).eq("is_active", true).order("is_default", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("payment_gateways").select("provider, is_active, is_primary").eq("tenant_id", tenantId).eq("is_active", true).order("is_primary", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("subscription_plan_services").select("service:services(id, name)").eq("plan_id", plan.id),
       ]);
       setGateway((gwRes.data as any)?.provider || null);

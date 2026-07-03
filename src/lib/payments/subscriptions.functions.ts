@@ -143,7 +143,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     // 4. Plano
     const { data: plan, error: planErr } = await supabaseAdmin
       .from("subscription_plans")
-      .select("id, name, price, currency, billing_cycle")
+      .select("id, name, monthly_price")
       .eq("id", data.planId)
       .eq("tenant_id", data.tenantId)
       .maybeSingle();
@@ -168,8 +168,8 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
       plan: {
         id: (plan as any).id,
         name: (plan as any).name,
-        amount: Number((plan as any).price),
-        currency: (plan as any).currency ?? "BRL",
+        amount: Number((plan as any).monthly_price),
+        currency: "BRL",
         intervalMonths: 1,
       },
       returnUrl: data.returnUrl,
@@ -186,8 +186,8 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
       provider: (gw as any).provider,
       provider_subscription_id: result.providerSubscriptionId,
       gateway_id: (gw as any).id,
-      amount: Number((plan as any).price),
-      currency: (plan as any).currency ?? "BRL",
+      amount: Number((plan as any).monthly_price),
+      currency: "BRL",
       metadata: { checkout_url: result.checkoutUrl },
     } as any);
 
