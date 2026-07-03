@@ -943,23 +943,48 @@ function GatewayCard({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <Button size="sm" variant="outline" onClick={onEdit} className="border-[#1f2937] text-slate-300 hover:bg-[#1f2937] rounded-lg h-9 text-xs font-bold">
+          <Button
+            size="sm"
+            onClick={onEdit}
+            className="w-auto h-9 rounded-lg px-3 text-xs font-black uppercase tracking-wider bg-[#0b1220] border border-sky-500/30 text-sky-300 hover:bg-sky-500/10 hover:border-sky-400/60 hover:text-sky-200 shadow-[0_2px_10px_-4px_rgba(56,189,248,0.35)] transition-all"
+          >
             <SettingsIcon className="h-3.5 w-3.5 mr-1" /> Configurar
           </Button>
-          <Button size="sm" variant="outline" onClick={onTest} className="border-[#1f2937] text-slate-300 hover:bg-[#1f2937] rounded-lg h-9 text-xs font-bold">
+          <Button
+            size="sm"
+            onClick={onTest}
+            className="w-auto h-9 rounded-lg px-3 text-xs font-black uppercase tracking-wider bg-[#0b1220] border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400/60 hover:text-emerald-200 shadow-[0_2px_10px_-4px_rgba(16,185,129,0.35)] transition-all"
+          >
             <ShieldCheck className="h-3.5 w-3.5 mr-1" /> Testar
           </Button>
-          <Button size="sm" variant="outline" onClick={onToggleActive} className="border-[#1f2937] text-slate-300 hover:bg-[#1f2937] rounded-lg h-9 text-xs font-bold">
+          <Button
+            size="sm"
+            onClick={onToggleActive}
+            className={cn(
+              "w-auto h-9 rounded-lg px-3 text-xs font-black uppercase tracking-wider bg-[#0b1220] border transition-all",
+              gateway.is_active
+                ? "border-amber-500/30 text-amber-300 hover:bg-amber-500/10 hover:border-amber-400/60 hover:text-amber-200 shadow-[0_2px_10px_-4px_rgba(245,158,11,0.35)]"
+                : "border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400/60 hover:text-emerald-200 shadow-[0_2px_10px_-4px_rgba(16,185,129,0.35)]"
+            )}
+          >
             {gateway.is_active ? <><X className="h-3.5 w-3.5 mr-1" /> Desativar</> : <><CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Ativar</>}
           </Button>
-          <Button size="sm" variant="outline" onClick={onDelete} className="border-red-500/20 text-red-400 hover:bg-red-500/10 rounded-lg h-9 text-xs font-bold">
+          <Button
+            size="sm"
+            onClick={onDelete}
+            className="w-auto h-9 rounded-lg px-3 text-xs font-black uppercase tracking-wider bg-[#0b1220] border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-400/60 hover:text-red-300 shadow-[0_2px_10px_-4px_rgba(239,68,68,0.35)] transition-all"
+          >
             <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
           </Button>
         </div>
 
         {!gateway.is_primary && (
-          <Button size="sm" variant="ghost" onClick={onSetPrimary} className="w-full text-xs text-[#ea580c] hover:bg-[#ea580c]/10 font-bold h-8">
-            <Star className="h-3 w-3 mr-1.5" /> Definir como principal
+          <Button
+            size="sm"
+            onClick={onSetPrimary}
+            className="w-full h-9 rounded-lg text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#ea580c] to-[#f59e0b] text-white hover:from-[#f97316] hover:to-[#fbbf24] shadow-[0_4px_16px_-4px_rgba(234,88,12,0.55)] transition-all"
+          >
+            <Star className="h-3.5 w-3.5 mr-1.5 fill-current" /> Definir como principal
           </Button>
         )}
       </CardContent>
