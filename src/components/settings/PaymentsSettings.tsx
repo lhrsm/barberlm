@@ -761,65 +761,71 @@ export function PaymentsSettings() {
 
           </div>
 
-          <DialogFooter className="flex-col gap-3 sm:gap-4 pt-2 border-t border-[#1f2937] mt-2">
+          <div className="mt-6 pt-5 border-t border-white/[0.08] flex flex-col gap-4">
             {/* Status badge */}
             {testResult.status === "success" && (
-              <div className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+              <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
                 <CheckCircle2 className="h-4 w-4" /> Gateway conectado — {testResult.message}
               </div>
             )}
             {testResult.status === "error" && (
-              <div className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold">
+              <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold">
                 <X className="h-4 w-4" /> Erro de autenticação — {testResult.message}
               </div>
             )}
 
-            {/* Test connection — full width, sozinho */}
+            {/* Row 1: Test connection — centered, fixed width */}
             {(() => {
               const credentialsFilled = providerDef.fields
                 .filter(f => f.required)
                 .every(f => (form.credentials[f.name] || "").length > 0);
               const testDisabled = testing || saving || !credentialsFilled;
+              const isSuccess = testResult.status === "success";
+              const isError = testResult.status === "error";
               return (
-                <button
-                  type="button"
-                  onClick={handleTestConnection}
-                  disabled={testDisabled}
-                  title={!credentialsFilled ? "Preencha os dados do gateway primeiro." : undefined}
-                  className={cn(
-                    "group w-full h-12 rounded-[14px] border-2 font-bold text-sm uppercase tracking-wider transition-all duration-200",
-                    "flex items-center justify-center gap-2",
-                    testResult.status === "success"
-                      ? "border-emerald-500/60 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10"
-                      : testResult.status === "error"
-                        ? "border-red-500/60 bg-red-500/5 text-red-400 hover:bg-red-500/10"
-                        : "border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:shadow-[0_0_24px_-6px_rgba(212,175,55,0.6)]",
-                    testDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:text-[#D4AF37] hover:shadow-none",
-                  )}
-                >
-                  {testing ? (
-                    <><RefreshCw className="h-4 w-4 animate-spin" /> Testando conexão...</>
-                  ) : testResult.status === "success" ? (
-                    <><CheckCircle2 className="h-4 w-4" /> Conexão realizada com sucesso</>
-                  ) : testResult.status === "error" ? (
-                    <><X className="h-4 w-4" /> Falha na conexão — tentar novamente</>
-                  ) : (
-                    <><ShieldCheck className="h-4 w-4" /> Testar conexão</>
-                  )}
-                </button>
+                <div className="flex justify-center w-full">
+                  <button
+                    type="button"
+                    onClick={handleTestConnection}
+                    disabled={testDisabled}
+                    title={!credentialsFilled ? "Preencha os dados do gateway primeiro." : undefined}
+                    style={{ height: 44 }}
+                    className={cn(
+                      "w-full sm:w-[180px] rounded-[12px] border font-semibold text-sm tracking-wide",
+                      "inline-flex items-center justify-center gap-2 transition-all duration-200",
+                      isSuccess
+                        ? "border-emerald-500/60 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10"
+                        : isError
+                          ? "border-red-500/60 bg-red-500/5 text-red-400 hover:bg-red-500/10"
+                          : "border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]",
+                      testDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:text-[#D4AF37] hover:shadow-none",
+                    )}
+                  >
+                    {testing ? (
+                      <><RefreshCw className="h-4 w-4 animate-spin" /> Testando...</>
+                    ) : isSuccess ? (
+                      <><CheckCircle2 className="h-4 w-4" /> Conectado</>
+                    ) : isError ? (
+                      <><X className="h-4 w-4" /> Falha na conexão</>
+                    ) : (
+                      <><ShieldCheck className="h-4 w-4" /> Testar conexão</>
+                    )}
+                  </button>
+                </div>
               );
             })()}
 
-            {/* Cancel + Primary CTA */}
-            <div className="w-full flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+            {/* Row 2: Cancel + Primary CTA */}
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 disabled={saving}
+                style={{ height: 48 }}
                 className={cn(
-                  "h-12 sm:w-[220px] w-full rounded-[14px] border border-[#2a3444] bg-transparent text-white font-semibold text-sm",
-                  "flex items-center justify-center gap-2 transition-all duration-200",
-                  "hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400",
+                  "w-full sm:w-[170px] rounded-[12px] border border-[#2A2F3A] bg-[#111827] text-white font-semibold text-sm",
+                  "inline-flex items-center justify-center gap-2 transition-all duration-200",
+                  "hover:bg-[#1B2330] hover:border-[#D4AF37] hover:text-[#D4AF37]",
                   saving && "opacity-40 cursor-not-allowed",
                 )}
               >
@@ -830,23 +836,24 @@ export function PaymentsSettings() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
+                style={{ height: 48 }}
                 className={cn(
-                  "relative h-12 sm:w-[260px] w-full rounded-[14px] font-semibold text-sm text-black",
-                  "flex items-center justify-center gap-2 transition-all duration-200",
+                  "w-full sm:w-[240px] rounded-[12px] font-bold text-sm text-black",
+                  "inline-flex items-center justify-center gap-2 transition-all duration-200",
                   "bg-gradient-to-r from-[#D4AF37] to-[#F59E0B]",
-                  "hover:scale-[1.02] hover:shadow-[0_8px_28px_-6px_rgba(212,175,55,0.65)]",
+                  "hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(212,175,55,0.35)]",
                   "active:scale-[0.99]",
                   saving && "opacity-80 cursor-wait hover:scale-100 hover:shadow-none",
                 )}
               >
                 {saving ? (
-                  <><RefreshCw className="h-4 w-4 animate-spin" /> Salvando gateway...</>
+                  <><RefreshCw className="h-4 w-4 animate-spin" /> Salvando Gateway...</>
                 ) : (
                   <><CreditCard className="h-4 w-4" /> {editing ? "Salvar alterações" : "Adicionar Gateway"}</>
                 )}
               </button>
             </div>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
