@@ -1173,12 +1173,13 @@ function ClientPortalComponent() {
               onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
             />
 
-            <PremiumDashboard
+            <MemberDashboard
               appointments={appointments}
               sales={sales}
               customerData={customerData}
-              mySubscription={mySubscription}
               loyaltyRewards={loyaltyRewards}
+              subscriptionsEnabled
+              onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
             />
 
             <LoyaltyTierProgress appointments={appointments} />
@@ -1192,11 +1193,10 @@ function ClientPortalComponent() {
         )}
 
         {!mySubscription && !subscriptionsEnabled && (
-          <PremiumDashboard
+          <MemberDashboard
             appointments={appointments}
             sales={sales}
             customerData={customerData}
-            mySubscription={mySubscription}
             loyaltyRewards={loyaltyRewards}
           />
         )}
