@@ -45,6 +45,7 @@ import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
@@ -255,6 +256,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const SubscriptionsStatusRoute = SubscriptionsStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => SubscriptionsRoute,
+} as any)
 const SubscriptionsReportsRoute = SubscriptionsReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
+  '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -528,6 +535,7 @@ export interface FileRoutesByTo {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
+  '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -596,6 +604,7 @@ export interface FileRoutesById {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
+  '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -665,6 +674,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/subscriptions/reports'
+    | '/subscriptions/status'
     | '/admin/'
     | '/loyalty/'
     | '/agendamentos/grupo/$token'
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/subscriptions/reports'
+    | '/subscriptions/status'
     | '/admin'
     | '/loyalty'
     | '/agendamentos/grupo/$token'
@@ -797,6 +808,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/subscriptions/reports'
+    | '/subscriptions/status'
     | '/admin/'
     | '/loyalty/'
     | '/agendamentos/grupo/$token'
@@ -1107,6 +1119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/subscriptions/status': {
+      id: '/subscriptions/status'
+      path: '/status'
+      fullPath: '/subscriptions/status'
+      preLoaderRoute: typeof SubscriptionsStatusRouteImport
+      parentRoute: typeof SubscriptionsRoute
+    }
     '/subscriptions/reports': {
       id: '/subscriptions/reports'
       path: '/reports'
@@ -1393,10 +1412,12 @@ const LoyaltyRouteWithChildren =
 
 interface SubscriptionsRouteChildren {
   SubscriptionsReportsRoute: typeof SubscriptionsReportsRoute
+  SubscriptionsStatusRoute: typeof SubscriptionsStatusRoute
 }
 
 const SubscriptionsRouteChildren: SubscriptionsRouteChildren = {
   SubscriptionsReportsRoute: SubscriptionsReportsRoute,
+  SubscriptionsStatusRoute: SubscriptionsStatusRoute,
 }
 
 const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(

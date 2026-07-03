@@ -20,37 +20,36 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-type ProviderKey = "paggue" | "mercadopago" | "asaas" | "stripe" | "pagseguro" | "infinitepay" | "custom";
+type ProviderKey =
+  | "paggue"
+  | "mercadopago"
+  | "asaas"
+  | "stripe"
+  | "pagseguro"
+  | "pagarme"
+  | "paypal"
+  | "infinitepay"
+  | "custom";
 
 interface ProviderDef {
   key: ProviderKey;
   label: string;
   description: string;
-  fields: Array<{ name: string; label: string; type?: "text" | "password" | "url"; placeholder?: string; required?: boolean }>;
+  fields: Array<{ name: string; label: string; type?: "text" | "password" | "url"; placeholder?: string; required?: boolean; help?: string }>;
   hasEnvironment?: boolean;
+  webhookHint?: string;
 }
 
 const PROVIDERS: ProviderDef[] = [
   {
-    key: "paggue",
-    label: "Paggue",
-    description: "PIX, cartão e link de pagamento",
-    fields: [
-      { name: "client_id", label: "Client ID", required: true },
-      { name: "client_secret", label: "Client Secret", type: "password", required: true },
-      { name: "api_key", label: "API Key", type: "password", required: true },
-      { name: "webhook_secret", label: "Webhook Secret", type: "password" },
-    ],
-  },
-  {
     key: "mercadopago",
     label: "Mercado Pago",
-    description: "PIX, cartão e boleto",
+    description: "PIX, cartão e boleto — checkout hospedado + recorrência",
     fields: [
       { name: "access_token", label: "Access Token", type: "password", required: true, placeholder: "APP_USR-..." },
       { name: "public_key", label: "Public Key", placeholder: "APP_USR-..." },
-      { name: "webhook_secret", label: "Webhook Secret", type: "password" },
     ],
+    webhookHint: "Cadastre a URL abaixo no painel Mercado Pago → Suas integrações → Webhooks e cole aqui a 'Chave secreta' gerada.",
   },
   {
     key: "asaas",
@@ -60,35 +59,71 @@ const PROVIDERS: ProviderDef[] = [
       { name: "api_key", label: "API Key", type: "password", required: true, placeholder: "$aact_..." },
     ],
     hasEnvironment: true,
+    webhookHint: "No painel Asaas → Integrações → Webhooks, use a URL abaixo e defina um token — cole esse mesmo token aqui.",
+  },
+  {
+    key: "pagarme",
+    label: "Pagar.me",
+    description: "Cartão, PIX e assinatura recorrente (Core API v5)",
+    fields: [
+      { name: "secret_key", label: "Secret Key", type: "password", required: true, placeholder: "sk_test_..." },
+      { name: "public_key", label: "Public Key", placeholder: "pk_test_..." },
+    ],
+    hasEnvironment: true,
+    webhookHint: "Pagar.me assina o webhook com HMAC-SHA256. O secret é definido ao cadastrar o endpoint no dashboard.",
   },
   {
     key: "stripe",
     label: "Stripe",
-    description: "Cartão internacional",
+    description: "Cartão internacional + Checkout hospedado",
     fields: [
-      { name: "secret_key", label: "Secret Key", type: "password", required: true, placeholder: "sk_..." },
-      { name: "publishable_key", label: "Publishable Key", placeholder: "pk_..." },
-      { name: "webhook_secret", label: "Webhook Secret", type: "password", placeholder: "whsec_..." },
+      { name: "secret_key", label: "Secret Key", type: "password", required: true, placeholder: "sk_test_..." },
+      { name: "publishable_key", label: "Publishable Key", placeholder: "pk_test_..." },
     ],
+    hasEnvironment: true,
+    webhookHint: "No Dashboard Stripe → Developers → Webhooks, crie um endpoint com a URL abaixo. Copie o Signing Secret (whsec_...) aqui.",
   },
   {
     key: "pagseguro",
-    label: "PagSeguro",
-    description: "PIX, cartão e boleto",
+    label: "PagBank / PagSeguro",
+    description: "PIX, cartão e boleto (checkout hospedado)",
     fields: [
       { name: "email", label: "E-mail da conta", placeholder: "voce@exemplo.com" },
       { name: "token", label: "Token", type: "password", required: true },
     ],
     hasEnvironment: true,
+    webhookHint: "Cadastre a URL como Notification URL no PagBank e defina um token de autenticidade — o mesmo aqui.",
+  },
+  {
+    key: "paypal",
+    label: "PayPal",
+    description: "Assinatura recorrente internacional (Subscriptions API)",
+    fields: [
+      { name: "client_id", label: "Client ID", required: true, placeholder: "Axxx..." },
+      { name: "client_secret", label: "Client Secret", type: "password", required: true },
+    ],
+    hasEnvironment: true,
+    webhookHint: "No Developer Dashboard PayPal → Webhooks, crie um endpoint com a URL abaixo. Cole aqui o Webhook ID (não a URL).",
+  },
+  {
+    key: "paggue",
+    label: "Paggue",
+    description: "PIX cash-in (renovação mensal via cron do SaaS)",
+    fields: [
+      { name: "api_key", label: "API Key", type: "password", required: true },
+      { name: "client_id", label: "Client ID (opcional)" },
+      { name: "client_secret", label: "Client Secret (opcional)", type: "password" },
+    ],
+    webhookHint: "Paggue assina o webhook com HMAC-SHA256(body, secret). Defina o mesmo secret aqui e no painel Paggue.",
   },
   {
     key: "infinitepay",
     label: "InfinitePay",
-    description: "Maquininha e link de pagamento",
+    description: "Checkout hospedado por handle (@sua-loja)",
     fields: [
-      { name: "handle", label: "Handle InfinitePay", placeholder: "$seu-handle" },
-      { name: "api_key", label: "API Key", type: "password" },
+      { name: "handle", label: "Handle InfinitePay", required: true, placeholder: "sua-barbearia (sem @ ou $)" },
     ],
+    webhookHint: "Webhook é opcional na InfinitePay. Se ativar no painel, use HMAC-SHA256 e cole o secret aqui.",
   },
   {
     key: "custom",
