@@ -91,7 +91,7 @@ export function PremiumHeroCard({
     },
     nextAppt && {
       label: "Próximo",
-      value: format(new Date(nextAppt.start_time), "dd/MM 'às' HH:mm", { locale: ptBR }),
+      value: format(new Date(nextAppt.start_time), "dd/MM • HH:mm", { locale: ptBR }),
       icon: Scissors,
     },
     {
