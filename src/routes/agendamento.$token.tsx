@@ -764,11 +764,11 @@ function AppointmentManagementPage() {
             )}
             
             <Button 
-              variant="ghost"
-              className="w-full h-12 text-zinc-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+              variant="outline"
+              className="w-full h-12 rounded-2xl border border-zinc-800 bg-zinc-900/40 text-zinc-300 font-black uppercase text-xs tracking-widest hover:bg-zinc-800 hover:text-white transition-all"
               onClick={() => setCancellationStep('none')}
             >
-              Voltar
+              <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
             </Button>
           </div>
         </DialogContent>
