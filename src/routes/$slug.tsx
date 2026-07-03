@@ -1243,12 +1243,15 @@ function ShopPageComponent() {
 
         // === Subscription coverage check ===
         const elig = serviceEligibility[item.service_id];
+        const benefitCovered = isBenefitCovered(item.service_id);
         const isCoveredFull =
-          elig?.has_active_subscription &&
-          elig?.service_included &&
-          !elig?.requires_payment &&
-          elig?.reason === "full_coverage";
+          benefitCovered ||
+          (elig?.has_active_subscription &&
+            elig?.service_included &&
+            !elig?.requires_payment &&
+            elig?.reason === "full_coverage");
         const isCoveredPartial =
+          !benefitCovered &&
           elig?.has_active_subscription &&
           elig?.service_included &&
           elig?.requires_payment &&
@@ -1735,6 +1738,11 @@ function ShopPageComponent() {
     return total;
   };
 
+  const isBenefitCovered = (serviceId: string) =>
+    bookingMode === 'benefit' &&
+    !!activeSubscription &&
+    subPlanServices.some((ps: any) => ps.service_id === serviceId);
+
   const calculateSubscriptionCoverage = () => {
     const items = [
       ...bookingCart.map(i => ({ service_id: i.service_id, price: i.price || 0 })),
@@ -1742,6 +1750,13 @@ function ShopPageComponent() {
     ];
     let covered = 0;
     for (const it of items) {
+      // Benefit mode: services chosen inside the "Utilizar Benefício" flow are
+      // always covered by the active subscription — regardless of async
+      // eligibility RPC state — since only plan services are selectable there.
+      if (isBenefitCovered(it.service_id)) {
+        covered += it.price;
+        continue;
+      }
       const elig = serviceEligibility[it.service_id];
       if (!elig?.has_active_subscription || !elig?.service_included) continue;
       if (!elig?.requires_payment) {
