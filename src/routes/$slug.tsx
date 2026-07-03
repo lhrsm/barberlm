@@ -178,8 +178,12 @@ function ShopPageComponent() {
 
   // Subscription state
   const [_activeSubscription, setActiveSubscription] = useState<any>(null);
-  // Mask subscription when the module is disabled — keeps the booking flow as a regular client
-  const activeSubscription = subscriptionsEnabled ? _activeSubscription : null;
+  // Source of truth is the DB record itself. Do NOT gate on the "subscriptions"
+  // module flag here — that flag can be undefined/false briefly while the
+  // barbershop_modules query loads, which caused inconsistent rendering across
+  // browsers (Chrome/Edge) where cached module data raced with the subscription
+  // fetch and hid the "Plano Ativo" card for actual active subscribers.
+  const activeSubscription = _activeSubscription;
   const [serviceEligibility, setServiceEligibility] = useState<Record<string, any>>({});
   const [subPlanServices, setSubPlanServices] = useState<any[]>([]);
   const [subUsageLogs, setSubUsageLogs] = useState<any[]>([]);
