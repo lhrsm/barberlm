@@ -709,7 +709,7 @@ function AppointmentManagementPage() {
 
       {/* Financial Decision Modal */}
       <Dialog open={cancellationStep === 'financial_decision'} onOpenChange={(open) => !open && setCancellationStep('none')}>
-        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
+        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] max-w-sm w-[90%] p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <DollarSign className="text-primary w-8 h-8" />
