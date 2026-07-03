@@ -91,7 +91,7 @@ export function PremiumHeroCard({
     },
     nextAppt && {
       label: "Próximo",
-      value: format(new Date(nextAppt.start_time), "dd/MM 'às' HH:mm", { locale: ptBR }),
+      value: format(new Date(nextAppt.start_time), "dd/MM • HH:mm", { locale: ptBR }),
       icon: Scissors,
     },
     {
@@ -216,21 +216,21 @@ export function PremiumHeroCard({
         </div>
 
         {/* Quick stats strip */}
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
           {stats.map((s) => (
             <div
               key={s.label}
               className={cn(
-                "rounded-xl border p-3 backdrop-blur transition-all duration-300",
+                "rounded-xl border p-3 backdrop-blur transition-all duration-300 min-w-0",
                 "bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-white/20",
               )}
             >
               <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-black text-gray-500">
-                <s.icon className="h-3 w-3" /> {s.label}
+                <s.icon className="h-3 w-3 shrink-0" /> <span className="truncate">{s.label}</span>
               </div>
               <div
                 className={cn(
-                  "mt-1 font-black text-sm md:text-base truncate",
+                  "mt-1 font-black text-sm md:text-[15px] whitespace-nowrap",
                   s.accent === "gold"
                     ? "text-[#D4AF37]"
                     : s.accent === "emerald"

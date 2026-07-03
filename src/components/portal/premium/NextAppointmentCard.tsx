@@ -137,7 +137,7 @@ export function NextAppointmentCard({
                 covered ? "text-emerald-400" : "text-white",
               )}
             >
-              {covered ? "Incluso no Plano" : `R$ ${Number(next.service_price || 0).toFixed(2)}`}
+              {covered ? "Incluso no Plano" : `R$ ${Number(next.service_price ?? next.total_price ?? next.services?.price ?? 0).toFixed(2)}`}
             </p>
           </div>
         </div>
