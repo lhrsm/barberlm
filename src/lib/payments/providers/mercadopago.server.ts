@@ -151,8 +151,31 @@ export const mercadoPagoProvider: PaymentProvider = {
   async createSubscription(input: CreateSubscriptionInput): Promise<CreateSubscriptionResult> {
     const { gateway, customer, plan, returnUrl, metadata } = input;
 
+    // ── Validações prévias com mensagens amigáveis ──
+    const token = gateway.credentials?.access_token;
+    if (!token) {
+      throw new Error("Mercado Pago não está configurado. Configure o Access Token em Configurações > Pagamentos.");
+    }
+    const isSandboxToken = token.startsWith("TEST-");
+    const expectedSandbox = gateway.environment === "sandbox";
+    if (isSandboxToken !== expectedSandbox) {
+      throw new Error(
+        `Token do Mercado Pago está em ambiente ${isSandboxToken ? "de teste" : "de produção"}, mas o gateway está configurado como ${gateway.environment}.`,
+      );
+    }
+
     if (!/^https:\/\//i.test(returnUrl)) {
-      throw new Error("Mercado Pago exige returnUrl HTTPS público (não funciona em preview local).");
+      throw new Error("URL de retorno inválida. É necessário HTTPS público (não funciona em preview local).");
+    }
+
+    const email = String(customer.email ?? "").trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("E-mail do cliente é obrigatório e deve ser válido para criar a assinatura no Mercado Pago.");
+    }
+
+    const amount = Number(plan.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error("Valor do plano inválido para o Mercado Pago.");
     }
 
     const body = {
@@ -160,15 +183,24 @@ export const mercadoPagoProvider: PaymentProvider = {
       auto_recurring: {
         frequency: plan.intervalMonths ?? 1,
         frequency_type: "months",
-        transaction_amount: Number(plan.amount),
+        transaction_amount: Number(amount.toFixed(2)),
         currency_id: plan.currency ?? "BRL",
       },
       back_url: returnUrl,
-      payer_email: customer.email,
+      payer_email: email,
       external_reference: customer.id,
       status: "pending",
       ...(metadata && { metadata }),
     };
+
+    console.log("[MercadoPago] Criando preapproval", {
+      env: gateway.environment,
+      tokenPrefix: token.slice(0, 8),
+      plan: plan.name,
+      amount: body.auto_recurring.transaction_amount,
+      payer_email: email,
+      back_url: returnUrl,
+    });
 
     const res = await mpFetch("/preapproval", gateway, {
       method: "POST",
@@ -176,11 +208,33 @@ export const mercadoPagoProvider: PaymentProvider = {
     });
 
     if (!res.ok) {
-      throw new Error(
-        `Mercado Pago falhou ao criar assinatura: ${
-          typeof res.body === "object" && res.body ? JSON.stringify(res.body) : String(res.body)
-        }`,
-      );
+      console.error("[MercadoPago] preapproval error", {
+        status: res.status,
+        body: res.body,
+        payload: body,
+      });
+      const mpBody: any = res.body;
+      const mpMessage =
+        (typeof mpBody === "object" && mpBody && (mpBody.message ?? mpBody.error)) ||
+        (typeof mpBody === "string" ? mpBody : `HTTP ${res.status}`);
+      const cause =
+        typeof mpBody === "object" && Array.isArray(mpBody?.cause) && mpBody.cause.length
+          ? ` (${mpBody.cause.map((c: any) => c.description ?? c.code).join("; ")})`
+          : "";
+
+      // Traduz erros comuns do MP
+      let friendly = String(mpMessage);
+      if (res.status === 401 || /invalid.*token|unauthoriz/i.test(friendly)) {
+        friendly = "Token do Mercado Pago inválido ou expirado. Reconecte o gateway em Configurações > Pagamentos.";
+      } else if (res.status === 400 && /payer_email/i.test(friendly + cause)) {
+        friendly = "E-mail do cliente inválido para o Mercado Pago. Verifique o cadastro do cliente.";
+      } else if (res.status === 400 && /back_url/i.test(friendly + cause)) {
+        friendly = "URL de retorno inválida no Mercado Pago. Use HTTPS público.";
+      } else if (res.status === 500) {
+        friendly = `Mercado Pago retornou erro interno. ${friendly}${cause}. Verifique se a conta pode criar assinaturas e se o e-mail do pagador é diferente do e-mail da conta vendedora.`;
+      }
+
+      throw new Error(friendly);
     }
     const data = res.body as any;
     return {
@@ -190,6 +244,7 @@ export const mercadoPagoProvider: PaymentProvider = {
       raw: data,
     };
   },
+
 
   async parseWebhook(payload, headers, gateway): Promise<WebhookEvent | null> {
     const p = payload as any;
