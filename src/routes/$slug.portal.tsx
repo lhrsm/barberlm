@@ -71,7 +71,7 @@ import { ReviewModal } from "@/components/portal/ReviewModal";
 import { getSubscriptionUsage, categorizeService } from "@/hooks/use-subscription-usage";
 import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
-import { JourneyBarbex } from "@/components/portal/premium/journey/JourneyBarbex";
+import { SuaJornadaBarbex } from "@/components/portal/premium/journey/SuaJornadaBarbex";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
 import { MemberDashboard } from "@/components/portal/premium/MemberDashboard";
@@ -1120,12 +1120,18 @@ function ClientPortalComponent() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-        <PremiumHeroCard
+        <SuaJornadaBarbex
           client={client}
           shop={shop}
           customerData={customerData}
           mySubscription={mySubscription}
           appointments={appointments}
+          sales={sales}
+          loyaltyRewards={loyaltyRewards}
+          barbers={barbers}
+          products={products}
+          subscriptionsEnabled={subscriptionsEnabled}
+          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
         />
 
         <NextAppointmentCard
@@ -1136,13 +1142,6 @@ function ClientPortalComponent() {
           onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
         />
 
-        <JourneyBarbex
-          appointments={appointments}
-          customerData={customerData}
-          mySubscription={mySubscription}
-          loyaltyRewards={loyaltyRewards}
-          sales={sales}
-        />
 
 
         {mySubscription && (

@@ -1,28 +1,68 @@
-# Plan: Fix Appointment Confirmation Automation and Webhook Logic
+# Sua Jornada Barbex — Portal do Cliente
 
-I will fix the "Confirmação de agendamento" automation to ensure action options are always sent, either via Z-API buttons or as a numbered fallback in the message text. I will also update the webhook to handle both button clicks and typed responses more robustly.
+Substituir o topo atual do Portal por uma experiência premium baseada 100% em dados reais já existentes, componentizada e pronta para receber IA no futuro.
 
-## Proposed Changes
+## Escopo (frontend + presentation apenas)
 
-### 1. Update `supabase/functions/run-automations/index.ts`
-- Modify `processAppointmentConfirmation` to include the numbered options at the end of the message text.
-- Update the local `sendMessage` function to handle the 4th parameter (`options`) and implement a try-catch logic for Z-API buttons.
-- Add detailed logging for the sending process as requested.
+Sem novas tabelas, sem novas regras de negócio, sem alterações no banco. Usar apenas os dados já carregados em `src/routes/$slug.portal.tsx` (appointments, sales, customerData, mySubscription, loyaltyRewards, barbers, services, products, coupons).
 
-### 2. Update `supabase/functions/_shared/whatsapp-settings.ts`
-- Enhance the shared `sendMessage` function to be more robust, including the same button/fallback logic so other automations benefit from it.
-- Use `send-button-list` (or try it) and fallback to `send-text` if it fails.
+## Novo layout do topo (aba Dashboard)
 
-### 3. Update `supabase/functions/zapi-webhook/index.ts`
-- Update the `awaiting_main_action` state handler to recognize 'confirm', 'cancel', 'reschedule' and their Portuguese equivalents, as well as numbered options (1, 1️⃣, 2, 2️⃣, 3, 3️⃣).
-- Add logging for incoming messages and state transitions to facilitate debugging.
+Ordem visual, substituindo `PremiumHeroCard` + blocos atuais:
 
-## Technical Details
-- The fallback options will be appended to the message string in `processAppointmentConfirmation`.
-- The `sendMessage` function will try to use the Z-API `send-button-list` endpoint first. If it returns an error or the request fails, it will fall back to the standard `send-text` endpoint with the already augmented message.
-- Webhook matching will use `.toLowerCase()` and `.includes()` for better matching of user input.
+1. **HeroJornada** — saudação dinâmica (Bom dia/tarde/noite + nome), "Bem-vindo à {barbearia}", título "Sua Jornada Barbex", botão *Novo Agendamento*, foto do cliente e badges rápidas (cliente desde, atendimentos, investido, economia, cashback, créditos, próxima renovação, próximo atendimento).
+2. **AssistenteBarbex** — 3–4 frases geradas por regras a partir do histórico (cadência de corte/barba, economia, favorito). Fonte pronta para trocar por IA.
+3. **JornadaCards** — recomendações contextuais (só aparecem quando fazem sentido): corte vencido, barba vencida, cashback, créditos, próximo nível, plano cobre, barbeiro favorito com horário, aniversário, cupom.
+4. **QuickActions** — "O que deseja fazer hoje?" com botões: Agendar, Comprar produtos, Cashback, Créditos, Renovar, Alterar plano, Promoções.
+5. **TimelineBarbex** — linha do tempo com primeiro atendimento, último, hoje, próximo, próxima renovação, próxima recompensa, último cashback/crédito, última compra.
+6. **GamificacaoBarbex** — níveis Bronze/Prata/Ouro/Diamante/Black, badge, barra, benefícios, próxima categoria.
+7. **ProfissionalFavorito** — detectado automaticamente (mais frequente), com foto/nome/estatísticas e CTA.
+8. **EstatisticasPessoais** — grid compacto (atendimentos, investido, economia assinatura, economia cashback, produtos, tempo como cliente, barbeiro favorito, serviço favorito).
+9. **AreaAssinantePremium** — só se `mySubscription` existir: plano, uso restante, serviços inclusos, economia, renovação, benefícios.
+10. **ProdutosRecomendados** — baseado em `sales` e categorias já compradas, com selo "Recomendado para você".
 
-## Verification Plan
-1. Send a test confirmation message via the automation and verify it includes the numbered options in the text.
-2. Check the logs to see if Z-API buttons were attempted and if a fallback occurred.
-3. Simulate a user response (button click or text response) and verify the webhook processes it correctly by moving the state to `awaiting_scope_selection` or the next relevant state.
+Componentes existentes (`JourneyBarbex`, `JourneyInsights`, `PremiumDashboard`, `LoyaltyTierProgress`) permanecem disponíveis nas abas atuais; o topo do dashboard passa a usar os novos componentes acima.
+
+## Arquitetura
+
+Nova pasta `src/components/portal/premium/journey/`:
+
+```text
+journey/
+  HeroJornada.tsx
+  AssistenteBarbex.tsx
+  JornadaCards.tsx           (usa recommendationEngine.ts existente)
+  QuickActions.tsx
+  TimelineBarbex.tsx
+  GamificacaoBarbex.tsx
+  ProfissionalFavorito.tsx
+  EstatisticasPessoais.tsx
+  AreaAssinantePremium.tsx
+  ProdutosRecomendados.tsx
+  SuaJornadaBarbex.tsx       (orquestrador — recebe todos os dados, faz cálculos memoizados uma vez, renderiza os cards acima)
+  useJornadaData.ts          (hook puro: recebe dados brutos, devolve derivados memoizados — cadências, favoritos, agregados, tier)
+```
+
+- `useJornadaData` centraliza cálculos (favoritos, cadência média, economia, tier, próximas recomendações) para evitar recomputação por card.
+- `recommendationEngine.ts` já existente é estendido com regras faltantes (aniversário, plano cobre, barbeiro favorito com horário) e passa a alimentar `JornadaCards`.
+- Estrutura preparada para IA: `AssistenteBarbex` e `recommendationEngine` recebem `EngineInput` — no futuro basta trocar a implementação por uma chamada a `createServerFn` com Lovable AI, sem tocar na UI.
+
+## Integração no portal
+
+Em `src/routes/$slug.portal.tsx`, na aba dashboard, substituir o bloco inicial (Hero + Insights + Journey duplicados) por `<SuaJornadaBarbex ...props />`. Manter `NextAppointmentCard`, `MemberDashboard`, `PremiumDashboard`, `SubscriberPanel` nas posições atuais logo abaixo.
+
+Eventos dos CTAs continuam via `window.dispatchEvent(new CustomEvent(...))` (já consumidos pelo portal): `OPEN_BOOKING_MODAL`, `OPEN_LOYALTY_MODAL`, `OPEN_PLAN_DETAILS_MODAL`, `OPEN_SUBSCRIBE_MODAL`, `OPEN_PRODUCTS_TAB`, `OPEN_REVIEW_MODAL`.
+
+## Identidade visual
+
+Preto fosco `#0A0A0A`, dourado `#D4AF37`/`#F5D061`, grafite `#1A1A1A`, branco, verde (`emerald-400`) só para positivos. Glassmorphism (`bg-white/[0.03] backdrop-blur-xl`), bordas douradas sutis, glow discreto, micro animações Framer Motion (fade + translateY), skeleton loading, hover elegante (`-translate-y-0.5` + shadow dourada).
+
+## Performance
+
+- Dados já vêm do portal em uma única passada; nenhum fetch novo.
+- `useJornadaData` usa `useMemo` para todos os agregados.
+- Cards fora do viewport inicial usam `motion` com `whileInView` para animar sob demanda.
+
+## Fora de escopo agora (deixados para próxima iteração)
+
+Galeria antes/depois, Plano de Cuidados detalhado, Lista de Desejos e Programa de Indicação completo — dependem de novas tabelas/uploads. Vou colocar placeholders visuais somente quando os dados já existirem; caso contrário, os cards não são renderizados (regra "só aparecem quando fazem sentido").
