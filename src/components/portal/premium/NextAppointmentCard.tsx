@@ -40,13 +40,13 @@ export function NextAppointmentCard({
   onCancel,
   onNewAppointment,
 }: Props) {
-  const next = appointments
+  const upcoming = appointments
     .filter(
       (a) => ["scheduled", "confirmed"].includes(a.status) && new Date(a.start_time) >= new Date(),
     )
-    .sort((a, b) => +new Date(a.start_time) - +new Date(b.start_time))[0];
+    .sort((a, b) => +new Date(a.start_time) - +new Date(b.start_time));
 
-  if (!next) {
+  if (upcoming.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -71,6 +71,7 @@ export function NextAppointmentCard({
       </motion.div>
     );
   }
+
 
   const start = new Date(next.start_time);
   const covered = !!next.covered_by_subscription;
