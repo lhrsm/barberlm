@@ -7022,6 +7022,16 @@ export type Database = {
         }
         Returns: string
       }
+      create_or_get_public_customer: {
+        Args: {
+          p_barber_id?: string
+          p_email?: string
+          p_name: string
+          p_phone: string
+          p_slug: string
+        }
+        Returns: string
+      }
       customer_cancel_request_refund: {
         Args: {
           p_appointment_id: string
