@@ -1161,53 +1161,27 @@ function ShopPageComponent() {
       console.log('ACTION:', finalCustId ? 'select/update' : 'select/insert');
       
       if (!finalCustId) {
-        console.log('DEBUG: Checking for existing customer by phone', { phone: normalized });
-        const { data: existingCust, error: checkError } = await supabase
-          .from("customers")
-          .select("id")
-          .eq("phone", normalized)
-          .eq("user_id", shop.id)
-          .maybeSingle();
-        
-        if (checkError) {
-          console.error('SUPABASE ERROR (check customer):', checkError);
-          throw checkError;
+        console.log('DEBUG: create_or_get_public_customer via RPC', { phone: normalized });
+        const { data: rpcCustId, error: rpcError } = await supabase.rpc('create_or_get_public_customer', {
+          p_slug: shop.slug,
+          p_name: customerName,
+          p_phone: normalized,
+          p_email: null,
+        });
+        if (rpcError) {
+          console.error('SUPABASE ERROR (create_or_get_public_customer):', rpcError);
+          throw rpcError;
         }
-
-        if (existingCust) {
-          finalCustId = existingCust.id;
-          console.log('DEBUG: Found existing customer', finalCustId);
-          // Update name if it was missing or different
-          await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
-        } else {
-          console.log('DEBUG: Creating new customer', { name: customerName, phone: normalized });
-          const customerPayload = {
-            user_id: shop.id,
-            name: customerName,
-            phone: normalized
-          };
-          console.log('PAYLOAD:', customerPayload);
-          
-          const { data: newCust, error: custError } = await supabase
-            .from("customers")
-            .insert([customerPayload])
-            .select()
-            .single();
-          
-          if (custError) {
-            console.error('SUPABASE ERROR (insert customer):', custError);
-            throw custError;
-          }
-          finalCustId = newCust.id;
-          setCustomerId(finalCustId);
-          console.log('DEBUG: New customer created', finalCustId);
-        }
+        finalCustId = rpcCustId as string;
+        setCustomerId(finalCustId);
+        console.log('DEBUG: customer resolved via RPC', finalCustId);
       } else {
         // Sync name if changed
         console.log('DEBUG: Updating existing customer name', { id: finalCustId, name: customerName });
         const { error: updateError } = await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
         if (updateError) console.error('SUPABASE ERROR (update customer name):', updateError);
       }
+
 
       const isMultipleAppt = finalCart.length > 1;
       let appointmentGroupId = null;
