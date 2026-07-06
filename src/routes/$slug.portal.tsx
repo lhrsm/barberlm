@@ -1089,8 +1089,13 @@ function ClientPortalComponent() {
           </h1>
           <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" title="Sair" className="text-white hover:bg-white/10">
-                <LogOut size={20} />
+              <Button
+                variant="ghost"
+                title="Sair"
+                className="group h-9 gap-2 rounded-full border border-[#D4AF37]/25 bg-white/[0.03] px-3 text-xs font-bold uppercase tracking-[0.18em] text-[#D4AF37] backdrop-blur transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_20px_rgba(239,68,68,0.25)]"
+              >
+                <LogOut size={16} className="transition-transform group-hover:-translate-x-0.5" />
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">
