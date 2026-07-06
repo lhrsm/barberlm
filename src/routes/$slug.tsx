@@ -1166,7 +1166,7 @@ function ShopPageComponent() {
           p_slug: shop.slug,
           p_name: customerName,
           p_phone: normalized,
-          p_email: null,
+          p_email: undefined,
         });
         if (rpcError) {
           console.error('SUPABASE ERROR (create_or_get_public_customer):', rpcError);
