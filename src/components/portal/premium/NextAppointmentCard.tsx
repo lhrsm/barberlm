@@ -40,13 +40,13 @@ export function NextAppointmentCard({
   onCancel,
   onNewAppointment,
 }: Props) {
-  const next = appointments
+  const upcoming = appointments
     .filter(
       (a) => ["scheduled", "confirmed"].includes(a.status) && new Date(a.start_time) >= new Date(),
     )
-    .sort((a, b) => +new Date(a.start_time) - +new Date(b.start_time))[0];
+    .sort((a, b) => +new Date(a.start_time) - +new Date(b.start_time));
 
-  if (!next) {
+  if (upcoming.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -72,11 +72,14 @@ export function NextAppointmentCard({
     );
   }
 
-  const start = new Date(next.start_time);
-  const covered = !!next.covered_by_subscription;
 
-  const download = () => {
-    const blob = new Blob([buildIcs(next, shop)], { type: "text/calendar" });
+  const openMap = () => {
+    const q = encodeURIComponent(shop?.business_address || shop?.business_name || "");
+    if (q) window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, "_blank");
+  };
+
+  const download = (appt: any) => {
+    const blob = new Blob([buildIcs(appt, shop)], { type: "text/calendar" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -85,94 +88,105 @@ export function NextAppointmentCard({
     URL.revokeObjectURL(url);
   };
 
-  const openMap = () => {
-    const q = encodeURIComponent(shop?.business_address || shop?.business_name || "");
-    if (q) window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, "_blank");
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "relative overflow-hidden rounded-2xl border p-5 md:p-6",
-        "bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black",
-        "border-[#D4AF37]/30 shadow-[0_12px_40px_-15px_rgba(212,175,55,0.35)]",
-      )}
-    >
-      <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#D4AF37]/15 blur-3xl" />
-      <div className="relative flex flex-col md:flex-row md:items-center gap-5">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] grid place-items-center shadow-lg">
-            <Scissors className="h-6 w-6 text-black" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
-              Próximo Atendimento
-            </p>
-            <h3 className="text-lg md:text-xl font-black text-white truncate">
-              {next.services?.name || "Serviço"}
-            </h3>
-            <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-400">
-              <span className="inline-flex items-center gap-1">
-                <UserIcon className="h-3 w-3" /> {next.barbers?.name || "Profissional"}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <CalendarIcon className="h-3 w-3" />{" "}
-                {format(start, "dd 'de' MMM", { locale: ptBR })}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {format(start, "HH:mm")}
-              </span>
+    <div className="space-y-3">
+      {upcoming.map((next, idx) => {
+        const start = new Date(next.start_time);
+        const covered = !!next.covered_by_subscription;
+        const isFirst = idx === 0;
+        return (
+          <motion.div
+            key={next.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className={cn(
+              "relative overflow-hidden rounded-2xl border p-5 md:p-6",
+              "bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black",
+              isFirst
+                ? "border-[#D4AF37]/30 shadow-[0_12px_40px_-15px_rgba(212,175,55,0.35)]"
+                : "border-white/10",
+            )}
+          >
+            {isFirst && (
+              <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#D4AF37]/15 blur-3xl" />
+            )}
+            <div className="relative flex flex-col md:flex-row md:items-center gap-5">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] grid place-items-center shadow-lg">
+                  <Scissors className="h-6 w-6 text-black" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+                    {isFirst ? "Próximo Atendimento" : `Agendamento ${idx + 1}`}
+                  </p>
+                  <h3 className="text-lg md:text-xl font-black text-white truncate">
+                    {next.services?.name || "Serviço"}
+                  </h3>
+                  <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-400">
+                    <span className="inline-flex items-center gap-1">
+                      <UserIcon className="h-3 w-3" /> {next.barbers?.name || "Profissional"}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <CalendarIcon className="h-3 w-3" />{" "}
+                      {format(start, "dd 'de' MMM", { locale: ptBR })}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> {format(start, "HH:mm")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Valor</p>
+                  <p
+                    className={cn(
+                      "text-lg font-black",
+                      covered ? "text-emerald-400" : "text-white",
+                    )}
+                  >
+                    {covered ? "Incluso no Plano" : `R$ ${Number(next.service_price ?? next.total_price ?? next.services?.price ?? 0).toFixed(2)}`}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Valor</p>
-            <p
-              className={cn(
-                "text-lg font-black",
-                covered ? "text-emerald-400" : "text-white",
+            <div className="relative mt-5 pt-4 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-2">
+              {onReschedule && (
+                <button
+                  onClick={() => onReschedule(next)}
+                  className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/25 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" /> Reagendar
+                </button>
               )}
-            >
-              {covered ? "Incluso no Plano" : `R$ ${Number(next.service_price ?? next.total_price ?? next.services?.price ?? 0).toFixed(2)}`}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative mt-5 pt-4 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-2">
-        {onReschedule && (
-          <button
-            onClick={() => onReschedule(next)}
-            className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/25 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Reagendar
-          </button>
-        )}
-        {onCancel && (
-          <button
-            onClick={() => onCancel(next)}
-            className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-300 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-          >
-            <XCircle className="h-3.5 w-3.5" /> Cancelar
-          </button>
-        )}
-        <button
-          onClick={download}
-          className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/25 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-        >
-          <CalendarIcon className="h-3.5 w-3.5" /> Calendário
-        </button>
-        <button
-          onClick={openMap}
-          className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/25 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-        >
-          <MapPin className="h-3.5 w-3.5" /> Localização
-        </button>
-      </div>
-    </motion.div>
+              {onCancel && (
+                <button
+                  onClick={() => onCancel(next)}
+                  className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-300 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                >
+                  <XCircle className="h-3.5 w-3.5" /> Cancelar
+                </button>
+              )}
+              <button
+                onClick={() => download(next)}
+                className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/25 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+              >
+                <CalendarIcon className="h-3.5 w-3.5" /> Calendário
+              </button>
+              <button
+                onClick={openMap}
+                className="h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/25 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+              >
+                <MapPin className="h-3.5 w-3.5" /> Localização
+              </button>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }
+
