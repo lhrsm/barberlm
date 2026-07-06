@@ -4890,37 +4890,25 @@ function ShopPageComponent() {
                       saleCustomerId = custData.id;
                       console.log('DEBUG: Found existing customer for standalone sale', saleCustomerId);
                     } else if (customerName) {
-                      // For standalone product sales, we might need a barber_id too if the RLS requires it
                       const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
-                      
                       if (!defaultBarberId) {
                         throw new Error("Não foi possível identificar um profissional para esta venda.");
                       }
-
-                      // 2. Create new if not found
-                      const customerPayload = {
-                        user_id: shop.id,
-                        barber_id: defaultBarberId,
-                        name: customerName,
-                        phone: normalized,
-                        cashback_balance: 0,
-                        loyalty_points: 0
-                      };
-                      console.log('PAYLOAD:', customerPayload);
-
-                      const { data: newCust, error: createError } = await supabase
-                        .from("customers")
-                        .insert([customerPayload])
-                        .select("id")
-                        .single();
-                        
+                      const { data: rpcCustId, error: createError } = await supabase.rpc('create_or_get_public_customer', {
+                        p_slug: shop.slug,
+                        p_name: customerName,
+                        p_phone: normalized,
+                        p_email: undefined,
+                        p_barber_id: defaultBarberId,
+                      });
                       if (createError) {
-                        console.error('SUPABASE ERROR (insert customer standalone):', createError);
+                        console.error('SUPABASE ERROR (create_or_get_public_customer standalone):', createError);
                         throw createError;
                       }
-                      saleCustomerId = newCust.id;
-                      console.log('DEBUG: New customer created for standalone sale', saleCustomerId);
+                      saleCustomerId = rpcCustId as string;
+                      console.log('DEBUG: customer resolved via RPC (standalone)', saleCustomerId);
                     }
+
                   }
 
                   if (!saleCustomerId) throw new Error("Identificação do cliente é obrigatória para vendas.");
