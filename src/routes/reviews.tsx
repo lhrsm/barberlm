@@ -175,13 +175,14 @@ function ReviewsAdminPage() {
               Modere as avaliações dos seus clientes antes de exibi-las no site.
             </p>
           </div>
-          <Button
-            variant="outline"
+          <button
             onClick={removeEmpty}
-            className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+            className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-300 transition-colors shrink-0"
           >
-            <Trash2 className="h-4 w-4 mr-1.5" /> Limpar vazias
-          </Button>
+            <Trash2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Limpar vazias</span>
+            <span className="sm:hidden">Limpar</span>
+          </button>
         </header>
 
         {/* Premium segmented tabs */}
