@@ -12,7 +12,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BellRing, Plus, Trash2, Users } from "lucide-react";
+import { BellRing, Pencil, Plus, Trash2, Users } from "lucide-react";
 
 type Recipient = {
   id: string;
