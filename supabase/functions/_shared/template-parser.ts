@@ -51,6 +51,20 @@ export function processAutomationTemplate(template: string, data: Record<string,
     appointments_list: data.appointments_list || "",
     appointment_id: data.appointment_id || "",
     management_token: data.management_token || "",
+
+    // Event-driven automation placeholders
+    customer_phone: data.customer_phone || "",
+    payment_method: data.payment_method || "",
+    subscription_name: data.subscription_name || data.plan_name || "",
+    plan_name: data.plan_name || data.subscription_name || "",
+    cancel_reason: data.cancel_reason || "",
+    old_date: data.old_date || "",
+    old_time: data.old_time || "",
+    new_date: data.new_date || data.appointment_date || "",
+    new_time: data.new_time || data.appointment_time || "",
+    cashback_amount: data.cashback_amount || "",
+    credits_amount: data.credits_amount || "",
+    reward_name: data.reward_name || "",
   };
 
   // 3. Replace placeholders: {{variable}} or {variable}
