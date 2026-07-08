@@ -97,6 +97,13 @@ export function AutomationEditModal({
         .eq("id", automation.id);
 
       if (error) throw error;
+
+      // Also save configured interactions (buttons of new type)
+      if (interactionsRef.current) {
+        const ok = await interactionsRef.current.save();
+        if (!ok) return; // toast already shown by editor
+      }
+
       toast.success("Automação salva com sucesso!");
       onSave();
       onClose();
