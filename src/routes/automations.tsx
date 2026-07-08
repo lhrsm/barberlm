@@ -320,21 +320,38 @@ function AutomationsComponent() {
                           {grouped[cat].map((auto: any) => {
                             const rec = RECIPIENT_LABELS[auto.recipient || "customer"];
                             return (
-                              <Card key={auto.id} className="bg-[#0F172A] border-white/5 overflow-hidden">
-                                <div className="p-4 border-b border-white/5 space-y-2">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h3 className="text-sm font-black text-white uppercase tracking-tight leading-tight">{auto.name}</h3>
-                                    <Switch checked={!!auto.active} onCheckedChange={(v) => toggleActive(auto, v)} />
+                              <Card
+                                key={auto.id}
+                                className={`relative overflow-hidden rounded-2xl border transition-all ${
+                                  auto.active
+                                    ? "bg-gradient-to-b from-[#101a2e] to-[#0b1220] border-amber-500/30 shadow-[0_0_0_1px_rgba(245,158,11,0.15),0_10px_30px_-15px_rgba(245,158,11,0.4)]"
+                                    : "bg-[#0F172A] border-white/10 hover:border-white/20"
+                                }`}
+                              >
+                                {auto.active && (
+                                  <span className="absolute left-0 top-0 h-full w-[3px] bg-gradient-to-b from-amber-400 to-amber-600" />
+                                )}
+                                <div className="p-4 border-b border-white/5 space-y-2.5">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <h3 className="min-w-0 flex-1 text-sm font-black text-white uppercase tracking-tight leading-tight break-words">
+                                      {auto.name}
+                                    </h3>
+                                    <Switch
+                                      checked={!!auto.active}
+                                      onCheckedChange={(v) => toggleActive(auto, v)}
+                                      className="shrink-0 mt-0.5 h-6 w-11 border-2 data-[state=unchecked]:bg-slate-700 data-[state=unchecked]:border-slate-500/60 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-400 shadow-inner"
+                                      thumbClassName="h-5 w-5 bg-white data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0 shadow-md"
+                                    />
                                   </div>
                                   <div className="flex flex-wrap gap-1">
-                                    <Badge variant="outline" className={`text-[10px] ${rec.cls}`}>{rec.label}</Badge>
-                                    <Badge variant="outline" className="text-[10px] bg-slate-500/10 text-slate-400 border-slate-500/30">
+                                    <Badge variant="outline" className={`text-[10px] font-bold ${rec.cls}`}>{rec.label}</Badge>
+                                    <Badge variant="outline" className="text-[10px] bg-slate-500/10 text-slate-400 border-slate-500/30 font-mono">
                                       {auto.trigger_event}
                                     </Badge>
                                   </div>
                                 </div>
                                 <CardContent className="p-4">
-                                  <p className="text-[11px] text-slate-400 line-clamp-3 italic mb-3">"{auto.template}"</p>
+                                  <p className="text-[11px] text-slate-400 line-clamp-3 italic mb-3 min-h-[3.3em]">"{auto.template}"</p>
                                   <div className="flex gap-2">
                                     <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => { setSelectedAutomation(auto); setIsEditOpen(true); }}>
                                       <Settings2 className="mr-1 h-3 w-3" /> Editar
@@ -345,6 +362,7 @@ function AutomationsComponent() {
                                   </div>
                                 </CardContent>
                               </Card>
+
                             );
                           })}
                         </div>
