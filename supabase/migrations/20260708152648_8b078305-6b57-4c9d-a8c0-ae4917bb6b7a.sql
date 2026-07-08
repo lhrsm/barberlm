@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS loyalty_reward_value NUMERIC(10,2) NOT NULL DEFAULT 10.00;
