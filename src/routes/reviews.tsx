@@ -311,36 +311,41 @@ function ReviewsAdminPage() {
                 )}
 
                 {/* Actions */}
-                {(canApprove || canReject || r.show_on_frontend) && (
-                  <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                    {canApprove && (
-                      <Button
-                        onClick={() => moderate(r.id, "approve")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 font-bold"
-                      >
-                        <Check className="h-4 w-4 mr-1.5" /> Aprovar para o site
-                      </Button>
-                    )}
-                    {canReject && (
-                      <Button
-                        variant="outline"
-                        onClick={() => moderate(r.id, "reject")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
-                      >
-                        <XIcon className="h-4 w-4 mr-1.5" /> Rejeitar
-                      </Button>
-                    )}
-                    {r.show_on_frontend && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => moderate(r.id, "hide")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto text-gray-400 hover:text-gray-200 font-bold"
-                      >
-                        <EyeOff className="h-4 w-4 mr-1.5" /> Ocultar
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                  {canApprove && (
+                    <Button
+                      onClick={() => moderate(r.id, "approve")}
+                      className="h-11 rounded-[14px] w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 font-bold"
+                    >
+                      <Check className="h-4 w-4 mr-1.5" /> Aprovar para o site
+                    </Button>
+                  )}
+                  {canReject && (
+                    <Button
+                      variant="outline"
+                      onClick={() => moderate(r.id, "reject")}
+                      className="h-11 rounded-[14px] w-full sm:w-auto border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+                    >
+                      <XIcon className="h-4 w-4 mr-1.5" /> Rejeitar
+                    </Button>
+                  )}
+                  {r.show_on_frontend && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => moderate(r.id, "hide")}
+                      className="h-11 rounded-[14px] w-full sm:w-auto text-gray-400 hover:text-gray-200 font-bold"
+                    >
+                      <EyeOff className="h-4 w-4 mr-1.5" /> Ocultar
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    onClick={() => removeReview(r.id)}
+                    className="h-11 rounded-[14px] w-full sm:w-auto sm:ml-auto text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" /> Excluir
+                  </Button>
+                </div>
               </article>
             );
           })}
