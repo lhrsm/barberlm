@@ -186,6 +186,19 @@ serve(async (req) => {
         continue;
       }
 
+      // Delayed review template: only enqueue if we have a valid review_link
+      const isReviewTpl = tpl.key.includes(".review");
+      if (isReviewTpl) {
+        if (!appointmentExtras.review_link) {
+          console.warn(`[EmitEvent] review_link ausente — skip tpl=${tpl.key}`);
+          skipped.push({ template: tpl.key, reason: "review_link_missing" });
+          continue;
+        }
+      }
+      const scheduledFor = isReviewTpl
+        ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        : null;
+
       const idem = `${event}:${appointment_id || customer_id || "generic"}:${tpl.id}`;
 
       const { error: insErr } = await supabase.from("automation_queue").insert({
@@ -196,6 +209,7 @@ serve(async (req) => {
         workflow_key: tpl.key,
         event_name: event,
         status: "pending",
+        scheduled_for: scheduledFor,
         idempotency_key: idem,
         payload: {
           recipient,
@@ -205,10 +219,14 @@ serve(async (req) => {
           customer_name: customer?.name,
           customer_phone: customer?.phone,
           professional_name: barber?.name,
+          professional_phone: barber?.phone,
           barbershop_name: shopProfile?.business_name,
+          tenant_id,
+          appointment_id: appointment_id || null,
           ...(extra || {}),
         },
       });
+
 
       if (insErr) {
         // duplicate idem => idempotent no-op
