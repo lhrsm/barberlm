@@ -16,7 +16,7 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
         // domain so customers can actually open the link.
         const origin =
           process.env.PUBLIC_APP_URL?.replace(/\/$/, "") ||
-          "https://barbex.lovable.app";
+          "https://barbex.shop";
 
         const SUPABASE_URL = process.env.SUPABASE_URL!;
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
