@@ -340,6 +340,26 @@ serve(async (req) => {
 
         console.log(`[ProcessQueue] Sending message to ${phone}`);
 
+        // Fetch configured interactions (buttons) for this automation template
+        let interactionButtons: any[] = [];
+        if (automation?.id) {
+          const { data: interactions } = await supabase
+            .from("automation_interactions")
+            .select("id, button_title, button_icon, action_type, active, display_order")
+            .eq("automation_template_id", automation.id)
+            .eq("active", true)
+            .order("display_order", { ascending: true });
+
+          if (interactions && interactions.length > 0) {
+            interactionButtons = interactions.slice(0, 3).map((it: any) => {
+              const rendered = processAutomationTemplate(it.button_title || "", templateData);
+              const label = it.button_icon ? `${it.button_icon} ${rendered}` : rendered;
+              return { id: it.id, label };
+            });
+            console.log(`[ProcessQueue] Attaching ${interactionButtons.length} interactive buttons`);
+          }
+        }
+
         const sendResult = await sendAutomationMessageV2(supabase, {
           tenant_id: itemTenantId,
           workflow_key: currentWorkflowKey,
@@ -348,6 +368,7 @@ serve(async (req) => {
           customer_phone: phone,
           customer_name: customerName,
           message: renderedMessage,
+          buttons: interactionButtons.length > 0 ? interactionButtons : undefined,
           payload: { ...templateData },
           instance: instance
         });
