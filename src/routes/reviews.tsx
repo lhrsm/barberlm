@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Star, Check, X as XIcon, EyeOff, MessageSquare, Inbox, Scissors, User as UserIcon, Calendar as CalendarIcon, Quote } from "lucide-react";
+import { Star, Check, X as XIcon, EyeOff, MessageSquare, Inbox, Scissors, User as UserIcon, Calendar as CalendarIcon, Quote, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
