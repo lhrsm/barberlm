@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { triggerAutomation } from "@/utils/automation";
+import { emitAutomationEvent } from "@/utils/emit-event";
 import {
   Dialog,
   DialogContent,
@@ -505,6 +506,17 @@ function AppointmentGroupPage() {
         event_name: 'appointment.rescheduled',
         appointment_id: rescheduleData.id
       }).catch(console.error);
+
+      emitAutomationEvent({
+        tenantId: group.tenant_id,
+        event: 'appointment.rescheduled.by_customer',
+        appointmentId: rescheduleData.id,
+        customerId: group.customer_id,
+        extra: {
+          new_date: format(startTime, 'dd/MM/yyyy'),
+          new_time: format(startTime, 'HH:mm'),
+        },
+      });
 
       toast.success("Agendamento reagendado com sucesso!");
       setIsRescheduling(false);

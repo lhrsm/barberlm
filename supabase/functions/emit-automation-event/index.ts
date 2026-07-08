@@ -44,10 +44,10 @@ serve(async (req) => {
       .eq("active", true);
 
     if (tplErr) throw tplErr;
-    if (!templates || templates.length === 0) {
-      console.log("[EmitEvent] No active templates for event", event);
-      return json({ success: true, dispatched: 0, reason: "no_active_templates" });
-    }
+    console.log(`[EmitEvent] Templates found for ${event}: ${templates?.length || 0}`);
+    // NOTE: do NOT early-return when there are no templates — internal
+    // notification recipients (recepção/gerente/dono) must still receive
+    // panel + WhatsApp alerts even if no customer/barber/shop template exists.
 
     // 2. Load context: appointment / customer / barber / shop
     let appointment: any = null;
@@ -78,7 +78,7 @@ serve(async (req) => {
     const dispatched: string[] = [];
     const skipped: Array<{ template: string; reason: string }> = [];
 
-    for (const tpl of templates) {
+    for (const tpl of templates || []) {
       const recipient = tpl.recipient || "customer";
       let phone: string | null = null;
       let recipientName: string | null = null;
@@ -163,6 +163,8 @@ serve(async (req) => {
         .eq("is_active", true)
         .eq(internalFlag, true);
 
+      console.log(`[EmitEvent] Internal flag=${internalFlag} → recipients found: ${recipients?.length || 0}`);
+
       const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
@@ -174,26 +176,45 @@ serve(async (req) => {
         ...(extra || {}),
       });
 
+      const sentWaPhones = new Set<string>();
+      const sentPanelUsers = new Set<string>();
+
       for (const rcp of recipients || []) {
+        console.log(`[EmitEvent] Processing recipient ${rcp.name} (${rcp.phone}) wa=${rcp.receive_whatsapp} panel=${rcp.receive_panel}`);
+
         if (rcp.receive_whatsapp && rcp.phone) {
           const norm = normalizePhone(rcp.phone);
-          if (allowOnOfficial || !officialPhone || norm !== officialPhone) {
-            supabase.functions
-              .invoke("whatsapp-cloud", {
-                body: {
-                  user_id: tenant_id,
-                  phone: rcp.phone,
-                  content: internalMessage,
-                  metadata: { eventType: event, internal: true, recipient_id: rcp.id },
-                },
-              })
-              .catch((e) => console.error("[EmitEvent] Internal WA failed", e));
+          if (!norm) continue;
+          if (sentWaPhones.has(norm)) {
+            console.log(`[EmitEvent] Skip duplicate WA phone ${norm} (${rcp.name})`);
+            continue;
+          }
+          if (!allowOnOfficial && officialPhone && norm === officialPhone) {
+            console.log(`[EmitEvent] Skip WA to business phone ${norm} (${rcp.name})`);
+          } else {
+            sentWaPhones.add(norm);
+            const { data: waResp, error: waErr } = await supabase.functions.invoke("whatsapp-cloud", {
+              body: {
+                user_id: tenant_id,
+                phone: norm,
+                content: internalMessage,
+                metadata: { eventType: event, internal: true, recipient_id: rcp.id },
+              },
+            });
+            if (waErr) {
+              console.error(`[EmitEvent] Internal WA failed for ${rcp.name} (${norm})`, waErr);
+            } else {
+              console.log(`[EmitEvent] Internal WA sent to ${rcp.name} (${norm})`, waResp);
+            }
             internalRecipients.push(`wa:${rcp.name}`);
           }
         }
 
         if (rcp.receive_panel) {
-          await supabase.from("notifications").insert({
+          const panelKey = `${tenant_id}:${rcp.id}`;
+          if (sentPanelUsers.has(panelKey)) continue;
+          sentPanelUsers.add(panelKey);
+          const { error: notifErr } = await supabase.from("notifications").insert({
             user_id: tenant_id,
             tenant_id,
             type: event,
@@ -201,8 +222,9 @@ serve(async (req) => {
             message: internalMessage,
             data: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
             read: false,
-          }).then(() => internalRecipients.push(`panel:${rcp.name}`))
-            .catch((e: any) => console.error("[EmitEvent] Panel insert failed", e));
+          });
+          if (notifErr) console.error("[EmitEvent] Panel insert failed", notifErr);
+          else internalRecipients.push(`panel:${rcp.name}`);
         }
 
         if (rcp.receive_email && rcp.email) {
@@ -210,6 +232,8 @@ serve(async (req) => {
           internalRecipients.push(`email:${rcp.name}`);
         }
       }
+    } else {
+      console.log(`[EmitEvent] No internal flag mapping for event ${event}`);
     }
 
     // 4. Kick the processor (fire and forget)
