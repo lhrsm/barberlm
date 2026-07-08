@@ -114,6 +114,32 @@ function ReviewsAdminPage() {
     }
   };
 
+  const removeReview = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta avaliação? Esta ação não pode ser desfeita.")) return;
+    const { error } = await supabase.from("appointment_reviews").delete().eq("id", id);
+    if (error) toast.error("Erro ao excluir: " + error.message);
+    else {
+      toast.success("Avaliação excluída");
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+    }
+  };
+
+  const removeEmpty = async () => {
+    const empties = reviews.filter((r) => !r.testimonial_text && !r.submitted_at);
+    if (empties.length === 0) {
+      toast.info("Nenhuma avaliação vazia para excluir.");
+      return;
+    }
+    if (!confirm(`Excluir ${empties.length} avaliação(ões) sem resposta? Esta ação não pode ser desfeita.`)) return;
+    const ids = empties.map((r) => r.id);
+    const { error } = await supabase.from("appointment_reviews").delete().in("id", ids);
+    if (error) toast.error("Erro: " + error.message);
+    else {
+      toast.success(`${ids.length} avaliação(ões) excluída(s)`);
+      setReviews((prev) => prev.filter((r) => !ids.includes(r.id)));
+    }
+  };
+
   const filtered = reviews.filter(r =>
     filter === "all" ? true :
     filter === "pending" ? r.testimonial_status === "pending" :
