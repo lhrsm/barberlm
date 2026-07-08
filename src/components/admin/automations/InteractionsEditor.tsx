@@ -90,7 +90,15 @@ interface Props {
   automationTemplateId: string;
 }
 
-export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
+export interface InteractionsEditorHandle {
+  save: () => Promise<boolean>;
+  isDirty: () => boolean;
+}
+
+export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(function InteractionsEditor(
+  { tenantId, automationTemplateId },
+  ref,
+) {
   const [items, setItems] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
