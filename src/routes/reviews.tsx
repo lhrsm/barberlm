@@ -79,19 +79,25 @@ function ReviewsAdminPage() {
   const [filter, setFilter] = useState<FilterKey>("pending");
 
   const fetchReviews = async () => {
-    setLoading(true);
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) { setLoading(false); return; }
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("appointment_reviews")
       .select("*, customers(name, phone), barbers(name), appointments(start_time, services(name))")
       .eq("tenant_id", user.user.id)
       .order("created_at", { ascending: false });
+    if (error) toast.error("Erro ao carregar: " + error.message);
     setReviews(data || []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchReviews(); }, []);
+  useEffect(() => {
+    fetchReviews();
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session?.user) fetchReviews();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const moderate = async (id: string, action: "approve" | "reject" | "hide") => {
     const { data: user } = await supabase.auth.getUser();
