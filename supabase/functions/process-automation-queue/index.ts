@@ -262,6 +262,7 @@ serve(async (req) => {
 
         const templateData = {
           customer_name: customerName,
+          customer_phone: appointment?.customer?.phone || item.payload?.customer_phone || "",
           barbershop_name: barbershopName,
           service_name: serviceName,
           professional_name: profName,
@@ -270,6 +271,17 @@ serve(async (req) => {
           management_link: managementUrl,
           management_token: appointment?.management_token || appointment?.id,
           service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
+          payment_method: item.payload?.payment_method || appointment?.payment_method || "",
+          subscription_name: item.payload?.subscription_name || item.payload?.plan_name || "",
+          plan_name: item.payload?.plan_name || item.payload?.subscription_name || "",
+          cancel_reason: item.payload?.cancel_reason || "",
+          old_date: item.payload?.old_date || "",
+          old_time: item.payload?.old_time || "",
+          new_date: item.payload?.new_date || appointmentDate,
+          new_time: item.payload?.new_time || appointmentTime,
+          cashback_amount: item.payload?.cashback_amount || "",
+          credits_amount: item.payload?.credits_amount || "",
+          reward_name: item.payload?.reward_name || "",
         };
 
         console.log(`[ProcessQueue] Variables resolved for ${currentWorkflowKey}`, templateData);
