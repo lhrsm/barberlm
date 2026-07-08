@@ -312,7 +312,7 @@ serve(async (req) => {
               body: {
                 user_id: tenant_id,
                 phone: norm,
-                content: internalMessage,
+                content: buildFor(rcp.name),
                 metadata: { eventType: event, internal: true, recipient_id: rcp.id },
               },
             });
