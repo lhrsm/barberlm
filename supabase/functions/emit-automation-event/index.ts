@@ -78,7 +78,7 @@ serve(async (req) => {
     const dispatched: string[] = [];
     const skipped: Array<{ template: string; reason: string }> = [];
 
-    for (const tpl of templates) {
+    for (const tpl of templates || []) {
       const recipient = tpl.recipient || "customer";
       let phone: string | null = null;
       let recipientName: string | null = null;
