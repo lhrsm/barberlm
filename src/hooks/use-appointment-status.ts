@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { emitAutomationEvent } from "@/utils/emit-event";
 
 export function useAppointmentStatus() {
   const queryClient = useQueryClient();
@@ -85,6 +86,35 @@ export function useAppointmentStatus() {
       if (!result?.success) {
         toast.error(result?.error || `Erro ao marcar como ${newStatus}`);
         return { success: false, ...result };
+      }
+
+      // Event-driven automations (fire-and-forget; templates control who receives)
+      if (appt?.tenant_id) {
+        const cancelledBy = source.includes('portal') || source.includes('user_panel') || source.includes('public_link')
+          ? 'by_customer'
+          : source.includes('barber') || source.includes('professional')
+            ? 'by_barber'
+            : 'by_shop';
+
+        const eventMap: Record<string, string> = {
+          confirmed: 'appointment.confirmed',
+          completed: 'appointment.completed',
+          cancelled: `appointment.cancelled.${cancelledBy}`,
+          in_progress: 'appointment.started',
+        };
+        const evt = eventMap[newStatus];
+        if (evt) {
+          emitAutomationEvent({
+            tenantId: appt.tenant_id,
+            event: evt as any,
+            appointmentId,
+            customerId: appt.customer_id || undefined,
+            extra: {
+              cancel_reason: metadata?.cancel_reason || metadata?.reason || '',
+              payment_method: appt.payment_method || '',
+            },
+          });
+        }
       }
 
       const statusLabels: Record<string, string> = {

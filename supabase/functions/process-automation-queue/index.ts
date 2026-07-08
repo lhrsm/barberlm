@@ -262,6 +262,7 @@ serve(async (req) => {
 
         const templateData = {
           customer_name: customerName,
+          customer_phone: appointment?.customer?.phone || item.payload?.customer_phone || "",
           barbershop_name: barbershopName,
           service_name: serviceName,
           professional_name: profName,
@@ -270,6 +271,17 @@ serve(async (req) => {
           management_link: managementUrl,
           management_token: appointment?.management_token || appointment?.id,
           service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
+          payment_method: item.payload?.payment_method || appointment?.payment_method || "",
+          subscription_name: item.payload?.subscription_name || item.payload?.plan_name || "",
+          plan_name: item.payload?.plan_name || item.payload?.subscription_name || "",
+          cancel_reason: item.payload?.cancel_reason || "",
+          old_date: item.payload?.old_date || "",
+          old_time: item.payload?.old_time || "",
+          new_date: item.payload?.new_date || appointmentDate,
+          new_time: item.payload?.new_time || appointmentTime,
+          cashback_amount: item.payload?.cashback_amount || "",
+          credits_amount: item.payload?.credits_amount || "",
+          reward_name: item.payload?.reward_name || "",
         };
 
         console.log(`[ProcessQueue] Variables resolved for ${currentWorkflowKey}`, templateData);
@@ -303,9 +315,11 @@ serve(async (req) => {
 
         let renderedMessage = processAutomationTemplate(baseTemplate, templateData);
 
-        // Validation - Don't block everything, just this item
+        // Validation - only enforce placeholders on legacy appointment_confirmation flow.
+        // New event templates handle their own placeholders per event type.
+        const isLegacyAppointmentFlow = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
         const placeholders = ['{customer_name}', '{barbershop_name}', '{service_name}', '{professional_name}', '{appointment_date}', '{appointment_time}', '{management_link}'];
-        const missing = placeholders.filter(p => renderedMessage.includes(p) || renderedMessage.includes(p.replace('{', '{{').replace('}', '}}')));
+        const missing = isLegacyAppointmentFlow ? placeholders.filter(p => renderedMessage.includes(p) || renderedMessage.includes(p.replace('{', '{{').replace('}', '}}'))) : [];
 
         if (missing.length > 0) {
           const errorMsg = `Template possui variáveis não substituídas: ${missing.join(', ')}`;
@@ -338,10 +352,26 @@ serve(async (req) => {
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).maybeSingle();
         if (!instance) throw new Error("WhatsApp not configured (instance not found)");
 
-        const phone = appointment?.customer?.phone || item.customer?.phone || item.payload?.phone;
-        if (!phone) throw new Error("Customer phone missing");
+        // Recipient-aware phone resolution (event-driven automations set payload.recipient_phone)
+        const recipient = automation?.recipient || item.payload?.recipient || 'customer';
+        let phone: string | null = item.payload?.recipient_phone || null;
+        if (!phone) {
+          if (recipient === 'barber') {
+            const barberId = appointment?.barber_id || appointment?.professional_id;
+            if (barberId) {
+              const { data: b } = await supabase.from('barbers').select('phone').eq('id', barberId).maybeSingle();
+              phone = b?.phone || null;
+            }
+          } else if (recipient === 'shop') {
+            const { data: p } = await supabase.from('profiles').select('whatsapp_number').eq('id', itemTenantId).maybeSingle();
+            phone = p?.whatsapp_number || null;
+          } else {
+            phone = appointment?.customer?.phone || item.customer?.phone || item.payload?.phone || null;
+          }
+        }
+        if (!phone) throw new Error(`Phone missing for recipient=${recipient}`);
 
-        console.log(`[ProcessQueue] Sending message to ${phone}`);
+        console.log(`[ProcessQueue] Sending to ${recipient} (${phone})`);
 
         // Fetch configured interactions (buttons) for this automation template
         let interactionButtons: any[] = [];

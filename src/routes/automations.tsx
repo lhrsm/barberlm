@@ -282,32 +282,79 @@ function AutomationsComponent() {
           />
           <PremiumTabsBody>
             <PremiumTabsContent value="active">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {automations.map((auto) => (
-                  <Card key={auto.id} className="bg-[#0F172A] border-white/5 overflow-hidden">
-                    <div className="p-6 border-b border-white/5 flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-black text-white uppercase tracking-tighter">{auto.name}</h3>
-                        <Badge className={auto.active ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-500/10 text-slate-500"}>
-                          {auto.active ? "Ativo" : "Inativo"}
-                        </Badge>
+              {(() => {
+                const CATEGORY_LABELS: Record<string, string> = {
+                  agendamentos: "Agendamentos",
+                  assinaturas: "Assinaturas",
+                  financeiro: "Financeiro",
+                  fidelidade: "Fidelidade",
+                  marketing: "Marketing",
+                };
+                const RECIPIENT_LABELS: Record<string, { label: string; cls: string }> = {
+                  customer: { label: "Cliente", cls: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
+                  barber: { label: "Barbeiro", cls: "bg-purple-500/10 text-purple-400 border-purple-500/30" },
+                  shop: { label: "Barbearia", cls: "bg-amber-500/10 text-amber-400 border-amber-500/30" },
+                };
+                const grouped = automations.reduce((acc: Record<string, any[]>, a: any) => {
+                  const cat = a.category || "agendamentos";
+                  (acc[cat] ||= []).push(a);
+                  return acc;
+                }, {});
+                const catOrder = ["agendamentos", "assinaturas", "financeiro", "fidelidade", "marketing"];
+                const toggleActive = async (auto: any, next: boolean) => {
+                  setAutomations((prev) => prev.map((x) => (x.id === auto.id ? { ...x, active: next } : x)));
+                  const { error } = await anySupabase.from("automation_templates").update({ active: next }).eq("id", auto.id);
+                  if (error) {
+                    toast.error("Erro ao atualizar: " + error.message);
+                    setAutomations((prev) => prev.map((x) => (x.id === auto.id ? { ...x, active: !next } : x)));
+                  } else {
+                    toast.success(next ? "Ativada" : "Desativada");
+                  }
+                };
+                return (
+                  <div className="space-y-8">
+                    {catOrder.filter((c) => grouped[c]?.length).map((cat) => (
+                      <div key={cat}>
+                        <h2 className="text-xs font-black uppercase tracking-widest text-amber-500 mb-3">{CATEGORY_LABELS[cat]}</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {grouped[cat].map((auto: any) => {
+                            const rec = RECIPIENT_LABELS[auto.recipient || "customer"];
+                            return (
+                              <Card key={auto.id} className="bg-[#0F172A] border-white/5 overflow-hidden">
+                                <div className="p-4 border-b border-white/5 space-y-2">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <h3 className="text-sm font-black text-white uppercase tracking-tight leading-tight">{auto.name}</h3>
+                                    <Switch checked={!!auto.active} onCheckedChange={(v) => toggleActive(auto, v)} />
+                                  </div>
+                                  <div className="flex flex-wrap gap-1">
+                                    <Badge variant="outline" className={`text-[10px] ${rec.cls}`}>{rec.label}</Badge>
+                                    <Badge variant="outline" className="text-[10px] bg-slate-500/10 text-slate-400 border-slate-500/30">
+                                      {auto.trigger_event}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <CardContent className="p-4">
+                                  <p className="text-[11px] text-slate-400 line-clamp-3 italic mb-3">"{auto.template}"</p>
+                                  <div className="flex gap-2">
+                                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => { setSelectedAutomation(auto); setIsEditOpen(true); }}>
+                                      <Settings2 className="mr-1 h-3 w-3" /> Editar
+                                    </Button>
+                                    <Button size="sm" className="flex-1 bg-amber-500 text-black hover:bg-amber-600 text-xs" onClick={() => { setSelectedAutomation(auto); setIsTestOpen(true); }}>
+                                      <Play className="mr-1 h-3 w-3" /> Testar
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                    <CardContent className="p-6">
-                      <p className="text-xs text-slate-400 line-clamp-3 italic mb-6">"{auto.template}"</p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1" onClick={() => { setSelectedAutomation(auto); setIsEditOpen(true); }}>
-                          <Settings2 className="mr-2 h-4 w-4" /> Editar
-                        </Button>
-                        <Button className="flex-1 bg-amber-500 text-black hover:bg-amber-600" onClick={() => { setSelectedAutomation(auto); setIsTestOpen(true); }}>
-                          <Play className="mr-2 h-4 w-4" /> Testar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </PremiumTabsContent>
+
 
             <PremiumTabsContent value="history">
               <div className="space-y-3">
