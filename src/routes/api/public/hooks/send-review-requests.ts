@@ -10,8 +10,13 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const url = new URL(request.url);
-        const origin = `${url.protocol}//${url.host}`;
+        // Public origin for review links. The cron calls this endpoint via the
+        // stable `project--<id>.lovable.app` URL, but that host serves 403
+        // ("Forbidden") for non /api/public/* routes. Use the published app
+        // domain so customers can actually open the link.
+        const origin =
+          process.env.PUBLIC_APP_URL?.replace(/\/$/, "") ||
+          "https://barbex.lovable.app";
 
         const SUPABASE_URL = process.env.SUPABASE_URL!;
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
