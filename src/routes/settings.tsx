@@ -45,6 +45,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ModulesSettings } from "@/components/settings/ModulesSettings";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
+import { InternalRecipientsSettings } from "@/components/settings/InternalRecipientsSettings";
 import { PaymentsSettings } from "@/components/settings/PaymentsSettings";
 import { LgpdSettings } from "@/components/settings/LgpdSettings";
 import { DangerZone } from "@/components/settings/DangerZone";
@@ -1193,6 +1194,8 @@ function SettingsComponent() {
               </Card>
 
               <WhatsAppSettings />
+
+              <InternalRecipientsSettings />
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">

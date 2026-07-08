@@ -131,6 +131,87 @@ serve(async (req) => {
       dispatched.push(tpl.key);
     }
 
+    // 3b. Internal notification recipients (dono, gerente, recepção, etc.)
+    const eventFlagMap: Record<string, string> = {
+      "appointment.created": "notify_new_appointment",
+      "appointment.confirmed": "notify_new_appointment",
+      "appointment.rescheduled.by_customer": "notify_rescheduled_appointment",
+      "appointment.rescheduled.by_barber": "notify_rescheduled_appointment",
+      "appointment.rescheduled.by_shop": "notify_rescheduled_appointment",
+      "appointment.cancelled.by_customer": "notify_cancelled_appointment",
+      "appointment.cancelled.by_barber": "notify_cancelled_appointment",
+      "appointment.cancelled.by_shop": "notify_cancelled_appointment",
+      "appointment.completed": "notify_completed_appointment",
+      "subscription.created": "notify_new_subscription",
+      "subscription.cancelled": "notify_subscription_cancelled",
+      "subscription.renewed": "notify_payment_received",
+      "subscription.renewal_failed": "notify_payment_failed",
+      "payment.confirmed": "notify_payment_received",
+      "review.received": "notify_review_received",
+      "review.bad": "notify_bad_review",
+      "support.ticket_created": "notify_support_ticket",
+      "automation.failed": "notify_automation_failure",
+    };
+    const internalFlag = eventFlagMap[event];
+    const internalRecipients: string[] = [];
+
+    if (internalFlag) {
+      const { data: recipients } = await supabase
+        .from("notification_recipients")
+        .select("*")
+        .eq("tenant_id", tenant_id)
+        .eq("is_active", true)
+        .eq(internalFlag, true);
+
+      const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
+      const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
+
+      const internalMessage = buildInternalMessage(event, {
+        customer_name: customer?.name,
+        customer_phone: customer?.phone,
+        barber_name: barber?.name,
+        shop_name: shopProfile?.business_name,
+        ...(extra || {}),
+      });
+
+      for (const rcp of recipients || []) {
+        if (rcp.receive_whatsapp && rcp.phone) {
+          const norm = normalizePhone(rcp.phone);
+          if (allowOnOfficial || !officialPhone || norm !== officialPhone) {
+            supabase.functions
+              .invoke("whatsapp-cloud", {
+                body: {
+                  user_id: tenant_id,
+                  phone: rcp.phone,
+                  content: internalMessage,
+                  metadata: { eventType: event, internal: true, recipient_id: rcp.id },
+                },
+              })
+              .catch((e) => console.error("[EmitEvent] Internal WA failed", e));
+            internalRecipients.push(`wa:${rcp.name}`);
+          }
+        }
+
+        if (rcp.receive_panel) {
+          await supabase.from("notifications").insert({
+            user_id: tenant_id,
+            tenant_id,
+            type: event,
+            title: internalTitle(event),
+            message: internalMessage,
+            data: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
+            read: false,
+          }).then(() => internalRecipients.push(`panel:${rcp.name}`))
+            .catch((e: any) => console.error("[EmitEvent] Panel insert failed", e));
+        }
+
+        if (rcp.receive_email && rcp.email) {
+          console.log("[EmitEvent] Would email", rcp.email, event);
+          internalRecipients.push(`email:${rcp.name}`);
+        }
+      }
+    }
+
     // 4. Kick the processor (fire and forget)
     if (dispatched.length > 0) {
       supabase.functions
@@ -138,7 +219,7 @@ serve(async (req) => {
         .catch((e) => console.error("[EmitEvent] Kick failed", e));
     }
 
-    return json({ success: true, dispatched, skipped });
+    return json({ success: true, dispatched, skipped, internal: internalRecipients });
   } catch (e: any) {
     console.error("[EmitEvent] Fatal", e);
     return json({ success: false, error: e.message }, 500);
@@ -150,4 +231,59 @@ function json(body: any, status = 200) {
     status,
     headers: { ...cors, "Content-Type": "application/json" },
   });
+}
+
+function normalizePhone(p?: string | null): string {
+  if (!p) return "";
+  const digits = String(p).replace(/\D/g, "");
+  return digits.startsWith("55") ? digits : digits.length >= 10 ? `55${digits}` : digits;
+}
+
+function internalTitle(event: string): string {
+  const map: Record<string, string> = {
+    "appointment.created": "Novo agendamento",
+    "appointment.confirmed": "Agendamento confirmado",
+    "appointment.completed": "Atendimento concluído",
+    "appointment.cancelled.by_customer": "Agendamento cancelado pelo cliente",
+    "appointment.cancelled.by_barber": "Agendamento cancelado pelo barbeiro",
+    "appointment.cancelled.by_shop": "Agendamento cancelado pela barbearia",
+    "appointment.rescheduled.by_customer": "Reagendamento pelo cliente",
+    "appointment.rescheduled.by_barber": "Reagendamento pelo barbeiro",
+    "appointment.rescheduled.by_shop": "Reagendamento pela barbearia",
+    "subscription.created": "Novo assinante",
+    "subscription.cancelled": "Assinatura cancelada",
+    "subscription.renewed": "Assinatura renovada",
+    "subscription.renewal_failed": "Falha na renovação",
+    "payment.confirmed": "Pagamento confirmado",
+    "review.received": "Nova avaliação",
+    "review.bad": "Avaliação negativa recebida",
+    "support.ticket_created": "Novo chamado de suporte",
+    "automation.failed": "Falha em automação",
+  };
+  return map[event] || "Notificação Barbex";
+}
+
+function buildInternalMessage(event: string, d: Record<string, any>): string {
+  const line = (label: string, value: any) => (value ? `${label}: ${value}\n` : "");
+  const header = internalTitle(event);
+  if (event.startsWith("appointment.cancelled")) {
+    const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";
+    return `❌ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date || d.new_date)}${line("Horário", d.appointment_time || d.new_time)}Cancelado por: ${who}\n${line("Motivo", d.cancel_reason)}`.trim();
+  }
+  if (event.startsWith("appointment.rescheduled")) {
+    return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
+  }
+  if (event === "appointment.created" || event === "appointment.confirmed") {
+    return `📅 ${header}\n\n${line("Cliente", d.customer_name)}${line("Telefone", d.customer_phone)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date)}${line("Horário", d.appointment_time)}${line("Valor", d.service_price)}${line("Pagamento", d.payment_method)}`.trim();
+  }
+  if (event === "appointment.completed") {
+    return `✅ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}`.trim();
+  }
+  if (event.startsWith("subscription.")) {
+    return `💳 ${header}\n\n${line("Cliente", d.customer_name)}${line("Plano", d.plan_name || d.subscription_name)}${line("Valor", d.amount)}`.trim();
+  }
+  if (event === "payment.confirmed") {
+    return `💰 ${header}\n\n${line("Cliente", d.customer_name)}${line("Valor", d.amount)}${line("Método", d.payment_method)}`.trim();
+  }
+  return `${header}\n\n${line("Cliente", d.customer_name)}`.trim();
 }
