@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { InteractionsEditor } from "./InteractionsEditor";
 
 interface AutomationEditModalProps {
   isOpen: boolean;
@@ -228,12 +229,14 @@ export function AutomationEditModal({
             </div>
           )}
           
-          {/* Simple Button Editor (Can be expanded if needed) */}
-          <div className="grid gap-2">
-            <Label>Botões (opcional)</Label>
-            <p className="text-xs text-muted-foreground mb-2">Configure os botões que aparecerão na mensagem.</p>
-            {/* Logic for buttons could be added here if complex, for now we keep it simple */}
-          </div>
+          {automation?.id && automation?.tenant_id && (
+            <div className="border-t pt-4">
+              <InteractionsEditor
+                tenantId={automation.tenant_id}
+                automationTemplateId={automation.id}
+              />
+            </div>
+          )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
