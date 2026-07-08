@@ -268,15 +268,14 @@ export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(fu
           <Sparkles className="h-4 w-4 text-primary" />
           <h4 className="text-sm font-semibold">Interações da mensagem</h4>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={addInteraction}>
+        <div className="flex gap-2 items-center">
+          {isDirty && (
+            <span className="text-[10px] text-amber-600">Alterações pendentes</span>
+          )}
+          {saving && <span className="text-[10px] text-muted-foreground">Salvando...</span>}
+          <Button size="sm" variant="outline" onClick={addInteraction} disabled={saving}>
             <Plus className="h-3 w-3 mr-1" /> Nova interação
           </Button>
-          {isDirty && (
-            <Button size="sm" onClick={save} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar interações"}
-            </Button>
-          )}
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
