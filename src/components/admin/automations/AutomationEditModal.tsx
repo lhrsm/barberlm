@@ -47,6 +47,7 @@ export function AutomationEditModal({
   automation,
   onSave,
 }: AutomationEditModalProps) {
+  const interactionsRef = useRef<InteractionsEditorHandle>(null);
   const [formData, setFormData] = useState<any>({
     name: "",
     active: true,
