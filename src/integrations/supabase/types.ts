@@ -1473,6 +1473,7 @@ export type Database = {
           active: boolean | null
           additional_templates: Json | null
           buttons: Json | null
+          category: string
           channel: string
           created_at: string | null
           id: string
@@ -1480,6 +1481,7 @@ export type Database = {
           last_notified_at: string | null
           last_reprocessed_at: string | null
           name: string
+          recipient: string
           reprocessing_attempts: number | null
           reprocessing_config: Json | null
           reprocessing_history: Json | null
@@ -1496,6 +1498,7 @@ export type Database = {
           active?: boolean | null
           additional_templates?: Json | null
           buttons?: Json | null
+          category?: string
           channel?: string
           created_at?: string | null
           id?: string
@@ -1503,6 +1506,7 @@ export type Database = {
           last_notified_at?: string | null
           last_reprocessed_at?: string | null
           name: string
+          recipient?: string
           reprocessing_attempts?: number | null
           reprocessing_config?: Json | null
           reprocessing_history?: Json | null
@@ -1519,6 +1523,7 @@ export type Database = {
           active?: boolean | null
           additional_templates?: Json | null
           buttons?: Json | null
+          category?: string
           channel?: string
           created_at?: string | null
           id?: string
@@ -1526,6 +1531,7 @@ export type Database = {
           last_notified_at?: string | null
           last_reprocessed_at?: string | null
           name?: string
+          recipient?: string
           reprocessing_attempts?: number | null
           reprocessing_config?: Json | null
           reprocessing_history?: Json | null
