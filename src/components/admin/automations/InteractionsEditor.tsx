@@ -199,7 +199,7 @@ export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(fu
     });
   };
 
-  const save = async () => {
+  const save = async (): Promise<boolean> => {
     setSaving(true);
     try {
       if (deletedIds.length > 0) {
@@ -209,6 +209,7 @@ export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(fu
           .in("id", deletedIds);
         if (error) throw error;
       }
+      const savedItems: Interaction[] = [];
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
         const payload = {
@@ -230,23 +231,35 @@ export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(fu
             .update(payload)
             .eq("id", it.id);
           if (error) throw error;
+          savedItems.push({ ...it, _dirty: false, _new: false });
         } else {
-          const { error } = await (supabase as any)
+          const { data, error } = await (supabase as any)
             .from("automation_interactions")
-            .insert(payload);
+            .insert(payload)
+            .select()
+            .single();
           if (error) throw error;
+          savedItems.push({ ...it, id: data.id, _dirty: false, _new: false });
         }
       }
+      setItems(savedItems);
       setDeletedIds([]);
-      toast.success("Interações salvas!");
+      return true;
     } catch (e: any) {
       toast.error("Erro ao salvar interações: " + e.message);
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
   const isDirty = deletedIds.length > 0 || items.some((it) => it._dirty);
+
+  useImperativeHandle(ref, () => ({
+    save,
+    isDirty: () => isDirty,
+  }), [save, isDirty]);
+
 
   return (
     <div className="space-y-3">
