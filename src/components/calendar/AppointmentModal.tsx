@@ -448,6 +448,17 @@ export function AppointmentModal({
         console.error("Failed to trigger automation:", err);
       });
 
+      // Event-driven fan-out (barber/shop + any active per-recipient templates)
+      emitAutomationEvent({
+        tenantId,
+        event: editingAppointmentId ? 'appointment.rescheduled.by_shop' : 'appointment.created',
+        appointmentId: appointmentData.id,
+        customerId: selectedCustomer,
+        extra: {
+          payment_method: appointmentData.payment_method || '',
+        },
+      });
+
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
       setCurrentStep(1);
