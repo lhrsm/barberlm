@@ -108,7 +108,7 @@ export function useAppointmentStatus() {
             tenantId: appt.tenant_id,
             event: evt as any,
             appointmentId,
-            customerId: appt.customer_id,
+            customerId: appt.customer_id || undefined,
             extra: {
               cancel_reason: metadata?.cancel_reason || metadata?.reason || '',
               payment_method: appt.payment_method || '',
