@@ -88,16 +88,50 @@ serve(async (req) => {
       } catch { return String(d); }
     };
     const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
-    const appointmentExtras = appointment ? {
+    const appointmentExtras: Record<string, any> = appointment ? {
       service_name: appointment.service?.name,
       service_price: fmtBRL(appointment.price ?? appointment.service?.price),
       appointment_date: fmtDate(appointment.appointment_date),
       appointment_time: fmtTime(appointment.appointment_time),
       payment_method: appointment.payment_method,
-      management_link: appointment.management_token && shopProfile?.slug
+      management_link: appointment.management_token
         ? `https://barbex.shop/agendamento/${appointment.management_token}`
         : undefined,
     } : {};
+
+    // For appointment.completed: ensure a review_token/link so the delayed
+    // review template has something valid to send.
+    if (event === "appointment.completed" && appointment?.id && customer?.id) {
+      try {
+        const { data: existing } = await supabase
+          .from("appointment_reviews")
+          .select("review_token")
+          .eq("appointment_id", appointment.id)
+          .maybeSingle();
+        let token = existing?.review_token as string | undefined;
+        if (!token) {
+          token = crypto.randomUUID();
+          const { error: upErr } = await supabase.from("appointment_reviews").upsert({
+            tenant_id,
+            appointment_id: appointment.id,
+            customer_id: customer.id,
+            barber_id: appointment.barber_id,
+            review_token: token,
+            token_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            testimonial_status: "pending",
+            show_on_frontend: false,
+          }, { onConflict: "appointment_id" });
+          if (upErr) console.warn("[EmitEvent] review token upsert failed", upErr);
+        }
+        if (token) {
+          appointmentExtras.review_token = token;
+          appointmentExtras.review_link = `https://barbex.shop/review/${token}`;
+        }
+      } catch (e) {
+        console.warn("[EmitEvent] review link generation error", e);
+      }
+    }
+
 
 
     // 3. For each active template, enqueue one row with the right recipient phone
