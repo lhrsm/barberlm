@@ -88,16 +88,50 @@ serve(async (req) => {
       } catch { return String(d); }
     };
     const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
-    const appointmentExtras = appointment ? {
+    const appointmentExtras: Record<string, any> = appointment ? {
       service_name: appointment.service?.name,
       service_price: fmtBRL(appointment.price ?? appointment.service?.price),
       appointment_date: fmtDate(appointment.appointment_date),
       appointment_time: fmtTime(appointment.appointment_time),
       payment_method: appointment.payment_method,
-      management_link: appointment.management_token && shopProfile?.slug
+      management_link: appointment.management_token
         ? `https://barbex.shop/agendamento/${appointment.management_token}`
         : undefined,
     } : {};
+
+    // For appointment.completed: ensure a review_token/link so the delayed
+    // review template has something valid to send.
+    if (event === "appointment.completed" && appointment?.id && customer?.id) {
+      try {
+        const { data: existing } = await supabase
+          .from("appointment_reviews")
+          .select("review_token")
+          .eq("appointment_id", appointment.id)
+          .maybeSingle();
+        let token = existing?.review_token as string | undefined;
+        if (!token) {
+          token = crypto.randomUUID();
+          const { error: upErr } = await supabase.from("appointment_reviews").upsert({
+            tenant_id,
+            appointment_id: appointment.id,
+            customer_id: customer.id,
+            barber_id: appointment.barber_id,
+            review_token: token,
+            token_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            testimonial_status: "pending",
+            show_on_frontend: false,
+          }, { onConflict: "appointment_id" });
+          if (upErr) console.warn("[EmitEvent] review token upsert failed", upErr);
+        }
+        if (token) {
+          appointmentExtras.review_token = token;
+          appointmentExtras.review_link = `https://barbex.shop/review/${token}`;
+        }
+      } catch (e) {
+        console.warn("[EmitEvent] review link generation error", e);
+      }
+    }
+
 
 
     // 3. For each active template, enqueue one row with the right recipient phone
@@ -152,6 +186,19 @@ serve(async (req) => {
         continue;
       }
 
+      // Delayed review template: only enqueue if we have a valid review_link
+      const isReviewTpl = tpl.key.includes(".review");
+      if (isReviewTpl) {
+        if (!appointmentExtras.review_link) {
+          console.warn(`[EmitEvent] review_link ausente — skip tpl=${tpl.key}`);
+          skipped.push({ template: tpl.key, reason: "review_link_missing" });
+          continue;
+        }
+      }
+      const scheduledFor = isReviewTpl
+        ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        : null;
+
       const idem = `${event}:${appointment_id || customer_id || "generic"}:${tpl.id}`;
 
       const { error: insErr } = await supabase.from("automation_queue").insert({
@@ -162,6 +209,7 @@ serve(async (req) => {
         workflow_key: tpl.key,
         event_name: event,
         status: "pending",
+        scheduled_for: scheduledFor,
         idempotency_key: idem,
         payload: {
           recipient,
@@ -171,10 +219,14 @@ serve(async (req) => {
           customer_name: customer?.name,
           customer_phone: customer?.phone,
           professional_name: barber?.name,
+          professional_phone: barber?.phone,
           barbershop_name: shopProfile?.business_name,
+          tenant_id,
+          appointment_id: appointment_id || null,
           ...(extra || {}),
         },
       });
+
 
       if (insErr) {
         // duplicate idem => idempotent no-op
@@ -226,15 +278,18 @@ serve(async (req) => {
       const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
-      const internalMessage = buildInternalMessage(event, {
+      const buildFor = (rcpName?: string) => buildInternalMessage(event, {
         customer_name: customer?.name,
         customer_phone: customer?.phone,
         barber_name: barber?.name,
         shop_name: shopProfile?.business_name,
         barbershop_name: shopProfile?.business_name,
+        recipient_name: rcpName,
         ...appointmentExtras,
         ...(extra || {}),
       });
+      const internalMessage = buildFor();
+
 
       const sentWaPhones = new Set<string>();
       const sentPanelUsers = new Set<string>();
@@ -257,7 +312,7 @@ serve(async (req) => {
               body: {
                 user_id: tenant_id,
                 phone: norm,
-                content: internalMessage,
+                content: buildFor(rcp.name),
                 metadata: { eventType: event, internal: true, recipient_id: rcp.id },
               },
             });
@@ -358,43 +413,40 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
     return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
   }
   if (event === "appointment.created" || event === "appointment.confirmed") {
-    const divider = "━━━━━━━━━━━━━━━━━━━━━━";
     const parts = [
-      `Olá! 📣`,
+      `Olá${d.recipient_name ? ` ${d.recipient_name}` : ""}! 📣`,
       ``,
-      `Um novo agendamento foi realizado.`,
+      `Novo agendamento realizado.`,
       ``,
-      `📋 *Resumo do agendamento*`,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.customer_phone ? `📞 Telefone: ${d.customer_phone}` : "",
+      d.barber_name ? `💈 Profissional: ${d.barber_name}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      (d.appointment_date || d.appointment_time) ? `📅 ${d.appointment_date || ""}${d.appointment_time ? ` às ${d.appointment_time}` : ""}` : "",
+      d.payment_method ? `💳 Pagamento: ${d.payment_method}` : "",
+      d.service_price ? `💰 Valor: ${d.service_price}` : "",
       ``,
-      d.customer_name ? `👤 *Cliente:* ${d.customer_name}` : "",
-      d.service_name ? `✂️ *Serviço:* ${d.service_name}` : "",
-      d.service_price ? `💰 *Valor:* ${d.service_price}` : "",
-      d.payment_method ? `💳 *Forma de pagamento:* ${d.payment_method}` : "",
-      d.barber_name ? `💈 *Profissional:* ${d.barber_name}` : "",
-      d.appointment_date ? `📅 *Data:* ${d.appointment_date}` : "",
-      d.appointment_time ? `🕒 *Horário:* ${d.appointment_time}` : "",
-      d.customer_phone ? `📞 *Telefone:* ${d.customer_phone}` : "",
+      d.management_link ? `Gerenciar agendamento:\n${d.management_link}` : "",
       ``,
-      divider,
-      ``,
-      `Caso seja necessário realizar alguma alteração, utilize o link abaixo para *gerenciar este agendamento*.`,
-      ``,
-      `Você poderá:`,
-      `• 📅 Reagendar`,
-      `• ❌ Cancelar`,
-      `• 👀 Consultar todos os detalhes`,
-      ``,
-      d.management_link ? `🔗 ${d.management_link}` : "",
-      ``,
-      divider,
-      ``,
-      `Mensagem enviada automaticamente pelo *Barbex*.`,
+      `Mensagem automática do Barbex.`,
     ];
     return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event === "appointment.completed") {
-    return `✅ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}`.trim();
+    const parts = [
+      `✅ Atendimento concluído`,
+      ``,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.barber_name ? `💈 Profissional: ${d.barber_name}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      d.service_price ? `💰 Valor: ${d.service_price}` : "",
+      d.payment_method ? `💳 Pagamento: ${d.payment_method}` : "",
+      ``,
+      `Mensagem automática do Barbex.`,
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
+
   if (event.startsWith("subscription.")) {
     return `💳 ${header}\n\n${line("Cliente", d.customer_name)}${line("Plano", d.plan_name || d.subscription_name)}${line("Valor", d.amount)}`.trim();
   }
