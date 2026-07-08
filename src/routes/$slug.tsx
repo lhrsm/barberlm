@@ -1463,20 +1463,30 @@ function ShopPageComponent() {
         
         if (isMultipleAppt && appointmentGroupId) {
           // Para múltiplos agendamentos, disparamos apenas UM gatilho usando o primeiro agendamento
-          // mas o sistema de automação saberá que ele pertence a um grupo
           triggerAutomation({
             tenant_id: shop.id,
             event_name: 'appointment.created',
             appointment_id: createdAppointments[0].id
           }).catch(err => console.error("Error triggering automation:", err));
+          emitAutomationEvent({
+            tenantId: shop.id,
+            event: 'appointment.created',
+            appointmentId: createdAppointments[0].id,
+            customerId: finalCustId || undefined,
+          });
         } else {
-          // Agendamento único
           for (const appt of createdAppointments) {
             triggerAutomation({
               tenant_id: shop.id,
               event_name: 'appointment.created',
               appointment_id: appt.id
             }).catch(err => console.error("Error triggering automation:", err));
+            emitAutomationEvent({
+              tenantId: shop.id,
+              event: 'appointment.created',
+              appointmentId: appt.id,
+              customerId: finalCustId || undefined,
+            });
           }
         }
       }
