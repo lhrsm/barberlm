@@ -227,9 +227,10 @@ export function InternalRecipientsSettings() {
           </div>
           <Button
             onClick={openNew}
-            className="bg-[#ea580c] hover:bg-[#c2410c] text-black font-black uppercase tracking-wider text-xs h-10 rounded-xl"
+            size="sm"
+            className="bg-[#ea580c] hover:bg-[#c2410c] text-black font-black uppercase tracking-wider text-[11px] h-9 px-4 rounded-lg shadow-md shadow-[#ea580c]/20"
           >
-            <Plus className="h-4 w-4 mr-2" /> Adicionar
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> Adicionar
           </Button>
         </div>
 
