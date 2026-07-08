@@ -44,10 +44,10 @@ serve(async (req) => {
       .eq("active", true);
 
     if (tplErr) throw tplErr;
-    if (!templates || templates.length === 0) {
-      console.log("[EmitEvent] No active templates for event", event);
-      return json({ success: true, dispatched: 0, reason: "no_active_templates" });
-    }
+    console.log(`[EmitEvent] Templates found for ${event}: ${templates?.length || 0}`);
+    // NOTE: do NOT early-return when there are no templates — internal
+    // notification recipients (recepção/gerente/dono) must still receive
+    // panel + WhatsApp alerts even if no customer/barber/shop template exists.
 
     // 2. Load context: appointment / customer / barber / shop
     let appointment: any = null;
