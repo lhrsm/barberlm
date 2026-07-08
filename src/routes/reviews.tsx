@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Star, Check, X as XIcon, EyeOff, MessageSquare, Inbox, Scissors, User as UserIcon, Calendar as CalendarIcon, Quote } from "lucide-react";
+import { Star, Check, X as XIcon, EyeOff, MessageSquare, Inbox, Scissors, User as UserIcon, Calendar as CalendarIcon, Quote, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
@@ -114,6 +114,32 @@ function ReviewsAdminPage() {
     }
   };
 
+  const removeReview = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta avaliação? Esta ação não pode ser desfeita.")) return;
+    const { error } = await supabase.from("appointment_reviews").delete().eq("id", id);
+    if (error) toast.error("Erro ao excluir: " + error.message);
+    else {
+      toast.success("Avaliação excluída");
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+    }
+  };
+
+  const removeEmpty = async () => {
+    const empties = reviews.filter((r) => !r.testimonial_text && !r.submitted_at);
+    if (empties.length === 0) {
+      toast.info("Nenhuma avaliação vazia para excluir.");
+      return;
+    }
+    if (!confirm(`Excluir ${empties.length} avaliação(ões) sem resposta? Esta ação não pode ser desfeita.`)) return;
+    const ids = empties.map((r) => r.id);
+    const { error } = await supabase.from("appointment_reviews").delete().in("id", ids);
+    if (error) toast.error("Erro: " + error.message);
+    else {
+      toast.success(`${ids.length} avaliação(ões) excluída(s)`);
+      setReviews((prev) => prev.filter((r) => !ids.includes(r.id)));
+    }
+  };
+
   const filtered = reviews.filter(r =>
     filter === "all" ? true :
     filter === "pending" ? r.testimonial_status === "pending" :
@@ -149,6 +175,13 @@ function ReviewsAdminPage() {
               Modere as avaliações dos seus clientes antes de exibi-las no site.
             </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={removeEmpty}
+            className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+          >
+            <Trash2 className="h-4 w-4 mr-1.5" /> Limpar vazias
+          </Button>
         </header>
 
         {/* Premium segmented tabs */}
@@ -278,36 +311,41 @@ function ReviewsAdminPage() {
                 )}
 
                 {/* Actions */}
-                {(canApprove || canReject || r.show_on_frontend) && (
-                  <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                    {canApprove && (
-                      <Button
-                        onClick={() => moderate(r.id, "approve")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 font-bold"
-                      >
-                        <Check className="h-4 w-4 mr-1.5" /> Aprovar para o site
-                      </Button>
-                    )}
-                    {canReject && (
-                      <Button
-                        variant="outline"
-                        onClick={() => moderate(r.id, "reject")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
-                      >
-                        <XIcon className="h-4 w-4 mr-1.5" /> Rejeitar
-                      </Button>
-                    )}
-                    {r.show_on_frontend && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => moderate(r.id, "hide")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto text-gray-400 hover:text-gray-200 font-bold"
-                      >
-                        <EyeOff className="h-4 w-4 mr-1.5" /> Ocultar
-                      </Button>
-                    )}
-                  </div>
-                )}
+                <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                  {canApprove && (
+                    <Button
+                      onClick={() => moderate(r.id, "approve")}
+                      className="h-11 rounded-[14px] w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 font-bold"
+                    >
+                      <Check className="h-4 w-4 mr-1.5" /> Aprovar para o site
+                    </Button>
+                  )}
+                  {canReject && (
+                    <Button
+                      variant="outline"
+                      onClick={() => moderate(r.id, "reject")}
+                      className="h-11 rounded-[14px] w-full sm:w-auto border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+                    >
+                      <XIcon className="h-4 w-4 mr-1.5" /> Rejeitar
+                    </Button>
+                  )}
+                  {r.show_on_frontend && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => moderate(r.id, "hide")}
+                      className="h-11 rounded-[14px] w-full sm:w-auto text-gray-400 hover:text-gray-200 font-bold"
+                    >
+                      <EyeOff className="h-4 w-4 mr-1.5" /> Ocultar
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    onClick={() => removeReview(r.id)}
+                    className="h-11 rounded-[14px] w-full sm:w-auto sm:ml-auto text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" /> Excluir
+                  </Button>
+                </div>
               </article>
             );
           })}
