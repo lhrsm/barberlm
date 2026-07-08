@@ -54,7 +54,7 @@ serve(async (req) => {
     if (appointment_id) {
       const { data } = await supabase
         .from("appointments")
-        .select("id, tenant_id, customer_id, barber_id, customer:customers(id, name, phone), barber:barbers(id, name, phone)")
+        .select("id, tenant_id, customer_id, barber_id, service_id, appointment_date, appointment_time, price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers(id, name, phone), service:services(id, name, price)")
         .eq("id", appointment_id)
         .maybeSingle();
       appointment = data;
@@ -70,9 +70,35 @@ serve(async (req) => {
 
     const { data: shopProfile } = await supabase
       .from("profiles")
-      .select("id, business_name, whatsapp_number, whatsapp_enabled")
+      .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone")
       .eq("id", tenant_id)
       .maybeSingle();
+
+    // Derived fields for message templates
+    const fmtBRL = (v: any) => {
+      const n = Number(v);
+      if (!isFinite(n) || n <= 0) return "";
+      return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    };
+    const fmtDate = (d: any) => {
+      if (!d) return "";
+      try {
+        const [y, m, day] = String(d).split("T")[0].split("-");
+        return `${day}/${m}/${y}`;
+      } catch { return String(d); }
+    };
+    const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
+    const appointmentExtras = appointment ? {
+      service_name: appointment.service?.name,
+      service_price: fmtBRL(appointment.price ?? appointment.service?.price),
+      appointment_date: fmtDate(appointment.appointment_date),
+      appointment_time: fmtTime(appointment.appointment_time),
+      payment_method: appointment.payment_method,
+      management_link: appointment.management_token && shopProfile?.slug
+        ? `https://barbex.shop/agendamento/${appointment.management_token}`
+        : undefined,
+    } : {};
+
 
     // 3. For each active template, enqueue one row with the right recipient phone
     const dispatched: string[] = [];
