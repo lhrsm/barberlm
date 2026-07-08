@@ -270,6 +270,19 @@ function AppointmentManagementPage() {
         appointment_id: appointment.id
       }).catch(console.error);
 
+      emitAutomationEvent({
+        tenantId: appointment.tenant_id,
+        event: 'appointment.rescheduled.by_customer',
+        appointmentId: appointment.id,
+        customerId: appointment.customer_id,
+        extra: {
+          old_date: format(oldStart, 'dd/MM/yyyy'),
+          old_time: format(oldStart, 'HH:mm'),
+          new_date: format(startTime, 'dd/MM/yyyy'),
+          new_time: format(startTime, 'HH:mm'),
+        },
+      });
+
       toast.success("Seu agendamento foi reagendado com sucesso!");
       setIsRescheduling(false);
       setSuccessRedirect(true);
