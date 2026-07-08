@@ -205,8 +205,8 @@ serve(async (req) => {
               console.error(`[EmitEvent] Internal WA failed for ${rcp.name} (${norm})`, waErr);
             } else {
               console.log(`[EmitEvent] Internal WA sent to ${rcp.name} (${norm})`, waResp);
+              internalRecipients.push(`wa:${rcp.name}`);
             }
-            internalRecipients.push(`wa:${rcp.name}`);
           }
         }
 
@@ -220,7 +220,7 @@ serve(async (req) => {
             type: event,
             title: internalTitle(event),
             message: internalMessage,
-            data: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
+            metadata: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
             read: false,
           });
           if (notifErr) console.error("[EmitEvent] Panel insert failed", notifErr);

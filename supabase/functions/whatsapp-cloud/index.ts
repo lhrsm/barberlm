@@ -45,39 +45,11 @@ serve(async (req) => {
       }
 
       try {
-        let response;
         const targetPhone = normalizePhone(msg.metadata?.phone || msg.wa_id);
         
         if (conn.provider === 'z-api') {
-          const instanceId = conn.instance_id;
-          const token = conn.token;
-          const clientToken = conn.client_token;
           const baseUrl = conn.server_url || "https://api.z-api.io";
-          
-          const headers: Record<string, string> = { 
-            "Content-Type": "application/json",
-          };
-          if (clientToken) headers["Client-Token"] = clientToken;
-          
           console.log(`[Z-API] Sending via ${baseUrl} to ${targetPhone}`);
-
-          const startTime = Date.now();
-          const options = msg.metadata?.options || {};
-          
-          // logic to use send-button-list or send-option-list if provided in metadata
-          let endpoint = "send-text";
-          let bodyPayload: any = { phone: targetPhone, message: msg.content };
-
-          if (options.buttons) {
-            endpoint = "send-button-list";
-            bodyPayload = {
-              phone: targetPhone,
-              message: msg.content,
-              buttonList: {
-                buttons: options.buttons
-              }
-            };
-          }
 
           const options = msg.metadata?.options || {};
           
@@ -94,16 +66,14 @@ serve(async (req) => {
           if (sendResult.success) {
             await supabase.from("whatsapp_messages").update({ 
               status: "sent", 
-              wa_id: sendResult.provider_message_id,
-              updated_at: new Date().toISOString()
+              wa_id: sendResult.provider_message_id
             }).eq("id", msg.id);
             
             results.push({ id: msg.id, result: sendResult });
           } else {
             await supabase.from("whatsapp_messages").update({ 
               status: "failed", 
-              error_message: sendResult.error,
-              updated_at: new Date().toISOString()
+              error_message: sendResult.error
             }).eq("id", msg.id);
             results.push({ id: msg.id, error: sendResult.error });
           }
@@ -113,8 +83,7 @@ serve(async (req) => {
         results.push({ id: msg.id, error: err.message });
         await supabase.from("whatsapp_messages").update({ 
           status: "failed", 
-          error_message: err.message,
-          updated_at: new Date().toISOString()
+          error_message: err.message
         }).eq("id", msg.id);
       }
     }
