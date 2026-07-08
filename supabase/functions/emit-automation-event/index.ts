@@ -232,3 +232,58 @@ function json(body: any, status = 200) {
     headers: { ...cors, "Content-Type": "application/json" },
   });
 }
+
+function normalizePhone(p?: string | null): string {
+  if (!p) return "";
+  const digits = String(p).replace(/\D/g, "");
+  return digits.startsWith("55") ? digits : digits.length >= 10 ? `55${digits}` : digits;
+}
+
+function internalTitle(event: string): string {
+  const map: Record<string, string> = {
+    "appointment.created": "Novo agendamento",
+    "appointment.confirmed": "Agendamento confirmado",
+    "appointment.completed": "Atendimento concluído",
+    "appointment.cancelled.by_customer": "Agendamento cancelado pelo cliente",
+    "appointment.cancelled.by_barber": "Agendamento cancelado pelo barbeiro",
+    "appointment.cancelled.by_shop": "Agendamento cancelado pela barbearia",
+    "appointment.rescheduled.by_customer": "Reagendamento pelo cliente",
+    "appointment.rescheduled.by_barber": "Reagendamento pelo barbeiro",
+    "appointment.rescheduled.by_shop": "Reagendamento pela barbearia",
+    "subscription.created": "Novo assinante",
+    "subscription.cancelled": "Assinatura cancelada",
+    "subscription.renewed": "Assinatura renovada",
+    "subscription.renewal_failed": "Falha na renovação",
+    "payment.confirmed": "Pagamento confirmado",
+    "review.received": "Nova avaliação",
+    "review.bad": "Avaliação negativa recebida",
+    "support.ticket_created": "Novo chamado de suporte",
+    "automation.failed": "Falha em automação",
+  };
+  return map[event] || "Notificação Barbex";
+}
+
+function buildInternalMessage(event: string, d: Record<string, any>): string {
+  const line = (label: string, value: any) => (value ? `${label}: ${value}\n` : "");
+  const header = internalTitle(event);
+  if (event.startsWith("appointment.cancelled")) {
+    const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";
+    return `❌ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date || d.new_date)}${line("Horário", d.appointment_time || d.new_time)}Cancelado por: ${who}\n${line("Motivo", d.cancel_reason)}`.trim();
+  }
+  if (event.startsWith("appointment.rescheduled")) {
+    return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
+  }
+  if (event === "appointment.created" || event === "appointment.confirmed") {
+    return `📅 ${header}\n\n${line("Cliente", d.customer_name)}${line("Telefone", d.customer_phone)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date)}${line("Horário", d.appointment_time)}${line("Valor", d.service_price)}${line("Pagamento", d.payment_method)}`.trim();
+  }
+  if (event === "appointment.completed") {
+    return `✅ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}`.trim();
+  }
+  if (event.startsWith("subscription.")) {
+    return `💳 ${header}\n\n${line("Cliente", d.customer_name)}${line("Plano", d.plan_name || d.subscription_name)}${line("Valor", d.amount)}`.trim();
+  }
+  if (event === "payment.confirmed") {
+    return `💰 ${header}\n\n${line("Cliente", d.customer_name)}${line("Valor", d.amount)}${line("Método", d.payment_method)}`.trim();
+  }
+  return `${header}\n\n${line("Cliente", d.customer_name)}`.trim();
+}
