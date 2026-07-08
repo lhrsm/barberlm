@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { triggerAutomation } from "@/utils/automation";
+import { emitAutomationEvent } from "@/utils/emit-event";
 import {
   Dialog,
   DialogContent,
