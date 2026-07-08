@@ -442,7 +442,7 @@ export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(fu
       ))}
     </div>
   );
-}
+});
 
 function colorHex(c: string) {
   switch (c) {
