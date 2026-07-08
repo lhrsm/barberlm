@@ -171,10 +171,16 @@ export type Database = {
           created_at: string
           customer_id: string | null
           id: string
+          review_token: string | null
           show_on_frontend: boolean
+          submitted_at: string | null
           tenant_id: string
           testimonial_status: string
           testimonial_text: string | null
+          token_expires_at: string | null
+          token_used_at: string | null
+          updated_at: string
+          would_recommend: string | null
         }
         Insert: {
           appointment_id: string
@@ -186,10 +192,16 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          review_token?: string | null
           show_on_frontend?: boolean
+          submitted_at?: string | null
           tenant_id: string
           testimonial_status?: string
           testimonial_text?: string | null
+          token_expires_at?: string | null
+          token_used_at?: string | null
+          updated_at?: string
+          would_recommend?: string | null
         }
         Update: {
           appointment_id?: string
@@ -201,10 +213,16 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          review_token?: string | null
           show_on_frontend?: boolean
+          submitted_at?: string | null
           tenant_id?: string
           testimonial_status?: string
           testimonial_text?: string | null
+          token_expires_at?: string | null
+          token_used_at?: string | null
+          updated_at?: string
+          would_recommend?: string | null
         }
         Relationships: [
           {
@@ -4302,6 +4320,87 @@ export type Database = {
           },
         ]
       }
+      review_automation_logs: {
+        Row: {
+          appointment_id: string
+          channel: string
+          created_at: string
+          customer_id: string | null
+          error_message: string | null
+          id: string
+          provider_message_id: string | null
+          reason: string | null
+          review_id: string | null
+          sent_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id: string
+          channel?: string
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          provider_message_id?: string | null
+          reason?: string | null
+          review_id?: string | null
+          sent_at?: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string
+          channel?: string
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          provider_message_id?: string | null
+          reason?: string | null
+          review_id?: string | null
+          sent_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_automation_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_automation_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "review_automation_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_automation_logs_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_automation_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saas_checkout_sessions: {
         Row: {
           created_at: string
@@ -7243,6 +7342,7 @@ export type Database = {
           uses_this_period: number
         }[]
       }
+      get_review_by_token: { Args: { _token: string }; Returns: Json }
       get_server_info: { Args: never; Returns: Json }
       get_subscriber_months: {
         Args: { p_subscription_id: string }
@@ -7447,6 +7547,16 @@ export type Database = {
       seed_subscription_reward_unlocked_template: {
         Args: { p_tenant_id: string }
         Returns: undefined
+      }
+      submit_review_by_token: {
+        Args: {
+          _barber_rating: number
+          _barbershop_rating: number
+          _testimonial: string
+          _token: string
+          _would_recommend: string
+        }
+        Returns: Json
       }
       subscription_active_months: {
         Args: { p_subscription_id: string }
