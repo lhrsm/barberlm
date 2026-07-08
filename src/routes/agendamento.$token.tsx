@@ -352,6 +352,24 @@ function AppointmentManagementPage() {
   };
 
 
+  const finalizeCancellationSuccess = async () => {
+    // Fire automation event (fan-out inclui destinatários internos)
+    try {
+      await emitAutomationEvent({
+        tenantId: appointment.tenant_id,
+        event: 'appointment.cancelled.by_customer',
+        appointmentId: appointment.id,
+        customerId: appointment.customer_id,
+      });
+    } catch (e) {
+      console.warn('[cancel] emitAutomationEvent falhou', e);
+    }
+    setCancellationStep('none');
+    toast.success('Agendamento cancelado com sucesso!');
+    setSuccessRedirect(true);
+    fetchAppointment();
+  };
+
   const handleConfirmSimpleCancel = async () => {
     // Trava de segurança robusta no frontend
     const finStatus = financialStatus || await getFinancialStatus(appointment.id);
@@ -373,8 +391,7 @@ function AppointmentManagementPage() {
     setCancelling(true);
     const result = await confirmSimpleCancellation(appointment.id, 'public_link');
     if (result.success) {
-      setSuccessRedirect(true);
-      fetchAppointment();
+      await finalizeCancellationSuccess();
     }
     setCancelling(false);
   };
@@ -383,8 +400,7 @@ function AppointmentManagementPage() {
     setCancelling(true);
     const result = await confirmCancellationWithCredit(appointment.id, 'public_link');
     if (result.success) {
-      setSuccessRedirect(true);
-      fetchAppointment();
+      await finalizeCancellationSuccess();
     }
     setCancelling(false);
   };
@@ -397,8 +413,7 @@ function AppointmentManagementPage() {
     setCancelling(true);
     const result = await confirmCancellationWithRefundRequest(appointment.id, refundData, 'public_link');
     if (result.success) {
-      setSuccessRedirect(true);
-      fetchAppointment();
+      await finalizeCancellationSuccess();
     }
     setCancelling(false);
   };
