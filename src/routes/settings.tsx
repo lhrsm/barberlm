@@ -1194,6 +1194,8 @@ function SettingsComponent() {
               </Card>
 
               <WhatsAppSettings />
+
+              <InternalRecipientsSettings />
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">
