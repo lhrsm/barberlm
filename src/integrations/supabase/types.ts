@@ -2853,6 +2853,7 @@ export type Database = {
           created_at: string | null
           credit_type: string | null
           customer_id: string
+          description: string | null
           expires_at: string | null
           id: string
           payment_id: string | null
@@ -2869,6 +2870,7 @@ export type Database = {
           created_at?: string | null
           credit_type?: string | null
           customer_id: string
+          description?: string | null
           expires_at?: string | null
           id?: string
           payment_id?: string | null
@@ -2885,6 +2887,7 @@ export type Database = {
           created_at?: string | null
           credit_type?: string | null
           customer_id?: string
+          description?: string | null
           expires_at?: string | null
           id?: string
           payment_id?: string | null
