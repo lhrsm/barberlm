@@ -240,6 +240,7 @@ export function AutomationEditModal({
           {automation?.id && automation?.tenant_id && (
             <div className="border-t pt-4">
               <InteractionsEditor
+                ref={interactionsRef}
                 tenantId={automation.tenant_id}
                 automationTemplateId={automation.id}
               />
