@@ -113,8 +113,35 @@ serve(async (req) => {
         phone = customer?.phone || null;
         recipientName = customer?.name || null;
       } else if (recipient === "barber") {
-        phone = barber?.phone || null;
-        recipientName = barber?.name || null;
+        // STRICT: only the professional linked to this appointment.
+        // Never broadcast to all barbers of the tenant.
+        const profId = appointment?.barber_id || (appointment as any)?.professional_id || null;
+        if (!profId) {
+          console.warn(`[EmitEvent] barber recipient skipped: appointment has no professional_id (event=${event}, tpl=${tpl.key})`);
+          skipped.push({ template: tpl.key, reason: "no_professional_id_on_appointment" });
+          continue;
+        }
+        let resolvedBarber: any = barber && barber.id === profId ? barber : null;
+        if (!resolvedBarber) {
+          const { data: b } = await supabase
+            .from("barbers")
+            .select("id, name, phone")
+            .eq("id", profId)
+            .maybeSingle();
+          resolvedBarber = b || null;
+        }
+        if (!resolvedBarber) {
+          console.warn(`[EmitEvent] barber recipient skipped: professional ${profId} not found (event=${event}, tpl=${tpl.key})`);
+          skipped.push({ template: tpl.key, reason: `professional_not_found:${profId}` });
+          continue;
+        }
+        phone = resolvedBarber.phone || null;
+        recipientName = resolvedBarber.name || null;
+        if (!phone) {
+          console.warn(`[EmitEvent] barber recipient skipped: professional ${profId} (${resolvedBarber.name}) has no phone (event=${event}, tpl=${tpl.key})`);
+          skipped.push({ template: tpl.key, reason: `no_phone_for_professional:${profId}` });
+          continue;
+        }
       } else if (recipient === "shop") {
         phone = shopProfile?.whatsapp_number || null;
         recipientName = shopProfile?.business_name || null;
