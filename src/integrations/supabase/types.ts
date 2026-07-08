@@ -3709,6 +3709,87 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_recipients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notify_automation_failure: boolean
+          notify_bad_review: boolean
+          notify_cancelled_appointment: boolean
+          notify_completed_appointment: boolean
+          notify_new_appointment: boolean
+          notify_new_subscription: boolean
+          notify_payment_failed: boolean
+          notify_payment_received: boolean
+          notify_rescheduled_appointment: boolean
+          notify_review_received: boolean
+          notify_subscription_cancelled: boolean
+          notify_support_ticket: boolean
+          phone: string | null
+          receive_email: boolean
+          receive_panel: boolean
+          receive_whatsapp: boolean
+          role: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notify_automation_failure?: boolean
+          notify_bad_review?: boolean
+          notify_cancelled_appointment?: boolean
+          notify_completed_appointment?: boolean
+          notify_new_appointment?: boolean
+          notify_new_subscription?: boolean
+          notify_payment_failed?: boolean
+          notify_payment_received?: boolean
+          notify_rescheduled_appointment?: boolean
+          notify_review_received?: boolean
+          notify_subscription_cancelled?: boolean
+          notify_support_ticket?: boolean
+          phone?: string | null
+          receive_email?: boolean
+          receive_panel?: boolean
+          receive_whatsapp?: boolean
+          role?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notify_automation_failure?: boolean
+          notify_bad_review?: boolean
+          notify_cancelled_appointment?: boolean
+          notify_completed_appointment?: boolean
+          notify_new_appointment?: boolean
+          notify_new_subscription?: boolean
+          notify_payment_failed?: boolean
+          notify_payment_received?: boolean
+          notify_rescheduled_appointment?: boolean
+          notify_review_received?: boolean
+          notify_subscription_cancelled?: boolean
+          notify_support_ticket?: boolean
+          phone?: string | null
+          receive_email?: boolean
+          receive_panel?: boolean
+          receive_whatsapp?: boolean
+          role?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           barber_id: string | null
@@ -4200,6 +4281,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          allow_notifications_on_business_phone: boolean
           avatar_url: string | null
           barber_can_cancel: boolean | null
           barber_can_reschedule: boolean | null
@@ -4251,6 +4333,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          allow_notifications_on_business_phone?: boolean
           avatar_url?: string | null
           barber_can_cancel?: boolean | null
           barber_can_reschedule?: boolean | null
@@ -4302,6 +4385,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          allow_notifications_on_business_phone?: boolean
           avatar_url?: string | null
           barber_can_cancel?: boolean | null
           barber_can_reschedule?: boolean | null
