@@ -315,9 +315,11 @@ serve(async (req) => {
 
         let renderedMessage = processAutomationTemplate(baseTemplate, templateData);
 
-        // Validation - Don't block everything, just this item
+        // Validation - only enforce placeholders on legacy appointment_confirmation flow.
+        // New event templates handle their own placeholders per event type.
+        const isLegacyAppointmentFlow = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
         const placeholders = ['{customer_name}', '{barbershop_name}', '{service_name}', '{professional_name}', '{appointment_date}', '{appointment_time}', '{management_link}'];
-        const missing = placeholders.filter(p => renderedMessage.includes(p) || renderedMessage.includes(p.replace('{', '{{').replace('}', '}}')));
+        const missing = isLegacyAppointmentFlow ? placeholders.filter(p => renderedMessage.includes(p) || renderedMessage.includes(p.replace('{', '{{').replace('}', '}}'))) : [];
 
         if (missing.length > 0) {
           const errorMsg = `Template possui variáveis não substituídas: ${missing.join(', ')}`;
