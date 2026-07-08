@@ -278,15 +278,18 @@ serve(async (req) => {
       const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
-      const internalMessage = buildInternalMessage(event, {
+      const buildFor = (rcpName?: string) => buildInternalMessage(event, {
         customer_name: customer?.name,
         customer_phone: customer?.phone,
         barber_name: barber?.name,
         shop_name: shopProfile?.business_name,
         barbershop_name: shopProfile?.business_name,
+        recipient_name: rcpName,
         ...appointmentExtras,
         ...(extra || {}),
       });
+      const internalMessage = buildFor();
+
 
       const sentWaPhones = new Set<string>();
       const sentPanelUsers = new Set<string>();
