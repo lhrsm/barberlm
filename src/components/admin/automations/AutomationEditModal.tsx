@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { InteractionsEditor } from "./InteractionsEditor";
+import { InteractionsEditor, type InteractionsEditorHandle } from "./InteractionsEditor";
 
 interface AutomationEditModalProps {
   isOpen: boolean;
@@ -47,6 +47,7 @@ export function AutomationEditModal({
   automation,
   onSave,
 }: AutomationEditModalProps) {
+  const interactionsRef = useRef<InteractionsEditorHandle>(null);
   const [formData, setFormData] = useState<any>({
     name: "",
     active: true,
@@ -96,6 +97,13 @@ export function AutomationEditModal({
         .eq("id", automation.id);
 
       if (error) throw error;
+
+      // Also save configured interactions (buttons of new type)
+      if (interactionsRef.current) {
+        const ok = await interactionsRef.current.save();
+        if (!ok) return; // toast already shown by editor
+      }
+
       toast.success("Automação salva com sucesso!");
       onSave();
       onClose();
@@ -232,6 +240,7 @@ export function AutomationEditModal({
           {automation?.id && automation?.tenant_id && (
             <div className="border-t pt-4">
               <InteractionsEditor
+                ref={interactionsRef}
                 tenantId={automation.tenant_id}
                 automationTemplateId={automation.id}
               />

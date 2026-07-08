@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useImperativeHandle, useState, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,7 +90,15 @@ interface Props {
   automationTemplateId: string;
 }
 
-export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
+export interface InteractionsEditorHandle {
+  save: () => Promise<boolean>;
+  isDirty: () => boolean;
+}
+
+export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(function InteractionsEditor(
+  { tenantId, automationTemplateId },
+  ref,
+) {
   const [items, setItems] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -191,7 +199,7 @@ export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
     });
   };
 
-  const save = async () => {
+  const save = async (): Promise<boolean> => {
     setSaving(true);
     try {
       if (deletedIds.length > 0) {
@@ -201,6 +209,7 @@ export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
           .in("id", deletedIds);
         if (error) throw error;
       }
+      const savedItems: Interaction[] = [];
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
         const payload = {
@@ -222,23 +231,35 @@ export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
             .update(payload)
             .eq("id", it.id);
           if (error) throw error;
+          savedItems.push({ ...it, _dirty: false, _new: false });
         } else {
-          const { error } = await (supabase as any)
+          const { data, error } = await (supabase as any)
             .from("automation_interactions")
-            .insert(payload);
+            .insert(payload)
+            .select()
+            .single();
           if (error) throw error;
+          savedItems.push({ ...it, id: data.id, _dirty: false, _new: false });
         }
       }
+      setItems(savedItems);
       setDeletedIds([]);
-      toast.success("Interações salvas!");
+      return true;
     } catch (e: any) {
       toast.error("Erro ao salvar interações: " + e.message);
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
   const isDirty = deletedIds.length > 0 || items.some((it) => it._dirty);
+
+  useImperativeHandle(ref, () => ({
+    save,
+    isDirty: () => isDirty,
+  }), [save, isDirty]);
+
 
   return (
     <div className="space-y-3">
@@ -247,15 +268,14 @@ export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
           <Sparkles className="h-4 w-4 text-primary" />
           <h4 className="text-sm font-semibold">Interações da mensagem</h4>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={addInteraction}>
+        <div className="flex gap-2 items-center">
+          {isDirty && (
+            <span className="text-[10px] text-amber-600">Alterações pendentes</span>
+          )}
+          {saving && <span className="text-[10px] text-muted-foreground">Salvando...</span>}
+          <Button size="sm" variant="outline" onClick={addInteraction} disabled={saving}>
             <Plus className="h-3 w-3 mr-1" /> Nova interação
           </Button>
-          {isDirty && (
-            <Button size="sm" onClick={save} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar interações"}
-            </Button>
-          )}
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
@@ -434,7 +454,7 @@ export function InteractionsEditor({ tenantId, automationTemplateId }: Props) {
       ))}
     </div>
   );
-}
+});
 
 function colorHex(c: string) {
   switch (c) {
