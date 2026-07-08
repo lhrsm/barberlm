@@ -507,6 +507,17 @@ function AppointmentGroupPage() {
         appointment_id: rescheduleData.id
       }).catch(console.error);
 
+      emitAutomationEvent({
+        tenantId: group.tenant_id,
+        event: 'appointment.rescheduled.by_customer',
+        appointmentId: rescheduleData.id,
+        customerId: group.customer_id,
+        extra: {
+          new_date: format(startTime, 'dd/MM/yyyy'),
+          new_time: format(startTime, 'HH:mm'),
+        },
+      });
+
       toast.success("Agendamento reagendado com sucesso!");
       setIsRescheduling(false);
       setRescheduleData(null);
