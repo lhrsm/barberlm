@@ -188,14 +188,17 @@ serve(async (req) => {
           }
         }
 
-        // Data Loading
+        // Data Loading — resolve barbershop name from tenant profile (business_name).
         let barbershopName = "Barbearia";
-        const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", itemTenantId).maybeSingle();
-        if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) {
-          barbershopName = tenantData.name;
-        } else {
-          const { data: profileData } = await supabase.from("profiles").select("business_name, full_name").eq("id", itemTenantId).maybeSingle();
-          barbershopName = profileData?.business_name || profileData?.full_name || "Barbearia";
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("business_name, responsible_name")
+          .eq("id", itemTenantId)
+          .maybeSingle();
+        if (profileData?.business_name && profileData.business_name.trim()) {
+          barbershopName = profileData.business_name.trim();
+        } else if (profileData?.responsible_name && profileData.responsible_name.trim()) {
+          barbershopName = profileData.responsible_name.trim();
         }
 
         const profId = appointment?.barber_id || appointment?.professional_id;
