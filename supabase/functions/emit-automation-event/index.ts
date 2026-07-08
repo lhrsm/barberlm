@@ -131,6 +131,87 @@ serve(async (req) => {
       dispatched.push(tpl.key);
     }
 
+    // 3b. Internal notification recipients (dono, gerente, recepção, etc.)
+    const eventFlagMap: Record<string, string> = {
+      "appointment.created": "notify_new_appointment",
+      "appointment.confirmed": "notify_new_appointment",
+      "appointment.rescheduled.by_customer": "notify_rescheduled_appointment",
+      "appointment.rescheduled.by_barber": "notify_rescheduled_appointment",
+      "appointment.rescheduled.by_shop": "notify_rescheduled_appointment",
+      "appointment.cancelled.by_customer": "notify_cancelled_appointment",
+      "appointment.cancelled.by_barber": "notify_cancelled_appointment",
+      "appointment.cancelled.by_shop": "notify_cancelled_appointment",
+      "appointment.completed": "notify_completed_appointment",
+      "subscription.created": "notify_new_subscription",
+      "subscription.cancelled": "notify_subscription_cancelled",
+      "subscription.renewed": "notify_payment_received",
+      "subscription.renewal_failed": "notify_payment_failed",
+      "payment.confirmed": "notify_payment_received",
+      "review.received": "notify_review_received",
+      "review.bad": "notify_bad_review",
+      "support.ticket_created": "notify_support_ticket",
+      "automation.failed": "notify_automation_failure",
+    };
+    const internalFlag = eventFlagMap[event];
+    const internalRecipients: string[] = [];
+
+    if (internalFlag) {
+      const { data: recipients } = await supabase
+        .from("notification_recipients")
+        .select("*")
+        .eq("tenant_id", tenant_id)
+        .eq("is_active", true)
+        .eq(internalFlag, true);
+
+      const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
+      const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
+
+      const internalMessage = buildInternalMessage(event, {
+        customer_name: customer?.name,
+        customer_phone: customer?.phone,
+        barber_name: barber?.name,
+        shop_name: shopProfile?.business_name,
+        ...(extra || {}),
+      });
+
+      for (const rcp of recipients || []) {
+        if (rcp.receive_whatsapp && rcp.phone) {
+          const norm = normalizePhone(rcp.phone);
+          if (allowOnOfficial || !officialPhone || norm !== officialPhone) {
+            supabase.functions
+              .invoke("whatsapp-cloud", {
+                body: {
+                  user_id: tenant_id,
+                  phone: rcp.phone,
+                  content: internalMessage,
+                  metadata: { eventType: event, internal: true, recipient_id: rcp.id },
+                },
+              })
+              .catch((e) => console.error("[EmitEvent] Internal WA failed", e));
+            internalRecipients.push(`wa:${rcp.name}`);
+          }
+        }
+
+        if (rcp.receive_panel) {
+          await supabase.from("notifications").insert({
+            user_id: tenant_id,
+            tenant_id,
+            type: event,
+            title: internalTitle(event),
+            message: internalMessage,
+            data: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
+            read: false,
+          }).then(() => internalRecipients.push(`panel:${rcp.name}`))
+            .catch((e: any) => console.error("[EmitEvent] Panel insert failed", e));
+        }
+
+        if (rcp.receive_email && rcp.email) {
+          console.log("[EmitEvent] Would email", rcp.email, event);
+          internalRecipients.push(`email:${rcp.name}`);
+        }
+      }
+    }
+
     // 4. Kick the processor (fire and forget)
     if (dispatched.length > 0) {
       supabase.functions
@@ -138,7 +219,7 @@ serve(async (req) => {
         .catch((e) => console.error("[EmitEvent] Kick failed", e));
     }
 
-    return json({ success: true, dispatched, skipped });
+    return json({ success: true, dispatched, skipped, internal: internalRecipients });
   } catch (e: any) {
     console.error("[EmitEvent] Fatal", e);
     return json({ success: false, error: e.message }, 500);
