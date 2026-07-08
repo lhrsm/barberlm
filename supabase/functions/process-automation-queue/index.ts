@@ -338,10 +338,26 @@ serve(async (req) => {
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).maybeSingle();
         if (!instance) throw new Error("WhatsApp not configured (instance not found)");
 
-        const phone = appointment?.customer?.phone || item.customer?.phone || item.payload?.phone;
-        if (!phone) throw new Error("Customer phone missing");
+        // Recipient-aware phone resolution (event-driven automations set payload.recipient_phone)
+        const recipient = automation?.recipient || item.payload?.recipient || 'customer';
+        let phone: string | null = item.payload?.recipient_phone || null;
+        if (!phone) {
+          if (recipient === 'barber') {
+            const barberId = appointment?.barber_id || appointment?.professional_id;
+            if (barberId) {
+              const { data: b } = await supabase.from('barbers').select('phone').eq('id', barberId).maybeSingle();
+              phone = b?.phone || null;
+            }
+          } else if (recipient === 'shop') {
+            const { data: p } = await supabase.from('profiles').select('whatsapp_number').eq('id', itemTenantId).maybeSingle();
+            phone = p?.whatsapp_number || null;
+          } else {
+            phone = appointment?.customer?.phone || item.customer?.phone || item.payload?.phone || null;
+          }
+        }
+        if (!phone) throw new Error(`Phone missing for recipient=${recipient}`);
 
-        console.log(`[ProcessQueue] Sending message to ${phone}`);
+        console.log(`[ProcessQueue] Sending to ${recipient} (${phone})`);
 
         // Fetch configured interactions (buttons) for this automation template
         let interactionButtons: any[] = [];
