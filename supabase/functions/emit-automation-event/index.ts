@@ -54,7 +54,7 @@ serve(async (req) => {
     if (appointment_id) {
       const { data } = await supabase
         .from("appointments")
-        .select("id, tenant_id, customer_id, barber_id, customer:customers(id, name, phone), barber:barbers(id, name, phone)")
+        .select("id, tenant_id, customer_id, barber_id, service_id, appointment_date, appointment_time, price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers(id, name, phone), service:services(id, name, price)")
         .eq("id", appointment_id)
         .maybeSingle();
       appointment = data;
@@ -70,9 +70,35 @@ serve(async (req) => {
 
     const { data: shopProfile } = await supabase
       .from("profiles")
-      .select("id, business_name, whatsapp_number, whatsapp_enabled")
+      .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone")
       .eq("id", tenant_id)
       .maybeSingle();
+
+    // Derived fields for message templates
+    const fmtBRL = (v: any) => {
+      const n = Number(v);
+      if (!isFinite(n) || n <= 0) return "";
+      return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    };
+    const fmtDate = (d: any) => {
+      if (!d) return "";
+      try {
+        const [y, m, day] = String(d).split("T")[0].split("-");
+        return `${day}/${m}/${y}`;
+      } catch { return String(d); }
+    };
+    const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
+    const appointmentExtras = appointment ? {
+      service_name: appointment.service?.name,
+      service_price: fmtBRL(appointment.price ?? appointment.service?.price),
+      appointment_date: fmtDate(appointment.appointment_date),
+      appointment_time: fmtTime(appointment.appointment_time),
+      payment_method: appointment.payment_method,
+      management_link: appointment.management_token && shopProfile?.slug
+        ? `https://barbex.shop/agendamento/${appointment.management_token}`
+        : undefined,
+    } : {};
+
 
     // 3. For each active template, enqueue one row with the right recipient phone
     const dispatched: string[] = [];
@@ -114,6 +140,11 @@ serve(async (req) => {
           recipient,
           recipient_phone: phone,
           recipient_name: recipientName,
+          ...appointmentExtras,
+          customer_name: customer?.name,
+          customer_phone: customer?.phone,
+          professional_name: barber?.name,
+          barbershop_name: shopProfile?.business_name,
           ...(extra || {}),
         },
       });
@@ -173,6 +204,8 @@ serve(async (req) => {
         customer_phone: customer?.phone,
         barber_name: barber?.name,
         shop_name: shopProfile?.business_name,
+        barbershop_name: shopProfile?.business_name,
+        ...appointmentExtras,
         ...(extra || {}),
       });
 
@@ -298,7 +331,39 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
     return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
   }
   if (event === "appointment.created" || event === "appointment.confirmed") {
-    return `📅 ${header}\n\n${line("Cliente", d.customer_name)}${line("Telefone", d.customer_phone)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date)}${line("Horário", d.appointment_time)}${line("Valor", d.service_price)}${line("Pagamento", d.payment_method)}`.trim();
+    const divider = "━━━━━━━━━━━━━━━━━━━━━━";
+    const parts = [
+      `Olá! 📣`,
+      ``,
+      `Um novo agendamento foi realizado.`,
+      ``,
+      `📋 *Resumo do agendamento*`,
+      ``,
+      d.customer_name ? `👤 *Cliente:* ${d.customer_name}` : "",
+      d.service_name ? `✂️ *Serviço:* ${d.service_name}` : "",
+      d.service_price ? `💰 *Valor:* ${d.service_price}` : "",
+      d.payment_method ? `💳 *Forma de pagamento:* ${d.payment_method}` : "",
+      d.barber_name ? `💈 *Profissional:* ${d.barber_name}` : "",
+      d.appointment_date ? `📅 *Data:* ${d.appointment_date}` : "",
+      d.appointment_time ? `🕒 *Horário:* ${d.appointment_time}` : "",
+      d.customer_phone ? `📞 *Telefone:* ${d.customer_phone}` : "",
+      ``,
+      divider,
+      ``,
+      `Caso seja necessário realizar alguma alteração, utilize o link abaixo para *gerenciar este agendamento*.`,
+      ``,
+      `Você poderá:`,
+      `• 📅 Reagendar`,
+      `• ❌ Cancelar`,
+      `• 👀 Consultar todos os detalhes`,
+      ``,
+      d.management_link ? `🔗 ${d.management_link}` : "",
+      ``,
+      divider,
+      ``,
+      `Mensagem enviada automaticamente pelo *Barbex*.`,
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event === "appointment.completed") {
     return `✅ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}`.trim();
