@@ -140,6 +140,11 @@ serve(async (req) => {
           recipient,
           recipient_phone: phone,
           recipient_name: recipientName,
+          ...appointmentExtras,
+          customer_name: customer?.name,
+          customer_phone: customer?.phone,
+          professional_name: barber?.name,
+          barbershop_name: shopProfile?.business_name,
           ...(extra || {}),
         },
       });
