@@ -1127,6 +1127,14 @@ function ClientPortalComponent() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        <NextAppointmentCard
+          appointments={appointments}
+          shop={shop}
+          onReschedule={handleEditAppointment}
+          onCancel={handleCancelAppointment}
+          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+        />
+
         <SuaJornadaBarbex
           client={client}
           shop={shop}
@@ -1141,13 +1149,6 @@ function ClientPortalComponent() {
           onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
         />
 
-        <NextAppointmentCard
-          appointments={appointments}
-          shop={shop}
-          onReschedule={handleEditAppointment}
-          onCancel={handleCancelAppointment}
-          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
-        />
 
 
 
