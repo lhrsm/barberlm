@@ -47,6 +47,7 @@ import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
+import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
@@ -75,6 +76,7 @@ import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/we
 import { Route as ApiPublicSubscriptionsWebhookRouteImport } from './routes/api/public/subscriptions/webhook'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/public/hooks/status-check'
+import { Route as ApiPublicHooksSendReviewRequestsRouteImport } from './routes/api/public/hooks/send-review-requests'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -266,6 +268,11 @@ const SubscriptionsReportsRoute = SubscriptionsReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => SubscriptionsRoute,
 } as any)
+const ReviewTokenRoute = ReviewTokenRouteImport.update({
+  id: '/review/$token',
+  path: '/review/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoyaltyTemplatesRoute = LoyaltyTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -411,6 +418,12 @@ const ApiPublicHooksStatusCheckRoute =
     path: '/api/public/hooks/status-check',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksSendReviewRequestsRoute =
+  ApiPublicHooksSendReviewRequestsRouteImport.update({
+    id: '/api/public/hooks/send-review-requests',
+    path: '/api/public/hooks/send-review-requests',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -468,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
@@ -475,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscriptions/webhook': typeof ApiPublicSubscriptionsWebhookRoute
@@ -534,6 +549,7 @@ export interface FileRoutesByTo {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
@@ -541,6 +557,7 @@ export interface FileRoutesByTo {
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscriptions/webhook': typeof ApiPublicSubscriptionsWebhookRoute
@@ -603,6 +620,7 @@ export interface FileRoutesById {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
@@ -610,6 +628,7 @@ export interface FileRoutesById {
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/subscriptions/webhook': typeof ApiPublicSubscriptionsWebhookRoute
@@ -673,6 +692,7 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/review/$token'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
@@ -680,6 +700,7 @@ export interface FileRouteTypes {
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/public/subscriptions/webhook'
@@ -739,6 +760,7 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/review/$token'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin'
@@ -746,6 +768,7 @@ export interface FileRouteTypes {
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/public/subscriptions/webhook'
@@ -807,6 +830,7 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/review/$token'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
@@ -814,6 +838,7 @@ export interface FileRouteTypes {
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
     | '/api/public/subscriptions/webhook'
@@ -857,8 +882,10 @@ export interface RootRouteChildren {
   TutorialsRoute: typeof TutorialsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  ReviewTokenRoute: typeof ReviewTokenRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksSendReviewRequestsRoute: typeof ApiPublicHooksSendReviewRequestsRoute
   ApiPublicHooksStatusCheckRoute: typeof ApiPublicHooksStatusCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicSubscriptionsWebhookRoute: typeof ApiPublicSubscriptionsWebhookRoute
@@ -1133,6 +1160,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionsReportsRouteImport
       parentRoute: typeof SubscriptionsRoute
     }
+    '/review/$token': {
+      id: '/review/$token'
+      path: '/review/$token'
+      fullPath: '/review/$token'
+      preLoaderRoute: typeof ReviewTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/loyalty/templates': {
       id: '/loyalty/templates'
       path: '/templates'
@@ -1329,6 +1363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksStatusCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/send-review-requests': {
+      id: '/api/public/hooks/send-review-requests'
+      path: '/api/public/hooks/send-review-requests'
+      fullPath: '/api/public/hooks/send-review-requests'
+      preLoaderRoute: typeof ApiPublicHooksSendReviewRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1461,8 +1502,10 @@ const rootRouteChildren: RootRouteChildren = {
   TutorialsRoute: TutorialsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  ReviewTokenRoute: ReviewTokenRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksSendReviewRequestsRoute: ApiPublicHooksSendReviewRequestsRoute,
   ApiPublicHooksStatusCheckRoute: ApiPublicHooksStatusCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicSubscriptionsWebhookRoute: ApiPublicSubscriptionsWebhookRoute,
