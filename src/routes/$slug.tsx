@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { triggerAutomation } from "@/utils/automation";
+import { emitAutomationEvent } from "@/utils/emit-event";
 import { normalizePhone } from "@/utils/phone";
 import { usePublicModules } from "@/hooks/use-public-modules";
 import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
@@ -1462,20 +1463,30 @@ function ShopPageComponent() {
         
         if (isMultipleAppt && appointmentGroupId) {
           // Para múltiplos agendamentos, disparamos apenas UM gatilho usando o primeiro agendamento
-          // mas o sistema de automação saberá que ele pertence a um grupo
           triggerAutomation({
             tenant_id: shop.id,
             event_name: 'appointment.created',
             appointment_id: createdAppointments[0].id
           }).catch(err => console.error("Error triggering automation:", err));
+          emitAutomationEvent({
+            tenantId: shop.id,
+            event: 'appointment.created',
+            appointmentId: createdAppointments[0].id,
+            customerId: finalCustId || undefined,
+          });
         } else {
-          // Agendamento único
           for (const appt of createdAppointments) {
             triggerAutomation({
               tenant_id: shop.id,
               event_name: 'appointment.created',
               appointment_id: appt.id
             }).catch(err => console.error("Error triggering automation:", err));
+            emitAutomationEvent({
+              tenantId: shop.id,
+              event: 'appointment.created',
+              appointmentId: appt.id,
+              customerId: finalCustId || undefined,
+            });
           }
         }
       }

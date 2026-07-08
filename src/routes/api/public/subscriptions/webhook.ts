@@ -56,6 +56,7 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
           if (!event) return Response.json({ received: true, ignored: "no event" });
 
           // Atualiza subscription/payment pelo provider_subscription_id ou provider_payment_id
+          let subRowForEvent: any = null;
           if (event.providerSubscriptionId) {
             const nextStatus = event.status === "paid" ? "active"
               : event.status === "canceled" ? "canceled"
@@ -65,6 +66,36 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
               .from("customer_subscriptions")
               .update({ status: nextStatus, updated_at: new Date().toISOString() })
               .eq("provider_subscription_id", event.providerSubscriptionId);
+
+            const { data: subRow } = await supabaseAdmin
+              .from("customer_subscriptions")
+              .select("id, tenant_id, customer_id, plan_name, amount")
+              .eq("provider_subscription_id", event.providerSubscriptionId)
+              .maybeSingle();
+            subRowForEvent = subRow;
+
+            // Event-driven fan-out for subscription lifecycle
+            if (subRow) {
+              const evtMap: Record<string, string> = {
+                paid: "subscription.renewed",
+                canceled: "subscription.cancelled",
+                failed: "subscription.renewal_failed",
+              };
+              const evtName = evtMap[event.status || ""];
+              if (evtName) {
+                supabaseAdmin.functions.invoke("emit-automation-event", {
+                  body: {
+                    tenant_id: (subRow as any).tenant_id,
+                    event: evtName,
+                    customer_id: (subRow as any).customer_id,
+                    extra: {
+                      plan_name: (subRow as any).plan_name || "",
+                      subscription_name: (subRow as any).plan_name || "",
+                    },
+                  },
+                }).catch((e) => console.warn("[SubWebhook] emit failed", e));
+              }
+            }
           }
 
           if (event.providerPaymentId) {
@@ -75,11 +106,11 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
               .eq("provider_payment_id", event.providerPaymentId)
               .maybeSingle();
             if (!existing && event.providerSubscriptionId) {
-              const { data: sub } = await supabaseAdmin
+              const sub = subRowForEvent ?? (await supabaseAdmin
                 .from("customer_subscriptions")
-                .select("id, tenant_id, amount, currency")
+                .select("id, tenant_id, customer_id, amount, currency")
                 .eq("provider_subscription_id", event.providerSubscriptionId)
-                .maybeSingle();
+                .maybeSingle()).data;
               if (sub) {
                 await supabaseAdmin.from("subscription_payments").insert({
                   tenant_id: (sub as any).tenant_id,
@@ -93,6 +124,21 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
                   paid_at: event.status === "paid" ? new Date().toISOString() : null,
                   raw_payload: (event.raw ?? {}) as any,
                 });
+
+                // Emit payment.confirmed on successful payment
+                if (event.status === "paid") {
+                  supabaseAdmin.functions.invoke("emit-automation-event", {
+                    body: {
+                      tenant_id: (sub as any).tenant_id,
+                      event: "payment.confirmed",
+                      customer_id: (sub as any).customer_id,
+                      extra: {
+                        amount: event.amount ?? Number((sub as any).amount ?? 0),
+                        payment_method: event.provider || "",
+                      },
+                    },
+                  }).catch((e) => console.warn("[SubWebhook] emit payment failed", e));
+                }
               }
             }
           }

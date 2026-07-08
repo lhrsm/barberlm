@@ -31,6 +31,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { triggerAutomation } from "@/utils/automation";
+import { emitAutomationEvent } from "@/utils/emit-event";
 
 
 interface AppointmentModalProps {
@@ -445,6 +446,17 @@ export function AppointmentModal({
         appointment_id: appointmentData.id
       }).catch(err => {
         console.error("Failed to trigger automation:", err);
+      });
+
+      // Event-driven fan-out (barber/shop + any active per-recipient templates)
+      emitAutomationEvent({
+        tenantId,
+        event: editingAppointmentId ? 'appointment.rescheduled.by_shop' : 'appointment.created',
+        appointmentId: appointmentData.id,
+        customerId: selectedCustomer,
+        extra: {
+          payment_method: appointmentData.payment_method || '',
+        },
       });
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
