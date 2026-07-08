@@ -410,43 +410,40 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
     return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
   }
   if (event === "appointment.created" || event === "appointment.confirmed") {
-    const divider = "━━━━━━━━━━━━━━━━━━━━━━";
     const parts = [
-      `Olá! 📣`,
+      `Olá${d.recipient_name ? ` ${d.recipient_name}` : ""}! 📣`,
       ``,
-      `Um novo agendamento foi realizado.`,
+      `Novo agendamento realizado.`,
       ``,
-      `📋 *Resumo do agendamento*`,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.customer_phone ? `📞 Telefone: ${d.customer_phone}` : "",
+      d.barber_name ? `💈 Profissional: ${d.barber_name}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      (d.appointment_date || d.appointment_time) ? `📅 ${d.appointment_date || ""}${d.appointment_time ? ` às ${d.appointment_time}` : ""}` : "",
+      d.payment_method ? `💳 Pagamento: ${d.payment_method}` : "",
+      d.service_price ? `💰 Valor: ${d.service_price}` : "",
       ``,
-      d.customer_name ? `👤 *Cliente:* ${d.customer_name}` : "",
-      d.service_name ? `✂️ *Serviço:* ${d.service_name}` : "",
-      d.service_price ? `💰 *Valor:* ${d.service_price}` : "",
-      d.payment_method ? `💳 *Forma de pagamento:* ${d.payment_method}` : "",
-      d.barber_name ? `💈 *Profissional:* ${d.barber_name}` : "",
-      d.appointment_date ? `📅 *Data:* ${d.appointment_date}` : "",
-      d.appointment_time ? `🕒 *Horário:* ${d.appointment_time}` : "",
-      d.customer_phone ? `📞 *Telefone:* ${d.customer_phone}` : "",
+      d.management_link ? `Gerenciar agendamento:\n${d.management_link}` : "",
       ``,
-      divider,
-      ``,
-      `Caso seja necessário realizar alguma alteração, utilize o link abaixo para *gerenciar este agendamento*.`,
-      ``,
-      `Você poderá:`,
-      `• 📅 Reagendar`,
-      `• ❌ Cancelar`,
-      `• 👀 Consultar todos os detalhes`,
-      ``,
-      d.management_link ? `🔗 ${d.management_link}` : "",
-      ``,
-      divider,
-      ``,
-      `Mensagem enviada automaticamente pelo *Barbex*.`,
+      `Mensagem automática do Barbex.`,
     ];
     return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event === "appointment.completed") {
-    return `✅ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}`.trim();
+    const parts = [
+      `✅ Atendimento concluído`,
+      ``,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.barber_name ? `💈 Profissional: ${d.barber_name}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      d.service_price ? `💰 Valor: ${d.service_price}` : "",
+      d.payment_method ? `💳 Pagamento: ${d.payment_method}` : "",
+      ``,
+      `Mensagem automática do Barbex.`,
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
+
   if (event.startsWith("subscription.")) {
     return `💳 ${header}\n\n${line("Cliente", d.customer_name)}${line("Plano", d.plan_name || d.subscription_name)}${line("Valor", d.amount)}`.trim();
   }
