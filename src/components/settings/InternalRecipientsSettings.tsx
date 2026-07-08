@@ -12,7 +12,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BellRing, Plus, Trash2, Users } from "lucide-react";
+import { BellRing, Pencil, Plus, Trash2, Users } from "lucide-react";
 
 type Recipient = {
   id: string;
@@ -272,16 +272,20 @@ export function InternalRecipientsSettings() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r)} />
-                    <Button size="sm" variant="outline" onClick={() => openEdit(r)} className="rounded-xl h-9">
+                    <Button
+                      size="sm"
+                      onClick={() => openEdit(r)}
+                      className="h-9 px-3 rounded-lg bg-transparent border border-[#1f2937] text-slate-200 hover:bg-[#ea580c]/10 hover:border-[#ea580c]/40 hover:text-[#ea580c] font-bold uppercase text-[11px] tracking-widest transition-all"
+                    >
+                      <Pencil className="h-3.5 w-3.5 mr-1.5" />
                       Editar
                     </Button>
                     <Button
-                      size="icon"
-                      variant="ghost"
-                      className="text-rose-400 hover:bg-rose-500/10 rounded-xl"
+                      size="sm"
                       onClick={() => remove(r.id)}
+                      className="h-9 px-3 rounded-lg bg-transparent border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/60 hover:text-rose-300 font-bold uppercase text-[11px] tracking-widest transition-all"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
