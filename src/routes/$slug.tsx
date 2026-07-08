@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { triggerAutomation } from "@/utils/automation";
+import { emitAutomationEvent } from "@/utils/emit-event";
 import { normalizePhone } from "@/utils/phone";
 import { usePublicModules } from "@/hooks/use-public-modules";
 import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
