@@ -119,6 +119,7 @@ serve(async (req) => {
       .insert({
         user_id,
         connection_id: activeInstance.id,
+        type: "text",
         status: "pending",
         content: finalContent,
         metadata: { phone, options, ...metadata },
