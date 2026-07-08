@@ -204,6 +204,8 @@ serve(async (req) => {
         customer_phone: customer?.phone,
         barber_name: barber?.name,
         shop_name: shopProfile?.business_name,
+        barbershop_name: shopProfile?.business_name,
+        ...appointmentExtras,
         ...(extra || {}),
       });
 
