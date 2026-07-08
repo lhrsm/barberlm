@@ -298,7 +298,39 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
     return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
   }
   if (event === "appointment.created" || event === "appointment.confirmed") {
-    return `📅 ${header}\n\n${line("Cliente", d.customer_name)}${line("Telefone", d.customer_phone)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date)}${line("Horário", d.appointment_time)}${line("Valor", d.service_price)}${line("Pagamento", d.payment_method)}`.trim();
+    const divider = "━━━━━━━━━━━━━━━━━━━━━━";
+    const parts = [
+      `Olá! 📣`,
+      ``,
+      `Um novo agendamento foi realizado.`,
+      ``,
+      `📋 *Resumo do agendamento*`,
+      ``,
+      d.customer_name ? `👤 *Cliente:* ${d.customer_name}` : "",
+      d.service_name ? `✂️ *Serviço:* ${d.service_name}` : "",
+      d.service_price ? `💰 *Valor:* ${d.service_price}` : "",
+      d.payment_method ? `💳 *Forma de pagamento:* ${d.payment_method}` : "",
+      d.barber_name ? `💈 *Profissional:* ${d.barber_name}` : "",
+      d.appointment_date ? `📅 *Data:* ${d.appointment_date}` : "",
+      d.appointment_time ? `🕒 *Horário:* ${d.appointment_time}` : "",
+      d.customer_phone ? `📞 *Telefone:* ${d.customer_phone}` : "",
+      ``,
+      divider,
+      ``,
+      `Caso seja necessário realizar alguma alteração, utilize o link abaixo para *gerenciar este agendamento*.`,
+      ``,
+      `Você poderá:`,
+      `• 📅 Reagendar`,
+      `• ❌ Cancelar`,
+      `• 👀 Consultar todos os detalhes`,
+      ``,
+      d.management_link ? `🔗 ${d.management_link}` : "",
+      ``,
+      divider,
+      ``,
+      `Mensagem enviada automaticamente pelo *Barbex*.`,
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event === "appointment.completed") {
     return `✅ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}`.trim();
