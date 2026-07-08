@@ -886,6 +886,151 @@ export type Database = {
           },
         ]
       }
+      automation_interaction_events: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          customer_id: string | null
+          customer_phone: string | null
+          dispatch_id: string | null
+          event_type: string
+          id: string
+          interaction_id: string | null
+          ip: string | null
+          metadata: Json
+          response_text: string | null
+          response_time_ms: number | null
+          source: string | null
+          tenant_id: string
+          workflow_key: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_phone?: string | null
+          dispatch_id?: string | null
+          event_type: string
+          id?: string
+          interaction_id?: string | null
+          ip?: string | null
+          metadata?: Json
+          response_text?: string | null
+          response_time_ms?: number | null
+          source?: string | null
+          tenant_id: string
+          workflow_key?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_phone?: string | null
+          dispatch_id?: string | null
+          event_type?: string
+          id?: string
+          interaction_id?: string | null
+          ip?: string | null
+          metadata?: Json
+          response_text?: string | null
+          response_time_ms?: number | null
+          source?: string | null
+          tenant_id?: string
+          workflow_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_interaction_events_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "automation_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_interaction_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_interactions: {
+        Row: {
+          action_payload: Json
+          action_type: string
+          active: boolean
+          automation_id: string | null
+          automation_template_id: string | null
+          button_color: string | null
+          button_icon: string | null
+          button_title: string
+          conditions: Json
+          created_at: string
+          display_order: number
+          id: string
+          success_message: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_payload?: Json
+          action_type: string
+          active?: boolean
+          automation_id?: string | null
+          automation_template_id?: string | null
+          button_color?: string | null
+          button_icon?: string | null
+          button_title: string
+          conditions?: Json
+          created_at?: string
+          display_order?: number
+          id?: string
+          success_message?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_payload?: Json
+          action_type?: string
+          active?: boolean
+          automation_id?: string | null
+          automation_template_id?: string | null
+          button_color?: string | null
+          button_icon?: string | null
+          button_title?: string
+          conditions?: Json
+          created_at?: string
+          display_order?: number
+          id?: string
+          success_message?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_interactions_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_interactions_automation_template_id_fkey"
+            columns: ["automation_template_id"]
+            isOneToOne: false
+            referencedRelation: "automation_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_interactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_logs: {
         Row: {
           action: string | null
@@ -1344,6 +1489,8 @@ export type Database = {
           tenant_id: string
           trigger_event: string
           updated_at: string | null
+          wait_response_timeout_minutes: number | null
+          wait_timeout_interaction_id: string | null
         }
         Insert: {
           active?: boolean | null
@@ -1365,6 +1512,8 @@ export type Database = {
           tenant_id: string
           trigger_event: string
           updated_at?: string | null
+          wait_response_timeout_minutes?: number | null
+          wait_timeout_interaction_id?: string | null
         }
         Update: {
           active?: boolean | null
@@ -1386,6 +1535,8 @@ export type Database = {
           tenant_id?: string
           trigger_event?: string
           updated_at?: string | null
+          wait_response_timeout_minutes?: number | null
+          wait_timeout_interaction_id?: string | null
         }
         Relationships: [
           {
@@ -1393,6 +1544,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_templates_wait_timeout_interaction_id_fkey"
+            columns: ["wait_timeout_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "automation_interactions"
             referencedColumns: ["id"]
           },
         ]
@@ -1826,6 +1984,8 @@ export type Database = {
           trigger_type: string
           type: string
           updated_at: string
+          wait_response_timeout_minutes: number | null
+          wait_timeout_interaction_id: string | null
         }
         Insert: {
           barber_id?: string | null
@@ -1840,6 +2000,8 @@ export type Database = {
           trigger_type: string
           type: string
           updated_at?: string
+          wait_response_timeout_minutes?: number | null
+          wait_timeout_interaction_id?: string | null
         }
         Update: {
           barber_id?: string | null
@@ -1854,6 +2016,8 @@ export type Database = {
           trigger_type?: string
           type?: string
           updated_at?: string
+          wait_response_timeout_minutes?: number | null
+          wait_timeout_interaction_id?: string | null
         }
         Relationships: [
           {
@@ -1861,6 +2025,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automations_wait_timeout_interaction_id_fkey"
+            columns: ["wait_timeout_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "automation_interactions"
             referencedColumns: ["id"]
           },
         ]
