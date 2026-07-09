@@ -52,13 +52,15 @@ serve(async (req) => {
     // 2. Load context: appointment / customer / barber / shop
     let appointment: any = null;
     if (appointment_id) {
-      const { data } = await supabase
+      const { data, error: apptErr } = await supabase
         .from("appointments")
-        .select("id, tenant_id, customer_id, barber_id, service_id, appointment_date, appointment_time, price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers(id, name, phone), service:services(id, name, price)")
+        .select("id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, total_price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers(id, name, phone), service:services(id, name, price)")
         .eq("id", appointment_id)
         .maybeSingle();
+      if (apptErr) console.error("[EmitEvent] appointment fetch error", apptErr);
       appointment = data;
     }
+
 
     let customer: any = appointment?.customer || null;
     if (!customer && customer_id) {
@@ -88,16 +90,20 @@ serve(async (req) => {
       } catch { return String(d); }
     };
     const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
+    const startTs = appointment?.start_time ? new Date(appointment.start_time) : null;
+    const apptDateStr = startTs ? `${String(startTs.getUTCDate()).padStart(2,'0')}/${String(startTs.getUTCMonth()+1).padStart(2,'0')}/${startTs.getUTCFullYear()}` : "";
+    const apptTimeStr = startTs ? `${String(startTs.getUTCHours()).padStart(2,'0')}:${String(startTs.getUTCMinutes()).padStart(2,'0')}` : "";
     const appointmentExtras: Record<string, any> = appointment ? {
       service_name: appointment.service?.name,
-      service_price: fmtBRL(appointment.price ?? appointment.service?.price),
-      appointment_date: fmtDate(appointment.appointment_date),
-      appointment_time: fmtTime(appointment.appointment_time),
+      service_price: fmtBRL(appointment.total_price ?? appointment.service?.price),
+      appointment_date: apptDateStr,
+      appointment_time: apptTimeStr,
       payment_method: appointment.payment_method,
       management_link: appointment.management_token
         ? `https://barbex.shop/agendamento/${appointment.management_token}`
         : undefined,
     } : {};
+
 
     // For appointment.completed: ensure a review_token/link so the delayed
     // review template has something valid to send.
