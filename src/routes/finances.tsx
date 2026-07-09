@@ -1361,9 +1361,11 @@ function FinancesComponent() {
                   { v: "pending", icon: Clock, label: "Pendentes" },
                   { v: "refunds", icon: RefreshCcw, label: "Estornos" },
                   ...(role !== 'barber' ? [
+                    { v: "coupons", icon: TicketPercent, label: "Cupons" },
                     { v: "barbers", icon: Users, label: "Por Barbeiro" },
                     { v: "settings", icon: AlertCircle, label: "Configs" },
                   ] : []),
+
                 ].map(({ v, icon: Icon, label }) => {
                   const active = financeTab === v;
                   return (
