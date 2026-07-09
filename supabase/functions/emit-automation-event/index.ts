@@ -95,16 +95,59 @@ serve(async (req) => {
     const startTs = appointment?.start_time ? new Date(appointment.start_time) : null;
     const apptDateStr = startTs ? `${String(startTs.getUTCDate()).padStart(2,'0')}/${String(startTs.getUTCMonth()+1).padStart(2,'0')}/${startTs.getUTCFullYear()}` : "";
     const apptTimeStr = startTs ? `${String(startTs.getUTCHours()).padStart(2,'0')}:${String(startTs.getUTCMinutes()).padStart(2,'0')}` : "";
+    // Nice labels for payment method
+    const pmLabel = (raw: any): string => {
+      const v = String(raw || "").toLowerCase();
+      if (!v) return "";
+      if (v === "pix") return "PIX";
+      if (v === "cash" || v === "dinheiro") return "Dinheiro";
+      if (v === "card" || v === "credit_card" || v === "debit_card") return "Cartão";
+      if (v === "credit") return "Crédito";
+      if (v === "cashback") return "Cashback";
+      return String(raw);
+    };
     const appointmentExtras: Record<string, any> = appointment ? {
       service_name: appointment.service?.name,
       service_price: fmtBRL(appointment.total_price ?? appointment.service?.price),
       appointment_date: apptDateStr,
       appointment_time: apptTimeStr,
-      payment_method: appointment.payment_method,
+      payment_method: pmLabel(appointment.payment_method),
       management_link: appointment.management_token
         ? `https://barbex.shop/agendamento/${appointment.management_token}`
         : undefined,
     } : {};
+
+    // For reschedule events: if the caller did not provide old_date/old_time
+    // and new_date/new_time, derive them from appointment_status_logs so the
+    // premium templates never render empty placeholders.
+    if (event.startsWith("appointment.rescheduled") && appointment_id) {
+      const needsOld = !(extra?.old_date && extra?.old_time);
+      const needsNew = !(extra?.new_date && extra?.new_time);
+      if (needsOld || needsNew) {
+        try {
+          const { data: lastLog } = await supabase
+            .from("appointment_status_logs")
+            .select("previous_start_time, new_start_time, created_at")
+            .eq("appointment_id", appointment_id)
+            .eq("action", "reschedule")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (lastLog?.previous_start_time && needsOld) {
+            const d = new Date(lastLog.previous_start_time);
+            appointmentExtras.old_date = `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+            appointmentExtras.old_time = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+          }
+          if (needsNew) {
+            appointmentExtras.new_date = apptDateStr;
+            appointmentExtras.new_time = apptTimeStr;
+          }
+        } catch (e) {
+          console.warn("[EmitEvent] reschedule log lookup failed", e);
+        }
+      }
+    }
+
 
 
     // For appointment.completed: ensure a review_token/link so the delayed
