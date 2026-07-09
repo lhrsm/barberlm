@@ -119,6 +119,7 @@ export function AppointmentModal({
       const start = parseISO(data.start_time);
       setSelectedDate(format(start, "yyyy-MM-dd"));
       setSelectedTime(format(start, "HH:mm"));
+      setOriginalStartTime(data.start_time);
       if (data.payment_status) setPaymentStatus(data.payment_status);
       setPaymentMethod(data.payment_method === 'credits' ? 'wallet' : 'cash');
     }
