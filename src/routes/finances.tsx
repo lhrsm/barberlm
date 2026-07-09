@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 import { Handshake } from "lucide-react";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History, Crown } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History, Crown, Calculator, FileDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
@@ -871,10 +871,9 @@ function FinancesComponent() {
           <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
             {role !== 'barber' && (
               <>
-
-                <Button 
-                  variant="outline" 
-                  className="gap-2 whitespace-nowrap w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-accent hover:border-primary/40" 
+                <Button
+                  variant="outline"
+                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
                   onClick={() => {
                     if (plan === 'free') {
                       toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
@@ -884,18 +883,18 @@ function FinancesComponent() {
                     }
                   }}
                 >
-                  <Wallet size={18} /> Exportar PDF
+                  <FileDown size={18} /> Exportar PDF
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="gap-2 whitespace-nowrap border-primary/30 text-primary w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-primary/10 hover:border-primary/60" 
+                <Button
+                  variant="outline"
+                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
                   onClick={() => fetchRefundRequests()}
                 >
                   <RefreshCcw size={18} /> Sincronizar Tudo
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="gap-2 whitespace-nowrap border-amber-500/30 text-amber-500 w-full md:w-auto transition-all hover:-translate-y-0.5 hover:shadow-lg hover:bg-amber-500/10 hover:border-amber-500/60" 
+                <Button
+                  variant="outline"
+                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
                   onClick={async () => {
                     const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
                     if (customers) {
@@ -904,27 +903,24 @@ function FinancesComponent() {
                         await supabase.rpc('recalculate_customer_credit_balance', { p_customer_id: c.id });
                         await supabase.rpc('recalculate_customer_cashback_balance', { p_customer_id: c.id });
                       }
-      fetchTransactions();
-      fetchCustomerStats();
-      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+                      fetchTransactions();
+                      fetchCustomerStats();
+                      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
                       fetchCashbackTransactions();
                       fetchCustomerStats();
                       toast.success("Saldos recalculados com sucesso!");
                     }
                   }}
                 >
-                  <RefreshCcw size={18} /> Recalcular Saldos
+                  <Calculator size={18} /> Recalcular Saldos
                 </Button>
-
               </>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-2 h-9 px-3 text-sm whitespace-nowrap bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-bold rounded-lg shadow-[0_4px_12px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 transition-all border-0 w-full md:w-auto">
-                <Plus size={16} strokeWidth={3} /> Nova Transação
+              <Button className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-6 rounded-[14px] font-bold border-0 text-black bg-gradient-to-b from-[#F5D062] to-[#C9971A] shadow-[0_10px_26px_-10px_rgba(212,175,55,0.75)] transition-all duration-200 hover:bg-gradient-to-b hover:from-[#FFE082] hover:to-[#D4AF37] hover:shadow-[0_16px_36px_-12px_rgba(212,175,55,0.9)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100">
+                <Plus size={18} strokeWidth={3} /> Nova Transação
               </Button>
-
-
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
