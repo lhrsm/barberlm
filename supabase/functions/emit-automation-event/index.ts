@@ -93,9 +93,8 @@ serve(async (req) => {
       } catch { return String(d); }
     };
     const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
-    const startTs = appointment?.start_time ? new Date(appointment.start_time) : null;
-    const apptDateStr = startTs ? `${String(startTs.getUTCDate()).padStart(2,'0')}/${String(startTs.getUTCMonth()+1).padStart(2,'0')}/${startTs.getUTCFullYear()}` : "";
-    const apptTimeStr = startTs ? `${String(startTs.getUTCHours()).padStart(2,'0')}:${String(startTs.getUTCMinutes()).padStart(2,'0')}` : "";
+    const apptDateStr = appointment?.start_time ? formatBrazilDate(appointment.start_time) : "";
+    const apptTimeStr = appointment?.start_time ? formatBrazilTime(appointment.start_time) : "";
     // Nice labels for payment method
     const pmLabel = (raw: any): string => {
       const v = String(raw || "").toLowerCase();
