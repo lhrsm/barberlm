@@ -117,36 +117,15 @@ serve(async (req) => {
         : undefined,
     } : {};
 
-    // For reschedule events: if the caller did not provide old_date/old_time
-    // and new_date/new_time, derive them from appointment_status_logs so the
-    // premium templates never render empty placeholders.
-    if (event.startsWith("appointment.rescheduled") && appointment_id) {
-      const needsOld = !(extra?.old_date && extra?.old_time);
-      const needsNew = !(extra?.new_date && extra?.new_time);
-      if (needsOld || needsNew) {
-        try {
-          const { data: lastLog } = await supabase
-            .from("appointment_status_logs")
-            .select("previous_start_time, new_start_time, created_at")
-            .eq("appointment_id", appointment_id)
-            .eq("action", "reschedule")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (lastLog?.previous_start_time && needsOld) {
-            const d = new Date(lastLog.previous_start_time);
-            appointmentExtras.old_date = `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
-            appointmentExtras.old_time = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
-          }
-          if (needsNew) {
-            appointmentExtras.new_date = apptDateStr;
-            appointmentExtras.new_time = apptTimeStr;
-          }
-        } catch (e) {
-          console.warn("[EmitEvent] reschedule log lookup failed", e);
-        }
-      }
+    // For reschedule events: if new_date/new_time weren't provided, use the
+    // current appointment start as the "new" values so premium templates never
+    // render empty placeholders. The caller (agendamento.$token / calendar
+    // modal) should pass old_date/old_time in `extra`.
+    if (event.startsWith("appointment.rescheduled")) {
+      if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
+      if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
     }
+
 
 
 
