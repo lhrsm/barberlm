@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS on_appointment_change ON public.appointments;
