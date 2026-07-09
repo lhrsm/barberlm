@@ -90,16 +90,20 @@ serve(async (req) => {
       } catch { return String(d); }
     };
     const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
+    const startTs = appointment?.start_time ? new Date(appointment.start_time) : null;
+    const apptDateStr = startTs ? `${String(startTs.getUTCDate()).padStart(2,'0')}/${String(startTs.getUTCMonth()+1).padStart(2,'0')}/${startTs.getUTCFullYear()}` : "";
+    const apptTimeStr = startTs ? `${String(startTs.getUTCHours()).padStart(2,'0')}:${String(startTs.getUTCMinutes()).padStart(2,'0')}` : "";
     const appointmentExtras: Record<string, any> = appointment ? {
       service_name: appointment.service?.name,
-      service_price: fmtBRL(appointment.price ?? appointment.service?.price),
-      appointment_date: fmtDate(appointment.appointment_date),
-      appointment_time: fmtTime(appointment.appointment_time),
+      service_price: fmtBRL(appointment.total_price ?? appointment.service?.price),
+      appointment_date: apptDateStr,
+      appointment_time: apptTimeStr,
       payment_method: appointment.payment_method,
       management_link: appointment.management_token
         ? `https://barbex.shop/agendamento/${appointment.management_token}`
         : undefined,
     } : {};
+
 
     // For appointment.completed: ensure a review_token/link so the delayed
     // review template has something valid to send.
