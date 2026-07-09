@@ -52,13 +52,15 @@ serve(async (req) => {
     // 2. Load context: appointment / customer / barber / shop
     let appointment: any = null;
     if (appointment_id) {
-      const { data } = await supabase
+      const { data, error: apptErr } = await supabase
         .from("appointments")
-        .select("id, tenant_id, customer_id, barber_id, service_id, appointment_date, appointment_time, price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers(id, name, phone), service:services(id, name, price)")
+        .select("id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, total_price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers(id, name, phone), service:services(id, name, price)")
         .eq("id", appointment_id)
         .maybeSingle();
+      if (apptErr) console.error("[EmitEvent] appointment fetch error", apptErr);
       appointment = data;
     }
+
 
     let customer: any = appointment?.customer || null;
     if (!customer && customer_id) {
