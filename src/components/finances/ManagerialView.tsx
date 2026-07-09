@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,8 +55,11 @@ const brl = (v: number) =>
 
 const pct = (v: number) => `${v.toFixed(1)}%`;
 
-export function ManagerialView({ tenantId }: { tenantId: string }) {
-  const [period, setPeriod] = useState<Period>("month");
+export function ManagerialView({ tenantId, initialPeriod, periodKey }: { tenantId: string; initialPeriod?: Period; periodKey?: string }) {
+  const [period, setPeriod] = useState<Period>(initialPeriod ?? "month");
+  useEffect(() => { if (initialPeriod) setPeriod(initialPeriod); }, [periodKey, initialPeriod]);
+
+
   const { start, end } = useMemo(() => periodRange(period), [period]);
 
   const query = useQuery({

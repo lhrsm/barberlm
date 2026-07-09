@@ -51,6 +51,8 @@ import { useFinancial } from "@/hooks/use-financial";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
+import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
+
 
 import { BarChart3 } from "lucide-react";
 
@@ -89,6 +91,9 @@ function FinancesComponent() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [financeTab, setFinanceTab] = useState<string>("transactions");
+  const [globalPeriod, setGlobalPeriod] = useState<ReportPeriod>("month");
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
 
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
@@ -868,27 +873,72 @@ function FinancesComponent() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
-            <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
+              <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
+            </div>
+            {role !== 'barber' && (
+              <div className="flex items-center gap-2 bg-[#0A1020] border border-[rgba(255,184,0,0.25)] rounded-[14px] px-3 py-2 min-w-[240px]">
+                <Calendar size={16} className="text-primary" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground hidden sm:inline">Período:</span>
+                <Select value={globalPeriod} onValueChange={(v) => setGlobalPeriod(v as ReportPeriod)}>
+                  <SelectTrigger className="border-0 bg-transparent h-8 focus:ring-0 text-white font-medium px-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Hoje</SelectItem>
+                    <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                    <SelectItem value="month">Este mês</SelectItem>
+                    <SelectItem value="prev_month">Mês anterior</SelectItem>
+                    <SelectItem value="90d">Últimos 90 dias</SelectItem>
+                    <SelectItem value="year">Este ano</SelectItem>
+                    <SelectItem value="all">Todo o período</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
+
             {role !== 'barber' && (
               <>
                 <Button
                   variant="outline"
-                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
-                  onClick={() => {
+                  disabled={isExportingPdf}
+                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                  onClick={async () => {
                     if (plan === 'free') {
                       toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
                       navigate({ to: "/subscription" });
-                    } else {
-                      toast.info("Gerando relatório PDF...");
+                      return;
+                    }
+                    try {
+                      setIsExportingPdf(true);
+                      toast.info(`Gerando PDF — ${periodLabel[globalPeriod]}...`);
+                      const { data: prof } = await supabase
+                        .from("profiles")
+                        .select("business_name, responsible_name")
+                        .eq("id", user.id)
+                        .maybeSingle();
+                      const fname = await exportFinancesPdf({
+                        tenantId: user.id,
+                        period: globalPeriod,
+                        businessName: prof?.business_name || prof?.responsible_name || "Barbex",
+                      });
+                      toast.success(`Relatório gerado: ${fname}`);
+                    } catch (err: any) {
+                      console.error(err);
+                      toast.error("Falha ao gerar PDF: " + (err?.message || "erro desconhecido"));
+                    } finally {
+                      setIsExportingPdf(false);
                     }
                   }}
                 >
-                  <FileDown size={18} /> Exportar PDF
+                  <FileDown size={18} /> {isExportingPdf ? "Gerando..." : "Exportar PDF"}
                 </Button>
+
                 <Button
                   variant="outline"
                   className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
@@ -1394,13 +1444,13 @@ function FinancesComponent() {
 
           {role !== 'barber' && user && (
             <TabsContent value="managerial" className="pt-4">
-              <ManagerialView tenantId={user.id} />
+              <ManagerialView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
 
           {role !== 'barber' && user && (
             <TabsContent value="coupons" className="pt-4">
-              <CouponsView tenantId={user.id} />
+              <CouponsView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
 
