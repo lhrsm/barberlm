@@ -145,6 +145,7 @@ serve(async (req) => {
     // 3. For each active template, enqueue one row with the right recipient phone
     const dispatched: string[] = [];
     const skipped: Array<{ template: string; reason: string }> = [];
+    const eventTemplatePhones = new Set<string>();
 
     for (const tpl of templates || []) {
       if (event === "appointment.completed" && tpl.key === "post_service_review" && hasModernCompletedReviewTemplate) {
@@ -213,6 +214,8 @@ serve(async (req) => {
         : null;
 
       const idem = `${event}:${appointment_id || customer_id || "generic"}:${tpl.id}`;
+      const normalizedTemplatePhone = normalizePhone(phone);
+      if (normalizedTemplatePhone) eventTemplatePhones.add(normalizedTemplatePhone);
 
       const { error: insErr } = await supabase.from("automation_queue").insert({
         tenant_id,
@@ -315,6 +318,10 @@ serve(async (req) => {
           if (!norm) continue;
           if (sentWaPhones.has(norm)) {
             console.log(`[EmitEvent] Skip duplicate WA phone ${norm} (${rcp.name})`);
+            continue;
+          }
+          if (eventTemplatePhones.has(norm)) {
+            console.log(`[EmitEvent] Skip internal WA to ${norm} (${rcp.name}) because this phone already receives an event template`);
             continue;
           }
           if (!allowOnOfficial && officialPhone && norm === officialPhone) {

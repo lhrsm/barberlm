@@ -160,6 +160,35 @@ serve(async (req) => {
         const isAnniversary = currentWorkflowKey === 'barbershop_anniversary';
         const isNewAppointment = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
 
+        if (!force_resend) {
+          const replacementKey = currentWorkflowKey === 'post_service_review'
+            ? 'appointment.completed.review.customer'
+            : (currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment')
+              ? 'appointment.created.customer'
+              : null;
+
+          if (replacementKey) {
+            const { data: modernTemplate } = await supabase
+              .from("automation_templates")
+              .select("id")
+              .eq("tenant_id", itemTenantId)
+              .eq("key", replacementKey)
+              .eq("active", true)
+              .maybeSingle();
+
+            if (modernTemplate) {
+              console.log(`[ProcessQueue] Skipping legacy workflow ${currentWorkflowKey}; replaced by ${replacementKey}`);
+              await supabase.from("automation_queue").update({
+                status: "skipped",
+                error_message: `legacy workflow replaced by ${replacementKey}`,
+                updated_at: new Date().toISOString()
+              }).eq("id", queueId);
+              results.push({ id: queueId, success: true, skipped: true, reason: "legacy_replaced", replacement: replacementKey });
+              continue;
+            }
+          }
+        }
+
         if (!appointment && !isBirthday && !isAnniversary && !appointment_group_id) {
           throw new Error("Data incomplete: appointment or group missing");
         }

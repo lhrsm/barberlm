@@ -30,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
-import { triggerAutomation } from "@/utils/automation";
 import { emitAutomationEvent } from "@/utils/emit-event";
 import {
   Dialog,
@@ -263,12 +262,6 @@ function AppointmentManagementPage() {
         barberId: appointment.professional_id || appointment.barber_id,
         metadata: { appointmentId: appointment.id }
       });
-
-      triggerAutomation({
-        tenant_id: appointment.tenant_id,
-        event_name: 'appointment.rescheduled',
-        appointment_id: appointment.id
-      }).catch(console.error);
 
       emitAutomationEvent({
         tenantId: appointment.tenant_id,
