@@ -147,6 +147,7 @@ function SettingsComponent() {
     social_tiktok: "",
     social_youtube: "",
     social_whatsapp: "",
+    gallery_images: [] as string[],
   });
 
 
@@ -309,6 +310,7 @@ function SettingsComponent() {
           social_tiktok: (profile as any).social_links?.tiktok || "",
           social_youtube: (profile as any).social_links?.youtube || "",
           social_whatsapp: (profile as any).social_links?.whatsapp || "",
+          gallery_images: Array.isArray((profile as any).gallery_images) ? (profile as any).gallery_images : [],
         });
         setDataLoaded(true);
         console.log("[/settings] SETTINGS FORM VALUES applied for profile:", profile.id, {
@@ -410,6 +412,7 @@ function SettingsComponent() {
           youtube: normalizeSocial("youtube", profileUpdateData.social_youtube),
           whatsapp: normalizeSocial("whatsapp", profileUpdateData.social_whatsapp),
         },
+        gallery_images: Array.isArray(profileUpdateData.gallery_images) ? profileUpdateData.gallery_images : [],
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
