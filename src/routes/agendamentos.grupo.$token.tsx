@@ -32,7 +32,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
-import { triggerAutomation } from "@/utils/automation";
 import { emitAutomationEvent } from "@/utils/emit-event";
 import {
   Dialog,
@@ -352,10 +351,11 @@ function AppointmentGroupPage() {
         }
 
         if (result && result.success) {
-          triggerAutomation({
-            tenant_id: group.tenant_id,
-            event_name: 'appointment.cancelled',
-            appointment_id: id
+          emitAutomationEvent({
+            tenantId: group.tenant_id,
+            event: 'appointment.cancelled.by_customer',
+            appointmentId: id,
+            customerId: group.customer_id,
           }).catch(console.error);
         }
       }
@@ -367,20 +367,6 @@ function AppointmentGroupPage() {
       fetchHistory();
       setSuccessRedirect(true);
       
-      // Enviar notificação individual para cada item cancelado
-      for (const id of selectedIds) {
-        const appt = appointments.find(a => a.id === id);
-        if (appt) {
-          await supabase.functions.invoke('appointment-notifications', {
-            body: { 
-              appointmentId: id, 
-              type: 'appointment_cancelled',
-              updatedBy: { type: 'customer' }
-            }
-          });
-        }
-      }
-
     } catch (err: any) {
       toast.error(err.message || "Erro ao cancelar agendamentos");
     } finally {
@@ -501,12 +487,6 @@ function AppointmentGroupPage() {
         metadata: { appointmentId: rescheduleData.id }
       });
 
-      triggerAutomation({
-        tenant_id: group.tenant_id,
-        event_name: 'appointment.rescheduled',
-        appointment_id: rescheduleData.id
-      }).catch(console.error);
-
       emitAutomationEvent({
         tenantId: group.tenant_id,
         event: 'appointment.rescheduled.by_customer',
@@ -524,15 +504,6 @@ function AppointmentGroupPage() {
       fetchGroup(); 
       fetchHistory();
       setSuccessRedirect(true);
-
-      // Enviar notificação de reagendamento
-      await supabase.functions.invoke('appointment-notifications', {
-        body: { 
-          appointmentId: rescheduleData.id, 
-          type: 'appointment_rescheduled',
-          updatedBy: { type: 'customer' }
-        }
-      });
 
     } catch (err: any) {
       toast.error(err.message || "Erro ao reagendar");
