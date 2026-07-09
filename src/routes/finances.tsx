@@ -1320,7 +1320,12 @@ function FinancesComponent() {
 
         <Tabs value={financeTab} onValueChange={setFinanceTab} className="w-full">
           {/* Desktop tabs */}
-          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-5 max-w-[900px]" : "grid-cols-3 max-w-[600px]")}>
+          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-6 max-w-[1080px]" : "grid-cols-3 max-w-[600px]")}>
+            {role !== 'barber' && (
+              <TabsTrigger value="managerial" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <BarChart3 size={16} /> Visão Gerencial
+              </TabsTrigger>
+            )}
             <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
