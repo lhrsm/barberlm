@@ -80,6 +80,7 @@ export function AppointmentModal({
   const [selectedTime, setSelectedTime] = useState(initialTime || format(new Date(), "HH:mm"));
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentStatus, setPaymentStatus] = useState("pending");
+  const [originalStartTime, setOriginalStartTime] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
