@@ -1444,7 +1444,7 @@ function FinancesComponent() {
 
           {role !== 'barber' && user && (
             <TabsContent value="managerial" className="pt-4">
-              <ManagerialView tenantId={user.id} />
+              <ManagerialView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
 
