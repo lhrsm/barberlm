@@ -3,6 +3,7 @@
 // per-recipient phone, enqueues one automation_queue row per template.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -92,9 +93,8 @@ serve(async (req) => {
       } catch { return String(d); }
     };
     const fmtTime = (t: any) => (t ? String(t).slice(0, 5) : "");
-    const startTs = appointment?.start_time ? new Date(appointment.start_time) : null;
-    const apptDateStr = startTs ? `${String(startTs.getUTCDate()).padStart(2,'0')}/${String(startTs.getUTCMonth()+1).padStart(2,'0')}/${startTs.getUTCFullYear()}` : "";
-    const apptTimeStr = startTs ? `${String(startTs.getUTCHours()).padStart(2,'0')}:${String(startTs.getUTCMinutes()).padStart(2,'0')}` : "";
+    const apptDateStr = appointment?.start_time ? formatBrazilDate(appointment.start_time) : "";
+    const apptTimeStr = appointment?.start_time ? formatBrazilTime(appointment.start_time) : "";
     // Nice labels for payment method
     const pmLabel = (raw: any): string => {
       const v = String(raw || "").toLowerCase();
