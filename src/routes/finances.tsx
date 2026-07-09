@@ -51,6 +51,8 @@ import { useFinancial } from "@/hooks/use-financial";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
+import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
+
 
 import { BarChart3 } from "lucide-react";
 
