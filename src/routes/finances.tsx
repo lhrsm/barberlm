@@ -50,6 +50,8 @@ import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetail
 import { useFinancial } from "@/hooks/use-financial";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { ManagerialView } from "@/components/finances/ManagerialView";
+import { CouponsView } from "@/components/finances/CouponsView";
+
 import { BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/finances")({
