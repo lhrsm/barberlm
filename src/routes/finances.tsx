@@ -1450,7 +1450,7 @@ function FinancesComponent() {
 
           {role !== 'barber' && user && (
             <TabsContent value="coupons" className="pt-4">
-              <CouponsView tenantId={user.id} />
+              <CouponsView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
 
