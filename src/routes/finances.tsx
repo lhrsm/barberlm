@@ -91,6 +91,9 @@ function FinancesComponent() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [financeTab, setFinanceTab] = useState<string>("transactions");
+  const [globalPeriod, setGlobalPeriod] = useState<ReportPeriod>("month");
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
 
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
