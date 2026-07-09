@@ -50,6 +50,8 @@ import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetail
 import { useFinancial } from "@/hooks/use-financial";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { ManagerialView } from "@/components/finances/ManagerialView";
+import { CouponsView } from "@/components/finances/CouponsView";
+
 import { BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/finances")({
@@ -1320,7 +1322,7 @@ function FinancesComponent() {
 
         <Tabs value={financeTab} onValueChange={setFinanceTab} className="w-full">
           {/* Desktop tabs */}
-          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-6 max-w-[1080px]" : "grid-cols-3 max-w-[600px]")}>
+          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-7 max-w-[1220px]" : "grid-cols-3 max-w-[600px]")}>
             {role !== 'barber' && (
               <TabsTrigger value="managerial" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 size={16} /> Visão Gerencial
@@ -1337,6 +1339,9 @@ function FinancesComponent() {
             </TabsTrigger>
             {role !== 'barber' && (
               <>
+                <TabsTrigger value="coupons" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <TicketPercent size={16} /> Cupons
+                </TabsTrigger>
                 <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <Users size={16} /> Por Barbeiro
                 </TabsTrigger>
@@ -1346,6 +1351,7 @@ function FinancesComponent() {
               </>
             )}
           </TabsList>
+
 
           {/* Mobile premium tabs (Mercado Pago style) */}
           <div className="md:hidden rounded-[24px] border border-[rgba(255,184,0,0.15)] bg-[#0A1020] overflow-hidden">
@@ -1357,9 +1363,11 @@ function FinancesComponent() {
                   { v: "pending", icon: Clock, label: "Pendentes" },
                   { v: "refunds", icon: RefreshCcw, label: "Estornos" },
                   ...(role !== 'barber' ? [
+                    { v: "coupons", icon: TicketPercent, label: "Cupons" },
                     { v: "barbers", icon: Users, label: "Por Barbeiro" },
                     { v: "settings", icon: AlertCircle, label: "Configs" },
                   ] : []),
+
                 ].map(({ v, icon: Icon, label }) => {
                   const active = financeTab === v;
                   return (
@@ -1389,6 +1397,13 @@ function FinancesComponent() {
               <ManagerialView tenantId={user.id} />
             </TabsContent>
           )}
+
+          {role !== 'barber' && user && (
+            <TabsContent value="coupons" className="pt-4">
+              <CouponsView tenantId={user.id} />
+            </TabsContent>
+          )}
+
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
             <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
