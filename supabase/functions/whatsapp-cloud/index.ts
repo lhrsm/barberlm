@@ -25,15 +25,31 @@ serve(async (req) => {
   const url = new URL(req.url);
 
   if (url.pathname.endsWith("/process-queue")) {
-    const { data: pendingMessages } = await supabase
+    // Atomically claim pending messages so parallel /process-queue invocations
+    // don't each pick up the same rows and double-send. Flip status → 'sending'
+    // and only process the rows we actually claimed via RETURNING.
+    const { data: candidates } = await supabase
       .from("whatsapp_messages")
-      .select("*, whatsapp_instances(*)")
+      .select("id")
       .eq("status", "pending")
       .lte("scheduled_for", new Date().toISOString())
       .limit(20);
 
-    if (!pendingMessages || pendingMessages.length === 0) {
+    const candidateIds = (candidates || []).map((c: any) => c.id);
+    if (candidateIds.length === 0) {
       return new Response(JSON.stringify({ message: "No pending messages" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const { data: claimed } = await supabase
+      .from("whatsapp_messages")
+      .update({ status: "sending" })
+      .in("id", candidateIds)
+      .eq("status", "pending")
+      .select("*, whatsapp_instances(*)");
+
+    const pendingMessages = claimed || [];
+    if (pendingMessages.length === 0) {
+      return new Response(JSON.stringify({ message: "No pending messages (all claimed by another worker)" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const results = [];
