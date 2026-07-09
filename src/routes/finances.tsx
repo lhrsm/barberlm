@@ -1352,6 +1352,7 @@ function FinancesComponent() {
             <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
               <div className="flex w-max min-w-full items-end gap-1">
                 {[
+                  ...(role !== 'barber' ? [{ v: "managerial", icon: BarChart3, label: "Visão Gerencial" }] : []),
                   { v: "transactions", icon: FileText, label: "Lançamentos" },
                   { v: "pending", icon: Clock, label: "Pendentes" },
                   { v: "refunds", icon: RefreshCcw, label: "Estornos" },
