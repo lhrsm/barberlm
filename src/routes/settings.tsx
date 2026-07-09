@@ -979,6 +979,78 @@ function SettingsComponent() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <div>
+                      <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">Galeria de Fotos</h4>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1">Fotos aparecerão na página pública, entre a seção "Especialistas" e "Depoimentos". Se você não cadastrar nenhuma foto, a seção não aparece.</p>
+                    </div>
+
+                    <div className="bg-[#05070d]/30 p-6 rounded-2xl border border-[#1f2937]/30 space-y-4">
+                      <Label htmlFor="gallery_files" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Adicionar Fotos (várias de uma vez)</Label>
+                      <Input
+                        id="gallery_files"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4"
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (!files.length || !user) return;
+                          try {
+                            setSaving(true);
+                            const uploadedUrls: string[] = [];
+                            for (const file of files) {
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-gallery-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+                              const { error: uploadError } = await supabase.storage
+                                .from('barber-avatars')
+                                .upload(fileName, file);
+                              if (uploadError) throw uploadError;
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('barber-avatars')
+                                .getPublicUrl(fileName);
+                              uploadedUrls.push(publicUrl);
+                            }
+                            setFormData({ ...formData, gallery_images: [...(formData.gallery_images || []), ...uploadedUrls] });
+                            toast.success(`${uploadedUrls.length} foto(s) adicionada(s)! Clique em salvar para publicar.`);
+                            (e.target as HTMLInputElement).value = "";
+                          } catch (error: any) {
+                            toast.error("Erro ao carregar foto: " + error.message);
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                      />
+                      <p className="text-[10px] text-slate-500 font-medium italic">Sugestão: fotos horizontais 4:3 em alta resolução do ambiente, cortes prontos, produtos, equipe em ação.</p>
+
+                      {formData.gallery_images && formData.gallery_images.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
+                          {formData.gallery_images.map((url: string, idx: number) => (
+                            <div key={`${url}-${idx}`} className="relative group aspect-square rounded-xl overflow-hidden border border-[#1f2937] bg-[#05070d]">
+                              <img src={url} alt={`Foto ${idx + 1}`} className="h-full w-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = [...formData.gallery_images];
+                                  next.splice(idx, 1);
+                                  setFormData({ ...formData, gallery_images: next });
+                                }}
+                                className="absolute top-2 right-2 h-8 w-8 rounded-lg bg-black/70 border border-red-500/40 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500/20"
+                                aria-label="Remover foto"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-[#1f2937] p-6 text-center text-[11px] text-slate-500 font-medium uppercase tracking-widest">
+                          Nenhuma foto cadastrada — a seção não aparecerá no site.
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
