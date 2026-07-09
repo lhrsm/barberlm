@@ -57,9 +57,8 @@ const pct = (v: number) => `${v.toFixed(1)}%`;
 
 export function ManagerialView({ tenantId, initialPeriod, periodKey }: { tenantId: string; initialPeriod?: Period; periodKey?: string }) {
   const [period, setPeriod] = useState<Period>(initialPeriod ?? "month");
-  // Sync with external global period when it changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useMemo(() => { if (initialPeriod) setPeriod(initialPeriod); }, [periodKey]);
+  useEffect(() => { if (initialPeriod) setPeriod(initialPeriod); }, [periodKey, initialPeriod]);
+
 
   const { start, end } = useMemo(() => periodRange(period), [period]);
 
