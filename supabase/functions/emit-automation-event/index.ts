@@ -95,16 +95,38 @@ serve(async (req) => {
     const startTs = appointment?.start_time ? new Date(appointment.start_time) : null;
     const apptDateStr = startTs ? `${String(startTs.getUTCDate()).padStart(2,'0')}/${String(startTs.getUTCMonth()+1).padStart(2,'0')}/${startTs.getUTCFullYear()}` : "";
     const apptTimeStr = startTs ? `${String(startTs.getUTCHours()).padStart(2,'0')}:${String(startTs.getUTCMinutes()).padStart(2,'0')}` : "";
+    // Nice labels for payment method
+    const pmLabel = (raw: any): string => {
+      const v = String(raw || "").toLowerCase();
+      if (!v) return "";
+      if (v === "pix") return "PIX";
+      if (v === "cash" || v === "dinheiro") return "Dinheiro";
+      if (v === "card" || v === "credit_card" || v === "debit_card") return "Cartão";
+      if (v === "credit") return "Crédito";
+      if (v === "cashback") return "Cashback";
+      return String(raw);
+    };
     const appointmentExtras: Record<string, any> = appointment ? {
       service_name: appointment.service?.name,
       service_price: fmtBRL(appointment.total_price ?? appointment.service?.price),
       appointment_date: apptDateStr,
       appointment_time: apptTimeStr,
-      payment_method: appointment.payment_method,
+      payment_method: pmLabel(appointment.payment_method),
       management_link: appointment.management_token
         ? `https://barbex.shop/agendamento/${appointment.management_token}`
         : undefined,
     } : {};
+
+    // For reschedule events: if new_date/new_time weren't provided, use the
+    // current appointment start as the "new" values so premium templates never
+    // render empty placeholders. The caller (agendamento.$token / calendar
+    // modal) should pass old_date/old_time in `extra`.
+    if (event.startsWith("appointment.rescheduled")) {
+      if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
+      if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
+    }
+
+
 
 
     // For appointment.completed: ensure a review_token/link so the delayed

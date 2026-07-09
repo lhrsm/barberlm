@@ -80,6 +80,7 @@ export function AppointmentModal({
   const [selectedTime, setSelectedTime] = useState(initialTime || format(new Date(), "HH:mm"));
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentStatus, setPaymentStatus] = useState("pending");
+  const [originalStartTime, setOriginalStartTime] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -118,6 +119,7 @@ export function AppointmentModal({
       const start = parseISO(data.start_time);
       setSelectedDate(format(start, "yyyy-MM-dd"));
       setSelectedTime(format(start, "HH:mm"));
+      setOriginalStartTime(data.start_time);
       if (data.payment_status) setPaymentStatus(data.payment_status);
       setPaymentMethod(data.payment_method === 'credits' ? 'wallet' : 'cash');
     }
@@ -441,14 +443,29 @@ export function AppointmentModal({
       // Single source of truth: emitAutomationEvent handles all recipients via
       // active templates + notification_recipients config. Legacy triggerAutomation
       // was removed to avoid duplicate WhatsApp messages.
+      // Detecta o ator: se o usuário logado é o próprio barbeiro do agendamento,
+      // dispara por 'by_barber'; caso contrário, é a barbearia (recepção/admin).
+      const actorIsBarber = role === 'barber';
+      const rescheduleEvent = actorIsBarber
+        ? 'appointment.rescheduled.by_barber'
+        : 'appointment.rescheduled.by_shop';
+      const rescheduleExtra: Record<string, any> = {
+        payment_method: appointmentData.payment_method || '',
+      };
+      if (editingAppointmentId && originalStartTime) {
+        const oldStart = parseISO(originalStartTime);
+        rescheduleExtra.old_date = format(oldStart, 'dd/MM/yyyy');
+        rescheduleExtra.old_time = format(oldStart, 'HH:mm');
+        const newStart = parseISO(`${selectedDate}T${selectedTime}:00`);
+        rescheduleExtra.new_date = format(newStart, 'dd/MM/yyyy');
+        rescheduleExtra.new_time = format(newStart, 'HH:mm');
+      }
       emitAutomationEvent({
         tenantId,
-        event: editingAppointmentId ? 'appointment.rescheduled.by_shop' : 'appointment.created',
+        event: editingAppointmentId ? (rescheduleEvent as any) : 'appointment.created',
         appointmentId: appointmentData.id,
         customerId: selectedCustomer,
-        extra: {
-          payment_method: appointmentData.payment_method || '',
-        },
+        extra: rescheduleExtra,
       });
 
 

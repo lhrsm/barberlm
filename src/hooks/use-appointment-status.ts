@@ -90,11 +90,26 @@ export function useAppointmentStatus() {
 
       // Event-driven automations (fire-and-forget; templates control who receives)
       if (appt?.tenant_id) {
-        const cancelledBy = source.includes('portal') || source.includes('user_panel') || source.includes('public_link')
-          ? 'by_customer'
-          : source.includes('barber') || source.includes('professional')
-            ? 'by_barber'
-            : 'by_shop';
+        // Detecta ator: cliente (portal/link), barbeiro (usuário logado é o
+        // profissional do agendamento) ou barbearia (admin/recepção).
+        let cancelledBy: 'by_customer' | 'by_barber' | 'by_shop';
+        if (source.includes('portal') || source.includes('user_panel') || source.includes('public_link')) {
+          cancelledBy = 'by_customer';
+        } else if (source.includes('barber') || source.includes('professional')) {
+          cancelledBy = 'by_barber';
+        } else if (user?.id && appt?.barber_id) {
+          // Se o usuário logado está vinculado ao barbeiro deste agendamento,
+          // trata como ação do barbeiro; senão é a barbearia (recepção/admin).
+          const { data: myBarber } = await supabase
+            .from('barbers')
+            .select('id')
+            .eq('user_id', appt.tenant_id)
+            .eq('id', appt.barber_id)
+            .maybeSingle();
+          cancelledBy = (myBarber && user.id === appt.barber_id) ? 'by_barber' : 'by_shop';
+        } else {
+          cancelledBy = 'by_shop';
+        }
 
         const eventMap: Record<string, string> = {
           confirmed: 'appointment.confirmed',
