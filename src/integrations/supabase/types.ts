@@ -4307,6 +4307,7 @@ export type Database = {
           font_family: string | null
           font_size: string | null
           free_service_threshold: number | null
+          gallery_images: string[]
           google_maps_url: string | null
           id: string
           logo_url: string | null
@@ -4360,6 +4361,7 @@ export type Database = {
           font_family?: string | null
           font_size?: string | null
           free_service_threshold?: number | null
+          gallery_images?: string[]
           google_maps_url?: string | null
           id: string
           logo_url?: string | null
@@ -4413,6 +4415,7 @@ export type Database = {
           font_family?: string | null
           font_size?: string | null
           free_service_threshold?: number | null
+          gallery_images?: string[]
           google_maps_url?: string | null
           id?: string
           logo_url?: string | null
