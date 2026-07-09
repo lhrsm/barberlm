@@ -698,36 +698,40 @@ function AppointmentManagementPage() {
       </Dialog>
 
       {/* Simple Confirmation Dialog */}
-      <Dialog open={cancellationStep === 'simple_confirmation'} onOpenChange={(open) => !open && setCancellationStep('none')}>
-        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
-          <DialogHeader className="mb-4 text-center">
-            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+      <Dialog open={cancellationStep === 'simple_confirmation'} onOpenChange={(open) => !open && !cancelling && setCancellationStep('none')}>
+        <DialogContent className="bg-[#0b0f17] border border-red-900/40 text-white rounded-[18px] w-[calc(100%-2rem)] sm:max-w-[520px] p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(220,38,38,0.35)]">
+          <DialogHeader className="text-center items-center space-y-4">
+            <div className="w-16 h-16 bg-red-950/60 border border-red-900/40 rounded-full flex items-center justify-center mx-auto">
               <Trash2 className="text-red-500 w-8 h-8" />
             </div>
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-red-500">Deseja cancelar este agendamento?</DialogTitle>
-            <DialogDescription className="text-zinc-400 font-medium">
+            <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight text-red-500 text-center leading-tight">
+              Deseja cancelar este agendamento?
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 font-medium text-center text-sm sm:text-base leading-relaxed max-w-[420px] mx-auto">
               Confirme se deseja cancelar o seu horário. Esta ação não poderá ser desfeita.
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="flex flex-col gap-4 mt-6">
-            <Button 
-              onClick={handleConfirmSimpleCancel} 
+          <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 w-full">
+            <Button
+              variant="outline"
+              onClick={() => setCancellationStep('none')}
               disabled={cancelling}
-              className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white uppercase font-black text-lg tracking-widest shadow-lg shadow-red-900/20"
-            >
-              {cancelling ? "Processando..." : "Confirmar Cancelamento"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setCancellationStep('none')} 
-              className="w-full h-14 rounded-2xl uppercase font-black text-sm tracking-widest border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+              className="w-full sm:flex-1 h-12 rounded-[14px] uppercase font-black text-xs sm:text-sm tracking-wider bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all"
             >
               Manter Agendamento
             </Button>
-          </DialogFooter>
+            <Button
+              onClick={handleConfirmSimpleCancel}
+              disabled={cancelling}
+              className="w-full sm:flex-1 h-12 rounded-[14px] bg-red-600 hover:bg-red-700 text-white uppercase font-black text-xs sm:text-sm tracking-wider shadow-[0_0_20px_-4px_rgba(220,38,38,0.6)] transition-all disabled:opacity-70"
+            >
+              {cancelling ? "Cancelando..." : "Confirmar Cancelamento"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
+
 
       {/* Financial Decision Modal */}
       <Dialog open={cancellationStep === 'financial_decision'} onOpenChange={(open) => !open && setCancellationStep('none')}>
