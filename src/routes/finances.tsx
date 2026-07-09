@@ -1384,6 +1384,12 @@ function FinancesComponent() {
           </div>
 
 
+          {role !== 'barber' && user && (
+            <TabsContent value="managerial" className="pt-4">
+              <ManagerialView tenantId={user.id} />
+            </TabsContent>
+          )}
+
           <TabsContent value="transactions" className="pt-4 space-y-4">
             <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
               <div className="space-y-2">
