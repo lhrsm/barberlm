@@ -1320,7 +1320,7 @@ function FinancesComponent() {
 
         <Tabs value={financeTab} onValueChange={setFinanceTab} className="w-full">
           {/* Desktop tabs */}
-          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-6 max-w-[1080px]" : "grid-cols-3 max-w-[600px]")}>
+          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-7 max-w-[1220px]" : "grid-cols-3 max-w-[600px]")}>
             {role !== 'barber' && (
               <TabsTrigger value="managerial" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 size={16} /> Visão Gerencial
@@ -1337,6 +1337,9 @@ function FinancesComponent() {
             </TabsTrigger>
             {role !== 'barber' && (
               <>
+                <TabsTrigger value="coupons" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <TicketPercent size={16} /> Cupons
+                </TabsTrigger>
                 <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <Users size={16} /> Por Barbeiro
                 </TabsTrigger>
@@ -1346,6 +1349,7 @@ function FinancesComponent() {
               </>
             )}
           </TabsList>
+
 
           {/* Mobile premium tabs (Mercado Pago style) */}
           <div className="md:hidden rounded-[24px] border border-[rgba(255,184,0,0.15)] bg-[#0A1020] overflow-hidden">
