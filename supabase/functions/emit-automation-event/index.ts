@@ -124,6 +124,19 @@ serve(async (req) => {
     if (event.startsWith("appointment.rescheduled")) {
       if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
       if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
+      console.log("[EmitEvent] RESCHEDULE EVENT CREATED", {
+        event,
+        actor: event.split(".").pop(),
+        customer_phone: customer?.phone,
+        professional_phone: barber?.phone,
+        shop_phone: shopProfile?.whatsapp_number,
+        management_link: appointmentExtras.management_link,
+        old_date: extra?.old_date,
+        old_time: extra?.old_time,
+        new_date: appointmentExtras.new_date,
+        new_time: appointmentExtras.new_time,
+        template_count: templates?.length || 0,
+      });
     }
 
 
