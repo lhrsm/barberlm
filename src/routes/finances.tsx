@@ -49,6 +49,8 @@ import { cn } from "@/lib/utils";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { useFinancial } from "@/hooks/use-financial";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
+import { ManagerialView } from "@/components/finances/ManagerialView";
+import { BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -1318,7 +1320,12 @@ function FinancesComponent() {
 
         <Tabs value={financeTab} onValueChange={setFinanceTab} className="w-full">
           {/* Desktop tabs */}
-          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-5 max-w-[900px]" : "grid-cols-3 max-w-[600px]")}>
+          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-6 max-w-[1080px]" : "grid-cols-3 max-w-[600px]")}>
+            {role !== 'barber' && (
+              <TabsTrigger value="managerial" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <BarChart3 size={16} /> Visão Gerencial
+              </TabsTrigger>
+            )}
             <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
@@ -1345,6 +1352,7 @@ function FinancesComponent() {
             <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
               <div className="flex w-max min-w-full items-end gap-1">
                 {[
+                  ...(role !== 'barber' ? [{ v: "managerial", icon: BarChart3, label: "Visão Gerencial" }] : []),
                   { v: "transactions", icon: FileText, label: "Lançamentos" },
                   { v: "pending", icon: Clock, label: "Pendentes" },
                   { v: "refunds", icon: RefreshCcw, label: "Estornos" },
@@ -1375,6 +1383,12 @@ function FinancesComponent() {
             </div>
           </div>
 
+
+          {role !== 'barber' && user && (
+            <TabsContent value="managerial" className="pt-4">
+              <ManagerialView tenantId={user.id} />
+            </TabsContent>
+          )}
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
             <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
