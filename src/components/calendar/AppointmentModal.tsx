@@ -441,9 +441,15 @@ export function AppointmentModal({
       // Single source of truth: emitAutomationEvent handles all recipients via
       // active templates + notification_recipients config. Legacy triggerAutomation
       // was removed to avoid duplicate WhatsApp messages.
+      // Detecta o ator: se o usuário logado é o próprio barbeiro do agendamento,
+      // dispara por 'by_barber'; caso contrário, é a barbearia (recepção/admin).
+      const actorIsBarber = role === 'barber';
+      const rescheduleEvent = actorIsBarber
+        ? 'appointment.rescheduled.by_barber'
+        : 'appointment.rescheduled.by_shop';
       emitAutomationEvent({
         tenantId,
-        event: editingAppointmentId ? 'appointment.rescheduled.by_shop' : 'appointment.created',
+        event: editingAppointmentId ? (rescheduleEvent as any) : 'appointment.created',
         appointmentId: appointmentData.id,
         customerId: selectedCustomer,
         extra: {
