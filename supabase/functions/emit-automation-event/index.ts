@@ -45,6 +45,8 @@ serve(async (req) => {
 
     if (tplErr) throw tplErr;
     console.log(`[EmitEvent] Templates found for ${event}: ${templates?.length || 0}`);
+    const hasModernCompletedReviewTemplate = event === "appointment.completed" &&
+      (templates || []).some((tpl: any) => tpl.key === "appointment.completed.review.customer" && tpl.active === true);
     // NOTE: do NOT early-return when there are no templates — internal
     // notification recipients (recepção/gerente/dono) must still receive
     // panel + WhatsApp alerts even if no customer/barber/shop template exists.
@@ -145,6 +147,11 @@ serve(async (req) => {
     const skipped: Array<{ template: string; reason: string }> = [];
 
     for (const tpl of templates || []) {
+      if (event === "appointment.completed" && tpl.key === "post_service_review" && hasModernCompletedReviewTemplate) {
+        skipped.push({ template: tpl.key, reason: "legacy_review_template_replaced" });
+        continue;
+      }
+
       const recipient = tpl.recipient || "customer";
       let phone: string | null = null;
       let recipientName: string | null = null;
@@ -193,7 +200,7 @@ serve(async (req) => {
       }
 
       // Delayed review template: only enqueue if we have a valid review_link
-      const isReviewTpl = tpl.key.includes(".review");
+      const isReviewTpl = String(tpl.key || "").toLowerCase().includes("review");
       if (isReviewTpl) {
         if (!appointmentExtras.review_link) {
           console.warn(`[EmitEvent] review_link ausente — skip tpl=${tpl.key}`);

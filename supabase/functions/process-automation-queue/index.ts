@@ -282,6 +282,8 @@ serve(async (req) => {
           cashback_amount: item.payload?.cashback_amount || "",
           credits_amount: item.payload?.credits_amount || "",
           reward_name: item.payload?.reward_name || "",
+          review_link: item.payload?.review_link || "",
+          review_token: item.payload?.review_token || "",
         };
 
         console.log(`[ProcessQueue] Variables resolved for ${currentWorkflowKey}`, templateData);

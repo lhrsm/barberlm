@@ -65,6 +65,8 @@ export function processAutomationTemplate(template: string, data: Record<string,
     cashback_amount: data.cashback_amount || "",
     credits_amount: data.credits_amount || "",
     reward_name: data.reward_name || "",
+    review_link: data.review_link || "",
+    review_token: data.review_token || "",
   };
 
   // 3. Replace placeholders: {{variable}} or {variable}
