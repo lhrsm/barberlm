@@ -124,6 +124,19 @@ serve(async (req) => {
     if (event.startsWith("appointment.rescheduled")) {
       if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
       if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
+      console.log("[EmitEvent] RESCHEDULE EVENT CREATED", {
+        event,
+        actor: event.split(".").pop(),
+        customer_phone: customer?.phone,
+        professional_phone: barber?.phone,
+        shop_phone: shopProfile?.whatsapp_number,
+        management_link: appointmentExtras.management_link,
+        old_date: extra?.old_date,
+        old_time: extra?.old_time,
+        new_date: appointmentExtras.new_date,
+        new_time: appointmentExtras.new_time,
+        template_count: templates?.length || 0,
+      });
     }
 
 
@@ -452,7 +465,20 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
     return `❌ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date || d.new_date)}${line("Horário", d.appointment_time || d.new_time)}Cancelado por: ${who}\n${line("Motivo", d.cancel_reason)}`.trim();
   }
   if (event.startsWith("appointment.rescheduled")) {
-    return `🔄 ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}\nAnterior: ${d.old_date || "-"} ${d.old_time || ""}\nNova: ${d.new_date || "-"} ${d.new_time || ""}`.trim();
+    const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";
+    const parts = [
+      `🔄 ${header}`,
+      ``,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.barber_name ? `💈 Profissional: ${d.barber_name}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      `📅 De: ${d.old_date || "-"} ${d.old_time || ""}`.trim(),
+      `➡ Para: ${d.new_date || "-"} ${d.new_time || ""}`.trim(),
+      `Reagendado por: ${who}`,
+      ``,
+      d.management_link ? `🔗 Gerenciar agendamento:\n${d.management_link}` : "",
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event === "appointment.created" || event === "appointment.confirmed") {
     const parts = [
