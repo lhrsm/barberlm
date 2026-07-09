@@ -678,7 +678,8 @@ function ShopPageComponent() {
           effective_plan,
           selected_plan,
           opening_date,
-          social_links
+          social_links,
+          gallery_images
         `)
         .eq("slug", normalizedSlug)
         .maybeSingle();
@@ -2538,6 +2539,44 @@ function ShopPageComponent() {
             </div>
           </div>
         </section>
+
+        {/* Gallery Section — only renders when the barbershop has uploaded photos */}
+        {Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 && (
+          <section id="galeria" className="py-24 bg-[#050505]">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center space-y-4 mb-16">
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Ambiente & Trabalhos</span>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Galeria</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                {((shop as any).gallery_images as string[]).map((url, idx) => (
+                  <motion.a
+                    key={`${url}-${idx}`}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: (idx % 6) * 0.05 }}
+                    viewport={{ once: true }}
+                    className={cn(
+                      "group relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#D4AF37]/15 bg-[#0a0a0a] shadow-2xl hover:border-[#D4AF37]/60 transition-all",
+                      idx % 7 === 0 ? "col-span-2 aspect-[2/1]" : "aspect-square"
+                    )}
+                  >
+                    <img
+                      src={url}
+                      alt={`Foto ${idx + 1} da ${shop?.business_name || 'barbearia'}`}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Testimonials Section */}
         {publicTestimonials.length > 0 && (
