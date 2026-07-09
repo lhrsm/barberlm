@@ -449,14 +449,23 @@ export function AppointmentModal({
       const rescheduleEvent = actorIsBarber
         ? 'appointment.rescheduled.by_barber'
         : 'appointment.rescheduled.by_shop';
+      const rescheduleExtra: Record<string, any> = {
+        payment_method: appointmentData.payment_method || '',
+      };
+      if (editingAppointmentId && originalStartTime) {
+        const oldStart = parseISO(originalStartTime);
+        rescheduleExtra.old_date = format(oldStart, 'dd/MM/yyyy');
+        rescheduleExtra.old_time = format(oldStart, 'HH:mm');
+        const newStart = parseISO(`${selectedDate}T${selectedTime}:00`);
+        rescheduleExtra.new_date = format(newStart, 'dd/MM/yyyy');
+        rescheduleExtra.new_time = format(newStart, 'HH:mm');
+      }
       emitAutomationEvent({
         tenantId,
         event: editingAppointmentId ? (rescheduleEvent as any) : 'appointment.created',
         appointmentId: appointmentData.id,
         customerId: selectedCustomer,
-        extra: {
-          payment_method: appointmentData.payment_method || '',
-        },
+        extra: rescheduleExtra,
       });
 
 
