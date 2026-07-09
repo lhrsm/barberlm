@@ -873,11 +873,35 @@ function FinancesComponent() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
-            <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
+              <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
+            </div>
+            {role !== 'barber' && (
+              <div className="flex items-center gap-2 bg-[#0A1020] border border-[rgba(255,184,0,0.25)] rounded-[14px] px-3 py-2 min-w-[240px]">
+                <Calendar size={16} className="text-primary" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground hidden sm:inline">Período:</span>
+                <Select value={globalPeriod} onValueChange={(v) => setGlobalPeriod(v as ReportPeriod)}>
+                  <SelectTrigger className="border-0 bg-transparent h-8 focus:ring-0 text-white font-medium px-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Hoje</SelectItem>
+                    <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                    <SelectItem value="month">Este mês</SelectItem>
+                    <SelectItem value="prev_month">Mês anterior</SelectItem>
+                    <SelectItem value="90d">Últimos 90 dias</SelectItem>
+                    <SelectItem value="year">Este ano</SelectItem>
+                    <SelectItem value="all">Todo o período</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
+
             {role !== 'barber' && (
               <>
                 <Button
