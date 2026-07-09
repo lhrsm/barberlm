@@ -1457,17 +1457,13 @@ function ShopPageComponent() {
         });
       }
 
-      // 5. Trigger Automation System (New V2)
+      // 5. Trigger Automation System — event-driven fan-out only.
+      // Legacy triggerAutomation was removed to avoid duplicate WhatsApp messages;
+      // emitAutomationEvent handles client/barber/shop + internal recipients.
       if (createdAppointments.length > 0) {
-        console.log("DEBUG: Triggering automation for new appointments", createdAppointments.map(a => a.id));
-        
+        console.log("DEBUG: Emitting appointment.created for", createdAppointments.map(a => a.id));
+
         if (isMultipleAppt && appointmentGroupId) {
-          // Para múltiplos agendamentos, disparamos apenas UM gatilho usando o primeiro agendamento
-          triggerAutomation({
-            tenant_id: shop.id,
-            event_name: 'appointment.created',
-            appointment_id: createdAppointments[0].id
-          }).catch(err => console.error("Error triggering automation:", err));
           emitAutomationEvent({
             tenantId: shop.id,
             event: 'appointment.created',
@@ -1476,11 +1472,6 @@ function ShopPageComponent() {
           });
         } else {
           for (const appt of createdAppointments) {
-            triggerAutomation({
-              tenant_id: shop.id,
-              event_name: 'appointment.created',
-              appointment_id: appt.id
-            }).catch(err => console.error("Error triggering automation:", err));
             emitAutomationEvent({
               tenantId: shop.id,
               event: 'appointment.created',
@@ -1490,6 +1481,7 @@ function ShopPageComponent() {
           }
         }
       }
+
 
 
       toast.success("Agendamentos realizados com sucesso!");

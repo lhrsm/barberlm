@@ -437,18 +437,10 @@ export function AppointmentModal({
         })
       ]);
 
-      // 6. Trigger Automation System (V2)
-      // All validations (whatsapp_enabled, phone, etc) are now centralized in triggerAutomation
-      console.log("Triggering automation flow for:", appointmentData.id);
-      triggerAutomation({
-        tenant_id: tenantId,
-        event_name: editingAppointmentId ? 'appointment.rescheduled' : 'appointment.created',
-        appointment_id: appointmentData.id
-      }).catch(err => {
-        console.error("Failed to trigger automation:", err);
-      });
-
-      // Event-driven fan-out (barber/shop + any active per-recipient templates)
+      // 6. Event-driven fan-out (client/barber/shop + internal recipients)
+      // Single source of truth: emitAutomationEvent handles all recipients via
+      // active templates + notification_recipients config. Legacy triggerAutomation
+      // was removed to avoid duplicate WhatsApp messages.
       emitAutomationEvent({
         tenantId,
         event: editingAppointmentId ? 'appointment.rescheduled.by_shop' : 'appointment.created',
@@ -458,6 +450,7 @@ export function AppointmentModal({
           payment_method: appointmentData.payment_method || '',
         },
       });
+
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
