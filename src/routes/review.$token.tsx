@@ -122,20 +122,10 @@ function PublicReviewPage() {
             allow_public_display: allowPublic,
           },
         });
-        // Also emit generic received so shop always gets notified
-        if (evt !== "review.received") {
-          emitAutomationEvent({
-            tenantId: d.tenant_id,
-            event: "review.received" as any,
-            appointmentId: d.appointment_id,
-            customerId: d.customer_id,
-            extra: {
-              avg_rating: avg.toFixed(1),
-              testimonial: testimonial || "",
-              silent_customer: true,
-            },
-          });
-        }
+        // NOTE: do NOT emit a second "review.received" — the internal flag
+        // `notify_review_received` is already mapped from review.excellent /
+        // review.bad on the server, and firing both caused duplicate alerts
+        // to the shop.
       }
     } catch (err: any) {
       toast.error("Erro: " + err.message);
