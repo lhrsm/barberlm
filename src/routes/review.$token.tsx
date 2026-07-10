@@ -180,6 +180,7 @@ function PublicReviewPage() {
 
         <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#0b0f17] p-5 space-y-6">
           <StarRow value={shopRating} onChange={setShopRating} label="Avaliação da Barbearia" />
+          <StarRow value={serviceRating} onChange={setServiceRating} label="Avaliação do Serviço" />
           <StarRow value={barberRating} onChange={setBarberRating} label="Avaliação do Barbeiro" />
 
           <div className="space-y-2">
@@ -220,7 +221,18 @@ function PublicReviewPage() {
             </p>
           </div>
 
-          <Button
+          <label className="flex items-start gap-3 rounded-xl border border-[#D4AF37]/15 bg-[#05070d] p-3 cursor-pointer hover:border-[#D4AF37]/30 transition">
+            <input
+              type="checkbox"
+              checked={allowPublic}
+              onChange={(e) => setAllowPublic(e.target.checked)}
+              className="mt-1 h-4 w-4 accent-[#D4AF37] cursor-pointer"
+            />
+            <span className="text-xs text-gray-300 leading-relaxed">
+              Autorizo a barbearia a exibir publicamente minha avaliação (nome, nota e depoimento) no site.
+            </span>
+          </label>
+
             onClick={submit}
             disabled={submitting}
             className="w-full h-12 bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black text-base"
