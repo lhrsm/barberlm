@@ -60,8 +60,10 @@ function PublicReviewPage() {
 
   const [shopRating, setShopRating] = useState(5);
   const [barberRating, setBarberRating] = useState(5);
+  const [serviceRating, setServiceRating] = useState(5);
   const [testimonial, setTestimonial] = useState("");
   const [recommend, setRecommend] = useState<"yes" | "maybe" | "no">("yes");
+  const [allowPublic, setAllowPublic] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -81,20 +83,21 @@ function PublicReviewPage() {
   const submit = async () => {
     setSubmitting(true);
     try {
-      const { data: res, error: e } = await supabase.rpc("submit_review_by_token", {
+      const { error: e } = await supabase.rpc("submit_review_by_token", {
         _token: token,
         _barbershop_rating: shopRating,
         _barber_rating: barberRating,
-        _testimonial: testimonial,
+        _service_rating: serviceRating,
+        _testimonial_text: testimonial,
         _would_recommend: recommend,
+        _allow_public_display: allowPublic,
+        _service_id: (data as any)?.service_id ?? null,
       });
-      if (e) throw e;
-      const result = res as any;
-      if (!result?.success) {
-        if (result?.error === "already_submitted") {
-          setSubmitted(true);
+      if (e) {
+        if (e.message?.includes("invalid_or_expired_token")) {
+          toast.error("Link inválido ou expirado.");
         } else {
-          toast.error("Erro ao enviar: " + (result?.error || "desconhecido"));
+          toast.error("Erro ao enviar: " + e.message);
         }
       } else {
         setSubmitted(true);
