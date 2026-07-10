@@ -361,10 +361,10 @@ serve(async (req) => {
             console.log(`[EmitEvent] Skip duplicate WA phone ${norm} (${rcp.name})`);
             continue;
           }
-          if (eventTemplatePhones.has(norm)) {
-            console.log(`[EmitEvent] Skip internal WA to ${norm} (${rcp.name}) because this phone already receives an event template`);
-            continue;
-          }
+          // Note: we intentionally do NOT skip when this phone also receives an
+          // event template (e.g. barber template). Internal recipients (reception,
+          // manager) are configured per-person and must always be notified, even
+          // if their phone coincides with the barber's number.
           if (!allowOnOfficial && officialPhone && norm === officialPhone) {
             console.log(`[EmitEvent] Skip WA to business phone ${norm} (${rcp.name})`);
           } else {
