@@ -315,7 +315,9 @@ serve(async (req) => {
       "review.received": "notify_review_received",
       "review.excellent": "notify_review_received",
       "review.bad": "notify_bad_review",
-      "review.pending_reply": "notify_review_received",
+      // NOTE: "review.pending_reply" removed — reminders now go ONLY to the
+      // customer via the /api/public/hooks/review-reminders cron; the shop
+      // must not receive "aguardando resposta" alerts.
       "support.ticket_created": "notify_support_ticket",
       "automation.failed": "notify_automation_failure",
     };
