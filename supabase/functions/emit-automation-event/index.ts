@@ -193,6 +193,10 @@ serve(async (req) => {
       let recipientName: string | null = null;
 
       if (recipient === "customer") {
+        if ((extra as any)?.silent_customer === true) {
+          skipped.push({ template: tpl.key, reason: "silent_customer" });
+          continue;
+        }
         phone = customer?.phone || null;
         recipientName = customer?.name || null;
       } else if (recipient === "barber") {
