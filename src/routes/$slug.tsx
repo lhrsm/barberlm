@@ -790,10 +790,11 @@ function ShopPageComponent() {
       try {
         const { data: testimonialsRes } = await supabase
           .from("appointment_reviews")
-          .select("id, testimonial_text, barbershop_rating, barber_rating, created_at, customers(name, avatar_url), barbers(name)")
+          .select("id, testimonial_text, barbershop_rating, service_rating, barber_rating, reply, reply_at, created_at, customers(name, avatar_url), barbers(name), appointments(services(name))")
           .eq("tenant_id", currentShop.id)
           .eq("testimonial_status", "approved")
           .eq("show_on_frontend", true)
+          .eq("allow_public_display", true)
           .not("testimonial_text", "is", null)
           .order("approved_at", { ascending: false })
           .limit(9);
@@ -2655,20 +2656,34 @@ function ShopPageComponent() {
                 <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Depoimentos</h3>
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {publicTestimonials.map((t) => (
-                  <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-[#D4AF37]/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300">
-                    <div className="flex items-center gap-1 mb-3">
-                      {[1,2,3,4,5].map(n => (
-                        <Star key={n} size={14} className={cn(n <= (t.barbershop_rating || 5) ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
-                      ))}
+                {publicTestimonials.map((t) => {
+                  const ratings = [t.barbershop_rating, t.service_rating, t.barber_rating].filter((r) => typeof r === "number");
+                  const avg = ratings.length ? Math.round(ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) : 5;
+                  const svcName = t.appointments?.services?.name;
+                  return (
+                    <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-[#D4AF37]/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[1,2,3,4,5].map(n => (
+                          <Star key={n} size={14} className={cn(n <= avg ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
+                        ))}
+                      </div>
+                      <p className="text-white/90 italic mb-4 text-sm leading-relaxed">"{t.testimonial_text}"</p>
+                      <div className="flex items-center justify-between text-xs mt-auto">
+                        <span className="font-bold text-white">{t.customers?.name || "Cliente"}</span>
+                        <div className="flex flex-col items-end gap-0.5 text-right">
+                          {t.barbers?.name && <span className="text-[#D4AF37]/70">com {t.barbers.name}</span>}
+                          {svcName && <span className="text-white/40 text-[10px] uppercase tracking-wider">{svcName}</span>}
+                        </div>
+                      </div>
+                      {t.reply && (
+                        <div className="mt-4 pt-4 border-t border-[#D4AF37]/15">
+                          <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-black mb-1.5">Resposta da barbearia</p>
+                          <p className="text-xs text-white/70 leading-relaxed">{t.reply}</p>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-white/90 italic mb-4 text-sm leading-relaxed">"{t.testimonial_text}"</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-white">{t.customers?.name || "Cliente"}</span>
-                      {t.barbers?.name && <span className="text-[#D4AF37]/70">com {t.barbers.name}</span>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
