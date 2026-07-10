@@ -39,6 +39,21 @@ export const Route = createFileRoute("/api/public/hooks/review-reminders")({
         for (const r of reviews || []) {
           const ratings = [r.barbershop_rating, r.barber_rating, r.service_rating].filter((n) => typeof n === "number") as number[];
           const avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+
+          // Only remind for reviews that actually need a reply: low ratings
+          // (< 4 stars). Positive reviews (>= 4) don't require a response —
+          // mark them as "sent" so they're skipped on the next run.
+          const needsReminder = avg > 0 && avg < 4;
+
+          if (!needsReminder) {
+            await supabase
+              .from("appointment_reviews")
+              .update({ reply_reminder_sent_at: new Date().toISOString() })
+              .eq("id", r.id);
+            results.push({ id: r.id, ok: true, skipped: true, reason: "positive_review" });
+            continue;
+          }
+
           try {
             await supabase.functions.invoke("emit-automation-event", {
               body: {
