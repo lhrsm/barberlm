@@ -60,8 +60,10 @@ function PublicReviewPage() {
 
   const [shopRating, setShopRating] = useState(5);
   const [barberRating, setBarberRating] = useState(5);
+  const [serviceRating, setServiceRating] = useState(5);
   const [testimonial, setTestimonial] = useState("");
   const [recommend, setRecommend] = useState<"yes" | "maybe" | "no">("yes");
+  const [allowPublic, setAllowPublic] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -81,20 +83,21 @@ function PublicReviewPage() {
   const submit = async () => {
     setSubmitting(true);
     try {
-      const { data: res, error: e } = await supabase.rpc("submit_review_by_token", {
+      const { error: e } = await supabase.rpc("submit_review_by_token", {
         _token: token,
         _barbershop_rating: shopRating,
         _barber_rating: barberRating,
-        _testimonial: testimonial,
+        _service_rating: serviceRating,
+        _testimonial_text: testimonial,
         _would_recommend: recommend,
+        _allow_public_display: allowPublic,
+        _service_id: (data as any)?.service_id ?? null,
       });
-      if (e) throw e;
-      const result = res as any;
-      if (!result?.success) {
-        if (result?.error === "already_submitted") {
-          setSubmitted(true);
+      if (e) {
+        if (e.message?.includes("invalid_or_expired_token")) {
+          toast.error("Link inválido ou expirado.");
         } else {
-          toast.error("Erro ao enviar: " + (result?.error || "desconhecido"));
+          toast.error("Erro ao enviar: " + e.message);
         }
       } else {
         setSubmitted(true);
@@ -177,6 +180,7 @@ function PublicReviewPage() {
 
         <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#0b0f17] p-5 space-y-6">
           <StarRow value={shopRating} onChange={setShopRating} label="Avaliação da Barbearia" />
+          <StarRow value={serviceRating} onChange={setServiceRating} label="Avaliação do Serviço" />
           <StarRow value={barberRating} onChange={setBarberRating} label="Avaliação do Barbeiro" />
 
           <div className="space-y-2">
@@ -216,6 +220,18 @@ function PublicReviewPage() {
               Depoimentos passam por aprovação antes de aparecerem publicamente.
             </p>
           </div>
+
+          <label className="flex items-start gap-3 rounded-xl border border-[#D4AF37]/15 bg-[#05070d] p-3 cursor-pointer hover:border-[#D4AF37]/30 transition">
+            <input
+              type="checkbox"
+              checked={allowPublic}
+              onChange={(e) => setAllowPublic(e.target.checked)}
+              className="mt-1 h-4 w-4 accent-[#D4AF37] cursor-pointer"
+            />
+            <span className="text-xs text-gray-300 leading-relaxed">
+              Autorizo a barbearia a exibir publicamente minha avaliação (nome, nota e depoimento) no site.
+            </span>
+          </label>
 
           <Button
             onClick={submit}

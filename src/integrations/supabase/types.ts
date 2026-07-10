@@ -162,6 +162,7 @@ export type Database = {
       }
       appointment_reviews: {
         Row: {
+          allow_public_display: boolean
           appointment_id: string
           approved_at: string | null
           approved_by: string | null
@@ -171,7 +172,14 @@ export type Database = {
           created_at: string
           customer_id: string | null
           id: string
+          rejected_at: string | null
+          rejected_by: string | null
+          reply: string | null
+          reply_at: string | null
+          reply_by: string | null
           review_token: string | null
+          service_id: string | null
+          service_rating: number | null
           show_on_frontend: boolean
           submitted_at: string | null
           tenant_id: string
@@ -183,6 +191,7 @@ export type Database = {
           would_recommend: string | null
         }
         Insert: {
+          allow_public_display?: boolean
           appointment_id: string
           approved_at?: string | null
           approved_by?: string | null
@@ -192,7 +201,14 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          reply?: string | null
+          reply_at?: string | null
+          reply_by?: string | null
           review_token?: string | null
+          service_id?: string | null
+          service_rating?: number | null
           show_on_frontend?: boolean
           submitted_at?: string | null
           tenant_id: string
@@ -204,6 +220,7 @@ export type Database = {
           would_recommend?: string | null
         }
         Update: {
+          allow_public_display?: boolean
           appointment_id?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -213,7 +230,14 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          reply?: string | null
+          reply_at?: string | null
+          reply_by?: string | null
           review_token?: string | null
+          service_id?: string | null
+          service_rating?: number | null
           show_on_frontend?: boolean
           submitted_at?: string | null
           tenant_id?: string
@@ -251,6 +275,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_reviews_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]
@@ -7577,6 +7608,44 @@ export type Database = {
           cron_status: string
         }[]
       }
+      get_customer_review: {
+        Args: { _appointment_id: string }
+        Returns: {
+          allow_public_display: boolean
+          appointment_id: string
+          approved_at: string | null
+          approved_by: string | null
+          barber_id: string | null
+          barber_rating: number | null
+          barbershop_rating: number | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          rejected_at: string | null
+          rejected_by: string | null
+          reply: string | null
+          reply_at: string | null
+          reply_by: string | null
+          review_token: string | null
+          service_id: string | null
+          service_rating: number | null
+          show_on_frontend: boolean
+          submitted_at: string | null
+          tenant_id: string
+          testimonial_status: string
+          testimonial_text: string | null
+          token_expires_at: string | null
+          token_used_at: string | null
+          updated_at: string
+          would_recommend: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "appointment_reviews"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_customers_with_birthday_today: {
         Args: { target_day: number; target_month: number }
         Returns: {
@@ -7818,16 +7887,64 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
-      submit_review_by_token: {
-        Args: {
-          _barber_rating: number
-          _barbershop_rating: number
-          _testimonial: string
-          _token: string
-          _would_recommend: string
-        }
-        Returns: Json
-      }
+      submit_review_by_token:
+        | {
+            Args: {
+              _allow_public_display?: boolean
+              _barber_rating: number
+              _barbershop_rating: number
+              _service_id?: string
+              _service_rating?: number
+              _testimonial_text?: string
+              _token: string
+              _would_recommend?: string
+            }
+            Returns: {
+              allow_public_display: boolean
+              appointment_id: string
+              approved_at: string | null
+              approved_by: string | null
+              barber_id: string | null
+              barber_rating: number | null
+              barbershop_rating: number | null
+              created_at: string
+              customer_id: string | null
+              id: string
+              rejected_at: string | null
+              rejected_by: string | null
+              reply: string | null
+              reply_at: string | null
+              reply_by: string | null
+              review_token: string | null
+              service_id: string | null
+              service_rating: number | null
+              show_on_frontend: boolean
+              submitted_at: string | null
+              tenant_id: string
+              testimonial_status: string
+              testimonial_text: string | null
+              token_expires_at: string | null
+              token_used_at: string | null
+              updated_at: string
+              would_recommend: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "appointment_reviews"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _barber_rating: number
+              _barbershop_rating: number
+              _testimonial: string
+              _token: string
+              _would_recommend: string
+            }
+            Returns: Json
+          }
       subscription_active_months: {
         Args: { p_subscription_id: string }
         Returns: number
