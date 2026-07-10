@@ -2550,17 +2550,16 @@ function ShopPageComponent() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {((shop as any).gallery_images as string[]).map((url, idx) => (
-                  <motion.a
+                  <motion.button
                     key={`${url}-${idx}`}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    type="button"
+                    onClick={() => setLightboxIndex(idx)}
                     initial={{ opacity: 0, scale: 0.95 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ delay: (idx % 6) * 0.05 }}
                     viewport={{ once: true }}
                     className={cn(
-                      "group relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#D4AF37]/15 bg-[#0a0a0a] shadow-2xl hover:border-[#D4AF37]/60 transition-all",
+                      "group relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#D4AF37]/15 bg-[#0a0a0a] shadow-2xl hover:border-[#D4AF37]/60 transition-all cursor-zoom-in",
                       idx % 7 === 0 ? "col-span-2 aspect-[2/1]" : "aspect-square"
                     )}
                   >
@@ -2571,12 +2570,80 @@ function ShopPageComponent() {
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </motion.a>
+                  </motion.button>
                 ))}
               </div>
             </div>
           </section>
         )}
+
+        {/* Lightbox */}
+        <AnimatePresence>
+          {lightboxIndex !== null && Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images[lightboxIndex] && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={() => setLightboxIndex(null)}
+            >
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(null); }}
+                className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                aria-label="Fechar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              {(() => {
+                const imgs = (shop as any).gallery_images as string[];
+                const goPrev = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  setLightboxIndex((i) => (i === null ? null : (i - 1 + imgs.length) % imgs.length));
+                };
+                const goNext = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  setLightboxIndex((i) => (i === null ? null : (i + 1) % imgs.length));
+                };
+                return (
+                  <>
+                    {imgs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={goPrev}
+                        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                        aria-label="Anterior"
+                      >
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                    )}
+                    <motion.img
+                      key={lightboxIndex}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      src={imgs[lightboxIndex]}
+                      alt={`Foto ${lightboxIndex + 1}`}
+                      className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    {imgs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={goNext}
+                        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                        aria-label="Próxima"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
 
         {/* Testimonials Section */}
         {publicTestimonials.length > 0 && (
