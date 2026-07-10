@@ -452,7 +452,9 @@ function internalTitle(event: string): string {
     "subscription.renewal_failed": "Falha na renovação",
     "payment.confirmed": "Pagamento confirmado",
     "review.received": "Nova avaliação",
+    "review.excellent": "Avaliação 5 estrelas 🌟",
     "review.bad": "Avaliação negativa recebida",
+    "review.pending_reply": "Avaliação aguardando resposta",
     "support.ticket_created": "Novo chamado de suporte",
     "automation.failed": "Falha em automação",
   };
