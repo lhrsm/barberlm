@@ -148,11 +148,19 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
     }
 
-    // Trigger immediate processing
-    fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${supabaseKey}` }
-    }).catch(e => console.error("Error triggering queue:", e));
+    // Trigger immediate processing and wait for the queue claim/send cycle.
+    // Fire-and-forget fetches can be cancelled when the edge request finishes,
+    // leaving internal notifications stuck as "pending".
+    try {
+      const processResponse = await fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${supabaseKey}` }
+      });
+      const processText = await processResponse.text();
+      console.log('WHATSAPP_QUEUE_PROCESS_RESULT:', processResponse.status, processText);
+    } catch (e) {
+      console.error("Error triggering queue:", e);
+    }
     
     return new Response(JSON.stringify({ success: true, message_id: message.id }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
