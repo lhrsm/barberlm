@@ -101,6 +101,7 @@ function ShopPageComponent() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
