@@ -2660,6 +2660,9 @@ function ShopPageComponent() {
                   const ratings = [t.barbershop_rating, t.service_rating, t.barber_rating].filter((r) => typeof r === "number");
                   const avg = ratings.length ? Math.round(ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) : 5;
                   const svcName = t.appointments?.services?.name;
+                  const custName = t.customers?.name || "Cliente";
+                  const avatarUrl = t.customers?.avatar_url || t.customers?.photo_url || null;
+                  const initial = (custName.trim()[0] || "C").toUpperCase();
                   return (
                     <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-[#D4AF37]/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
                       <div className="flex items-center gap-1 mb-3">
@@ -2667,12 +2670,33 @@ function ShopPageComponent() {
                           <Star key={n} size={14} className={cn(n <= avg ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
                         ))}
                       </div>
-                      <p className="text-white/90 italic mb-4 text-sm leading-relaxed">"{t.testimonial_text}"</p>
-                      <div className="flex items-center justify-between text-xs mt-auto">
-                        <span className="font-bold text-white">{t.customers?.name || "Cliente"}</span>
-                        <div className="flex flex-col items-end gap-0.5 text-right">
-                          {t.barbers?.name && <span className="text-[#D4AF37]/70">com {t.barbers.name}</span>}
-                          {svcName && <span className="text-white/40 text-[10px] uppercase tracking-wider">{svcName}</span>}
+                      <p className="text-white/90 italic mb-6 text-sm leading-relaxed">"{t.testimonial_text}"</p>
+                      <div className="mt-auto pt-4 border-t border-white/5 flex flex-col md:flex-row items-center gap-3 md:gap-4 text-center md:text-left">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={custName}
+                            loading="lazy"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              const fallback = img.nextElementSibling as HTMLElement | null;
+                              img.style.display = "none";
+                              if (fallback) fallback.style.display = "flex";
+                            }}
+                            className="w-11 h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-[#D4AF37] shadow-md shadow-black/40 hover:scale-105 transition-transform duration-200 flex-shrink-0"
+                          />
+                        ) : null}
+                        <div
+                          style={{ display: avatarUrl ? "none" : "flex" }}
+                          className="w-11 h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full items-center justify-center bg-[#D4AF37] text-black font-black text-lg border-2 border-[#D4AF37] shadow-md shadow-black/40 hover:scale-105 transition-transform duration-200 flex-shrink-0"
+                          aria-label={custName}
+                        >
+                          {initial}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-bold text-white text-sm truncate">{custName}</span>
+                          {svcName && <span className="text-white/60 text-xs truncate">{svcName}</span>}
+                          {t.barbers?.name && <span className="text-[#D4AF37]/80 text-xs truncate">com {t.barbers.name}</span>}
                         </div>
                       </div>
                       {t.reply && (
