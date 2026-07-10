@@ -233,6 +233,7 @@ function PublicReviewPage() {
             </span>
           </label>
 
+          <Button
             onClick={submit}
             disabled={submitting}
             className="w-full h-12 bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black text-base"
