@@ -177,6 +177,7 @@ export type Database = {
           reply: string | null
           reply_at: string | null
           reply_by: string | null
+          reply_reminder_sent_at: string | null
           review_token: string | null
           service_id: string | null
           service_rating: number | null
@@ -206,6 +207,7 @@ export type Database = {
           reply?: string | null
           reply_at?: string | null
           reply_by?: string | null
+          reply_reminder_sent_at?: string | null
           review_token?: string | null
           service_id?: string | null
           service_rating?: number | null
@@ -235,6 +237,7 @@ export type Database = {
           reply?: string | null
           reply_at?: string | null
           reply_by?: string | null
+          reply_reminder_sent_at?: string | null
           review_token?: string | null
           service_id?: string | null
           service_rating?: number | null
@@ -7626,6 +7629,7 @@ export type Database = {
           reply: string | null
           reply_at: string | null
           reply_by: string | null
+          reply_reminder_sent_at: string | null
           review_token: string | null
           service_id: string | null
           service_rating: number | null
@@ -7915,6 +7919,7 @@ export type Database = {
               reply: string | null
               reply_at: string | null
               reply_by: string | null
+              reply_reminder_sent_at: string | null
               review_token: string | null
               service_id: string | null
               service_rating: number | null
