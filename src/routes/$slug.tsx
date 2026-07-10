@@ -790,10 +790,11 @@ function ShopPageComponent() {
       try {
         const { data: testimonialsRes } = await supabase
           .from("appointment_reviews")
-          .select("id, testimonial_text, barbershop_rating, barber_rating, created_at, customers(name, avatar_url), barbers(name)")
+          .select("id, testimonial_text, barbershop_rating, service_rating, barber_rating, reply, reply_at, created_at, customers(name, avatar_url), barbers(name), appointments(services(name))")
           .eq("tenant_id", currentShop.id)
           .eq("testimonial_status", "approved")
           .eq("show_on_frontend", true)
+          .eq("allow_public_display", true)
           .not("testimonial_text", "is", null)
           .order("approved_at", { ascending: false })
           .limit(9);
