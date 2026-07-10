@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Star, Send, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { emitAutomationEvent } from "@/utils/emit-event";
 
 export const Route = createFileRoute("/review/$token")({
   component: PublicReviewPage,
@@ -102,6 +103,39 @@ function PublicReviewPage() {
       } else {
         setSubmitted(true);
         toast.success("Obrigado pela sua avaliação!");
+        // Fire intelligent review automations (fan-out to customer + shop)
+        const avg = (shopRating + barberRating + serviceRating) / 3;
+        const evt = avg >= 5 ? "review.excellent" : avg <= 2 ? "review.bad" : "review.received";
+        const d: any = data || {};
+        emitAutomationEvent({
+          tenantId: d.tenant_id,
+          event: evt as any,
+          appointmentId: d.appointment_id,
+          customerId: d.customer_id,
+          extra: {
+            avg_rating: avg.toFixed(1),
+            shop_rating: shopRating,
+            barber_rating: barberRating,
+            service_rating: serviceRating,
+            testimonial: testimonial || "",
+            would_recommend: recommend,
+            allow_public_display: allowPublic,
+          },
+        });
+        // Also emit generic received so shop always gets notified
+        if (evt !== "review.received") {
+          emitAutomationEvent({
+            tenantId: d.tenant_id,
+            event: "review.received" as any,
+            appointmentId: d.appointment_id,
+            customerId: d.customer_id,
+            extra: {
+              avg_rating: avg.toFixed(1),
+              testimonial: testimonial || "",
+              silent_customer: true,
+            },
+          });
+        }
       }
     } catch (err: any) {
       toast.error("Erro: " + err.message);

@@ -193,6 +193,10 @@ serve(async (req) => {
       let recipientName: string | null = null;
 
       if (recipient === "customer") {
+        if ((extra as any)?.silent_customer === true) {
+          skipped.push({ template: tpl.key, reason: "silent_customer" });
+          continue;
+        }
         phone = customer?.phone || null;
         recipientName = customer?.name || null;
       } else if (recipient === "barber") {
@@ -309,7 +313,9 @@ serve(async (req) => {
       "subscription.renewal_failed": "notify_payment_failed",
       "payment.confirmed": "notify_payment_received",
       "review.received": "notify_review_received",
+      "review.excellent": "notify_review_received",
       "review.bad": "notify_bad_review",
+      "review.pending_reply": "notify_review_received",
       "support.ticket_created": "notify_support_ticket",
       "automation.failed": "notify_automation_failure",
     };
@@ -450,7 +456,9 @@ function internalTitle(event: string): string {
     "subscription.renewal_failed": "Falha na renovação",
     "payment.confirmed": "Pagamento confirmado",
     "review.received": "Nova avaliação",
+    "review.excellent": "Avaliação 5 estrelas 🌟",
     "review.bad": "Avaliação negativa recebida",
+    "review.pending_reply": "Avaliação aguardando resposta",
     "support.ticket_created": "Novo chamado de suporte",
     "automation.failed": "Falha em automação",
   };
@@ -515,6 +523,41 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
     return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
+  if (event.startsWith("review.")) {
+    const stars = (n: any) => {
+      const v = Number(n);
+      if (!isFinite(v) || v <= 0) return "";
+      return "⭐".repeat(Math.round(v));
+    };
+    const isPending = event === "review.pending_reply";
+    const isBad = event === "review.bad";
+    const isExcellent = event === "review.excellent";
+    const icon = isPending ? "⏰" : isBad ? "⚠️" : isExcellent ? "🌟" : "⭐";
+    const title = isPending
+      ? "Avaliação aguardando sua resposta há mais de 24h"
+      : isBad
+      ? "Nova avaliação NEGATIVA — atenção"
+      : isExcellent
+      ? "Nova avaliação 5 estrelas!"
+      : "Nova avaliação recebida";
+    const parts = [
+      `${icon} ${title}`,
+      ``,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      d.barber_name ? `💈 Profissional: ${d.barber_name}` : "",
+      d.avg_rating ? `📊 Nota média: ${d.avg_rating} ${stars(d.avg_rating)}` : "",
+      d.testimonial ? `💬 "${d.testimonial}"` : "",
+      isPending && d.hours_pending ? `⏳ Aguardando resposta há ${d.hours_pending}h` : "",
+      ``,
+      isPending
+        ? `Responda no painel Barbex › Avaliações para manter o engajamento.`
+        : isBad
+        ? `Entre em contato com o cliente o quanto antes para reverter a situação.`
+        : `Acesse o painel Barbex › Avaliações para responder.`,
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  }
   if (event.startsWith("subscription.")) {
     return `💳 ${header}\n\n${line("Cliente", d.customer_name)}${line("Plano", d.plan_name || d.subscription_name)}${line("Valor", d.amount)}`.trim();
   }

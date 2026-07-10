@@ -77,6 +77,7 @@ import { Route as ApiPublicSubscriptionsWebhookRouteImport } from './routes/api/
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/public/hooks/status-check'
 import { Route as ApiPublicHooksSendReviewRequestsRouteImport } from './routes/api/public/hooks/send-review-requests'
+import { Route as ApiPublicHooksReviewRemindersRouteImport } from './routes/api/public/hooks/review-reminders'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -424,6 +425,12 @@ const ApiPublicHooksSendReviewRequestsRoute =
     path: '/api/public/hooks/send-review-requests',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksReviewRemindersRoute =
+  ApiPublicHooksReviewRemindersRouteImport.update({
+    id: '/api/public/hooks/review-reminders',
+    path: '/api/public/hooks/review-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -489,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -557,6 +565,7 @@ export interface FileRoutesByTo {
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -628,6 +637,7 @@ export interface FileRoutesById {
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -700,6 +710,7 @@ export interface FileRouteTypes {
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
@@ -768,6 +779,7 @@ export interface FileRouteTypes {
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
@@ -838,6 +850,7 @@ export interface FileRouteTypes {
     | '/agendamentos/grupo/$token'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
     | '/api/public/payments/webhook'
@@ -885,6 +898,7 @@ export interface RootRouteChildren {
   ReviewTokenRoute: typeof ReviewTokenRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksReviewRemindersRoute: typeof ApiPublicHooksReviewRemindersRoute
   ApiPublicHooksSendReviewRequestsRoute: typeof ApiPublicHooksSendReviewRequestsRoute
   ApiPublicHooksStatusCheckRoute: typeof ApiPublicHooksStatusCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1370,6 +1384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksSendReviewRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/review-reminders': {
+      id: '/api/public/hooks/review-reminders'
+      path: '/api/public/hooks/review-reminders'
+      fullPath: '/api/public/hooks/review-reminders'
+      preLoaderRoute: typeof ApiPublicHooksReviewRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1505,6 +1526,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewTokenRoute: ReviewTokenRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksReviewRemindersRoute: ApiPublicHooksReviewRemindersRoute,
   ApiPublicHooksSendReviewRequestsRoute: ApiPublicHooksSendReviewRequestsRoute,
   ApiPublicHooksStatusCheckRoute: ApiPublicHooksStatusCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
