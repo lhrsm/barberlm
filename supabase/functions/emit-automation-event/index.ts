@@ -309,7 +309,9 @@ serve(async (req) => {
       "subscription.renewal_failed": "notify_payment_failed",
       "payment.confirmed": "notify_payment_received",
       "review.received": "notify_review_received",
+      "review.excellent": "notify_review_received",
       "review.bad": "notify_bad_review",
+      "review.pending_reply": "notify_review_received",
       "support.ticket_created": "notify_support_ticket",
       "automation.failed": "notify_automation_failure",
     };
