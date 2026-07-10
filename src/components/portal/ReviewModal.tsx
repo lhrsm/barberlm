@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { emitAutomationEvent } from "@/utils/emit-event";
 
 interface ReviewModalProps {
   open: boolean;
