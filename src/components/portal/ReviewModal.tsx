@@ -112,6 +112,32 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
         } else throw error;
       } else {
         toast.success(existing?.id ? "Avaliação atualizada!" : "Obrigado pela sua avaliação!");
+        // Fire intelligent review automations
+        const avg = (shopRating + serviceRating + barberRating) / 3;
+        const evt = avg >= 5 ? "review.excellent" : avg <= 2 ? "review.bad" : "review.received";
+        emitAutomationEvent({
+          tenantId,
+          event: evt as any,
+          appointmentId: appointment.id,
+          customerId: appointment.customer_id,
+          extra: {
+            avg_rating: avg.toFixed(1),
+            shop_rating: shopRating,
+            barber_rating: barberRating,
+            service_rating: serviceRating,
+            testimonial: testimonial || "",
+            allow_public_display: allowPublic,
+          },
+        });
+        if (evt !== "review.received") {
+          emitAutomationEvent({
+            tenantId,
+            event: "review.received" as any,
+            appointmentId: appointment.id,
+            customerId: appointment.customer_id,
+            extra: { avg_rating: avg.toFixed(1), testimonial: testimonial || "", silent_customer: true },
+          });
+        }
         onOpenChange(false);
         onSubmitted?.();
       }
