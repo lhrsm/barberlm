@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Star, Send, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { emitAutomationEvent } from "@/utils/emit-event";
 
 export const Route = createFileRoute("/review/$token")({
   component: PublicReviewPage,
