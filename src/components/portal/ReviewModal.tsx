@@ -129,15 +129,10 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
             allow_public_display: allowPublic,
           },
         });
-        if (evt !== "review.received") {
-          emitAutomationEvent({
-            tenantId,
-            event: "review.received" as any,
-            appointmentId: appointment.id,
-            customerId: appointment.customer_id,
-            extra: { avg_rating: avg.toFixed(1), testimonial: testimonial || "", silent_customer: true },
-          });
-        }
+        // Do NOT emit a second "review.received" event here — the internal
+        // notification flag `notify_review_received` is already triggered by
+        // review.excellent / review.bad via the event→flag map on the server,
+        // and firing both caused duplicated shop alerts.
         onOpenChange(false);
         onSubmitted?.();
       }
