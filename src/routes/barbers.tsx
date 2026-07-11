@@ -764,7 +764,7 @@ function BarbersComponent() {
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Barbeiro</Button>
+                    <Button type="submit" className="w-full bg-[#D4AF37] text-black hover:bg-[#B8962E] hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Barbeiro</Button>
                   </form>
                 </>
               ) : (
@@ -1245,7 +1245,7 @@ function BarbersComponent() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Alterações</Button>
+                <Button type="submit" className="w-full bg-[#D4AF37] text-black hover:bg-[#B8962E] hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Alterações</Button>
               </form>
             )}
           </DialogContent>
