@@ -337,7 +337,7 @@ function TutorialsPage() {
                     </div>
                   </div>
                   <div className="p-6 border-t border-zinc-800 flex justify-end bg-[#05070d]">
-                    <Button onClick={() => setSelectedTutorial(null)} className="h-[42px] px-6 rounded-xl bg-[#D4AF37] text-black font-bold hover:bg-[#B8941F] hover:scale-105 hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] transition-all duration-300">
+                    <Button onClick={() => setSelectedTutorial(null)} className="h-9 px-5 rounded-xl bg-[#D4AF37] text-black text-sm font-bold hover:bg-[#B8941F] hover:scale-105 hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] transition-all duration-300">
                       Fechar
                     </Button>
                   </div>
