@@ -266,7 +266,7 @@ function TutorialsPage() {
 
           {/* Tutorial Modal */}
           <Dialog open={!!selectedTutorial} onOpenChange={() => setSelectedTutorial(null)}>
-            <DialogContent className="max-w-4xl p-0 bg-[#0b0f17] border-zinc-800 text-white overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <DialogContent className="max-w-4xl p-0 bg-[#0b0f17] border border-[#D4AF37]/40 text-white overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.15)]">
               {selectedTutorial && (
                 <div className="flex flex-col h-[90vh] md:h-auto max-h-[90vh]">
                   <div className="p-6 md:p-8 space-y-6 overflow-y-auto">
