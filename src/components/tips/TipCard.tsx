@@ -48,7 +48,7 @@ export function TipCard({ token, barberName, barberAvatar, pixKey, serviceAmount
       const { data, error } = await supabase.rpc("register_pix_tip", {
         _token: token,
         _amount: amount,
-        _note: null,
+        _note: undefined,
       });
       if (error) throw error;
       const res = data as any;
