@@ -1136,6 +1136,13 @@ function ClientPortalComponent() {
           onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
         />
 
+        <PushOptInCard
+          customerPhone={client?.phone ?? null}
+          tenantId={shop?.id ?? null}
+          audience="customer"
+        />
+
+
         <SuaJornadaBarbex
           client={client}
           shop={shop}
