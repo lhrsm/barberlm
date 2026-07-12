@@ -73,6 +73,7 @@ import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
 import { SuaJornadaBarbex } from "@/components/portal/premium/journey/SuaJornadaBarbex";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
+import { PushOptInCard } from "@/components/push/PushOptInCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
 import { MemberDashboard } from "@/components/portal/premium/MemberDashboard";
 import { ClubBarbexUpgrade } from "@/components/portal/premium/ClubBarbexUpgrade";
