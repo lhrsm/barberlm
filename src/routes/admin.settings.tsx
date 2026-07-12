@@ -31,6 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { AdminEventSubscriptions } from "@/components/admin/AdminEventSubscriptions";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
@@ -141,6 +142,7 @@ function AdminSettings() {
             { id: "saude", label: "Saúde & Alertas", icon: ShieldAlert },
             { id: "seguranca", label: "Segurança", icon: Shield },
             { id: "integracoes", label: "Integrações", icon: Share2 },
+            { id: "notificacoes", label: "Minhas Notificações", icon: Bell },
           ].map((tab) => (
             <TabsTrigger 
               key={tab.id} 
@@ -489,6 +491,10 @@ function AdminSettings() {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="notificacoes" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <AdminEventSubscriptions />
         </TabsContent>
       </Tabs>
     </div>
