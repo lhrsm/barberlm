@@ -7599,6 +7599,23 @@ export type Database = {
           status: string
         }[]
       }
+      get_coupon_by_code: {
+        Args: { p_code: string; p_tenant_id: string }
+        Returns: {
+          active: boolean
+          applies_to: string
+          code: string
+          expires_at: string
+          first_month_only: boolean
+          id: string
+          max_discount: number
+          minimum_amount: number
+          type: string
+          usage_limit: number
+          used_count: number
+          value: number
+        }[]
+      }
       get_cron_status: {
         Args: never
         Returns: {
