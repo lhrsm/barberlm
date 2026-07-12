@@ -221,6 +221,22 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
   });
 }
 
+async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
+  const userId = invoice.subscription_details?.metadata?.userId || invoice.metadata?.userId;
+  const amount = (invoice.amount_due ?? 0) / 100;
+  console.log("[Webhook] ⚠️ Invoice payment failed:", { id: invoice.id, userId, amount });
+
+  const profile = userId ? await loadProfileForUser(userId) : null;
+  await fireAdminEvent({
+    event_key: "subscription.payment_failed",
+    title: "Falha no pagamento da assinatura",
+    message: `${profile?.business_name ?? profile?.email ?? userId ?? "Cliente"} — R$ ${amount.toFixed(2)}`,
+    severity: "critical",
+    tenant_id: userId,
+    action_url: "/admin/subscriptions",
+    payload: { userId, invoice_id: invoice.id, amount, env },
+  });
+
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
   console.log(`[Webhook] 📥 Evento recebido: ${event.type} (${env})`, {
@@ -250,6 +266,10 @@ async function handleWebhook(req: Request, env: StripeEnv) {
     case "invoice.paid":
       console.log("[Webhook] 💸 Processando invoice.paid");
       await handleInvoicePaid(object, env);
+      break;
+    case "invoice.payment_failed":
+      console.log("[Webhook] ⚠️ Processando invoice.payment_failed");
+      await handleInvoicePaymentFailed(object, env);
       break;
     default:
       console.log("[Webhook] ⚪ Evento não tratado explicitamente:", event.type);
