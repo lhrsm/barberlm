@@ -67,6 +67,7 @@ export function AppointmentDetailsModal({
   const [auditLogs, setAuditLogs] = React.useState<any[]>([]);
   const queryClient = useQueryClient();
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
+  const [comandaOpen, setComandaOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (open && appointmentId) {
