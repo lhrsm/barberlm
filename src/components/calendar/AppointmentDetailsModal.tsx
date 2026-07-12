@@ -873,6 +873,16 @@ export function AppointmentDetailsModal({
         </div>
 
       </DialogContent>
+
+      {appointment?.id && appointment?.tenant_id && (
+        <ComandaModal
+          appointmentId={appointment.id}
+          tenantId={appointment.tenant_id}
+          open={comandaOpen}
+          onOpenChange={setComandaOpen}
+          onChanged={() => fetchAppointment()}
+        />
+      )}
     </Dialog>
   );
 }
