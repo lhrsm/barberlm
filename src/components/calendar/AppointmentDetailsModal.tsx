@@ -36,7 +36,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ComandaModal } from "./ComandaModal";
-import { ShoppingBag } from "lucide-react";
+import { SplitPaymentModal } from "./SplitPaymentModal";
+import { ShoppingBag, Sparkles } from "lucide-react";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
@@ -68,6 +69,7 @@ export function AppointmentDetailsModal({
   const queryClient = useQueryClient();
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   const [comandaOpen, setComandaOpen] = React.useState(false);
+  const [splitOpen, setSplitOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (open && appointmentId) {
@@ -811,6 +813,16 @@ export function AppointmentDetailsModal({
           )}
 
           {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
+            <Button
+              className="rounded-xl bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37] font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
+              onClick={() => setSplitOpen(true)}
+              disabled={actionLoading}
+            >
+              <Sparkles className="h-4 w-4 mr-2" /> Fechar (Split)
+            </Button>
+          )}
+
+          {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
             <Button 
               className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(37,99,235,0.2)] transition-all active:scale-95"
               onClick={async () => {
@@ -881,6 +893,15 @@ export function AppointmentDetailsModal({
           open={comandaOpen}
           onOpenChange={setComandaOpen}
           onChanged={() => fetchAppointment()}
+        />
+      )}
+
+      {appointment?.id && (
+        <SplitPaymentModal
+          appointment={appointment}
+          open={splitOpen}
+          onOpenChange={setSplitOpen}
+          onSuccess={() => { fetchAppointment(); onSuccess?.(); }}
         />
       )}
     </Dialog>

@@ -443,6 +443,7 @@ export type Database = {
           payment_method: string | null
           payment_status: string | null
           pix_amount: number | null
+          products_amount: number
           refund_preference: string | null
           refund_requested_at: string | null
           refund_status: string | null
@@ -460,6 +461,8 @@ export type Database = {
           subscription_plan_id: string | null
           subtotal_amount: number | null
           tenant_id: string
+          tip_amount: number
+          tip_barber_id: string | null
           total_price: number | null
           updated_at: string | null
           updated_by_id: string | null
@@ -511,6 +514,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
+          products_amount?: number
           refund_preference?: string | null
           refund_requested_at?: string | null
           refund_status?: string | null
@@ -528,6 +532,8 @@ export type Database = {
           subscription_plan_id?: string | null
           subtotal_amount?: number | null
           tenant_id: string
+          tip_amount?: number
+          tip_barber_id?: string | null
           total_price?: number | null
           updated_at?: string | null
           updated_by_id?: string | null
@@ -579,6 +585,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
+          products_amount?: number
           refund_preference?: string | null
           refund_requested_at?: string | null
           refund_status?: string | null
@@ -596,6 +603,8 @@ export type Database = {
           subscription_plan_id?: string | null
           subtotal_amount?: number | null
           tenant_id?: string
+          tip_amount?: number
+          tip_barber_id?: string | null
           total_price?: number | null
           updated_at?: string | null
           updated_by_id?: string | null
@@ -671,6 +680,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_tip_barber_id_fkey"
+            columns: ["tip_barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
             referencedColumns: ["id"]
           },
         ]
@@ -8002,6 +8018,18 @@ export type Database = {
       seed_subscription_reward_unlocked_template: {
         Args: { p_tenant_id: string }
         Returns: undefined
+      }
+      settle_appointment_payment: {
+        Args: {
+          p_appointment_id: string
+          p_discount_amount: number
+          p_payment_breakdown: Json
+          p_products_amount: number
+          p_service_amount: number
+          p_tip_amount: number
+          p_tip_barber_id?: string
+        }
+        Returns: Json
       }
       submit_review_by_token:
         | {
