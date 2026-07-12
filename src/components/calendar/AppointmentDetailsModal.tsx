@@ -895,6 +895,15 @@ export function AppointmentDetailsModal({
           onChanged={() => fetchAppointment()}
         />
       )}
+
+      {appointment?.id && (
+        <SplitPaymentModal
+          appointment={appointment}
+          open={splitOpen}
+          onOpenChange={setSplitOpen}
+          onSuccess={() => { fetchAppointment(); onSuccess?.(); }}
+        />
+      )}
     </Dialog>
   );
 }
