@@ -73,6 +73,7 @@ import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
 import { SuaJornadaBarbex } from "@/components/portal/premium/journey/SuaJornadaBarbex";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
+import { PushOptInCard } from "@/components/push/PushOptInCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
 import { MemberDashboard } from "@/components/portal/premium/MemberDashboard";
 import { ClubBarbexUpgrade } from "@/components/portal/premium/ClubBarbexUpgrade";
@@ -1134,6 +1135,13 @@ function ClientPortalComponent() {
           onCancel={handleCancelAppointment}
           onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
         />
+
+        <PushOptInCard
+          customerPhone={client?.phone ?? null}
+          tenantId={shop?.id ?? null}
+          audience="customer"
+        />
+
 
         <SuaJornadaBarbex
           client={client}
