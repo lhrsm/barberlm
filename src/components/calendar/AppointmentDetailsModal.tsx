@@ -813,6 +813,16 @@ export function AppointmentDetailsModal({
           )}
 
           {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
+            <Button
+              className="rounded-xl bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37] font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
+              onClick={() => setSplitOpen(true)}
+              disabled={actionLoading}
+            >
+              <Sparkles className="h-4 w-4 mr-2" /> Fechar (Split)
+            </Button>
+          )}
+
+          {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
             <Button 
               className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(37,99,235,0.2)] transition-all active:scale-95"
               onClick={async () => {
