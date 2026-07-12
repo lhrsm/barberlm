@@ -4652,6 +4652,54 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          active: boolean
+          audience: string
+          auth: string
+          created_at: string
+          customer_phone: string | null
+          endpoint: string
+          id: string
+          last_seen_at: string
+          p256dh: string
+          tenant_id: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          audience?: string
+          auth: string
+          created_at?: string
+          customer_phone?: string | null
+          endpoint: string
+          id?: string
+          last_seen_at?: string
+          p256dh: string
+          tenant_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          audience?: string
+          auth?: string
+          created_at?: string
+          customer_phone?: string | null
+          endpoint?: string
+          id?: string
+          last_seen_at?: string
+          p256dh?: string
+          tenant_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       rate_limit_hits: {
         Row: {
           bucket: string
@@ -8053,6 +8101,18 @@ export type Database = {
         Args: { _amount: number; _note?: string; _token: string }
         Returns: Json
       }
+      register_push_subscription: {
+        Args: {
+          _audience?: string
+          _auth: string
+          _customer_phone?: string
+          _endpoint: string
+          _p256dh: string
+          _tenant_id?: string
+          _user_agent?: string
+        }
+        Returns: Json
+      }
       register_subscription_referral: {
         Args: {
           p_referral_code: string
@@ -8184,6 +8244,10 @@ export type Database = {
       sync_barbershop_modules: {
         Args: { p_tenant_id: string }
         Returns: undefined
+      }
+      unregister_push_subscription: {
+        Args: { _endpoint: string }
+        Returns: Json
       }
       update_barber_working_hours: {
         Args: { p_barber_id: string; p_working_hours: Json }
