@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getProvider } from "@/lib/payments/providers/index.server";
 import type { PaymentGatewayRow, ProviderKey } from "@/lib/payments/types";
+import { enforceRateLimit } from "@/lib/rate-limit.server";
 
 /**
  * Webhook unificado para gateways de assinatura de clientes finais.
@@ -13,6 +14,8 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const rl = await enforceRateLimit(request, "subs_webhook", { max: 120, windowSeconds: 60 });
+        if (rl) return rl;
         const url = new URL(request.url);
         const gatewayId = url.searchParams.get("gateway");
         if (!gatewayId) return new Response("Missing gateway id", { status: 400 });
