@@ -49,9 +49,10 @@ export function usePushNotifications(opts: Options = {}) {
 
       let sub = await reg.pushManager.getSubscription();
       if (!sub) {
+        const key = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
         sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+          applicationServerKey: key.buffer as ArrayBuffer,
         });
       }
       const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
@@ -60,8 +61,8 @@ export function usePushNotifications(opts: Options = {}) {
         _p256dh: json.keys!.p256dh!,
         _auth: json.keys!.auth!,
         _user_agent: navigator.userAgent,
-        _customer_phone: opts.customerPhone ?? null,
-        _tenant_id: opts.tenantId ?? null,
+        _customer_phone: opts.customerPhone ?? undefined,
+        _tenant_id: opts.tenantId ?? undefined,
         _audience: opts.audience ?? "customer",
       });
       if (error) throw error;

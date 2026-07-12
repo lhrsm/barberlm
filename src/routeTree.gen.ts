@@ -72,6 +72,7 @@ import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SlugCheckinRouteImport } from './routes/$slug.checkin'
 import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subscription-card.validate.$token'
 import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaigns.$id'
+import { Route as ApiPublicSendPushRouteImport } from './routes/api/public/send-push'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicSubscriptionsWebhookRouteImport } from './routes/api/public/subscriptions/webhook'
@@ -396,6 +397,11 @@ const LoyaltyCampaignsIdRoute = LoyaltyCampaignsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => LoyaltyCampaignsRoute,
 } as any)
+const ApiPublicSendPushRoute = ApiPublicSendPushRouteImport.update({
+  id: '/api/public/send-push',
+  path: '/api/public/send-push',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
   id: '/agendamentos/grupo/$token',
   path: '/agendamentos/grupo/$token',
@@ -501,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
@@ -571,6 +578,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
@@ -644,6 +652,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
+  '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
@@ -718,6 +727,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/loyalty/'
     | '/agendamentos/grupo/$token'
+    | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/review-reminders'
@@ -788,6 +798,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/loyalty'
     | '/agendamentos/grupo/$token'
+    | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/review-reminders'
@@ -860,6 +871,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/loyalty/'
     | '/agendamentos/grupo/$token'
+    | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/api/public/hooks/review-reminders'
@@ -909,6 +921,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
+  ApiPublicSendPushRoute: typeof ApiPublicSendPushRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
   ApiPublicHooksReviewRemindersRoute: typeof ApiPublicHooksReviewRemindersRoute
   ApiPublicHooksSendReviewRequestsRoute: typeof ApiPublicHooksSendReviewRequestsRoute
@@ -1361,6 +1374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoyaltyCampaignsIdRouteImport
       parentRoute: typeof LoyaltyCampaignsRoute
     }
+    '/api/public/send-push': {
+      id: '/api/public/send-push'
+      path: '/api/public/send-push'
+      fullPath: '/api/public/send-push'
+      preLoaderRoute: typeof ApiPublicSendPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agendamentos/grupo/$token': {
       id: '/agendamentos/grupo/$token'
       path: '/agendamentos/grupo/$token'
@@ -1546,6 +1566,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
+  ApiPublicSendPushRoute: ApiPublicSendPushRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
   ApiPublicHooksReviewRemindersRoute: ApiPublicHooksReviewRemindersRoute,
   ApiPublicHooksSendReviewRequestsRoute: ApiPublicHooksSendReviewRequestsRoute,
