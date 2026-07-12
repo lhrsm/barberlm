@@ -1053,6 +1053,7 @@ function SettingsComponent() {
                   </div>
                 </CardContent>
               </Card>
+              <CheckinQRCard />
             </TabsContent>
 
             <TabsContent value="scheduling" className="space-y-4">
