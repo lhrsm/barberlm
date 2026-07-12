@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import { enforceRateLimit } from "@/lib/rate-limit.server";
 
 let _supabase: any = null;
 function getSupabase(): any {
@@ -185,6 +186,8 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const rl = await enforceRateLimit(request, "stripe_webhook", { max: 120, windowSeconds: 60 });
+        if (rl) return rl;
         const rawEnv = new URL(request.url).searchParams.get("env");
         if (rawEnv !== "sandbox" && rawEnv !== "live") {
           console.error("Webhook received with invalid env:", rawEnv);
