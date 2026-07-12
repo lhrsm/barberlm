@@ -34,6 +34,31 @@ async function syncProfilePlan(userId: string, priceId: string | undefined, stat
   await getSupabase().from("profiles").update({ plan: newPlan }).eq("id", userId);
 }
 
+async function fireAdminEvent(args: {
+  event_key: string;
+  title: string;
+  message?: string;
+  severity?: "info" | "warning" | "critical";
+  tenant_id?: string;
+  action_url?: string;
+  payload?: Record<string, unknown>;
+}) {
+  try {
+    await getSupabase().functions.invoke("emit-admin-event", { body: args });
+  } catch (e) {
+    console.warn("[Webhook] admin event failed:", args.event_key, (e as Error).message);
+  }
+}
+
+async function loadProfileForUser(userId: string) {
+  const { data } = await getSupabase()
+    .from("profiles")
+    .select("id, business_name, full_name, email, plan")
+    .eq("id", userId)
+    .maybeSingle();
+  return data;
+}
+
 async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   const userId = subscription.metadata?.userId;
   if (!userId) {
