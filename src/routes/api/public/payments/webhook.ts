@@ -236,6 +236,7 @@ async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
     action_url: "/admin/subscriptions",
     payload: { userId, invoice_id: invoice.id, amount, env },
   });
+}
 
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
