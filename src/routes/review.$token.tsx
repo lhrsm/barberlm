@@ -7,6 +7,7 @@ import { Star, Send, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { emitAutomationEvent } from "@/utils/emit-event";
+import { TipCard } from "@/components/tips/TipCard";
 
 export const Route = createFileRoute("/review/$token")({
   component: PublicReviewPage,
@@ -156,14 +157,25 @@ function PublicReviewPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#05070d] grid place-items-center p-6 text-white">
-        <div className="max-w-md w-full rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-8 text-center">
-          <CheckCircle2 className="h-14 w-14 text-[#D4AF37] mx-auto mb-4" />
-          <h1 className="text-2xl font-black mb-2 text-[#D4AF37]">Avaliação enviada</h1>
-          <p className="text-gray-300 text-sm">
-            Obrigado por avaliar sua experiência na{" "}
-            <span className="font-bold">{data.barbershop_name}</span>.
-          </p>
+      <div className="min-h-screen bg-[#05070d] py-8 px-4 text-white">
+        <div className="max-w-lg mx-auto space-y-6">
+          <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-8 text-center">
+            <CheckCircle2 className="h-14 w-14 text-[#D4AF37] mx-auto mb-4" />
+            <h1 className="text-2xl font-black mb-2 text-[#D4AF37]">Avaliação enviada</h1>
+            <p className="text-gray-300 text-sm">
+              Obrigado por avaliar sua experiência na{" "}
+              <span className="font-bold">{data.barbershop_name}</span>.
+            </p>
+          </div>
+
+          {data.barber_accepts_tips && data.barber_pix_key && (
+            <TipCard
+              token={token}
+              barberName={data.barber_name}
+              barberAvatar={data.barber_avatar}
+              pixKey={data.barber_pix_key}
+            />
+          )}
         </div>
       </div>
     );
