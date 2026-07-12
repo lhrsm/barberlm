@@ -277,7 +277,7 @@ function ClientPortalComponent() {
       const normalizedSlug = targetSlug.trim().toLowerCase();
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, business_name, whatsapp_number, whatsapp_enabled, primary_color, secondary_color, logo_url, slug, scheduling_mode, cashback_enabled, cashback_percentage, address, google_maps_url, free_service_threshold, font_family, font_size, font_color, cashback_type, cashback_fixed_value, cashback_minimum_amount, cashback_expiration_days, loyalty_mode, barbershop_logo_url, opening_date, cancellation_window_hours, barber_can_cancel, barber_can_reschedule, social_links, avatar_url, gallery_images, pix_qr_code_url, loyalty_reward_value, allow_notifications_on_business_phone, plan, effective_plan")
         .eq("slug", normalizedSlug)
         .single();
 

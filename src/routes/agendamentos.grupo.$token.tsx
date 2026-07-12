@@ -94,95 +94,49 @@ function AppointmentGroupPage() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch appointment group details
-      console.log("[GroupPage] 🔍 Fetching appointment_group by group_token", currentToken);
-      let groupQuery = supabase
-        .from('appointment_groups')
-        .select('*')
-        .eq('group_token', currentToken);
-      
-      if (expectedTenantId) {
-        groupQuery = groupQuery.eq('tenant_id', expectedTenantId);
-      }
-      
-      const { data: groupData, error: groupError } = await groupQuery.maybeSingle();
+      // 1. Fetch via secure RPC (validates token server-side)
+      console.log("[GroupPage] 🔍 RPC get_appointment_group_by_token", currentToken);
+      const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
+        "get_appointment_group_by_token",
+        { _token: currentToken }
+      );
 
-      if (groupError) {
-        console.error("[GroupPage] ❌ Error fetching group:", groupError);
-        throw groupError;
+      if (rpcError) {
+        console.error("[GroupPage] ❌ RPC error:", rpcError);
+        throw rpcError;
       }
-      
-      if (!groupData) {
-        console.warn("[GroupPage] ⚠️ Group not found", { token, expectedTenantId });
+
+      if (!rpcData) {
+        console.warn("[GroupPage] ⚠️ Group not found", { token });
         setError("Agendamento não encontrado ou link inválido.");
         return;
       }
 
-      console.log("[GroupPage] ✅ Group found", groupData.id);
+      const groupData = rpcData.group;
+      const appointmentsData = rpcData.appointments || [];
+      const profileData = rpcData.business;
+      const customerName = rpcData.customer_name || "Cliente";
 
-      // 2. Fetch appointments for this group
-      console.log("[GroupPage] 🔍 Fetching appointments for group", groupData.id);
-      const { data: appointmentsData, error: apptsError } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          service_id,
-          barber_id,
-          start_time,
-          end_time,
-          status,
-          service_amount,
-          group_sequence,
-          management_token,
-          service:services(name),
-          professional:barbers(name)
-        `)
-        .eq('appointment_group_id', groupData.id)
-        .order('group_sequence', { ascending: true });
-
-      if (apptsError) {
-        console.error("[GroupPage] ❌ Error fetching appointments:", apptsError);
-        throw apptsError;
+      if (expectedTenantId && groupData.tenant_id !== expectedTenantId) {
+        setError("Agendamento não encontrado ou link inválido.");
+        return;
       }
 
-      if (!appointmentsData || appointmentsData.length === 0) {
+      if (!appointmentsData.length) {
         console.warn("[GroupPage] ⚠️ No appointments found for group", groupData.id);
         setError("Nenhum serviço encontrado para este agendamento.");
         return;
       }
 
-      console.log("[GroupPage] ✅ Appointments found", appointmentsData.length);
-
-      // 3. Fetch business profile
-      console.log("[GroupPage] 🔍 Fetching business profile", groupData.tenant_id);
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('business_name, whatsapp_number')
-        .eq('id', groupData.tenant_id)
-        .maybeSingle();
-
-      // 4. Fetch customer data
-      let customerName = "Cliente";
-      if (groupData.customer_id) {
-        console.log("[GroupPage] 🔍 Fetching customer data", groupData.customer_id);
-        const { data: customerData } = await supabase
-          .from('customers')
-          .select('name')
-          .eq('id', groupData.customer_id)
-          .maybeSingle();
-        
-        if (customerData?.name) {
-          customerName = customerData.name;
-        }
-      }
+      console.log("[GroupPage] ✅ Group + appointments loaded", groupData.id, appointmentsData.length);
 
       setGroup({
         id: groupData.id,
         tenant_id: groupData.tenant_id,
         customer_id: groupData.customer_id,
         customer_name: customerName,
-        business_name: (profileData as any)?.business_name || "Barbearia",
-        business_phone: (profileData as any)?.whatsapp_number || "",
+        business_name: profileData?.business_name || "Barbearia",
+        business_phone: profileData?.whatsapp_number || "",
         total_amount: groupData.total_amount,
         payment_status: groupData.payment_status,
         status: groupData.status
@@ -191,9 +145,9 @@ function AppointmentGroupPage() {
       setAppointments(appointmentsData.map((item: any) => ({
         id: item.id,
         service_id: item.service_id,
-        service_name: item.service?.name || "Serviço",
+        service_name: item.service_name || "Serviço",
         professional_id: item.barber_id,
-        professional_name: item.professional?.name || "Profissional",
+        professional_name: item.professional_name || "Profissional",
         start_time: item.start_time,
         end_time: item.end_time,
         status: item.status,
