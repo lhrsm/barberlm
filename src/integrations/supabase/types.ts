@@ -2239,8 +2239,83 @@ export type Database = {
           },
         ]
       }
+      barber_tips: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          barber_id: string
+          confirmed_at: string | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          method: string
+          note: string | null
+          source: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          appointment_id?: string | null
+          barber_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          method?: string
+          note?: string | null
+          source?: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          barber_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          method?: string
+          note?: string | null
+          source?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barber_tips_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "barber_tips_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "barber_tips_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "barber_tips_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barbers: {
         Row: {
+          accepts_tips: boolean
           active: boolean | null
           avatar_url: string | null
           average_rating: number | null
@@ -2256,6 +2331,8 @@ export type Database = {
           monthly_goal: number
           name: string
           phone: string | null
+          pix_key: string | null
+          pix_key_type: string | null
           specialties: string[] | null
           tenant_id: string | null
           total_ratings: number | null
@@ -2264,6 +2341,7 @@ export type Database = {
           working_hours: Json | null
         }
         Insert: {
+          accepts_tips?: boolean
           active?: boolean | null
           avatar_url?: string | null
           average_rating?: number | null
@@ -2279,6 +2357,8 @@ export type Database = {
           monthly_goal?: number
           name: string
           phone?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
           specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
@@ -2287,6 +2367,7 @@ export type Database = {
           working_hours?: Json | null
         }
         Update: {
+          accepts_tips?: boolean
           active?: boolean | null
           avatar_url?: string | null
           average_rating?: number | null
@@ -2302,6 +2383,8 @@ export type Database = {
           monthly_goal?: number
           name?: string
           phone?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
           specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
@@ -7964,6 +8047,10 @@ export type Database = {
       }
       regenerate_subscription_card_token: {
         Args: { p_subscription_id: string }
+        Returns: Json
+      }
+      register_pix_tip: {
+        Args: { _amount: number; _note?: string; _token: string }
         Returns: Json
       }
       register_subscription_referral: {
