@@ -69,6 +69,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
+import { Route as SlugCheckinRouteImport } from './routes/$slug.checkin'
 import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subscription-card.validate.$token'
 import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaigns.$id'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
@@ -379,6 +380,11 @@ const SlugPortalRoute = SlugPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => SlugRoute,
 } as any)
+const SlugCheckinRoute = SlugCheckinRouteImport.update({
+  id: '/checkin',
+  path: '/checkin',
+  getParentRoute: () => SlugRoute,
+} as any)
 const SubscriptionCardValidateTokenRoute =
   SubscriptionCardValidateTokenRouteImport.update({
     id: '/subscription-card/validate/$token',
@@ -467,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
+  '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
+  '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -608,6 +616,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
+  '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -681,6 +690,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trust'
     | '/tutorials'
+    | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
     | '/admin/analytics'
@@ -750,6 +760,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trust'
     | '/tutorials'
+    | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
     | '/admin/analytics'
@@ -821,6 +832,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trust'
     | '/tutorials'
+    | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
     | '/admin/analytics'
@@ -1328,6 +1340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugPortalRouteImport
       parentRoute: typeof SlugRoute
     }
+    '/$slug/checkin': {
+      id: '/$slug/checkin'
+      path: '/checkin'
+      fullPath: '/$slug/checkin'
+      preLoaderRoute: typeof SlugCheckinRouteImport
+      parentRoute: typeof SlugRoute
+    }
     '/subscription-card/validate/$token': {
       id: '/subscription-card/validate/$token'
       path: '/subscription-card/validate/$token'
@@ -1395,11 +1414,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface SlugRouteChildren {
+  SlugCheckinRoute: typeof SlugCheckinRoute
   SlugPortalRoute: typeof SlugPortalRoute
   SlugProfissionalRoute: typeof SlugProfissionalRoute
 }
 
 const SlugRouteChildren: SlugRouteChildren = {
+  SlugCheckinRoute: SlugCheckinRoute,
   SlugPortalRoute: SlugPortalRoute,
   SlugProfissionalRoute: SlugProfissionalRoute,
 }
