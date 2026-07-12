@@ -789,6 +789,17 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
+          {mode === 'admin' && ['confirmed', 'scheduled', 'in_progress', 'awaiting_payment'].includes(appointment.status) && (
+            <Button
+              variant="outline"
+              className="rounded-xl bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
+              onClick={() => setComandaOpen(true)}
+              disabled={actionLoading}
+            >
+              <ShoppingBag className="h-4 w-4 mr-2" /> Comanda
+            </Button>
+          )}
+
           {mode === 'admin' && showComplete && (
             <Button 
               className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95"
