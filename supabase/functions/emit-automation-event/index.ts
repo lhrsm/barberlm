@@ -294,6 +294,31 @@ serve(async (req) => {
         continue;
       }
       dispatched.push(tpl.key);
+
+      // Fire-and-forget browser push (non-blocking; failures don't affect WhatsApp queue)
+      try {
+        const normalizedPush = normalizePhone(phone);
+        if (normalizedPush) {
+          const pushBody = (tpl as any).push_body || (tpl as any).body_template || (tpl as any).message || tpl.key;
+          const shortBody = String(pushBody).replace(/\{[^}]+\}/g, "").trim().slice(0, 140) || "Nova atualização Barbex";
+          const pushPayload = {
+            title: `${shopProfile?.business_name || "Barbex"}`,
+            body: shortBody,
+            url: recipient === "customer" ? `/${shopProfile?.slug || ""}/portal` : "/",
+            tag: `${event}:${appointment_id || customer_id || tpl.id}`,
+          };
+          const origin = Deno.env.get("PUBLIC_APP_ORIGIN") || "https://barbex.shop";
+          fetch(`${origin}/api/public/send-push`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              secret: Deno.env.get("VAPID_PRIVATE_KEY"),
+              target: { customer_phone: normalizedPush, audience: recipient === "customer" ? "customer" : "staff" },
+              payload: pushPayload,
+            }),
+          }).catch(() => {});
+        }
+      } catch (_e) { /* swallow */ }
     }
 
     // 3b. Internal notification recipients (dono, gerente, recepção, etc.)
