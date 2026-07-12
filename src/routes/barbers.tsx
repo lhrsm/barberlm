@@ -1149,6 +1149,50 @@ function BarbersComponent() {
                     onChange={(e) => setEditingBarber({...editingBarber, email: e.target.value})} 
                   />
                 </div>
+
+                <div className="space-y-2 rounded-xl border border-[#D4AF37]/30 p-3 bg-[#D4AF37]/5">
+                  <Label className="text-[#D4AF37] font-black uppercase tracking-widest text-[10px]">
+                    PIX para Gorjetas Digitais
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Clientes poderão enviar gorjeta direto ao barbeiro após avaliar o atendimento.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="edit_pix_type" className="text-xs">Tipo da chave</Label>
+                      <Select
+                        value={editingBarber.pix_key_type || ""}
+                        onValueChange={(v) => setEditingBarber({ ...editingBarber, pix_key_type: v })}
+                      >
+                        <SelectTrigger id="edit_pix_type"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cpf">CPF</SelectItem>
+                          <SelectItem value="cnpj">CNPJ</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Telefone</SelectItem>
+                          <SelectItem value="random">Chave aleatória</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <label className="flex items-center gap-2 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={editingBarber.accepts_tips ?? true}
+                          onChange={(e) => setEditingBarber({ ...editingBarber, accepts_tips: e.target.checked })}
+                          className="h-4 w-4 accent-[#D4AF37]"
+                        />
+                        Aceita gorjetas digitais
+                      </label>
+                    </div>
+                  </div>
+                  <Input
+                    placeholder="Chave PIX"
+                    value={editingBarber.pix_key || ""}
+                    onChange={(e) => setEditingBarber({ ...editingBarber, pix_key: e.target.value })}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label>Serviços Prestados</Label>
                   <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 border rounded-md">
