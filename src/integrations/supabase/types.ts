@@ -109,6 +109,51 @@ export type Database = {
           },
         ]
       }
+      appointment_checkins: {
+        Row: {
+          appointment_id: string
+          checked_in_at: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          source: string
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id: string
+          checked_in_at?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          source?: string
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string
+          checked_in_at?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          source?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_checkins_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_checkins_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+        ]
+      }
       appointment_groups: {
         Row: {
           created_at: string | null
@@ -4333,6 +4378,7 @@ export type Database = {
           cashback_minimum_amount: number | null
           cashback_percentage: number
           cashback_type: string | null
+          checkin_token: string | null
           commission_base: string
           created_at: string
           effective_plan: string | null
@@ -4387,6 +4433,7 @@ export type Database = {
           cashback_minimum_amount?: number | null
           cashback_percentage?: number
           cashback_type?: string | null
+          checkin_token?: string | null
           commission_base?: string
           created_at?: string
           effective_plan?: string | null
@@ -4441,6 +4488,7 @@ export type Database = {
           cashback_minimum_amount?: number | null
           cashback_percentage?: number
           cashback_type?: string | null
+          checkin_token?: string | null
           commission_base?: string
           created_at?: string
           effective_plan?: string | null
@@ -7608,6 +7656,10 @@ export type Database = {
           status: string
         }[]
       }
+      get_barbershop_by_checkin_token: {
+        Args: { _token: string }
+        Returns: Json
+      }
       get_coupon_by_code: {
         Args: { p_code: string; p_tenant_id: string }
         Returns: {
@@ -7787,6 +7839,10 @@ export type Database = {
           p_entry_ids: string[]
           p_notes?: string
         }
+        Returns: Json
+      }
+      perform_qr_checkin: {
+        Args: { _phone: string; _token: string }
         Returns: Json
       }
       preview_subscription_plan_change: {
