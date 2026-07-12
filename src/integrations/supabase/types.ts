@@ -4232,6 +4232,7 @@ export type Database = {
       }
       product_sales: {
         Row: {
+          appointment_id: string | null
           barber_id: string | null
           created_at: string
           customer_id: string | null
@@ -4247,6 +4248,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          appointment_id?: string | null
           barber_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -4262,6 +4264,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          appointment_id?: string | null
           barber_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -4277,6 +4280,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_sales_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
           {
             foreignKeyName: "product_sales_barber_id_fkey"
             columns: ["barber_id"]
@@ -7372,6 +7389,18 @@ export type Database = {
         Returns: number
       }
       _norm_pt: { Args: { _txt: string }; Returns: string }
+      add_product_to_comanda: {
+        Args: {
+          p_appointment_id: string
+          p_product_id: string
+          p_quantity?: number
+        }
+        Returns: Json
+      }
+      assert_comanda_access: {
+        Args: { p_appointment_id: string }
+        Returns: string
+      }
       calculate_commission_for_appointment: {
         Args: { p_appointment_id: string }
         Returns: undefined
@@ -7931,6 +7960,7 @@ export type Database = {
         }
         Returns: Json
       }
+      remove_comanda_item: { Args: { p_sale_id: string }; Returns: Json }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
