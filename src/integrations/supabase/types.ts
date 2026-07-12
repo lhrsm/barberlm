@@ -4488,6 +4488,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_hits: {
+        Row: {
+          bucket: string
+          hit_at: string
+          id: number
+          key: string
+        }
+        Insert: {
+          bucket: string
+          hit_at?: string
+          id?: number
+          key: string
+        }
+        Update: {
+          bucket?: string
+          hit_at?: string
+          id?: number
+          key?: string
+        }
+        Relationships: []
+      }
       refund_audits: {
         Row: {
           changed_by_id: string | null
@@ -7337,6 +7358,15 @@ export type Database = {
         Returns: Json
       }
       check_expired_trials: { Args: never; Returns: undefined }
+      check_rate_limit: {
+        Args: {
+          _bucket: string
+          _key: string
+          _max: number
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       check_subscription_eligibility: {
         Args: {
           p_customer_id: string
