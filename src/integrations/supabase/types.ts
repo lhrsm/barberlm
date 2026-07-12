@@ -7802,6 +7802,18 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      emit_admin_event_panel: {
+        Args: {
+          p_action_url?: string
+          p_event_key: string
+          p_message?: string
+          p_payload?: Json
+          p_severity?: string
+          p_tenant_id?: string
+          p_title: string
+        }
+        Returns: number
+      }
       enqueue_subscription_renewal_reminders: { Args: never; Returns: number }
       expire_loyalty_rewards: { Args: never; Returns: number }
       fn_get_financial_summary: {
