@@ -7538,29 +7538,8 @@ export type Database = {
         }[]
       }
       get_appointment_group_by_token: {
-        Args: { p_token: string }
-        Returns: {
-          appointment_id: string
-          appointment_status: string
-          business_name: string
-          business_phone: string
-          customer_id: string
-          customer_name: string
-          end_time: string
-          group_id: string
-          group_sequence: number
-          group_status: string
-          management_token: string
-          payment_status: string
-          professional_id: string
-          professional_name: string
-          service_amount: number
-          service_id: string
-          service_name: string
-          start_time: string
-          tenant_id: string
-          total_amount: number
-        }[]
+        Args: { _token: string }
+        Returns: Json
       }
       get_barber_appointments: { Args: { p_barber_id: string }; Returns: Json }
       get_barber_commission_summary: {
