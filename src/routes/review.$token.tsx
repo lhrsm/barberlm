@@ -7,6 +7,7 @@ import { Star, Send, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { emitAutomationEvent } from "@/utils/emit-event";
+import { TipCard } from "@/components/tips/TipCard";
 
 export const Route = createFileRoute("/review/$token")({
   component: PublicReviewPage,
