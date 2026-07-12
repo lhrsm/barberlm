@@ -131,7 +131,32 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     .eq("environment", env);
 
   const userId = subscription.metadata?.userId;
-  if (userId) await syncProfilePlan(userId, priceId, subscription.status);
+  if (userId) {
+    await syncProfilePlan(userId, priceId, subscription.status);
+
+    // 🛡️ Detect upgrade/downgrade by comparing stored price
+    const { data: prev } = await getSupabase()
+      .from("subscriptions")
+      .select("price_id")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+    const rank: Record<string, number> = { starter_monthly: 1, starter: 1, pro_monthly: 2, pro: 2, elite_monthly: 3, elite: 3 };
+    const oldRank = prev?.price_id ? (rank[prev.price_id] ?? 0) : 0;
+    const newRank = priceId ? (rank[priceId] ?? 0) : 0;
+    if (oldRank && newRank && newRank !== oldRank) {
+      const profile = await loadProfileForUser(userId);
+      const isUpgrade = newRank > oldRank;
+      await fireAdminEvent({
+        event_key: isUpgrade ? "subscription.upgraded" : "subscription.downgraded",
+        title: isUpgrade ? "Upgrade de plano" : "Downgrade de plano",
+        message: `${profile?.business_name ?? profile?.email ?? userId}: ${prev?.price_id} → ${priceId}`,
+        severity: isUpgrade ? "info" : "warning",
+        tenant_id: userId,
+        action_url: "/admin/subscriptions",
+        payload: { userId, old_price: prev?.price_id, new_price: priceId },
+      });
+    }
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
@@ -145,7 +170,19 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     .eq("environment", env);
 
   const userId = subscription.metadata?.userId;
-  if (userId) await syncProfilePlan(userId, undefined, "canceled");
+  if (userId) {
+    await syncProfilePlan(userId, undefined, "canceled");
+    const profile = await loadProfileForUser(userId);
+    await fireAdminEvent({
+      event_key: "subscription.cancelled",
+      title: "Assinatura cancelada",
+      message: `${profile?.business_name ?? profile?.email ?? userId} cancelou a assinatura`,
+      severity: "warning",
+      tenant_id: userId,
+      action_url: "/admin/subscriptions",
+      payload: { userId, subscription_id: subscription.id },
+    });
+  }
 }
 
 async function handleCheckoutSessionCompleted(session: any, env: StripeEnv) {
