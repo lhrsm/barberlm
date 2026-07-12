@@ -324,6 +324,9 @@ function BarbersComponent() {
       commission_bonus_value: editingBarber.commission_bonus_value ?? 0,
       monthly_goal: editingBarber.monthly_goal ?? 0,
       working_hours: editingBarber.working_hours,
+      pix_key: editingBarber.pix_key ?? null,
+      pix_key_type: editingBarber.pix_key_type ?? null,
+      accepts_tips: editingBarber.accepts_tips ?? true,
       active: editingBarber.active
     };
 
