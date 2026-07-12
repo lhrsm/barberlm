@@ -31,7 +31,7 @@ export async function enforceRateLimit(
 ): Promise<Response | null> {
   try {
     const key = opts.key ?? getClientIp(request);
-    const { data, error } = await getAdmin().rpc("check_rate_limit", {
+    const { data, error } = await (getAdmin().rpc as any)("check_rate_limit", {
       _bucket: bucket,
       _key: key,
       _max: opts.max,
