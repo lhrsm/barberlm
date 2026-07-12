@@ -91,6 +91,19 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   );
 
   await syncProfilePlan(userId, priceId, subscription.status);
+
+  // 🛡️ Notify super admins
+  const profile = await loadProfileForUser(userId);
+  const planLabel = priceId ? (PRICE_TO_PLAN[priceId] ?? priceId) : "desconhecido";
+  await fireAdminEvent({
+    event_key: "subscription.created",
+    title: "Nova assinatura paga",
+    message: `${profile?.business_name ?? profile?.email ?? userId} assinou o plano ${planLabel}`,
+    severity: "info",
+    tenant_id: userId,
+    action_url: "/admin/subscriptions",
+    payload: { userId, priceId, subscription_id: subscription.id, env },
+  });
 }
 
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
