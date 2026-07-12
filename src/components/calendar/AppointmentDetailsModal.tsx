@@ -36,7 +36,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ComandaModal } from "./ComandaModal";
-import { ShoppingBag } from "lucide-react";
+import { SplitPaymentModal } from "./SplitPaymentModal";
+import { ShoppingBag, Sparkles } from "lucide-react";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
