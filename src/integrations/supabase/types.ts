@@ -14,20 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_event_log: {
+        Row: {
+          channels_delivered: Json
+          created_at: string
+          error: string | null
+          event_key: string
+          id: string
+          payload: Json
+          recipients_count: number
+          severity: string
+          tenant_id: string | null
+        }
+        Insert: {
+          channels_delivered?: Json
+          created_at?: string
+          error?: string | null
+          event_key: string
+          id?: string
+          payload?: Json
+          recipients_count?: number
+          severity?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          channels_delivered?: Json
+          created_at?: string
+          error?: string | null
+          event_key?: string
+          id?: string
+          payload?: Json
+          recipients_count?: number
+          severity?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
+      admin_event_subscriptions: {
+        Row: {
+          channel_email: boolean
+          channel_panel: boolean
+          channel_push: boolean
+          channel_whatsapp: boolean
+          created_at: string
+          email_address: string | null
+          enabled: boolean
+          event_key: string
+          id: string
+          updated_at: string
+          user_id: string
+          whatsapp_phone: string | null
+        }
+        Insert: {
+          channel_email?: boolean
+          channel_panel?: boolean
+          channel_push?: boolean
+          channel_whatsapp?: boolean
+          created_at?: string
+          email_address?: string | null
+          enabled?: boolean
+          event_key: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          whatsapp_phone?: string | null
+        }
+        Update: {
+          channel_email?: boolean
+          channel_panel?: boolean
+          channel_push?: boolean
+          channel_whatsapp?: boolean
+          created_at?: string
+          email_address?: string | null
+          enabled?: boolean
+          event_key?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_phone?: string | null
+        }
+        Relationships: []
+      }
       admin_notifications: {
         Row: {
           action_url: string | null
           archived: boolean
           created_at: string
           description: string | null
+          event_key: string | null
           id: string
           is_read: boolean | null
           message: string | null
+          payload: Json
           priority: string
           read_at: string | null
           reference_id: string | null
           related_entity_id: string | null
           related_entity_type: string | null
+          severity: string
           tenant_id: string | null
           title: string
           type: string
@@ -38,14 +122,17 @@ export type Database = {
           archived?: boolean
           created_at?: string
           description?: string | null
+          event_key?: string | null
           id?: string
           is_read?: boolean | null
           message?: string | null
+          payload?: Json
           priority?: string
           read_at?: string | null
           reference_id?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
+          severity?: string
           tenant_id?: string | null
           title: string
           type: string
@@ -56,14 +143,17 @@ export type Database = {
           archived?: boolean
           created_at?: string
           description?: string | null
+          event_key?: string | null
           id?: string
           is_read?: boolean | null
           message?: string | null
+          payload?: Json
           priority?: string
           read_at?: string | null
           reference_id?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
+          severity?: string
           tenant_id?: string | null
           title?: string
           type?: string
@@ -7990,6 +8080,16 @@ export type Database = {
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_super_admin_user: { Args: never; Returns: boolean }
+      list_admin_event_catalog: {
+        Args: never
+        Returns: {
+          category: string
+          default_severity: string
+          description: string
+          event_key: string
+          label: string
+        }[]
+      }
       pause_customer_subscription: {
         Args: {
           p_notes?: string
