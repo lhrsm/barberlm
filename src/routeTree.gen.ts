@@ -80,6 +80,7 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/public/hooks/status-check'
 import { Route as ApiPublicHooksSendReviewRequestsRouteImport } from './routes/api/public/hooks/send-review-requests'
 import { Route as ApiPublicHooksReviewRemindersRouteImport } from './routes/api/public/hooks/review-reminders'
+import { Route as ApiPublicHooksAdminRiskScanRouteImport } from './routes/api/public/hooks/admin-risk-scan'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -443,6 +444,12 @@ const ApiPublicHooksReviewRemindersRoute =
     path: '/api/public/hooks/review-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAdminRiskScanRoute =
+  ApiPublicHooksAdminRiskScanRouteImport.update({
+    id: '/api/public/hooks/admin-risk-scan',
+    path: '/api/public/hooks/admin-risk-scan',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -510,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
@@ -581,6 +589,7 @@ export interface FileRoutesByTo {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
@@ -655,6 +664,7 @@ export interface FileRoutesById {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
   '/api/public/hooks/status-check': typeof ApiPublicHooksStatusCheckRoute
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
@@ -801,6 +812,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
@@ -874,6 +886,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
     | '/api/public/hooks/status-check'
@@ -923,6 +936,7 @@ export interface RootRouteChildren {
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   ApiPublicSendPushRoute: typeof ApiPublicSendPushRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksAdminRiskScanRoute: typeof ApiPublicHooksAdminRiskScanRoute
   ApiPublicHooksReviewRemindersRoute: typeof ApiPublicHooksReviewRemindersRoute
   ApiPublicHooksSendReviewRequestsRoute: typeof ApiPublicHooksSendReviewRequestsRoute
   ApiPublicHooksStatusCheckRoute: typeof ApiPublicHooksStatusCheckRoute
@@ -1430,6 +1444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksReviewRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/admin-risk-scan': {
+      id: '/api/public/hooks/admin-risk-scan'
+      path: '/api/public/hooks/admin-risk-scan'
+      fullPath: '/api/public/hooks/admin-risk-scan'
+      preLoaderRoute: typeof ApiPublicHooksAdminRiskScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1568,6 +1589,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   ApiPublicSendPushRoute: ApiPublicSendPushRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksAdminRiskScanRoute: ApiPublicHooksAdminRiskScanRoute,
   ApiPublicHooksReviewRemindersRoute: ApiPublicHooksReviewRemindersRoute,
   ApiPublicHooksSendReviewRequestsRoute: ApiPublicHooksSendReviewRequestsRoute,
   ApiPublicHooksStatusCheckRoute: ApiPublicHooksStatusCheckRoute,
