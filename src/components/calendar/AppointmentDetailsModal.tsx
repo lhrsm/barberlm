@@ -69,6 +69,7 @@ export function AppointmentDetailsModal({
   const queryClient = useQueryClient();
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   const [comandaOpen, setComandaOpen] = React.useState(false);
+  const [splitOpen, setSplitOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (open && appointmentId) {
