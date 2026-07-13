@@ -177,6 +177,12 @@ function ShopPageComponent() {
   const [loadingDayData, setLoadingDayData] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
+  // Standalone product-purchase identification flow (no appointment required)
+  const [isIdentifyOpen, setIsIdentifyOpen] = useState(false);
+  const [identifyForm, setIdentifyForm] = useState({ name: "", phone: "", email: "", acceptTerms: false, allowMarketing: false });
+  const [identifying, setIdentifying] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState<null | { saleId: string; items: any[]; total: number; method: string }>(null);
+
 
   // Subscription state
   const [_activeSubscription, setActiveSubscription] = useState<any>(null);
