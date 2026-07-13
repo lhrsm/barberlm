@@ -4947,9 +4947,10 @@ function ShopPageComponent() {
                 className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0"
                 onClick={() => {
                   setIsCartOpen(false);
-                  // Compra avulsa: exigir identificação antes do PIX
                   if (!customerId) {
-                    setIdentifyForm(f => ({ ...f, name: customerName || "", phone: customerPhone || "" }));
+                    setIdentifyForm({ name: customerName || "", phone: customerPhone || "", email: "", acceptTerms: false, allowMarketing: false });
+                    setIdentifyFound(null);
+                    setIdentifyStep('phone');
                     setIsIdentifyOpen(true);
                   } else {
                     setIsPixVisible(true);
