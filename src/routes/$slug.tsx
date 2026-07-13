@@ -4975,65 +4975,59 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
 
-      {/* PIX Payment Modal */}
+      {/* PIX Payment Modal — grafite premium */}
       <Dialog open={isPixVisible} onOpenChange={setIsPixVisible}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-white">
               <QrCode size={20} className="text-[#D4AF37]" />
               Pagamento via PIX
             </DialogTitle>
           </DialogHeader>
-          <div className="py-6 space-y-6 text-center">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Total a pagar:</p>
-              <p className="text-3xl font-bold text-black">
+          <div className="py-4 space-y-5 text-center">
+            <div className="space-y-1">
+              <p className="text-[11px] uppercase tracking-widest text-white/50 font-bold">Total a pagar</p>
+              <p className="text-4xl font-black text-[#D4AF37] tabular-nums">
                 R$ {calculateTotalBeforeCashback().toFixed(2)}
               </p>
             </div>
 
             {shop.pix_qr_code_url && (
               <div className="flex justify-center">
-                <div className="p-3 border-2 border-muted rounded-xl bg-white">
-                  <img 
-                    src={shop.pix_qr_code_url} 
-                    alt="PIX QR Code" 
-                    className="h-48 w-48 object-contain"
-                  />
+                <div className="p-3 border-2 border-[#D4AF37]/40 rounded-2xl bg-white">
+                  <img src={shop.pix_qr_code_url} alt="PIX QR Code" className="h-44 w-44 object-contain" />
                 </div>
               </div>
             )}
 
-            <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
-              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Chave PIX</p>
+            <div className="space-y-3 bg-white/[0.04] border border-white/10 p-4 rounded-xl">
+              <p className="text-[10px] text-white/50 uppercase font-bold tracking-widest">Chave PIX</p>
               <div className="flex items-center justify-center gap-2">
-                <p className="font-mono font-bold break-all">
+                <p className="font-mono text-sm font-bold break-all text-white/90">
                   {shop.pix_key || "Chave não cadastrada"}
                 </p>
-                {shop.pix_key && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 shrink-0"
-                    onClick={() => {
-                      navigator.clipboard.writeText(shop.pix_key);
-                      toast.success("Chave PIX copiada!");
-                    }}
-                  >
-                    <CheckCircle2 size={14} />
-                  </Button>
-                )}
               </div>
+              {shop.pix_key && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(shop.pix_key);
+                    toast.success("Chave PIX copiada!");
+                  }}
+                  className="inline-flex items-center gap-2 px-4 h-9 rounded-lg bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-black uppercase tracking-widest hover:bg-[#D4AF37]/25 transition-colors"
+                >
+                  <CheckCircle2 size={14} /> Copiar Chave PIX
+                </button>
+              )}
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              Após realizar o pagamento, você pode prosseguir com o agendamento do seu horário.
+            <p className="text-[11px] text-white/40">
+              Após realizar o pagamento, clique em <span className="text-[#D4AF37] font-bold">Confirmar Pagamento</span>.
             </p>
           </div>
-          <DialogFooter className="flex-col sm:flex-col gap-2">
-            <Button 
-              className="w-full bg-black text-white hover:bg-black/90" 
-
+          <DialogFooter className="flex flex-col sm:flex-col gap-2 sm:gap-2">
+            <Button
+              className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0 disabled:opacity-60"
               disabled={submitting}
               onClick={async () => {
                 setSubmitting(true);
@@ -5041,39 +5035,19 @@ function ShopPageComponent() {
                   const items = selectedProducts.map(p => ({
                     product_id: p.id,
                     name: p.name,
-                    price: p.price,
+                    price: Number(p.price),
                     quantity: p.quantity || 1
                   }));
+                  // Recalculate on client from DB-loaded price (defensive; server-side RPC would be ideal)
+                  const totalAmount = items.reduce((acc, it) => acc + it.price * it.quantity, 0);
 
-                  // 1. Create sale record in product_sales for the "Faturamento" tab
-                  const totalAmount = calculateTotalBeforeCashback();
-                  
                   // Ensure customer exists and get ID
                   let saleCustomerId = customerId;
-                  
-                  if (!saleCustomerId && customerPhone) {
-                    const normalized = typeof normalizePhone === "function" ? normalizePhone(customerPhone) : customerPhone;
-                    
-                    // 1. Try to find existing
-                    console.log('TABLE:', 'customers');
-                    console.log('ACTION:', 'select/insert (Standalone Sale)');
-                    const { data: custData, error: checkError } = await supabase
-                      .from("customers")
-                      .select("id")
-                      .eq("phone", normalized)
-                      .eq("user_id", shop.id)
-                      .maybeSingle();
-                    
-                    if (checkError) console.error('SUPABASE ERROR (check customer standalone):', checkError);
 
-                    if (custData) {
-                      saleCustomerId = custData.id;
-                      console.log('DEBUG: Found existing customer for standalone sale', saleCustomerId);
-                    } else if (customerName) {
-                      const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
-                      if (!defaultBarberId) {
-                        throw new Error("Não foi possível identificar um profissional para esta venda.");
-                      }
+                  if (!saleCustomerId && customerPhone && customerName) {
+                    const normalized = normalizePhone(customerPhone);
+                    const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                    if (defaultBarberId) {
                       const { data: rpcCustId, error: createError } = await supabase.rpc('create_or_get_public_customer', {
                         p_slug: shop.slug,
                         p_name: customerName,
@@ -5081,102 +5055,267 @@ function ShopPageComponent() {
                         p_email: undefined,
                         p_barber_id: defaultBarberId,
                       });
-                      if (createError) {
-                        console.error('SUPABASE ERROR (create_or_get_public_customer standalone):', createError);
-                        throw createError;
-                      }
+                      if (createError) throw createError;
                       saleCustomerId = rpcCustId as string;
-                      console.log('DEBUG: customer resolved via RPC (standalone)', saleCustomerId);
+                      setCustomerId(saleCustomerId);
                     }
-
                   }
 
-                  if (!saleCustomerId) throw new Error("Identificação do cliente é obrigatória para vendas.");
+                  if (!saleCustomerId) {
+                    // Fallback defensivo: reabrir identificação
+                    setIsPixVisible(false);
+                    setIsIdentifyOpen(true);
+                    toast.info("Precisamos dos seus dados para concluir a compra.");
+                    return;
+                  }
 
                   const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
-                  const salePayload = {
+                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([{
                     user_id: shop.id,
                     barber_id: defaultBarberId,
                     customer_id: saleCustomerId,
                     total_amount: totalAmount,
                     status: 'completed' as any,
                     items: items as any
-                  };
-                  
-                  console.log('TABLE:', 'product_sales');
-                  console.log('ACTION:', 'insert');
-                  console.log('PAYLOAD:', salePayload);
+                  }]).select().single();
+                  if (saleError) throw saleError;
 
-                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([salePayload]).select().single();
-
-                  if (saleError) {
-                    console.error('SUPABASE ERROR (insert sale standalone):', saleError);
-                    throw saleError;
-                  }
-
-                  // 2. Create finance transaction for the "Financeiro" tab
-                  const transPayload = {
+                  const { error: transError } = await supabase.from("transactions").insert([{
                     user_id: shop.id,
                     barber_id: defaultBarberId,
                     type: "income",
                     category: "Produtos",
                     amount: totalAmount,
-                    description: `Venda de Produtos (Standalone) - Itens: ${items.map(i => `${i.name} (x${i.quantity})`).join(", ")}`,
+                    description: `Venda de Produtos (Loja Pública) - ${items.map(i => `${i.name} (x${i.quantity})`).join(", ")}`,
                     date: new Date().toISOString().split('T')[0]
-                  };
-                  console.log('TABLE:', 'transactions');
-                  console.log('ACTION:', 'insert');
-                  console.log('PAYLOAD:', transPayload);
+                  }]);
+                  if (transError) throw transError;
 
-                  const { error: transError } = await supabase.from("transactions").insert([transPayload]);
-
-                  if (transError) {
-                    console.error('SUPABASE ERROR (insert transaction standalone):', transError);
-                    throw transError;
-                  }
-
-                  // 3. Update stock for each product
                   for (const item of items) {
-                    await (supabase as any).rpc('decrement_product_stock', { 
-                      prod_id: item.product_id, 
-                      amount: item.quantity 
+                    await (supabase as any).rpc('decrement_product_stock', {
+                      prod_id: item.product_id,
+                      amount: item.quantity
                     });
                   }
 
-                  toast.success("Pagamento confirmado! Estoque e faturamento atualizados.");
-
                   setIsPixVisible(false);
-                  setSelectedProducts([]);
-                  
-                  // Redirect back to the shop's main page
-                  window.location.href = `/${slug}`;
+                  setPurchaseSuccess({
+                    saleId: (saleData as any)?.id ?? "",
+                    items,
+                    total: totalAmount,
+                    method: "PIX"
+                  });
                 } catch (error: any) {
                   console.error("Error processing sale:", error);
-                  toast.error("Erro ao confirmar pagamento: " + error.message);
+                  toast.error("Erro ao confirmar pagamento: " + (error.message || String(error)));
                 } finally {
                   setSubmitting(false);
                 }
               }}
             >
-              {submitting ? "Processando..." : "Confirmar Pagamento"}
+              {submitting ? "Confirmando..." : "Confirmar Pagamento"}
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full h-12 rounded-xl border-zinc-200 text-zinc-600 font-semibold"
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 rounded-[14px] bg-transparent border border-[#D4AF37]/60 text-[#D4AF37] font-bold hover:bg-[#D4AF37]/15 hover:text-[#F5D061] hover:border-[#D4AF37]"
               onClick={() => {
                 setIsPixVisible(false);
                 setIsBookingOpen(true);
-                setBookingStep(2); // Retornando para step 2
+                setBookingStep(2);
               }}
             >
-              Agendar Serviço
+              <Calendar size={16} className="mr-2" /> Agendar Serviço
             </Button>
-            <Button variant="ghost" className="w-full h-12 text-zinc-400 font-medium" onClick={() => setIsPixVisible(false)}>
-              Voltar ao Carrinho
-            </Button>
+            <button
+              type="button"
+              className="w-full h-11 text-sm text-white/60 hover:text-white font-medium transition-colors"
+              onClick={() => { setIsPixVisible(false); setIsCartOpen(true); }}
+            >
+              ← Voltar ao Carrinho
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Identify Customer Modal — compra avulsa */}
+      <Dialog open={isIdentifyOpen} onOpenChange={setIsIdentifyOpen}>
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <UserIcon size={20} className="text-[#D4AF37]" />
+              Identifique-se para continuar
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-xs text-white/60">
+              Precisamos dos seus dados para vincular a compra e emitir o comprovante.
+            </p>
+            <div className="grid gap-2">
+              <Label htmlFor="ident-name" className="text-white/80 text-xs uppercase tracking-widest font-bold">Nome completo *</Label>
+              <Input
+                id="ident-name"
+                value={identifyForm.name}
+                onChange={(e) => setIdentifyForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Seu nome"
+                className="bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 h-11"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ident-phone" className="text-white/80 text-xs uppercase tracking-widest font-bold">WhatsApp *</Label>
+              <PhoneInput
+                defaultCountry="br"
+                value={identifyForm.phone}
+                onChange={(v) => setIdentifyForm(f => ({ ...f, phone: v }))}
+                inputClassName="!w-full !h-11 !bg-white/[0.04] !border-white/15 !text-white !rounded-md"
+                countrySelectorStyleProps={{ buttonClassName: "!h-11 !bg-white/[0.04] !border-white/15" }}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ident-email" className="text-white/80 text-xs uppercase tracking-widest font-bold">E-mail (opcional)</Label>
+              <Input
+                id="ident-email"
+                type="email"
+                value={identifyForm.email}
+                onChange={(e) => setIdentifyForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="voce@email.com"
+                className="bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 h-11"
+              />
+            </div>
+            <label className="flex items-start gap-2 text-xs text-white/70 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={identifyForm.acceptTerms}
+                onChange={(e) => setIdentifyForm(f => ({ ...f, acceptTerms: e.target.checked }))}
+                className="mt-0.5 accent-[#D4AF37]"
+              />
+              <span>Li e aceito os <a href="/terms" target="_blank" className="text-[#D4AF37] underline">Termos de Uso</a> e a <a href="/privacy" target="_blank" className="text-[#D4AF37] underline">Política de Privacidade</a>.</span>
+            </label>
+            <label className="flex items-start gap-2 text-xs text-white/60 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={identifyForm.allowMarketing}
+                onChange={(e) => setIdentifyForm(f => ({ ...f, allowMarketing: e.target.checked }))}
+                className="mt-0.5 accent-[#D4AF37]"
+              />
+              <span>Aceito receber promoções e novidades desta barbearia.</span>
+            </label>
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-col gap-2">
+            <Button
+              className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0 disabled:opacity-60"
+              disabled={identifying}
+              onClick={async () => {
+                const nm = identifyForm.name.trim();
+                const ph = normalizePhone(identifyForm.phone);
+                if (nm.length < 3) return toast.error("Informe seu nome completo.");
+                if (ph.length < 10) return toast.error("Informe um WhatsApp válido.");
+                if (!identifyForm.acceptTerms) return toast.error("É necessário aceitar os Termos e a Política.");
+                const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                if (!defaultBarberId) return toast.error("Barbearia sem profissionais cadastrados.");
+                setIdentifying(true);
+                try {
+                  const { data: rpcCustId, error } = await supabase.rpc('create_or_get_public_customer', {
+                    p_slug: shop.slug,
+                    p_name: nm,
+                    p_phone: ph,
+                    p_email: identifyForm.email || undefined,
+                    p_barber_id: defaultBarberId,
+                  });
+                  if (error) throw error;
+                  const cid = rpcCustId as string;
+                  setCustomerId(cid);
+                  setCustomerName(nm);
+                  setCustomerPhone(ph);
+                  // Persist for portal reuse
+                  try {
+                    localStorage.setItem(`clientData_${slug}`, JSON.stringify({
+                      customer_id: cid, name: nm, phone: ph
+                    }));
+                  } catch { /* ignore */ }
+                  setIsIdentifyOpen(false);
+                  setIsPixVisible(true);
+                } catch (err: any) {
+                  console.error("Identify customer error:", err);
+                  toast.error("Erro ao identificar cliente: " + (err.message || String(err)));
+                } finally {
+                  setIdentifying(false);
+                }
+              }}
+            >
+              {identifying ? "Salvando..." : "Continuar para o pagamento"}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setIsIdentifyOpen(false)}
+              className="w-full h-11 text-sm text-white/60 hover:text-white font-medium transition-colors"
+            >
+              Cancelar
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase Success Modal */}
+      <Dialog open={!!purchaseSuccess} onOpenChange={(o) => { if (!o) { setPurchaseSuccess(null); setSelectedProducts([]); } }}>
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/40 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.25)] text-white p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <CheckCircle2 size={22} className="text-emerald-400" />
+              Compra realizada com sucesso
+            </DialogTitle>
+          </DialogHeader>
+          {purchaseSuccess && (
+            <div className="py-4 space-y-4">
+              <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
+                <div className="flex justify-between text-xs text-white/50 uppercase tracking-widest font-bold">
+                  <span>Pedido</span>
+                  <span className="text-[#D4AF37]">#{purchaseSuccess.saleId.slice(0, 8).toUpperCase()}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {purchaseSuccess.items.map((it, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-white/80 truncate mr-2">{it.name} <span className="text-white/40">×{it.quantity}</span></span>
+                      <span className="tabular-nums text-white/90">R$ {(it.price * it.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-white/10 pt-2 flex justify-between text-sm font-black">
+                  <span className="text-white/80">Total ({purchaseSuccess.method})</span>
+                  <span className="text-[#D4AF37] tabular-nums">R$ {purchaseSuccess.total.toFixed(2)}</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-white/50 text-center">
+                Retire seus produtos na barbearia apresentando o número do pedido.
+              </p>
+            </div>
+          )}
+          <DialogFooter className="flex flex-col sm:flex-col gap-2">
+            <Button
+              className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0"
+              onClick={() => { setPurchaseSuccess(null); setSelectedProducts([]); navigate({ to: `/${slug}/portal` as any }); }}
+            >
+              Acompanhar no Portal
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 rounded-[14px] bg-transparent border border-[#D4AF37]/60 text-[#D4AF37] font-bold hover:bg-[#D4AF37]/15 hover:text-[#F5D061] hover:border-[#D4AF37]"
+              onClick={() => { setPurchaseSuccess(null); setSelectedProducts([]); setIsBookingOpen(true); setBookingStep(2); }}
+            >
+              <Calendar size={16} className="mr-2" /> Agendar Serviço
+            </Button>
+            <button
+              type="button"
+              className="w-full h-11 text-sm text-white/60 hover:text-white font-medium transition-colors"
+              onClick={() => { setPurchaseSuccess(null); setSelectedProducts([]); }}
+            >
+              Voltar à Loja
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Cancellation & Rating Access Modal */}
       {!isEmbedded && <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
