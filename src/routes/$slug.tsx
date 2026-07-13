@@ -2350,8 +2350,11 @@ function ShopPageComponent() {
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
             </div>
-            <div className="-mx-4 px-4 mb-12 overflow-x-auto custom-scrollbar lg:overflow-visible">
-              <div className="flex lg:flex-wrap items-center justify-start lg:justify-center gap-2 min-w-max lg:min-w-0">
+            <div className="-mx-4 sm:mx-0 mt-3 mb-4 lg:mb-12 w-screen sm:w-auto overflow-hidden">
+              <div
+                className="flex items-center gap-2.5 lg:gap-2 overflow-x-auto lg:overflow-visible lg:flex-wrap lg:justify-center px-4 py-2 lg:p-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                style={{ scrollPaddingInline: 16, overscrollBehaviorInline: 'contain' }}
+              >
                 {categories.map((cat) => {
                   const isActive = activeCategory === cat;
                   return (
@@ -2359,7 +2362,7 @@ function ShopPageComponent() {
                       key={cat}
                       onClick={() => setActiveCategory(cat)}
                       className={cn(
-                        "shrink-0 h-10 px-5 rounded-full font-black uppercase tracking-widest text-[11px] transition-all duration-200 border",
+                        "shrink-0 h-10 px-5 rounded-full font-black uppercase tracking-widest text-[11px] transition-all duration-200 border whitespace-nowrap",
                         isActive
                           ? "bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] border-transparent shadow-[0_8px_20px_rgba(245,197,66,0.28)]"
                           : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-[#F5C542]/50 hover:text-white"
