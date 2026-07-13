@@ -4720,20 +4720,26 @@ function ShopPageComponent() {
 
 
 
-      {/* Floating Cart Button */}
+      {/* Floating Cart Button — compact, gold, responsive */}
       {selectedProducts.length > 0 && (
-        <Button 
-          style={{ backgroundColor: primaryColor }}
-          className="fixed bottom-24 right-6 h-14 px-6 rounded-full shadow-lg z-50 animate-in fade-in zoom-in duration-300 gap-2 text-white"
-          onClick={() => {
-            setIsCartOpen(true);
-          }}
+        <button
+          type="button"
+          onClick={() => setIsCartOpen(true)}
+          aria-label="Ver carrinho"
+          className="fixed z-[55] flex items-center justify-center gap-2 sm:gap-3 h-[54px] rounded-2xl bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black shadow-[0_14px_36px_-10px_rgba(245,197,66,0.55)] hover:shadow-[0_18px_44px_-10px_rgba(245,197,66,0.7)] hover:-translate-y-[2px] transition-all duration-200 animate-in fade-in zoom-in
+            left-4 right-4 sm:left-auto sm:right-6 sm:w-auto sm:px-6 px-5"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)' }}
         >
-          <ShoppingBag size={20} />
-          <span className="font-bold">Ver Carrinho ({selectedProducts.reduce((acc, p) => acc + (p.quantity || 1), 0)})</span>
-          <span className="ml-2 pl-2 border-l border-white/20">R$ {calculateTotalBeforeCashback().toFixed(2)}</span>
-        </Button>
+          <ShoppingBag size={18} className="shrink-0" strokeWidth={2.5} />
+          <span className="text-sm sm:text-[13px] uppercase tracking-wider truncate">Ver Carrinho</span>
+          <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-black/85 text-[#F5C542] text-[11px] font-black shrink-0">
+            {selectedProducts.reduce((acc, p) => acc + (p.quantity || 1), 0)}
+          </span>
+          <span className="h-4 w-px bg-black/25 shrink-0" />
+          <span className="text-sm font-black tabular-nums whitespace-nowrap">R$ {calculateTotalBeforeCashback().toFixed(2)}</span>
+        </button>
       )}
+
 
       {/* Floating WhatsApp Button */}
       {shop.whatsapp_enabled && shop.whatsapp_number && (
