@@ -5180,113 +5180,195 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
 
-      {/* Identify Customer Modal — compra avulsa */}
+      {/* Identify Customer Modal — compra avulsa (WhatsApp-first) */}
       <Dialog open={isIdentifyOpen} onOpenChange={setIsIdentifyOpen}>
-        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] max-h-[calc(100dvh-24px)] overflow-y-auto bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <UserIcon size={20} className="text-[#D4AF37]" />
               Identifique-se para continuar
             </DialogTitle>
           </DialogHeader>
+
           <div className="py-4 space-y-4">
             <p className="text-xs text-white/60">
-              Precisamos dos seus dados para vincular a compra e emitir o comprovante.
+              Informe seu WhatsApp para localizarmos seu cadastro e vincularmos sua compra.
             </p>
-            <div className="grid gap-2">
-              <Label htmlFor="ident-name" className="text-white/80 text-xs uppercase tracking-widest font-bold">Nome completo *</Label>
-              <Input
-                id="ident-name"
-                value={identifyForm.name}
-                onChange={(e) => setIdentifyForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="Seu nome"
-                className="bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 h-11"
-              />
-            </div>
+
+            {/* Step: phone input */}
             <div className="grid gap-2">
               <Label htmlFor="ident-phone" className="text-white/80 text-xs uppercase tracking-widest font-bold">WhatsApp *</Label>
               <PhoneInput
                 defaultCountry="br"
                 value={identifyForm.phone}
-                onChange={(v) => setIdentifyForm(f => ({ ...f, phone: v }))}
+                onChange={(v) => {
+                  setIdentifyForm(f => ({ ...f, phone: v }));
+                  if (identifyStep !== 'phone') setIdentifyStep('phone');
+                  setIdentifyFound(null);
+                }}
                 inputClassName="!w-full !h-11 !bg-white/[0.04] !border-white/15 !text-white !rounded-md"
                 countrySelectorStyleProps={{ buttonClassName: "!h-11 !bg-white/[0.04] !border-white/15" }}
               />
+              {identifyLookupLoading && (
+                <p className="text-[11px] text-white/50 flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin text-[#D4AF37]" /> Localizando seu cadastro...
+                </p>
+              )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="ident-email" className="text-white/80 text-xs uppercase tracking-widest font-bold">E-mail (opcional)</Label>
-              <Input
-                id="ident-email"
-                type="email"
-                value={identifyForm.email}
-                onChange={(e) => setIdentifyForm(f => ({ ...f, email: e.target.value }))}
-                placeholder="voce@email.com"
-                className="bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 h-11"
-              />
-            </div>
-            <label className="flex items-start gap-2 text-xs text-white/70 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={identifyForm.acceptTerms}
-                onChange={(e) => setIdentifyForm(f => ({ ...f, acceptTerms: e.target.checked }))}
-                className="mt-0.5 accent-[#D4AF37]"
-              />
-              <span>Li e aceito os <a href="/terms" target="_blank" className="text-[#D4AF37] underline">Termos de Uso</a> e a <a href="/privacy" target="_blank" className="text-[#D4AF37] underline">Política de Privacidade</a>.</span>
-            </label>
-            <label className="flex items-start gap-2 text-xs text-white/60 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={identifyForm.allowMarketing}
-                onChange={(e) => setIdentifyForm(f => ({ ...f, allowMarketing: e.target.checked }))}
-                className="mt-0.5 accent-[#D4AF37]"
-              />
-              <span>Aceito receber promoções e novidades desta barbearia.</span>
-            </label>
+
+            {/* Step: found customer */}
+            {identifyStep === 'found' && identifyFound && (
+              <div className="rounded-2xl border border-[#D4AF37]/40 bg-[#D4AF37]/[0.06] p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  {identifyFound.avatar_url ? (
+                    <img src={identifyFound.avatar_url} alt={identifyFound.name} className="w-12 h-12 rounded-full object-cover border border-[#D4AF37]/40" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] font-black">
+                      {identifyFound.name?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-white truncate">Olá, {identifyFound.name}! 👋</p>
+                    <p className="text-[11px] text-white/60">Encontramos seu cadastro.</p>
+                  </div>
+                </div>
+                <div className="text-[11px] text-white/60 space-y-0.5">
+                  <p><span className="text-white/40">WhatsApp:</span> {identifyFound.phone}</p>
+                  {identifyFound.email && (
+                    <p><span className="text-white/40">E-mail:</span> {identifyFound.email.replace(/(.{2}).+(@.+)/, '$1***$2')}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step: new customer registration */}
+            {identifyStep === 'new' && (
+              <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <p className="text-xs text-white/70">
+                  Ainda não encontramos um cadastro com este WhatsApp. Complete seus dados para continuar.
+                </p>
+                <div className="grid gap-2">
+                  <Label htmlFor="ident-name" className="text-white/80 text-xs uppercase tracking-widest font-bold">Nome completo *</Label>
+                  <Input
+                    id="ident-name"
+                    value={identifyForm.name}
+                    onChange={(e) => setIdentifyForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="Seu nome"
+                    className="bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 h-11"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ident-email" className="text-white/80 text-xs uppercase tracking-widest font-bold">E-mail (opcional)</Label>
+                  <Input
+                    id="ident-email"
+                    type="email"
+                    value={identifyForm.email}
+                    onChange={(e) => setIdentifyForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="voce@email.com"
+                    className="bg-white/[0.04] border-white/15 text-white placeholder:text-white/30 h-11"
+                  />
+                </div>
+                <label className="flex items-start gap-2 text-xs text-white/70 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={identifyForm.acceptTerms}
+                    onChange={(e) => setIdentifyForm(f => ({ ...f, acceptTerms: e.target.checked }))}
+                    className="mt-0.5 accent-[#D4AF37]"
+                  />
+                  <span>Li e aceito os <a href="/terms" target="_blank" className="text-[#D4AF37] underline">Termos de Uso</a> e a <a href="/privacy" target="_blank" className="text-[#D4AF37] underline">Política de Privacidade</a>.</span>
+                </label>
+                <label className="flex items-start gap-2 text-xs text-white/60 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={identifyForm.allowMarketing}
+                    onChange={(e) => setIdentifyForm(f => ({ ...f, allowMarketing: e.target.checked }))}
+                    className="mt-0.5 accent-[#D4AF37]"
+                  />
+                  <span>Aceito receber promoções e novidades desta barbearia.</span>
+                </label>
+              </div>
+            )}
           </div>
+
           <DialogFooter className="flex flex-col sm:flex-col gap-2">
-            <Button
-              className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0 disabled:opacity-60"
-              disabled={identifying}
-              onClick={async () => {
-                const nm = identifyForm.name.trim();
-                const ph = normalizePhone(identifyForm.phone);
-                if (nm.length < 3) return toast.error("Informe seu nome completo.");
-                if (ph.length < 10) return toast.error("Informe um WhatsApp válido.");
-                if (!identifyForm.acceptTerms) return toast.error("É necessário aceitar os Termos e a Política.");
-                const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
-                if (!defaultBarberId) return toast.error("Barbearia sem profissionais cadastrados.");
-                setIdentifying(true);
-                try {
-                  const { data: rpcCustId, error } = await supabase.rpc('create_or_get_public_customer', {
-                    p_slug: shop.slug,
-                    p_name: nm,
-                    p_phone: ph,
-                    p_email: identifyForm.email || undefined,
-                    p_barber_id: defaultBarberId,
-                  });
-                  if (error) throw error;
-                  const cid = rpcCustId as string;
-                  setCustomerId(cid);
-                  setCustomerName(nm);
-                  setCustomerPhone(ph);
-                  // Persist for portal reuse
+            {identifyStep === 'found' && identifyFound && (
+              <>
+                <Button
+                  className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0"
+                  onClick={() => {
+                    setCustomerId(identifyFound.id);
+                    setCustomerName(identifyFound.name);
+                    setCustomerPhone(identifyFound.phone);
+                    try {
+                      localStorage.setItem(`clientData_${slug}`, JSON.stringify({
+                        customer_id: identifyFound.id, name: identifyFound.name, phone: identifyFound.phone
+                      }));
+                    } catch { /* ignore */ }
+                    setIsIdentifyOpen(false);
+                    setIsPixVisible(true);
+                  }}
+                >
+                  Continuar como {identifyFound.name.split(' ')[0]}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIdentifyFound(null);
+                    setIdentifyForm(f => ({ ...f, phone: "" }));
+                    setIdentifyStep('phone');
+                  }}
+                  className="w-full h-11 text-xs text-white/60 hover:text-white font-medium transition-colors"
+                >
+                  Este número não é meu
+                </button>
+              </>
+            )}
+
+            {identifyStep === 'new' && (
+              <Button
+                className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0 disabled:opacity-60"
+                disabled={identifying}
+                onClick={async () => {
+                  const nm = identifyForm.name.trim();
+                  const ph = normalizePhone(identifyForm.phone);
+                  if (nm.length < 3) return toast.error("Informe seu nome completo.");
+                  if (ph.length < 10) return toast.error("Informe um WhatsApp válido.");
+                  if (!identifyForm.acceptTerms) return toast.error("É necessário aceitar os Termos e a Política.");
+                  const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                  if (!defaultBarberId) return toast.error("Barbearia sem profissionais cadastrados.");
+                  setIdentifying(true);
                   try {
-                    localStorage.setItem(`clientData_${slug}`, JSON.stringify({
-                      customer_id: cid, name: nm, phone: ph
-                    }));
-                  } catch { /* ignore */ }
-                  setIsIdentifyOpen(false);
-                  setIsPixVisible(true);
-                } catch (err: any) {
-                  console.error("Identify customer error:", err);
-                  toast.error("Erro ao identificar cliente: " + (err.message || String(err)));
-                } finally {
-                  setIdentifying(false);
-                }
-              }}
-            >
-              {identifying ? "Salvando..." : "Continuar para o pagamento"}
-            </Button>
+                    const { data: rpcCustId, error } = await supabase.rpc('create_or_get_public_customer', {
+                      p_slug: shop.slug,
+                      p_name: nm,
+                      p_phone: ph,
+                      p_email: identifyForm.email || undefined,
+                      p_barber_id: defaultBarberId,
+                    });
+                    if (error) throw error;
+                    const cid = rpcCustId as string;
+                    setCustomerId(cid);
+                    setCustomerName(nm);
+                    setCustomerPhone(ph);
+                    try {
+                      localStorage.setItem(`clientData_${slug}`, JSON.stringify({
+                        customer_id: cid, name: nm, phone: ph
+                      }));
+                    } catch { /* ignore */ }
+                    setIsIdentifyOpen(false);
+                    setIsPixVisible(true);
+                  } catch (err: any) {
+                    console.error("Identify customer error:", err);
+                    toast.error("Não foi possível identificar seu cadastro. Verifique o WhatsApp e tente novamente.");
+                  } finally {
+                    setIdentifying(false);
+                  }
+                }}
+              >
+                {identifying ? "Salvando..." : "Criar cadastro e continuar"}
+              </Button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsIdentifyOpen(false)}
@@ -5297,6 +5379,7 @@ function ShopPageComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* Purchase Success Modal */}
       <Dialog open={!!purchaseSuccess} onOpenChange={(o) => { if (!o) { setPurchaseSuccess(null); setSelectedProducts([]); } }}>
