@@ -4826,88 +4826,107 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
 
-      {/* Cart Summary Modal */}
+      {/* Cart Summary Modal — grafite premium */}
       <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[520px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShoppingBag size={20} style={{ color: primaryColor }} />
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <ShoppingBag size={20} className="text-[#D4AF37]" />
               Seu Carrinho
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
             {selectedProducts.length > 0 ? (
               <>
-                <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
-                  {selectedProducts.map((p) => (
-                    <div key={p.id} className="flex justify-between items-center p-3 border rounded-lg bg-muted/30">
-                      <div className="flex-1 min-w-0 mr-3">
-                        <p className="font-bold text-sm truncate">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">R$ {p.price.toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center border rounded-md bg-background">
-                          <button 
-                            onClick={() => updateQuantity(p.id, -1)}
-                            className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors"
+                <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-1">
+                  {selectedProducts.map((p) => {
+                    const qty = p.quantity || 1;
+                    const maxStock = p.stock_quantity || 99;
+                    return (
+                      <div key={p.id} className="flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10">
+                        <div className="flex-1 min-w-0 mr-3">
+                          <p className="font-bold text-sm truncate text-white">{p.name}</p>
+                          <p className="text-xs text-white/60 tabular-nums">R$ {Number(p.price).toFixed(2)} • un</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center rounded-lg bg-black/40 border border-white/10 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(p.id, -1)}
+                              disabled={qty <= 1}
+                              className="w-9 h-9 flex items-center justify-center text-white/80 hover:bg-[#D4AF37]/15 hover:text-[#D4AF37] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              aria-label="Diminuir"
+                            >
+                              <Minus size={14} strokeWidth={2.5} />
+                            </button>
+                            <span className="w-9 text-center text-sm font-black tabular-nums text-white">{qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(p.id, 1)}
+                              disabled={qty >= maxStock}
+                              className="w-9 h-9 flex items-center justify-center text-white/80 hover:bg-[#D4AF37]/15 hover:text-[#D4AF37] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              aria-label="Aumentar"
+                            >
+                              <Plus size={14} strokeWidth={2.5} />
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(p.id)}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            aria-label="Remover"
                           >
-                            -
-                          </button>
-                          <span className="w-8 text-center text-sm font-bold">{p.quantity || 1}</span>
-                          <button 
-                            onClick={() => updateQuantity(p.id, 1)}
-                            className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors"
-                            disabled={(p.quantity || 1) >= p.stock_quantity}
-                          >
-                            +
+                            <Trash2 size={15} />
                           </button>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => removeFromCart(p.id)}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-                
-                <div className="border-t pt-4 space-y-2">
+                <div className="border-t border-white/10 pt-4 space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal:</span>
-                    <span className="font-bold">R$ {calculateTotalBeforeCashback().toFixed(2)}</span>
+                    <span className="text-white/60">Subtotal</span>
+                    <span className="font-black tabular-nums text-white">R$ {calculateTotalBeforeCashback().toFixed(2)}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground text-center">
+                  <p className="text-[10px] text-white/40 text-center pt-2">
                     Deseja agendar um serviço também? Você poderá revisar tudo na finalização.
                   </p>
                 </div>
               </>
             ) : (
               <div className="text-center py-8 space-y-3">
-                <ShoppingBag size={48} className="mx-auto text-muted-foreground/20" />
-                <p className="text-muted-foreground">Seu carrinho está vazio.</p>
+                <ShoppingBag size={48} className="mx-auto text-white/20" />
+                <p className="text-white/60">Seu carrinho está vazio.</p>
               </div>
             )}
           </div>
-          <DialogFooter className="flex-col sm:flex-col gap-2">
+          <DialogFooter className="flex flex-col sm:flex-col gap-2 sm:gap-2">
             {selectedProducts.length > 0 && (
-              <Button 
-                className="w-full" 
-                style={{ backgroundColor: primaryColor }}
+              <Button
+                className="w-full h-[50px] rounded-[14px] bg-gradient-to-r from-[#F5C542] to-[#D4A017] text-black font-black uppercase tracking-widest text-sm hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_10px_28px_-8px_rgba(245,197,66,0.6)] border-0"
                 onClick={() => {
                   setIsCartOpen(false);
-                  setIsPixVisible(true);
+                  // Compra avulsa: exigir identificação antes do PIX
+                  if (!customerId) {
+                    setIdentifyForm(f => ({ ...f, name: customerName || "", phone: customerPhone || "" }));
+                    setIsIdentifyOpen(true);
+                  } else {
+                    setIsPixVisible(true);
+                  }
                 }}
               >
                 Pagar Agora
               </Button>
             )}
-            <Button variant="ghost" className="w-full" onClick={() => setIsCartOpen(false)}>
-              Continuar Comprando
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 rounded-[14px] bg-transparent border border-[#D4AF37]/60 text-[#D4AF37] font-bold hover:bg-[#D4AF37]/15 hover:text-[#F5D061] hover:border-[#D4AF37]"
+              onClick={() => setIsCartOpen(false)}
+            >
+              <ArrowLeft size={16} className="mr-2" /> Continuar Comprando
             </Button>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
