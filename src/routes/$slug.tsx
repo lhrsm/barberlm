@@ -181,6 +181,9 @@ function ShopPageComponent() {
   const [isIdentifyOpen, setIsIdentifyOpen] = useState(false);
   const [identifyForm, setIdentifyForm] = useState({ name: "", phone: "", email: "", acceptTerms: false, allowMarketing: false });
   const [identifying, setIdentifying] = useState(false);
+  const [identifyStep, setIdentifyStep] = useState<'phone' | 'found' | 'new'>('phone');
+  const [identifyLookupLoading, setIdentifyLookupLoading] = useState(false);
+  const [identifyFound, setIdentifyFound] = useState<{ id: string; name: string; phone: string; email?: string | null; avatar_url?: string | null } | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState<null | { saleId: string; items: any[]; total: number; method: string }>(null);
 
 
