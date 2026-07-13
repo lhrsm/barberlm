@@ -219,6 +219,21 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
     amount: amountPaid / 100,
     environment: env
   });
+
+  // 🛡️ High-value payment alert (>= R$ 500)
+  const amountReais = (amountPaid ?? 0) / 100;
+  if (amountReais >= 500 && userId) {
+    const profile = await loadProfileForUser(userId);
+    await fireAdminEvent({
+      event_key: "payment.high_value",
+      title: "Pagamento de alto valor recebido 💎",
+      message: `${profile?.business_name ?? profile?.email ?? userId} — R$ ${amountReais.toFixed(2)}`,
+      severity: "info",
+      tenant_id: userId,
+      action_url: "/admin/finance",
+      payload: { userId, invoice_id: invoice.id, amount: amountReais, env },
+    });
+  }
 }
 
 async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
