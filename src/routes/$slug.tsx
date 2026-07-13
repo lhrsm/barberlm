@@ -186,6 +186,41 @@ function ShopPageComponent() {
   const [identifyFound, setIdentifyFound] = useState<{ id: string; name: string; phone: string; email?: string | null; avatar_url?: string | null } | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState<null | { saleId: string; items: any[]; total: number; method: string }>(null);
 
+  // Debounced phone lookup for the identify modal (product purchase)
+  useEffect(() => {
+    if (!isIdentifyOpen || identifyStep !== 'phone') return;
+    const normalized = normalizePhone(identifyForm.phone);
+    if (normalized.length < 10) {
+      setIdentifyFound(null);
+      return;
+    }
+    if (!shop?.id) return;
+    setIdentifyLookupLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await supabase
+          .from("customers")
+          .select("id, name, phone, email, avatar_url")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id)
+          .maybeSingle();
+        if (data) {
+          setIdentifyFound(data as any);
+          setIdentifyStep('found');
+        } else {
+          setIdentifyFound(null);
+          setIdentifyStep('new');
+        }
+      } catch (e) {
+        console.error('identify lookup error', e);
+      } finally {
+        setIdentifyLookupLoading(false);
+      }
+    }, 500);
+    return () => { clearTimeout(t); setIdentifyLookupLoading(false); };
+  }, [identifyForm.phone, isIdentifyOpen, identifyStep, shop?.id]);
+
+
 
   // Subscription state
   const [_activeSubscription, setActiveSubscription] = useState<any>(null);
