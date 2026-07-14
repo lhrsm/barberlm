@@ -98,7 +98,7 @@ function LandingPageComponent() {
             <img
               src={barbexLogo.url}
               alt="Barbex"
-              className="h-14 sm:h-16 md:h-20 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
+              className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
             />
           </div>
           
