@@ -845,8 +845,11 @@ function LandingPageComponent() {
           <div className="grid md:grid-cols-4 gap-12 mb-20">
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-6">
-                <Scissors className="text-primary h-8 w-8" />
-                <span className="text-3xl font-black tracking-tighter text-white">Barbex</span>
+                <img
+                  src={barbexLogo.url}
+                  alt="Barbex"
+                  className="h-12 w-auto drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+                />
               </div>
               <p className="text-white/40 max-w-sm mb-6 text-sm font-bold leading-relaxed">
                 A plataforma premium definitiva para barbearias modernas.
