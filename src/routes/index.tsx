@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState, useRef } from "react";
 import { SignupOnboardingModal } from "@/components/onboarding/SignupOnboardingModal";
 import { ManageCookiesLink } from "@/components/CookieBanner";
+import barbexLogo from "@/assets/logo-barbex.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { 
