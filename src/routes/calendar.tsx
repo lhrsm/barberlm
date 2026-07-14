@@ -262,13 +262,11 @@ function CalendarComponent() {
     });
   };
 
-  if (loading || !user) return null;
-
-
-
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
   const todayRevenue = useMemo(() => todayApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0), [todayApps]);
   const isToday = isSameDay(currentDate, new Date());
+
+  if (loading || !user) return null;
 
   const openNewAppointment = (date?: Date, hour?: number) => {
     setModalInitialData({
