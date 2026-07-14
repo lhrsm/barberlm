@@ -88,7 +88,7 @@ export function ManagerialView({ tenantId, initialPeriod, periodKey }: { tenantI
           supabase
             .from("appointments")
             .select(
-              "id, start_time, status, payment_method, total_price, final_amount, original_total, discount_amount, subscription_covered_amount, cashback_used, cashback_earned, credits_used, credit_used, service_amount, coupon_id, barber_id, service_id, services(name), barber:barbers(name)",
+              "id, start_time, status, payment_method, total_price, final_amount, original_total, discount_amount, subscription_covered_amount, cashback_used, cashback_earned, credits_used, credit_used, service_amount, coupon_id, barber_id, service_id, services(name), barber:barbers!appointments_barber_id_fkey(name)",
             )
             .eq("tenant_id", tenantId),
         ),

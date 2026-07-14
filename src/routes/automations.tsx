@@ -173,7 +173,7 @@ function AutomationsComponent() {
           *,
           customer:customers(name, phone),
           service:services(name),
-          barber:barbers(name)
+          barber:barbers!appointments_barber_id_fkey(name)
         `)
         .order("created_at", { ascending: false })
         .limit(1)

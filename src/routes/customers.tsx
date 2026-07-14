@@ -205,7 +205,7 @@ function CustomersComponent() {
     const [{ data: history }, { data: products }] = await Promise.all([
       supabase
         .from("appointments")
-        .select("*, services(name), barbers(name), service_ratings(rating, comment)")
+        .select("*, services(name), barbers!appointments_barber_id_fkey(name), service_ratings(rating, comment)")
         .eq("customer_id", customer.id)
         .order("start_time", { ascending: false }),
       supabase

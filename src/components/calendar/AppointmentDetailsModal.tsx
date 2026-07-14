@@ -89,7 +89,7 @@ export function AppointmentDetailsModal({
           *,
           customers(id, name, phone, avatar_url, credits, cashback_balance),
           services(id, name, duration_minutes, price),
-          barbers(id, name, avatar_url)
+          barbers!appointments_barber_id_fkey(id, name, avatar_url)
         `)
         .eq("id", appointmentId!)
         .single();

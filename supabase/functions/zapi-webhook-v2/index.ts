@@ -132,7 +132,7 @@ serve(async (req) => {
         }).eq("id", updatedDispatch.id);
       }
       
-      const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
+      const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers!appointments_barber_id_fkey(name)").eq("id", appointmentId).single();
       const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
       if (appt && instance) {
         let businessName = "Barbearia";
