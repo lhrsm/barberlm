@@ -94,10 +94,11 @@ function LandingPageComponent() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer">
-            <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
-              <Scissors className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
-            </div>
-            <span className="text-xl sm:text-2xl font-black tracking-tighter text-white">Barbex</span>
+            <img
+              src={barbexLogo.url}
+              alt="Barbex"
+              className="h-10 sm:h-12 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
+            />
           </div>
           
           <div className="hidden lg:flex items-center gap-8">
