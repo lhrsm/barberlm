@@ -68,6 +68,7 @@ import 'react-international-phone/style.css';
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { SubscriberPanel } from "@/components/portal/SubscriberPanel";
 import { ReviewModal } from "@/components/portal/ReviewModal";
+import { emitAutomationEvent } from "@/utils/emit-event";
 import { getSubscriptionUsage, categorizeService } from "@/hooks/use-subscription-usage";
 import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
@@ -568,33 +569,54 @@ function ClientPortalComponent() {
     setSubmitting(true);
     try {
       const startTime = parseISO(`${newDate}T${newTime}:00`);
-      
-      // Get service duration
+
       const { data: service } = await supabase
         .from("services")
         .select("duration_minutes")
         .eq("id", editingAppointment.service_id)
         .single();
-        
+
       const duration = service?.duration_minutes || 30;
       const endTime = addMinutes(startTime, duration);
+      const oldStart = parseISO(editingAppointment.start_time);
 
-      const { error } = await supabase
-        .from("appointments")
-        .update({
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString()
-        })
-        .eq("id", editingAppointment.id);
+      const { data, error } = await supabase.rpc("reschedule_appointment", {
+        p_appointment_id: editingAppointment.id,
+        p_new_start_time: startTime.toISOString(),
+        p_new_end_time: endTime.toISOString(),
+        p_changed_by_type: "customer",
+        p_source: "customer_portal",
+      });
 
-      if (error) throw error;
+      const response = data as any;
+      if (error || !response || !response.success) {
+        throw new Error(error?.message || response?.error || "Erro ao reagendar");
+      }
+
+      // Dispara automação de reagendamento (cliente/barbeiro/barbearia via fan-out)
+      try {
+        await emitAutomationEvent({
+          tenantId: editingAppointment.tenant_id || shop?.id,
+          event: "appointment.rescheduled.by_customer" as any,
+          appointmentId: editingAppointment.id,
+          customerId: editingAppointment.customer_id,
+          extra: {
+            old_date: format(oldStart, "dd/MM/yyyy"),
+            old_time: format(oldStart, "HH:mm"),
+            new_date: format(startTime, "dd/MM/yyyy"),
+            new_time: format(startTime, "HH:mm"),
+          },
+        });
+      } catch (evtErr) {
+        console.warn("[portal reschedule] emitAutomationEvent falhou", evtErr);
+      }
 
       toast.success("Agendamento alterado com sucesso!");
       setIsEditModalOpen(false);
       fetchClientData(client.customer_id);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("Erro ao alterar agendamento");
+      toast.error(e?.message || "Erro ao alterar agendamento");
     } finally {
       setSubmitting(false);
     }
@@ -2706,55 +2728,79 @@ function ClientPortalComponent() {
 
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px] border-[#D4AF37] border-2">
+        <DialogContent className="sm:max-w-[440px] bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black border border-[#D4AF37]/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.35)] text-white">
           <DialogHeader>
-            <DialogTitle className="text-black">Alterar Agendamento</DialogTitle>
-            <DialogDescription className="text-gray-600">Escolha uma nova data e horário para seu serviço.</DialogDescription>
+            <DialogTitle className="text-white text-xl font-black tracking-tight">Reagendar atendimento</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Escolha uma nova data e horário para seu serviço.
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-5 py-2">
             <div className="grid gap-2">
-              <Label htmlFor="edit-date">Nova Data</Label>
-              <Input 
-                id="edit-date" 
-                type="date" 
-                value={newDate} 
+              <Label htmlFor="edit-date" className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+                Nova Data
+              </Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
                 min={format(new Date(), "yyyy-MM-dd")}
+                className="h-11 bg-white/5 border-white/10 text-white focus:border-[#D4AF37] focus:ring-[#D4AF37]/30 [color-scheme:dark]"
               />
             </div>
             <div className="grid gap-2">
-              <Label>Novo Horário</Label>
+              <Label className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+                Novo Horário
+              </Label>
               {fetchingTimes ? (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+                <div className="flex justify-center py-6">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]"></div>
                 </div>
               ) : availableTimes.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
-                  {availableTimes.map(time => (
-                    <Button
-                      key={time}
-                      variant={newTime === time ? "default" : "outline"}
-                      className={cn(
-                        "transition-all duration-300 hover:scale-105",
-                        newTime === time ? "bg-black text-white" : "border-gray-200 text-black hover:border-black"
-                      )}
-                      size="sm"
-                      onClick={() => setNewTime(time)}
-                    >
-                      {time}
-                    </Button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2 max-h-[220px] overflow-y-auto p-1">
+                  {availableTimes.map((time) => {
+                    const active = newTime === time;
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => setNewTime(time)}
+                        className={cn(
+                          "h-10 rounded-xl text-sm font-bold tracking-wide transition-all",
+                          active
+                            ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black shadow-[0_8px_20px_rgba(212,175,55,0.35)]"
+                            : "bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-[#D4AF37]/40",
+                        )}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-center text-muted-foreground py-4">Nenhum horário disponível para esta data.</p>
+                <p className="text-sm text-center text-gray-500 py-4">
+                  Nenhum horário disponível para esta data.
+                </p>
               )}
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdateAppointment} disabled={submitting || !newTime} className="bg-black text-white hover:bg-black/90">
-              {submitting ? "Salvando..." : "Confirmar Alteração"}
-            </Button>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditModalOpen(false)}
+              className="h-11 px-5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-wider hover:bg-white/10 hover:border-white/25 transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleUpdateAppointment}
+              disabled={submitting || !newTime}
+              className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black text-xs font-black uppercase tracking-widest shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+              {submitting ? "Salvando..." : "Confirmar alteração"}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
