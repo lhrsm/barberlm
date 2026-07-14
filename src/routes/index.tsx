@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState, useRef } from "react";
 import { SignupOnboardingModal } from "@/components/onboarding/SignupOnboardingModal";
 import { ManageCookiesLink } from "@/components/CookieBanner";
+import barbexLogo from "@/assets/logo-barbex.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { 
@@ -94,10 +95,11 @@ function LandingPageComponent() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer">
-            <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
-              <Scissors className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
-            </div>
-            <span className="text-xl sm:text-2xl font-black tracking-tighter text-white">Barbex</span>
+            <img
+              src={barbexLogo.url}
+              alt="Barbex"
+              className="h-10 sm:h-12 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
+            />
           </div>
           
           <div className="hidden lg:flex items-center gap-8">
@@ -843,8 +845,11 @@ function LandingPageComponent() {
           <div className="grid md:grid-cols-4 gap-12 mb-20">
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-6">
-                <Scissors className="text-primary h-8 w-8" />
-                <span className="text-3xl font-black tracking-tighter text-white">Barbex</span>
+                <img
+                  src={barbexLogo.url}
+                  alt="Barbex"
+                  className="h-12 w-auto drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+                />
               </div>
               <p className="text-white/40 max-w-sm mb-6 text-sm font-bold leading-relaxed">
                 A plataforma premium definitiva para barbearias modernas.
