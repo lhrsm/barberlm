@@ -93,12 +93,12 @@ function LandingPageComponent() {
         animate={{ y: 0 }}
         className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-white/5"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-24 md:h-28 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer">
             <img
               src={barbexLogo.url}
               alt="Barbex"
-              className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
+              className="h-14 sm:h-16 md:h-20 lg:h-24 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
             />
           </div>
           
