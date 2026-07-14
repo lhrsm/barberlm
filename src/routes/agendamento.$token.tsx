@@ -367,9 +367,10 @@ function AppointmentManagementPage() {
   const finalizeCancellationSuccess = async () => {
     // Fire automation event (fan-out inclui destinatários internos)
     try {
+      const actor = await detectActor();
       await emitAutomationEvent({
         tenantId: appointment.tenant_id,
-        event: 'appointment.cancelled.by_customer',
+        event: `appointment.cancelled.${actor}` as any,
         appointmentId: appointment.id,
         customerId: appointment.customer_id,
       });
