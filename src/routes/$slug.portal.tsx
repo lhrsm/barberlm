@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { usePublicModules } from "@/hooks/use-public-modules";
+import barbexLogo from "@/assets/logo-barbex.png.asset.json";
 import { 
   Phone, 
   History, 
