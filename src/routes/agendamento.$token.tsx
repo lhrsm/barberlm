@@ -229,6 +229,24 @@ function AppointmentManagementPage() {
     }
   }
 
+  // Detecta o ator real que está usando o link público de gestão.
+  // O mesmo link é usado por cliente, barbeiro (dono do agendamento) e
+  // pela barbearia (owner do tenant). Quando o ator é a barbearia ou o
+  // barbeiro, as automações devem refletir isso.
+  const detectActor = async (): Promise<'by_customer' | 'by_barber' | 'by_shop'> => {
+    if (!authUser?.id || !appointment) return 'by_customer';
+    if (authUser.id === appointment.tenant_id) return 'by_shop';
+    if (appointment.barber_id) {
+      const { data: barber } = await supabase
+        .from('barbers')
+        .select('user_id')
+        .eq('id', appointment.barber_id)
+        .maybeSingle();
+      if (barber?.user_id && barber.user_id === authUser.id) return 'by_barber';
+    }
+    return 'by_customer';
+  };
+
   const handleReschedule = async () => {
     if (!selectedTime) {
       toast.error("Por favor, selecione um horário.");
