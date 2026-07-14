@@ -569,33 +569,54 @@ function ClientPortalComponent() {
     setSubmitting(true);
     try {
       const startTime = parseISO(`${newDate}T${newTime}:00`);
-      
-      // Get service duration
+
       const { data: service } = await supabase
         .from("services")
         .select("duration_minutes")
         .eq("id", editingAppointment.service_id)
         .single();
-        
+
       const duration = service?.duration_minutes || 30;
       const endTime = addMinutes(startTime, duration);
+      const oldStart = parseISO(editingAppointment.start_time);
 
-      const { error } = await supabase
-        .from("appointments")
-        .update({
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString()
-        })
-        .eq("id", editingAppointment.id);
+      const { data, error } = await supabase.rpc("reschedule_appointment", {
+        p_appointment_id: editingAppointment.id,
+        p_new_start_time: startTime.toISOString(),
+        p_new_end_time: endTime.toISOString(),
+        p_changed_by_type: "customer",
+        p_source: "customer_portal",
+      });
 
-      if (error) throw error;
+      const response = data as any;
+      if (error || !response || !response.success) {
+        throw new Error(error?.message || response?.error || "Erro ao reagendar");
+      }
+
+      // Dispara automação de reagendamento (cliente/barbeiro/barbearia via fan-out)
+      try {
+        await emitAutomationEvent({
+          tenantId: editingAppointment.tenant_id || shop?.id,
+          event: "appointment.rescheduled.by_customer" as any,
+          appointmentId: editingAppointment.id,
+          customerId: editingAppointment.customer_id,
+          extra: {
+            old_date: format(oldStart, "dd/MM/yyyy"),
+            old_time: format(oldStart, "HH:mm"),
+            new_date: format(startTime, "dd/MM/yyyy"),
+            new_time: format(startTime, "HH:mm"),
+          },
+        });
+      } catch (evtErr) {
+        console.warn("[portal reschedule] emitAutomationEvent falhou", evtErr);
+      }
 
       toast.success("Agendamento alterado com sucesso!");
       setIsEditModalOpen(false);
       fetchClientData(client.customer_id);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("Erro ao alterar agendamento");
+      toast.error(e?.message || "Erro ao alterar agendamento");
     } finally {
       setSubmitting(false);
     }
