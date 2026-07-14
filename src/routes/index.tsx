@@ -98,7 +98,7 @@ function LandingPageComponent() {
             <img
               src={barbexLogo.url}
               alt="Barbex"
-              className="h-10 sm:h-12 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
+              className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]"
             />
           </div>
           
@@ -848,7 +848,7 @@ function LandingPageComponent() {
                 <img
                   src={barbexLogo.url}
                   alt="Barbex"
-                  className="h-12 w-auto drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+                  className="h-16 sm:h-20 md:h-24 w-auto drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
                 />
               </div>
               <p className="text-white/40 max-w-sm mb-6 text-sm font-bold leading-relaxed">

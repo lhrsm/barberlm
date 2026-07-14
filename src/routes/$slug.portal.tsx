@@ -1108,7 +1108,7 @@ function ClientPortalComponent() {
       <header className="bg-black border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="font-bold text-lg flex items-center gap-3 text-[#D4AF37]">
-            <img src={barbexLogo.url} alt="Barbex" className="h-9 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
+            <img src={barbexLogo.url} alt="Barbex" className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
             <span className="hidden sm:inline">Portal do Cliente</span>
           </h1>
           <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
