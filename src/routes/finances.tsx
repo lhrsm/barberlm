@@ -334,7 +334,7 @@ function FinancesComponent() {
         *,
         customers(name),
         services(name),
-        barber:barbers(name)
+        barber:barbers!appointments_barber_id_fkey(name)
       `)
       .eq("user_id", user.id)
       .eq("payment_status", "pending")

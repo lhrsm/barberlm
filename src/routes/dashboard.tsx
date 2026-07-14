@@ -276,7 +276,7 @@ function DashboardComponent() {
 
     let query = supabase
       .from("appointments")
-      .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
+      .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers!appointments_barber_id_fkey(name)")
       .eq("tenant_id", tenantId)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);

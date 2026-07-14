@@ -373,7 +373,7 @@ function ClientPortalComponent() {
     // Fetch appointments (with review status)
     const { data: appts } = await supabase
       .from("appointments")
-      .select("*, services(name, price), barbers(name), appointment_reviews(id)")
+      .select("*, services(name, price), barbers!appointments_barber_id_fkey(name), appointment_reviews(id)")
       .eq("customer_id", customerId)
       .order("start_time", { ascending: false });
 

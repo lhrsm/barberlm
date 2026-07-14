@@ -231,7 +231,7 @@ serve(async (req) => {
       if (appointmentId) {
         const { data } = await supabase
           .from("appointments")
-          .select("*, service:services(name), barber:barbers(name)")
+          .select("*, service:services(name), barber:barbers!appointments_barber_id_fkey(name)")
           .eq("id", appointmentId)
           .single();
         appt = data;

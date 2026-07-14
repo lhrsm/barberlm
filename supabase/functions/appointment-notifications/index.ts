@@ -32,7 +32,7 @@ serve(async (req) => {
     // Fetch appointment details
     const { data: appointment, error: appError } = await supabase
       .from("appointments")
-      .select("*, customers(*), barbers(*), services(*)")
+      .select("*, customers(*), barbers!appointments_barber_id_fkey(*), services(*)")
       .eq("id", appointmentId)
       .single();
 

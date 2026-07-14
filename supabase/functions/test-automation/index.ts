@@ -91,7 +91,7 @@ serve(async (req) => {
           *,
           customer:customers(name, phone),
           service:services(name, price),
-          barber:barbers(name)
+          barber:barbers!appointments_barber_id_fkey(name)
         `)
         .eq("id", appointment_id)
         .single();
