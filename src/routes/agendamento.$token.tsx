@@ -281,9 +281,10 @@ function AppointmentManagementPage() {
         metadata: { appointmentId: appointment.id }
       });
 
+      const actor = await detectActor();
       emitAutomationEvent({
         tenantId: appointment.tenant_id,
-        event: 'appointment.rescheduled.by_customer',
+        event: `appointment.rescheduled.${actor}` as any,
         appointmentId: appointment.id,
         customerId: appointment.customer_id,
         extra: {
