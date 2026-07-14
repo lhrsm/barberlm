@@ -1,0 +1,1 @@
+UPDATE public.automation_templates SET template = replace(template, '\n', E'\n') WHERE template LIKE '%\n%';
