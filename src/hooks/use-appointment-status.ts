@@ -21,7 +21,7 @@ export function useAppointmentStatus() {
       // Fetch current appointment data for notifications
       const { data: appt } = await supabase
         .from("appointments")
-        .select("*, customers(*), profiles(*), barbers(*), services(*)")
+        .select("*, customers(*), profiles(*), barbers!appointments_barber_id_fkey(*), services(*)")
         .eq("id", appointmentId)
         .single();
 

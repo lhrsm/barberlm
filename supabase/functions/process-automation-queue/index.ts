@@ -43,7 +43,7 @@ serve(async (req) => {
           appointment_group:appointment_groups(group_token),
           customer:customers(name, phone),
           service:services(name, price),
-          barber:barbers(name)
+          barber:barbers!appointments_barber_id_fkey(name)
         ),
         customer:customers(name, phone)
       `);
@@ -85,7 +85,7 @@ serve(async (req) => {
             *,
             customer:customers(name, phone),
             service:services(name, price),
-            barber:barbers(name)
+            barber:barbers!appointments_barber_id_fkey(name)
           `)
           .eq("id", appointment_id)
           .single();
@@ -102,7 +102,7 @@ serve(async (req) => {
             *,
             customer:customers(name, phone),
             service:services(name, price),
-            barber:barbers(name)
+            barber:barbers!appointments_barber_id_fkey(name)
           `)
           .eq("appointment_group_id", requestGroupId)
           .limit(1);
@@ -258,7 +258,7 @@ serve(async (req) => {
               start_time,
               service_amount,
               service:services(name),
-              barber:barbers(name)
+              barber:barbers!appointments_barber_id_fkey(name)
             `)
             .eq("appointment_group_id", appointment_group_id)
             .order("group_sequence", { ascending: true });
