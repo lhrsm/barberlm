@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { usePublicModules } from "@/hooks/use-public-modules";
+import barbexLogo from "@/assets/logo-barbex.png.asset.json";
 import { 
   Phone, 
   History, 
@@ -1106,9 +1107,9 @@ function ClientPortalComponent() {
     <div className="min-h-screen bg-black pb-20">
       <header className="bg-black border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="font-bold text-lg flex items-center gap-2 text-[#D4AF37]">
-            <UserIcon size={20} />
-            Portal do Cliente
+          <h1 className="font-bold text-lg flex items-center gap-3 text-[#D4AF37]">
+            <img src={barbexLogo.url} alt="Barbex" className="h-9 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
+            <span className="hidden sm:inline">Portal do Cliente</span>
           </h1>
           <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
             <AlertDialogTrigger asChild>
