@@ -60,6 +60,7 @@ import { EditTransactionDialog } from "@/components/finances/EditTransactionDial
 import { TransactionsMobileList } from "@/components/finances/TransactionsMobileList";
 import { TransactionsDesktopTable } from "@/components/finances/TransactionsDesktopTable";
 import { KpiCards } from "@/components/finances/KpiCards";
+import { FinancesHeader } from "@/components/finances/FinancesHeader";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
