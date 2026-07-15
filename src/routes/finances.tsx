@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
+import { AppointmentDetailsController } from "@/components/finances/AppointmentDetailsController";
 import { useFinancial } from "@/hooks/use-financial";
 import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
@@ -352,16 +352,16 @@ function FinancesComponent() {
         </Tabs>
       </div>
       
-      <AppointmentDetailsModal 
-        appointmentId={selectedAppointmentId || undefined}
+      <AppointmentDetailsController
+        appointmentId={selectedAppointmentId}
         open={isDetailsModalOpen}
         onOpenChange={setIsDetailsModalOpen}
-        onSuccess={() => {
-          const barberIdFilter = role === 'barber' ? user?.id : null;
-          fetchTransactions(barberIdFilter);
-          fetchAppointments(barberIdFilter);
-        }}
+        role={role}
+        userId={user?.id}
+        fetchTransactions={fetchTransactions}
+        fetchAppointments={fetchAppointments}
       />
+
     </AppLayout>
   );
 }
