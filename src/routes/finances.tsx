@@ -1049,8 +1049,8 @@ function FinancesComponent() {
               </form>
             </DialogContent>
             </Dialog>
-        </div>
-          </div>
+        </FinancesHeader>
+
 
 
 
