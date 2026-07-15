@@ -175,7 +175,42 @@ serve(async (req) => {
       }
     }
 
-
+    // For appointment.professional_changed: resolve previous/new barber info
+    // from IDs passed in `extra` (RPC returns these). Also derive actor label.
+    let previousBarber: any = null;
+    let newBarber: any = null;
+    if (event === "appointment.professional_changed") {
+      const prevId = (extra as any)?.previous_barber_id || null;
+      const newId = (extra as any)?.new_barber_id || appointment?.barber_id || null;
+      const ids = [prevId, newId].filter(Boolean) as string[];
+      if (ids.length > 0) {
+        const { data: rows } = await supabase
+          .from("barbers")
+          .select("id, name, phone")
+          .in("id", ids);
+        previousBarber = rows?.find((r: any) => r.id === prevId) || null;
+        newBarber = rows?.find((r: any) => r.id === newId) || null;
+      }
+      appointmentExtras.old_professional_name = previousBarber?.name || "";
+      appointmentExtras.new_professional_name = newBarber?.name || barber?.name || "";
+      const actorType = (extra as any)?.changed_by_type || (extra as any)?.actor || "";
+      const actorLabel = actorType === "customer"
+        ? (customer?.name || "Cliente")
+        : actorType === "barber"
+          ? (newBarber?.name || previousBarber?.name || "Profissional")
+          : actorType === "shop" || actorType === "admin" || actorType === "staff"
+            ? (shopProfile?.business_name || "Barbearia")
+            : "Barbearia";
+      appointmentExtras.actor_label = actorLabel;
+      if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
+      if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
+      console.log("[EmitEvent] PROFESSIONAL_CHANGED", {
+        prevId, newId,
+        previous_name: previousBarber?.name,
+        new_name: newBarber?.name,
+        actor: actorLabel,
+      });
+    }
 
     // 3. For each active template, enqueue one row with the right recipient phone
     const dispatched: string[] = [];
@@ -232,6 +267,20 @@ serve(async (req) => {
       } else if (recipient === "shop") {
         phone = shopProfile?.whatsapp_number || null;
         recipientName = shopProfile?.business_name || null;
+      } else if (recipient === "previous_barber") {
+        if (!previousBarber) {
+          skipped.push({ template: tpl.key, reason: "no_previous_barber_in_extra" });
+          continue;
+        }
+        phone = previousBarber.phone || null;
+        recipientName = previousBarber.name || null;
+      } else if (recipient === "new_barber") {
+        if (!newBarber) {
+          skipped.push({ template: tpl.key, reason: "no_new_barber_in_extra" });
+          continue;
+        }
+        phone = newBarber.phone || null;
+        recipientName = newBarber.name || null;
       }
 
       if (!phone) {
