@@ -828,105 +828,58 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
-              <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
-            </div>
-            {role !== 'barber' && (
-              <div className="flex items-center gap-2 bg-[#0A1020] border border-[rgba(255,184,0,0.25)] rounded-[14px] px-3 py-2 min-w-[240px]">
-                <Calendar size={16} className="text-primary" />
-                <span className="text-xs uppercase tracking-wider text-muted-foreground hidden sm:inline">Período:</span>
-                <Select value={globalPeriod} onValueChange={(v) => setGlobalPeriod(v as ReportPeriod)}>
-                  <SelectTrigger className="border-0 bg-transparent h-8 focus:ring-0 text-white font-medium px-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Hoje</SelectItem>
-                    <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                    <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                    <SelectItem value="month">Este mês</SelectItem>
-                    <SelectItem value="prev_month">Mês anterior</SelectItem>
-                    <SelectItem value="90d">Últimos 90 dias</SelectItem>
-                    <SelectItem value="year">Este ano</SelectItem>
-                    <SelectItem value="all">Todo o período</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:overflow-x-auto pb-2 md:scrollbar-hide">
-
-            {role !== 'barber' && (
-              <>
-                <Button
-                  variant="outline"
-                  disabled={isExportingPdf}
-                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed"
-                  onClick={async () => {
-                    if (plan === 'free') {
-                      toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
-                      navigate({ to: "/subscription" });
-                      return;
-                    }
-                    try {
-                      setIsExportingPdf(true);
-                      toast.info(`Gerando PDF — ${periodLabel[globalPeriod]}...`);
-                      const { data: prof } = await supabase
-                        .from("profiles")
-                        .select("business_name, responsible_name")
-                        .eq("id", user.id)
-                        .maybeSingle();
-                      const fname = await exportFinancesPdf({
-                        tenantId: user.id,
-                        period: globalPeriod,
-                        businessName: prof?.business_name || prof?.responsible_name || "Barbex",
-                      });
-                      toast.success(`Relatório gerado: ${fname}`);
-                    } catch (err: any) {
-                      console.error(err);
-                      toast.error("Falha ao gerar PDF: " + (err?.message || "erro desconhecido"));
-                    } finally {
-                      setIsExportingPdf(false);
-                    }
-                  }}
-                >
-                  <FileDown size={18} /> {isExportingPdf ? "Gerando..." : "Exportar PDF"}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
-                  onClick={() => fetchRefundRequests()}
-                >
-                  <RefreshCcw size={18} /> Sincronizar Tudo
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
-                  onClick={async () => {
-                    const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
-                    if (customers) {
-                      toast.info(`Recalculando saldos de ${customers.length} clientes...`);
-                      for (const c of customers) {
-                        await supabase.rpc('recalculate_customer_credit_balance', { p_customer_id: c.id });
-                        await supabase.rpc('recalculate_customer_cashback_balance', { p_customer_id: c.id });
-                      }
-                      fetchTransactions();
-                      fetchCustomerStats();
-                      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-                      fetchCashbackTransactions();
-                      fetchCustomerStats();
-                      toast.success("Saldos recalculados com sucesso!");
-                    }
-                  }}
-                >
-                  <Calculator size={18} /> Recalcular Saldos
-                </Button>
-              </>
-            )}
+        <FinancesHeader
+          role={role}
+          globalPeriod={globalPeriod}
+          setGlobalPeriod={setGlobalPeriod}
+          isExportingPdf={isExportingPdf}
+          onExportPdf={async () => {
+            if (plan === 'free') {
+              toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
+              navigate({ to: "/subscription" });
+              return;
+            }
+            try {
+              setIsExportingPdf(true);
+              toast.info(`Gerando PDF — ${periodLabel[globalPeriod]}...`);
+              const { data: prof } = await supabase
+                .from("profiles")
+                .select("business_name, responsible_name")
+                .eq("id", user.id)
+                .maybeSingle();
+              const fname = await exportFinancesPdf({
+                tenantId: user.id,
+                period: globalPeriod,
+                businessName: prof?.business_name || prof?.responsible_name || "Barbex",
+              });
+              toast.success(`Relatório gerado: ${fname}`);
+            } catch (err: any) {
+              console.error(err);
+              toast.error("Falha ao gerar PDF: " + (err?.message || "erro desconhecido"));
+            } finally {
+              setIsExportingPdf(false);
+            }
+          }}
+          onSyncAll={() => fetchRefundRequests()}
+          onRecalculateBalances={async () => {
+            const { data: customers } = await supabase.from('customers').select('id, tenant_id').eq('tenant_id', user.id);
+            if (customers) {
+              toast.info(`Recalculando saldos de ${customers.length} clientes...`);
+              for (const c of customers) {
+                await supabase.rpc('recalculate_customer_credit_balance', { p_customer_id: c.id });
+                await supabase.rpc('recalculate_customer_cashback_balance', { p_customer_id: c.id });
+              }
+              fetchTransactions();
+              fetchCustomerStats();
+              queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+              fetchCashbackTransactions();
+              fetchCustomerStats();
+              toast.success("Saldos recalculados com sucesso!");
+            }
+          }}
+        >
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+
             <DialogTrigger asChild>
               <Button className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-6 rounded-[14px] font-bold border-0 text-black bg-gradient-to-b from-[#F5D062] to-[#C9971A] shadow-[0_10px_26px_-10px_rgba(212,175,55,0.75)] transition-all duration-200 hover:bg-gradient-to-b hover:from-[#FFE082] hover:to-[#D4AF37] hover:shadow-[0_16px_36px_-12px_rgba(212,175,55,0.9)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100">
                 <Plus size={18} strokeWidth={3} /> Nova Transação
