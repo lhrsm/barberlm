@@ -26,7 +26,7 @@ interface KpiCardsProps {
     cashbackConceded: number;
     balance: number;
   };
-  role: string;
+  role: string | null | undefined;
   refundRequests: Array<{ status: string; amount: number | string }>;
   customerStats: { total_credits: number; total_cashback: number };
   appointments: Array<{ final_amount?: number | string; total_price?: number | string }>;
