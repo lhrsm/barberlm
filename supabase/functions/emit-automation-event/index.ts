@@ -267,6 +267,20 @@ serve(async (req) => {
       } else if (recipient === "shop") {
         phone = shopProfile?.whatsapp_number || null;
         recipientName = shopProfile?.business_name || null;
+      } else if (recipient === "previous_barber") {
+        if (!previousBarber) {
+          skipped.push({ template: tpl.key, reason: "no_previous_barber_in_extra" });
+          continue;
+        }
+        phone = previousBarber.phone || null;
+        recipientName = previousBarber.name || null;
+      } else if (recipient === "new_barber") {
+        if (!newBarber) {
+          skipped.push({ template: tpl.key, reason: "no_new_barber_in_extra" });
+          continue;
+        }
+        phone = newBarber.phone || null;
+        recipientName = newBarber.name || null;
       }
 
       if (!phone) {
