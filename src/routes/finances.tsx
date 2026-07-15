@@ -63,6 +63,7 @@ import { TransactionsDesktopTable } from "@/components/finances/TransactionsDesk
 import { KpiCards } from "@/components/finances/KpiCards";
 import { FinancesHeader } from "@/components/finances/FinancesHeader";
 import { FinancesTabsList } from "@/components/finances/FinancesTabsList";
+import { NovaTransacaoDialog } from "@/components/finances/NovaTransacaoDialog";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
