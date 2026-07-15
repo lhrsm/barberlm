@@ -36,8 +36,12 @@ import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
 import { AdminAiAssistant } from "@/components/admin/AdminAiAssistant";
 
 
+import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
+  errorComponent: DefaultRouteError,
+  notFoundComponent: DefaultRouteNotFound,
 });
 
 const adminNavItems = [
