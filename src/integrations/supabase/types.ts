@@ -8277,6 +8277,7 @@ export type Database = {
           p_changed_by_id?: string
           p_changed_by_type?: string
           p_metadata?: Json
+          p_new_barber_id?: string
           p_new_end_time: string
           p_new_start_time: string
           p_source?: string
