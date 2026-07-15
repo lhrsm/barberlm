@@ -31,6 +31,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { AdminChartsTab } from "@/components/admin/AdminChartsTab";
 import { SaasMetricsCards } from "@/components/admin/SaasMetricsCards";
+import { ExecutiveKpis } from "@/components/admin/ExecutiveKpis";
+import { TenantHealthList } from "@/components/admin/TenantHealthList";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
