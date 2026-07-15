@@ -150,6 +150,8 @@ function CalendarComponent() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number, editingId?: string}>({});
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleAppt, setRescheduleAppt] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
