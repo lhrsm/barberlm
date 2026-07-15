@@ -84,7 +84,7 @@ Regras:
           "Lovable-API-Key": key,
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "openai/gpt-5.5",
           messages: [
             { role: "system", content: systemPrompt },
             {
@@ -98,6 +98,12 @@ Regras:
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          return { error: "Muitas requisições. Aguarde alguns segundos e tente novamente." };
+        }
+        if (res.status === 402) {
+          return { error: "Créditos de IA esgotados. Adicione créditos em Configurações → Planos & créditos." };
+        }
         const txt = await res.text().catch(() => "");
         return { error: `Gateway ${res.status}: ${txt.slice(0, 200)}` };
       }
