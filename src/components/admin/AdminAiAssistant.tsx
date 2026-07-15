@@ -5,7 +5,7 @@ import { askAdminAssistant } from "@/lib/admin-assistant.functions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// ScrollArea removed — using native overflow-y-auto for reliable auto-scroll
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Send, Loader2, Bot, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
