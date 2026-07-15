@@ -7634,6 +7634,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_anomaly_alerts: { Args: never; Returns: Json }
       admin_executive_kpis: { Args: never; Returns: Json }
       admin_tenant_health: {
         Args: { p_limit?: number }
