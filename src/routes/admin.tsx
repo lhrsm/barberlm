@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
 
 
 export const Route = createFileRoute("/admin")({
