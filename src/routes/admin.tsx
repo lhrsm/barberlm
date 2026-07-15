@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
+import { AdminAiAssistant } from "@/components/admin/AdminAiAssistant";
 
 
 export const Route = createFileRoute("/admin")({
