@@ -18,6 +18,7 @@ interface FinancesHeaderProps {
   onExportPdf: () => void;
   onSyncAll: () => void;
   onRecalculateBalances: () => void;
+  children?: ReactNode;
 }
 
 export function FinancesHeader({
