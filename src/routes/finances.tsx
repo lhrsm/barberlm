@@ -1084,90 +1084,25 @@ function FinancesComponent() {
 
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
-              <div className="space-y-2">
-                <Label htmlFor="filter-status">Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger id="filter-status" className="w-[180px] bg-background border-border">
-                    <SelectValue placeholder="Filtrar por status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Status</SelectItem>
-                    <SelectItem value="completed">Concluídos</SelectItem>
-                    <SelectItem value="cancelled">Cancelados</SelectItem>
-                    <SelectItem value="manual">Lançamentos Manuais</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="filter-date">Data</Label>
-                <Input 
-                  id="filter-date" 
-                  type="date" 
-                  className="w-[180px] bg-background border-border" 
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                />
-              </div>
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setStatusFilter("all");
-                  setDateFilter(new Date().toISOString().split('T')[0]);
-                }}
-                className="h-10 hover:bg-accent hover:text-accent-foreground"
-              >
-                Limpar Filtros
-              </Button>
-            </div>
-
-            <div className="border border-border rounded-xl bg-card text-foreground overflow-hidden shadow-sm">
-              <TransactionsDesktopTable
-                transactions={filteredTransactions}
-                role={role ?? undefined}
-                onEdit={(t) => {
-                  setEditingTransaction(t);
-                  setIsEditDialogOpen(true);
-                }}
-                onOpenDetails={(id) => {
-                  setSelectedAppointmentId(id);
-                  setIsDetailsModalOpen(true);
-                }}
-                onDelete={handleDeleteTransaction}
-              />
-
-              <EditTransactionDialog
-                open={isEditDialogOpen}
-                onOpenChange={(open) => {
-                  if (!open) {
-                    setIsEditDialogOpen(false);
-                    setEditingTransaction(null);
-                  }
-                }}
-                editingTransaction={editingTransaction}
-                setEditingTransaction={setEditingTransaction}
-                onSubmit={handleUpdateTransaction}
-                customers={customers}
-                barbers={barbers}
-              />
-
-
-              {/* Mobile Cards */}
-              <TransactionsMobileList
-                transactions={filteredTransactions}
-                onOpenDetails={(id) => {
-                  setSelectedAppointmentId(id);
-                  setIsDetailsModalOpen(true);
-                }}
-                onEdit={(t) => {
-                  setEditingTransaction(t);
-                  setIsEditDialogOpen(true);
-                }}
-                onDelete={handleDeleteTransaction}
-              />
-
-            </div>
-        </TabsContent>
+            <TransactionsTab
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              dateFilter={dateFilter}
+              setDateFilter={setDateFilter}
+              filteredTransactions={filteredTransactions}
+              role={role}
+              editingTransaction={editingTransaction}
+              setEditingTransaction={setEditingTransaction}
+              isEditDialogOpen={isEditDialogOpen}
+              setIsEditDialogOpen={setIsEditDialogOpen}
+              handleUpdateTransaction={handleUpdateTransaction}
+              handleDeleteTransaction={handleDeleteTransaction}
+              setSelectedAppointmentId={setSelectedAppointmentId}
+              setIsDetailsModalOpen={setIsDetailsModalOpen}
+              customers={customers}
+              barbers={barbers}
+            />
+          </TabsContent>
 
         <TabsContent value="settings">
           <SettingsTab handleClearTestData={handleClearTestData} isClearingData={isClearingData} />
