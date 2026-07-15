@@ -299,23 +299,71 @@ function FinancesComponent() {
     };
   }, [financialSummary, transactions, refundRequests, barbers]);
 
-  useEffect(() => {
-    async function fetchBalances() {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('customers')
-        .select('credits, cashback_balance')
-        .eq("user_id", user.id);
-      
-      if (!error && data) {
-        const totalCred = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
-        const totalCash = data.reduce((acc, curr) => acc + (Number(curr.cashback_balance) || 0), 0);
-        setTotalCredits(totalCred);
-        setTotalCashback(totalCash);
+  // fetchBalances moved into useFinancesData
+
+  async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
+    try {
+      const updatePayload: any = { status: newStatus, updated_at: new Date().toISOString() };
+      if (notes !== undefined) updatePayload.admin_notes = notes;
+      if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
+
+      const { error } = await supabase.from("refund_requests").update(updatePayload).eq("id", refundId);
+      if (error) throw error;
+
+      if (['approved', 'completed', 'rejected'].includes(newStatus)) {
+        const { data: refund } = await supabase
+          .from("refund_requests")
+          .select("appointment_id, amount")
+          .eq("id", refundId)
+          .single();
+        if (refund) {
+          await supabase.functions.invoke('appointment-notifications', {
+            body: {
+              appointmentId: refund.appointment_id,
+              type: 'refund_updated',
+              status: newStatus,
+              amount: refund.amount,
+              updatedBy: { type: 'admin' }
+            }
+          });
+        }
       }
+      if (newStatus === 'completed') {
+        const { data: refund } = await supabase
+          .from("refund_requests")
+          .select("amount, appointment_id, tenant_id, payment_id")
+          .eq("id", refundId)
+          .single();
+        if (refund) {
+          const { data: appt } = await supabase
+            .from("appointments")
+            .select("services(name), customers(name), barber_id")
+            .eq("id", refund.appointment_id)
+            .single();
+          await supabase.from("transactions").insert({
+            amount: refund.amount,
+            type: "expense",
+            description: `Estorno Pago (Pix): ${appt?.services?.name || "Serviço"} - ${appt?.customers?.name || "Cliente"}`,
+            category: "Estorno",
+            barber_id: appt?.barber_id,
+            appointment_id: refund.appointment_id,
+            user_id: refund.tenant_id,
+            tenant_id: refund.tenant_id,
+            date: new Date().toISOString().split('T')[0],
+            payment_method: 'pix',
+            pix_amount: refund.amount
+          });
+          await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", refund.appointment_id);
+        }
+      }
+
+      toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
+      fetchRefundRequests();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atualizar status");
     }
-    if (user) fetchBalances();
-  }, [user, transactions]); // Refresh when transactions change as they might involve credits
+  }
+
 
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
