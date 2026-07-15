@@ -135,42 +135,6 @@ function FinancesComponent() {
   const [refundDateEndFilter, setRefundDateEndFilter] = useState<string>("");
   const [refundSearchTerm, setRefundSearchTerm] = useState<string>("");
 
-  const TIMEZONE = "America/Sao_Paulo";
-
-  const formatTransactionTimeForEdit = (transaction: any) => {
-    if (transaction.appointment?.start_time) {
-      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'HH:mm');
-    }
-    if (typeof transaction.time === 'string') {
-      return transaction.time.substring(0, 5);
-    }
-    return "12:00";
-  };
-
-  const formatTransactionDateForEdit = (transaction: any) => {
-    if (transaction.appointment?.start_time) {
-      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'yyyy-MM-dd');
-    }
-    return transaction.date || new Date().toISOString().split('T')[0];
-  };
-
-  const formatMixedPaymentLabel = (t: any) => {
-    const parts = [];
-    
-    const pix = Number(t.pix_amount || t.appointment?.pix_amount || 0);
-    const cash = Number(t.cash_amount || t.appointment?.cash_amount || 0);
-    const card = Number(t.credit_card_amount || t.debit_card_amount || t.appointment?.credit_card_amount || t.appointment?.debit_card_amount || 0);
-    const credits = Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0);
-    const cashback = Number(t.cashback_amount || t.appointment?.cashback_used || 0);
-
-    if (pix > 0) parts.push(`PIX R$ ${pix.toFixed(2)}`);
-    if (cash > 0) parts.push(`DINHEIRO R$ ${cash.toFixed(2)}`);
-    if (card > 0) parts.push(`CARTÃO R$ ${card.toFixed(2)}`);
-    if (credits > 0) parts.push(`CRÉDITO R$ ${credits.toFixed(2)}`);
-    if (cashback > 0) parts.push(`CASHBACK R$ ${cashback.toFixed(2)}`);
-    
-    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' || t.appointment?.payment_method === 'mixed' ? 'Pagamento Misto' : null);
-  };
   
   const role = authRole || (session ? 'barber' : null);
 
