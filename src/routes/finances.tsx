@@ -53,6 +53,14 @@ import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
 import { AuditTrail } from "@/components/finances/AuditTrail";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
+import {
+  TIMEZONE,
+  formatTransactionTimeForEdit,
+  formatTransactionDateForEdit,
+  formatMixedPaymentLabel,
+  computeBarberPeriodRange,
+  isDateInBarberRange,
+} from "@/lib/finances-helpers";
 
 
 import { BarChart3 } from "lucide-react";
@@ -104,40 +112,11 @@ function FinancesComponent() {
   const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
   const [barberCustomStart, setBarberCustomStart] = useState<string>("");
   const [barberCustomEnd, setBarberCustomEnd] = useState<string>("");
-  const barberPeriodRange = useMemo(() => {
-    const toISO = (d: Date) => d.toISOString().split('T')[0];
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let start: Date | null = today;
-    let end: Date | null = today;
-    if (barberPeriodPreset === "today") { start = today; end = today; }
-    else if (barberPeriodPreset === "yesterday") {
-      const y = new Date(today); y.setDate(y.getDate() - 1); start = y; end = y;
-    }
-    else if (barberPeriodPreset === "week") {
-      const s = new Date(today); s.setDate(s.getDate() - s.getDay()); start = s; end = today;
-    }
-    else if (barberPeriodPreset === "month") {
-      start = new Date(today.getFullYear(), today.getMonth(), 1); end = today;
-    }
-    else if (barberPeriodPreset === "prev_month") {
-      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      end = new Date(today.getFullYear(), today.getMonth(), 0);
-    }
-    else if (barberPeriodPreset === "all") { start = null; end = null; }
-    else if (barberPeriodPreset === "custom") {
-      start = barberCustomStart ? new Date(barberCustomStart + "T00:00:00") : null;
-      end = barberCustomEnd ? new Date(barberCustomEnd + "T00:00:00") : null;
-    }
-    return { start: start ? toISO(start) : null, end: end ? toISO(end) : null };
-  }, [barberPeriodPreset, barberCustomStart, barberCustomEnd]);
-  const inBarberRange = (date?: string | null) => {
-    if (!date) return false;
-    const d = String(date).slice(0, 10);
-    if (barberPeriodRange.start && d < barberPeriodRange.start) return false;
-    if (barberPeriodRange.end && d > barberPeriodRange.end) return false;
-    return true;
-  };
+  const barberPeriodRange = useMemo(
+    () => computeBarberPeriodRange(barberPeriodPreset, barberCustomStart, barberCustomEnd),
+    [barberPeriodPreset, barberCustomStart, barberCustomEnd],
+  );
+  const inBarberRange = (date?: string | null) => isDateInBarberRange(date, barberPeriodRange);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
@@ -156,42 +135,6 @@ function FinancesComponent() {
   const [refundDateEndFilter, setRefundDateEndFilter] = useState<string>("");
   const [refundSearchTerm, setRefundSearchTerm] = useState<string>("");
 
-  const TIMEZONE = "America/Sao_Paulo";
-
-  const formatTransactionTimeForEdit = (transaction: any) => {
-    if (transaction.appointment?.start_time) {
-      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'HH:mm');
-    }
-    if (typeof transaction.time === 'string') {
-      return transaction.time.substring(0, 5);
-    }
-    return "12:00";
-  };
-
-  const formatTransactionDateForEdit = (transaction: any) => {
-    if (transaction.appointment?.start_time) {
-      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'yyyy-MM-dd');
-    }
-    return transaction.date || new Date().toISOString().split('T')[0];
-  };
-
-  const formatMixedPaymentLabel = (t: any) => {
-    const parts = [];
-    
-    const pix = Number(t.pix_amount || t.appointment?.pix_amount || 0);
-    const cash = Number(t.cash_amount || t.appointment?.cash_amount || 0);
-    const card = Number(t.credit_card_amount || t.debit_card_amount || t.appointment?.credit_card_amount || t.appointment?.debit_card_amount || 0);
-    const credits = Number(t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0);
-    const cashback = Number(t.cashback_amount || t.appointment?.cashback_used || 0);
-
-    if (pix > 0) parts.push(`PIX R$ ${pix.toFixed(2)}`);
-    if (cash > 0) parts.push(`DINHEIRO R$ ${cash.toFixed(2)}`);
-    if (card > 0) parts.push(`CARTÃO R$ ${card.toFixed(2)}`);
-    if (credits > 0) parts.push(`CRÉDITO R$ ${credits.toFixed(2)}`);
-    if (cashback > 0) parts.push(`CASHBACK R$ ${cashback.toFixed(2)}`);
-    
-    return parts.length > 0 ? parts.join(' + ') : (t.payment_method === 'mixed' || t.appointment?.payment_method === 'mixed' ? 'Pagamento Misto' : null);
-  };
   
   const role = authRole || (session ? 'barber' : null);
 
