@@ -73,6 +73,7 @@ import {
   computeBarberPeriodRange,
   isDateInBarberRange,
 } from "@/lib/finances-helpers";
+import { useFinancesData } from "@/hooks/use-finances-data";
 
 
 import { BarChart3 } from "lucide-react";
