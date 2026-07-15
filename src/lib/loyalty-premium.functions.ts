@@ -79,7 +79,7 @@ Responda APENAS JSON no formato:
           "Lovable-API-Key": key,
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "openai/gpt-5.5",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
         }),
