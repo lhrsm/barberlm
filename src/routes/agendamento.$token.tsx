@@ -89,6 +89,26 @@ function AppointmentManagementPage() {
     }
   }, [token]);
 
+  // Wave 4: Realtime — reflect reschedules made by the shop/barber while the customer is viewing
+  useEffect(() => {
+    if (!appointment?.id) return;
+    const channel = supabase
+      .channel(`public-appointment-${appointment.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'appointments', filter: `id=eq.${appointment.id}` },
+        () => {
+          fetchAppointment();
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointment?.id]);
+
+
   async function fetchAppointment() {
     setLoading(true);
     console.log("AUDIT [ManagementLink]: Accessing route with token:", token);
