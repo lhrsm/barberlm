@@ -75,6 +75,9 @@ import {
 } from "@/lib/finances-helpers";
 import { useFinancesData } from "@/hooks/use-finances-data";
 import { useTransactionMutations } from "@/hooks/use-transaction-mutations";
+import { useFinancesSummary } from "@/hooks/use-finances-summary";
+import { useFinancesActions } from "@/hooks/use-finances-actions";
+
 
 
 import { BarChart3 } from "lucide-react";
@@ -183,40 +186,14 @@ function FinancesComponent() {
 
   // (data fetching, realtime, and balances moved into useFinancesData)
 
-  const [isClearingData, setIsClearingData] = useState(false);
-
-  const handleClearTestData = async () => {
-    if (!user?.id) return;
-    
-    const confirm = window.confirm(
-      "ATENÇÃO: Isso removerá TODOS os agendamentos, transações, estornos e históricos financeiros desta barbearia. \n\nClientes, barbeiros e serviços serão preservados.\n\nEsta ação NÃO PODE SER DESFEITA. Deseja continuar?"
-    );
-
-    if (!confirm) return;
-
-    setIsClearingData(true);
-    try {
-      const { data, error } = await supabase.rpc('clear_barbershop_financial_data', {
-        p_tenant_id: user.id
-      });
-
-      if (error) throw error;
-
-      toast.success("Dados financeiros limpos com sucesso!");
-      queryClient.invalidateQueries();
-      fetchTransactions();
-      fetchAppointments();
-      fetchRefundRequests();
-      fetchCashbackTransactions();
-      fetchCustomerStats();
-    } catch (err: any) {
-      console.error("Error clearing data:", err);
-      toast.error("Erro ao limpar dados: " + err.message);
-    } finally {
-      setIsClearingData(false);
-    }
-  };
-
+  const { isClearingData, handleClearTestData, handleUpdateRefundStatus } = useFinancesActions({
+    user,
+    fetchTransactions,
+    fetchAppointments,
+    fetchRefundRequests,
+    fetchCashbackTransactions,
+    fetchCustomerStats,
+  });
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -234,137 +211,13 @@ function FinancesComponent() {
     });
   }, [transactions, statusFilter, dateFilter]);
 
-  const summary = useMemo(() => {
-    if (!financialSummary) {
-      return {
-        income: 0,
-        realCashIncome: 0,
-        servicesSold: 0,
-        totalIncome: 0,
-        totalExpense: 0,
-        netRevenue: 0,
-        balance: 0,
-        usedCredits: 0,
-        usedCashback: 0,
-        cashbackConceded: 0,
-        cashbackUsedTotal: 0,
-        freelancersPart: 0,
-        barbershopPart: 0,
-        subscriptionCovered: 0,
-        subscriptionExtra: 0,
-        subscriptionAppointments: 0,
-      };
-    }
+  const summary = useFinancesSummary({
+    financialSummary,
+    transactions,
+    refundRequests: refundRequests || [],
+    barbers,
+  });
 
-    const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + (parseFloat(String(t.amount)) || 0) : acc, 0);
-    const totalRefundsPaid = (refundRequests || [])
-      .filter(r => r && (r.status === 'completed' || r.status === 'paid'))
-      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
-
-    const freelancersPart = barbers.reduce((acc, barber) => {
-      const bApptIds = new Set();
-      const bTotal = transactions
-        .filter(t => t.barber_id === barber.id && t.type === 'income')
-        .reduce((tAcc, t) => {
-          if (t.appointment_id) {
-            if (bApptIds.has(t.appointment_id)) return tAcc;
-            bApptIds.add(t.appointment_id);
-            // Considerar o valor total do serviço para comissão
-            return tAcc + (Number(t.appointment?.original_total || t.appointment?.total_price || t.amount || 0));
-          }
-          return tAcc + (parseFloat(String(t.amount)) || 0);
-        }, 0);
-      return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
-    }, 0);
-
-    const subscriptionCovered = Number(financialSummary.assinatura_coberta || 0);
-    const subscriptionExtra = Number(financialSummary.assinatura_extra || 0);
-    const subscriptionAppointments = Number(financialSummary.atendimentos_assinatura || 0);
-
-    return {
-      income: financialSummary.servicos_vendidos,
-      realCashIncome: financialSummary.entrada_caixa,
-      servicesSold: financialSummary.servicos_vendidos,
-      totalIncome: financialSummary.entrada_caixa,
-      totalExpense,
-      netRevenue: financialSummary.entrada_caixa - totalRefundsPaid,
-      balance: financialSummary.entrada_caixa - totalExpense - totalRefundsPaid,
-      usedCredits: financialSummary.creditos_utilizados,
-      usedCashback: financialSummary.cashback_utilizado,
-      cashbackConceded: financialSummary.cashback_concedido,
-      cashbackUsedTotal: financialSummary.cashback_utilizado,
-      freelancersPart,
-      barbershopPart: financialSummary.servicos_vendidos - freelancersPart,
-      subscriptionCovered,
-      subscriptionExtra,
-      subscriptionAppointments,
-    };
-  }, [financialSummary, transactions, refundRequests, barbers]);
-
-  // fetchBalances moved into useFinancesData
-
-  async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
-    try {
-      const updatePayload: any = { status: newStatus, updated_at: new Date().toISOString() };
-      if (notes !== undefined) updatePayload.admin_notes = notes;
-      if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
-
-      const { error } = await supabase.from("refund_requests").update(updatePayload).eq("id", refundId);
-      if (error) throw error;
-
-      if (['approved', 'completed', 'rejected'].includes(newStatus)) {
-        const { data: refund } = await supabase
-          .from("refund_requests")
-          .select("appointment_id, amount")
-          .eq("id", refundId)
-          .single();
-        if (refund) {
-          await supabase.functions.invoke('appointment-notifications', {
-            body: {
-              appointmentId: refund.appointment_id,
-              type: 'refund_updated',
-              status: newStatus,
-              amount: refund.amount,
-              updatedBy: { type: 'admin' }
-            }
-          });
-        }
-      }
-      if (newStatus === 'completed') {
-        const { data: refund } = await supabase
-          .from("refund_requests")
-          .select("amount, appointment_id, tenant_id, payment_id")
-          .eq("id", refundId)
-          .single();
-        if (refund) {
-          const { data: appt } = await supabase
-            .from("appointments")
-            .select("services(name), customers(name), barber_id")
-            .eq("id", refund.appointment_id)
-            .single();
-          await supabase.from("transactions").insert({
-            amount: refund.amount,
-            type: "expense",
-            description: `Estorno Pago (Pix): ${appt?.services?.name || "Serviço"} - ${appt?.customers?.name || "Cliente"}`,
-            category: "Estorno",
-            barber_id: appt?.barber_id,
-            appointment_id: refund.appointment_id,
-            user_id: refund.tenant_id,
-            tenant_id: refund.tenant_id,
-            date: new Date().toISOString().split('T')[0],
-            payment_method: 'pix',
-            pix_amount: refund.amount
-          });
-          await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", refund.appointment_id);
-        }
-      }
-
-      toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
-      fetchRefundRequests();
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao atualizar status");
-    }
-  }
 
 
   const { handleAddTransaction, handleUpdateTransaction, handleDeleteTransaction } = useTransactionMutations({
