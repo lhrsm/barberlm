@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
+import { AdminAiAssistant } from "@/components/admin/AdminAiAssistant";
 
 
 export const Route = createFileRoute("/admin")({
@@ -135,6 +136,7 @@ function AdminLayout() {
   return (
     <div className="flex flex-col h-screen bg-black text-white selection:bg-purple-500/30">
       <AdminCommandPalette />
+      <AdminAiAssistant />
       {/* Top Header */}
       <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 glass bg-black/40 sticky top-0 z-40">
         <div className="flex items-center gap-4">
