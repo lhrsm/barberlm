@@ -7634,6 +7634,23 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_executive_kpis: { Args: never; Returns: Json }
+      admin_tenant_health: {
+        Args: { p_limit?: number }
+        Returns: {
+          appointments_30d: number
+          business_name: string
+          created_at: string
+          days_since_activity: number
+          health_score: number
+          last_appointment_at: string
+          open_tickets: number
+          plan: string
+          risk_level: string
+          tenant_id: string
+          whatsapp_connected: boolean
+        }[]
+      }
       assert_comanda_access: {
         Args: { p_appointment_id: string }
         Returns: string

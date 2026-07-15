@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
 
 
 export const Route = createFileRoute("/admin")({
@@ -133,6 +134,7 @@ function AdminLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-black text-white selection:bg-purple-500/30">
+      <AdminCommandPalette />
       {/* Top Header */}
       <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 glass bg-black/40 sticky top-0 z-40">
         <div className="flex items-center gap-4">
@@ -145,6 +147,12 @@ function AdminLayout() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold text-white/60 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
+            onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            title="Busca rápida (⌘K)"
+          >
+            ⌘K
+          </kbd>
           <AdminNotifications />
           <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30 transition-colors">SUPER ADMIN</Badge>
           <div className="hidden md:block">

@@ -31,6 +31,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { AdminChartsTab } from "@/components/admin/AdminChartsTab";
 import { SaasMetricsCards } from "@/components/admin/SaasMetricsCards";
+import { ExecutiveKpis } from "@/components/admin/ExecutiveKpis";
+import { TenantHealthList } from "@/components/admin/TenantHealthList";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -203,6 +205,13 @@ function AdminDashboard() {
 
       {/* SaaS Metrics (MRR/ARR/Churn/Conversion) */}
       <SaasMetricsCards />
+
+      {/* Executive KPIs — real MRR/ARR/Churn/ARPU/LTV/Signups */}
+      <ExecutiveKpis />
+
+      {/* Tenant Health Score — priorize contato com clientes em risco */}
+      <TenantHealthList />
+
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
