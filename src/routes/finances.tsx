@@ -53,6 +53,8 @@ import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
 import { AuditTrail } from "@/components/finances/AuditTrail";
 import { RefundsTab } from "@/components/finances/RefundsTab";
+import { PendingTab } from "@/components/finances/PendingTab";
+import { SettingsTab } from "@/components/finances/SettingsTab";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
@@ -2019,127 +2021,21 @@ function FinancesComponent() {
             </div>
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-4">
-          <Card className="border-red-200">
-            <CardHeader>
-              <CardTitle className="text-red-600 flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
-                Zona de Perigo
-              </CardTitle>
-              <CardDescription>
-                Ações irreversíveis para gerenciamento de dados da barbearia.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg bg-red-50 gap-4">
-                <div>
-                  <h4 className="font-semibold text-red-900">Limpar Dados Financeiros de Teste</h4>
-                  <p className="text-sm text-red-700">
-                    Remove todos os agendamentos, transações, cashback e créditos. 
-                    Útil para resetar a barbearia após o período de testes.
-                  </p>
-                  <p className="text-xs text-red-600 mt-1 font-medium">
-                    * Clientes, Barbeiros, Serviços e Configurações serão mantidos.
-                  </p>
-                </div>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleClearTestData}
-                  disabled={isClearingData}
-                  className="whitespace-nowrap"
-                >
-                  {isClearingData ? (
-                    <>
-                      <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-                      Limpando...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Limpar Tudo
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="settings">
+          <SettingsTab handleClearTestData={handleClearTestData} isClearingData={isClearingData} />
         </TabsContent>
 
-
           <TabsContent value="pending" className="pt-4">
-            <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
-              <Table className="min-w-[800px] md:min-w-0">
-                <TableHeader className="bg-background">
-                  <TableRow className="hover:bg-transparent border-border">
-                    <TableHead className="w-[100px] text-muted-foreground">Data</TableHead>
-                    <TableHead className="w-[100px] text-muted-foreground">Hora</TableHead>
-                    <TableHead className="text-muted-foreground">Cliente</TableHead>
-                    <TableHead className="text-muted-foreground">Serviço</TableHead>
-                    {role !== 'barber' && <TableHead className="text-muted-foreground">Barbeiro</TableHead>}
-                    <TableHead className="text-right text-muted-foreground">Valor</TableHead>
-                    <TableHead className="text-right text-muted-foreground">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {appointments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={role !== 'barber' ? 7 : 6} className="text-center py-8 text-muted-foreground">
-                        Nenhum agendamento pendente de pagamento.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    appointments.map((app) => (
-                      <TableRow key={app.id} className="border-border hover:bg-muted/50 transition-colors">
-                        <TableCell className="whitespace-nowrap text-foreground">
-                          {new Date(app.start_time).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm font-medium text-foreground">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                        </TableCell>
-                        <TableCell className="font-medium text-foreground">{app.customers?.name || "Cliente"}</TableCell>
-                        <TableCell className="text-muted-foreground">{app.services?.name || "Serviço"}</TableCell>
-                        {role !== 'barber' && <TableCell>{app.barber?.name || "Geral"}</TableCell>}
-                        <TableCell className="text-right font-bold text-yellow-500">
-                          R$ {(parseFloat(String(app.total_price)) || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={() => {
-                                setSelectedAppointmentId(app.id);
-                                setIsDetailsModalOpen(true);
-                              }}
-                            >
-                              <Check size={14} /> Confirmar / Detalhes
-                            </Button>
-                             <Button 
-                               variant="ghost" 
-                               size="sm" 
-                               className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                               onClick={() => {
-                                 // Navegar para a página pública de gerenciamento de agendamento usando o token
-                                 if (app.management_token) {
-                                   window.open(`/agendamento/${app.management_token}`, '_blank');
-                                 } else {
-                                   setSelectedAppointmentId(app.id);
-                                   setIsDetailsModalOpen(true);
-                                 }
-                               }}
-                             >
-                               <X size={14} /> Cancelar (Via Link Público)
-                             </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <PendingTab
+              appointments={appointments}
+              role={role}
+              onOpenDetails={(id) => {
+                setSelectedAppointmentId(id);
+                setIsDetailsModalOpen(true);
+              }}
+            />
           </TabsContent>
+
 
           <TabsContent value="barbers" className="pt-4 space-y-4">
             <div className="flex flex-wrap gap-3 items-end bg-card p-4 border border-border rounded-xl text-foreground">
