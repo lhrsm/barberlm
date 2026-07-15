@@ -635,14 +635,34 @@ function CalendarComponent() {
         appointmentId={selectedAppointmentId}
         onSuccess={() => fetchData()}
         onReschedule={(app) => {
-          setModalInitialData({
-            date: format(parseISO(app.start_time), "yyyy-MM-dd"),
-            time: format(parseISO(app.start_time), "HH:mm"),
-            step: 1,
-            editingId: app.id
-          });
-          setIsDialogOpen(true);
+          setRescheduleAppt(app);
+          setRescheduleOpen(true);
         }}
+      />
+
+      <RescheduleWizard
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        appointment={
+          rescheduleAppt
+            ? {
+                id: rescheduleAppt.id,
+                tenant_id: rescheduleAppt.tenant_id || rescheduleAppt.user_id,
+                customer_id: rescheduleAppt.customer_id,
+                customer_name: rescheduleAppt.customer_name || rescheduleAppt.customers?.name,
+                service_id: rescheduleAppt.service_id,
+                service_name: rescheduleAppt.service_name || rescheduleAppt.services?.name,
+                barber_id: rescheduleAppt.barber_id,
+                barber_name: rescheduleAppt.barber_name || rescheduleAppt.barbers?.name,
+                start_time: rescheduleAppt.start_time,
+                end_time: rescheduleAppt.end_time,
+                appointment_group_id: rescheduleAppt.appointment_group_id,
+              }
+            : null
+        }
+        actor={role === "barber" ? "barber" : "shop"}
+        source="admin_calendar"
+        onSuccess={() => fetchData()}
       />
     </AppLayout>
   );
