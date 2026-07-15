@@ -206,6 +206,13 @@ function AdminDashboard() {
       {/* SaaS Metrics (MRR/ARR/Churn/Conversion) */}
       <SaasMetricsCards />
 
+      {/* Executive KPIs — real MRR/ARR/Churn/ARPU/LTV/Signups */}
+      <ExecutiveKpis />
+
+      {/* Tenant Health Score — priorize contato com clientes em risco */}
+      <TenantHealthList />
+
+
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
