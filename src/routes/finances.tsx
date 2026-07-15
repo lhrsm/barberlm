@@ -58,6 +58,7 @@ import { SettingsTab } from "@/components/finances/SettingsTab";
 import { BarbersTab } from "@/components/finances/BarbersTab";
 import { EditTransactionDialog } from "@/components/finances/EditTransactionDialog";
 import { TransactionsMobileList } from "@/components/finances/TransactionsMobileList";
+import { TransactionsTab } from "@/components/finances/TransactionsTab";
 import { TransactionsDesktopTable } from "@/components/finances/TransactionsDesktopTable";
 import { KpiCards } from "@/components/finances/KpiCards";
 import { FinancesHeader } from "@/components/finances/FinancesHeader";
