@@ -29,6 +29,7 @@ export function AdminAiAssistant() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const ask = useServerFn(askAdminAssistant);
   const mutation = useMutation({
