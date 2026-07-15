@@ -55,6 +55,7 @@ import { AuditTrail } from "@/components/finances/AuditTrail";
 import { RefundsTab } from "@/components/finances/RefundsTab";
 import { PendingTab } from "@/components/finances/PendingTab";
 import { SettingsTab } from "@/components/finances/SettingsTab";
+import { BarbersTab } from "@/components/finances/BarbersTab";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
