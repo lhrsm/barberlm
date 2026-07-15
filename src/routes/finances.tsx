@@ -1451,7 +1451,7 @@ function FinancesComponent() {
             <div className="border border-border rounded-xl bg-card text-foreground overflow-hidden shadow-sm">
               <TransactionsDesktopTable
                 transactions={filteredTransactions}
-                role={role}
+                role={role ?? undefined}
                 onEdit={(t) => {
                   setEditingTransaction(t);
                   setIsEditDialogOpen(true);
