@@ -91,10 +91,6 @@ function FinancesComponent() {
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [barbers, setBarbers] = useState<any[]>([]);
-  const [barberCommissionSummaries, setBarberCommissionSummaries] = useState<Record<string, any>>({});
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ 
     amount: "", 
@@ -119,7 +115,6 @@ function FinancesComponent() {
   const [globalPeriod, setGlobalPeriod] = useState<ReportPeriod>("month");
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
-
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
   const [barberCustomStart, setBarberCustomStart] = useState<string>("");
@@ -131,24 +126,46 @@ function FinancesComponent() {
   const inBarberRange = (date?: string | null) => isDateInBarberRange(date, barberPeriodRange);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [refundRequests, setRefundRequests] = useState<any[]>([]);
-  const [loadingRefunds, setLoadingRefunds] = useState(false);
-  const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
-  const [customerStats, setCustomerStats] = useState({ total_cashback: 0, total_credits: 0 });
-  const [customers, setCustomers] = useState<any[]>([]);
-  
+
   const user = authUser || (session ? { id: session.barber_id } : null);
   const loading = authLoading || profLoading;
   const { summary: financialSummary, isLoading: loadingFinancial } = useFinancial(user?.id || null, dateFilter, dateFilter);
-  
+
   // Refund filters
   const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
   const [refundDateStartFilter, setRefundDateStartFilter] = useState<string>("");
   const [refundDateEndFilter, setRefundDateEndFilter] = useState<string>("");
   const [refundSearchTerm, setRefundSearchTerm] = useState<string>("");
 
-  
   const role = authRole || (session ? 'barber' : null);
+
+  const {
+    transactions,
+    appointments,
+    barbers,
+    barberCommissionSummaries,
+    refundRequests,
+    loadingRefunds,
+    cashbackTransactions,
+    customerStats,
+    customers,
+    totalCredits,
+    totalCashback,
+    fetchTransactions,
+    fetchAppointments,
+    fetchRefundRequests,
+    fetchCashbackTransactions,
+    fetchCustomerStats,
+    fetchBarberCommissionSummaries,
+  } = useFinancesData({
+    user,
+    role,
+    barberPeriodRange,
+    refundStatusFilter,
+    refundDateStartFilter,
+    refundDateEndFilter,
+    refundSearchTerm,
+  });
 
   useEffect(() => {
     if (!loading && !user) {
