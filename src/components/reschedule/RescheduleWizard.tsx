@@ -619,10 +619,7 @@ export function RescheduleWizard({
   );
 }
 
-      </DialogContent>
-    </Dialog>
-  );
-}
+
 
 function SummaryRow({
   icon,
