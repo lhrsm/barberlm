@@ -39,7 +39,7 @@ interface BarberOption {
   id: string;
   name: string;
   avatar_url?: string | null;
-  specialty?: string | null;
+  specialties?: string[] | null;
   category?: string | null;
   working_hours?: any;
   is_active?: boolean;
@@ -100,7 +100,7 @@ export function RescheduleWizard({
         // 1) All active barbers of the tenant (mirrors the new-appointment flow)
         const { data: activeBarbers, error: barbersErr } = await supabase
           .from("barbers")
-          .select("id, name, avatar_url, specialty, category, working_hours, active, user_id, tenant_id")
+          .select("id, name, avatar_url, specialties, category, working_hours, active, user_id, tenant_id")
           .or(`user_id.eq.${appointment.tenant_id},tenant_id.eq.${appointment.tenant_id}`)
           .eq("active", true)
           .order("name");
@@ -123,7 +123,7 @@ export function RescheduleWizard({
             id: b.id,
             name: b.name,
             avatar_url: b.avatar_url,
-            specialty: b.specialty,
+            specialties: b.specialties,
             category: b.category,
             working_hours: b.working_hours,
             is_active: b.active,
@@ -134,14 +134,14 @@ export function RescheduleWizard({
         if (!map.has(appointment.barber_id)) {
           const { data: cur } = await supabase
             .from("barbers")
-            .select("id, name, avatar_url, specialty, category, working_hours, active")
+            .select("id, name, avatar_url, specialties, category, working_hours, active")
             .eq("id", appointment.barber_id)
             .maybeSingle();
           if (cur) {
             const c: any = cur;
             map.set(c.id, {
               id: c.id, name: c.name, avatar_url: c.avatar_url,
-              specialty: c.specialty, category: c.category,
+              specialties: c.specialties, category: c.category,
               working_hours: c.working_hours, is_active: c.active,
             });
           }
@@ -188,8 +188,9 @@ export function RescheduleWizard({
         const wh = (barber.working_hours as any)?.[dayKey];
         if (!wh || !wh.enabled) return;
 
-        const startDay = `${selectedDate}T00:00:00.000Z`;
-        const endDay = `${selectedDate}T23:59:59.999Z`;
+        const [y, m, d] = selectedDate.split("-").map(Number);
+        const startDay = new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
+        const endDay = new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
         const { data: dayAppts } = await supabase
           .from("appointments")
           .select("id, start_time, end_time, status")
@@ -200,7 +201,6 @@ export function RescheduleWizard({
 
         const [startHour, startMin] = String(wh.start).split(":").map(Number);
         const [endHour, endMin] = String(wh.end).split(":").map(Number);
-        const [y, m, d] = selectedDate.split("-").map(Number);
         const now = new Date();
         const results: string[] = [];
         for (let hour = startHour; hour <= endHour; hour++) {
@@ -409,6 +409,7 @@ export function RescheduleWizard({
                   {barbers.map((b) => {
                     const isCurrent = b.id === appointment.barber_id;
                     const isSelected = selectedBarberId === b.id;
+                    const specialtyText = [b.category, ...(b.specialties || [])].filter(Boolean).join(" • ");
                     return (
                       <button
                         key={b.id}
@@ -442,8 +443,8 @@ export function RescheduleWizard({
                               </Badge>
                             )}
                           </div>
-                          {(b.category || b.specialty) && (
-                            <p className="text-xs text-gray-400 truncate">{[b.category, b.specialty].filter(Boolean).join(" • ")}</p>
+                          {specialtyText && (
+                            <p className="text-xs text-gray-400 truncate">{specialtyText}</p>
                           )}
                         </div>
                         {isSelected && <Check className="h-5 w-5 text-[#D4AF37] shrink-0" />}
