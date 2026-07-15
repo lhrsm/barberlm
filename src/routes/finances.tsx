@@ -1,88 +1,34 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search, Eye, TicketPercent, AlertCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-import { Handshake } from "lucide-react";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History, Crown, Calculator, FileDown } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { formatInTimeZone, toDate } from "date-fns-tz";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { useFinancial } from "@/hooks/use-financial";
-import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
-import { AuditTrail } from "@/components/finances/AuditTrail";
 import { RefundsTab } from "@/components/finances/RefundsTab";
 import { PendingTab } from "@/components/finances/PendingTab";
 import { SettingsTab } from "@/components/finances/SettingsTab";
 import { BarbersTab } from "@/components/finances/BarbersTab";
-import { EditTransactionDialog } from "@/components/finances/EditTransactionDialog";
-import { TransactionsMobileList } from "@/components/finances/TransactionsMobileList";
 import { TransactionsTab } from "@/components/finances/TransactionsTab";
-import { TransactionsDesktopTable } from "@/components/finances/TransactionsDesktopTable";
 import { KpiCards } from "@/components/finances/KpiCards";
 import { FinancesHeader } from "@/components/finances/FinancesHeader";
 import { FinancesTabsList } from "@/components/finances/FinancesTabsList";
 import { NovaTransacaoDialog } from "@/components/finances/NovaTransacaoDialog";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
-import {
-  TIMEZONE,
-  formatTransactionTimeForEdit,
-  formatTransactionDateForEdit,
-  formatMixedPaymentLabel,
-  computeBarberPeriodRange,
-  isDateInBarberRange,
-} from "@/lib/finances-helpers";
+import { computeBarberPeriodRange, isDateInBarberRange } from "@/lib/finances-helpers";
 import { useFinancesData } from "@/hooks/use-finances-data";
 import { useTransactionMutations } from "@/hooks/use-transaction-mutations";
 import { useFinancesSummary } from "@/hooks/use-finances-summary";
 import { useFinancesActions } from "@/hooks/use-finances-actions";
-
-
-
-import { BarChart3 } from "lucide-react";
-
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
