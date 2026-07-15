@@ -53,6 +53,14 @@ import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
 import { AuditTrail } from "@/components/finances/AuditTrail";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
+import {
+  TIMEZONE,
+  formatTransactionTimeForEdit,
+  formatTransactionDateForEdit,
+  formatMixedPaymentLabel,
+  computeBarberPeriodRange,
+  isDateInBarberRange,
+} from "@/lib/finances-helpers";
 
 
 import { BarChart3 } from "lucide-react";
