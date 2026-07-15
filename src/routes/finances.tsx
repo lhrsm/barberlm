@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState, useMemo } from "react";
+import { useFinancesFilters } from "@/hooks/use-finances-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
