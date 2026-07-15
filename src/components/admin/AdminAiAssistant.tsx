@@ -48,9 +48,7 @@ export function AdminAiAssistant() {
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, mutation.isPending]);
 
   const send = (text: string) => {
