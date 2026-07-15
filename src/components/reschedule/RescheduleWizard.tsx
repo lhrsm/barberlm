@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, addMinutes, isSameDay } from "date-fns";
+import { format, parseISO, addMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -39,21 +39,11 @@ interface BarberOption {
   id: string;
   name: string;
   avatar_url?: string | null;
-  specialty?: string | null;
+  specialties?: string[] | null;
   category?: string | null;
   working_hours?: any;
   is_active?: boolean;
 }
-
-const DAY_MAP: Record<string, string> = {
-  "segunda-feira": "monday",
-  "terça-feira": "tuesday",
-  "quarta-feira": "wednesday",
-  "quinta-feira": "thursday",
-  "sexta-feira": "friday",
-  sábado: "saturday",
-  domingo: "sunday",
-};
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -97,75 +87,34 @@ export function RescheduleWizard({
     (async () => {
       setLoadingBarbers(true);
       try {
-        // 1) All active barbers of the tenant (mirrors the new-appointment flow)
-        const { data: activeBarbers, error: barbersErr } = await supabase
-          .from("barbers")
-          .select("id, name, avatar_url, specialty, category, working_hours, active, user_id, tenant_id")
-          .or(`user_id.eq.${appointment.tenant_id},tenant_id.eq.${appointment.tenant_id}`)
-          .eq("active", true)
-          .order("name");
-        if (barbersErr) console.warn("[RescheduleWizard] barbers query error", barbersErr);
+        const { data, error } = await supabase.rpc("get_reschedule_options" as any, {
+          p_appointment_id: appointment.id,
+        } as any);
+        if (error) throw error;
 
-        // 2) barber_services links for this service
-        const { data: bsLinks } = await supabase
-          .from("barber_services")
-          .select("barber_id")
-          .eq("service_id", appointment.service_id);
-        const linkedIds = new Set((bsLinks || []).map((r: any) => r.barber_id));
+        const payload = data as any;
+        if (!payload?.success) throw new Error(payload?.error || "Falha ao carregar profissionais");
 
-        const map = new Map<string, BarberOption>();
-        (activeBarbers || []).forEach((b: any) => {
-          // If there are links for this service, restrict to linked barbers.
-          // If no links exist at all, fall back to showing every active barber
-          // (some tenants haven't configured barber_services yet).
-          if (linkedIds.size > 0 && !linkedIds.has(b.id)) return;
-          map.set(b.id, {
-            id: b.id,
-            name: b.name,
-            avatar_url: b.avatar_url,
-            specialty: b.specialty,
-            category: b.category,
-            working_hours: b.working_hours,
-            is_active: b.active,
-          });
-        });
-
-        // Ensure current barber is always present
-        if (!map.has(appointment.barber_id)) {
-          const { data: cur } = await supabase
-            .from("barbers")
-            .select("id, name, avatar_url, specialty, category, working_hours, active")
-            .eq("id", appointment.barber_id)
-            .maybeSingle();
-          if (cur) {
-            const c: any = cur;
-            map.set(c.id, {
-              id: c.id, name: c.name, avatar_url: c.avatar_url,
-              specialty: c.specialty, category: c.category,
-              working_hours: c.working_hours, is_active: c.active,
-            });
-          }
-        }
-        const list = Array.from(map.values());
-        // Current barber first
-        list.sort((a, b) =>
-          a.id === appointment.barber_id ? -1 : b.id === appointment.barber_id ? 1 : a.name.localeCompare(b.name),
-        );
+        const list = ((payload.barbers || []) as any[]).map((b) => ({
+          id: b.id,
+          name: b.name,
+          avatar_url: b.avatar_url,
+          specialties: Array.isArray(b.specialties) ? b.specialties : [],
+          category: b.category,
+          working_hours: b.working_hours,
+          is_active: b.is_active,
+        }));
         setBarbers(list);
-        console.log("[RescheduleWizard] barbers loaded", { count: list.length, linked: linkedIds.size });
-
-        // Service duration
-        const { data: svc } = await supabase
-          .from("services")
-          .select("duration_minutes")
-          .eq("id", appointment.service_id)
-          .maybeSingle();
-        if ((svc as any)?.duration_minutes) setDurationMinutes((svc as any).duration_minutes);
+        if (payload.durationMinutes) setDurationMinutes(Number(payload.durationMinutes));
         else if (appointment.end_time) {
           const s = parseISO(appointment.start_time).getTime();
           const e = parseISO(appointment.end_time).getTime();
           setDurationMinutes(Math.max(15, Math.round((e - s) / 60000)));
         }
+        console.log("[RescheduleWizard] barbers loaded", { count: list.length });
+      } catch (err) {
+        console.warn("[RescheduleWizard] failed to load barbers", err);
+        setBarbers([]);
       } finally {
         setLoadingBarbers(false);
       }
@@ -180,51 +129,25 @@ export function RescheduleWizard({
       setFetchingTimes(true);
       setTimes([]);
       try {
-        const barber = barbers.find((b) => b.id === selectedBarberId);
-        if (!barber) return;
-        const dateObj = parseISO(selectedDate);
-        const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
-        const dayKey = DAY_MAP[dayName] || dayName;
-        const wh = (barber.working_hours as any)?.[dayKey];
-        if (!wh || !wh.enabled) return;
+        const { data, error } = await supabase.rpc("get_reschedule_options" as any, {
+          p_appointment_id: appointment.id,
+          p_barber_id: selectedBarberId,
+          p_date: selectedDate,
+        } as any);
+        if (error) throw error;
 
-        const startDay = `${selectedDate}T00:00:00.000Z`;
-        const endDay = `${selectedDate}T23:59:59.999Z`;
-        const { data: dayAppts } = await supabase
-          .from("appointments")
-          .select("id, start_time, end_time, status")
-          .eq("barber_id", selectedBarberId)
-          .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment", "pending"])
-          .gte("start_time", startDay)
-          .lte("start_time", endDay);
-
-        const [startHour, startMin] = String(wh.start).split(":").map(Number);
-        const [endHour, endMin] = String(wh.end).split(":").map(Number);
-        const [y, m, d] = selectedDate.split("-").map(Number);
-        const now = new Date();
-        const results: string[] = [];
-        for (let hour = startHour; hour <= endHour; hour++) {
-          for (let min = hour === startHour ? startMin : 0; min < 60; min += 30) {
-            if (hour === endHour && min >= endMin) break;
-            const checkTime = new Date(y, m - 1, d, hour, min, 0);
-            if (isSameDay(checkTime, now) && checkTime < now) continue;
-            const checkMs = checkTime.getTime();
-            const endMs = checkMs + durationMinutes * 60 * 1000;
-            const busy = (dayAppts || []).some((app: any) => {
-              if (app.id === appointment.id) return false;
-              const s = parseISO(app.start_time).getTime();
-              const e = parseISO(app.end_time).getTime();
-              return checkMs < e && endMs > s;
-            });
-            if (!busy) results.push(`${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`);
-          }
-        }
-        setTimes(results);
+        const payload = data as any;
+        if (!payload?.success) throw new Error(payload?.error || "Falha ao carregar horários");
+        setTimes(Array.isArray(payload.times) ? payload.times : []);
+        if (payload.durationMinutes) setDurationMinutes(Number(payload.durationMinutes));
+      } catch (err) {
+        console.warn("[RescheduleWizard] failed to load times", err);
+        setTimes([]);
       } finally {
         setFetchingTimes(false);
       }
     })();
-  }, [step, selectedBarberId, selectedDate, appointment?.id, durationMinutes, barbers]);
+  }, [step, selectedBarberId, selectedDate, appointment?.id]);
 
   const originalBarberName = useMemo(
     () => barbers.find((b) => b.id === appointment?.barber_id)?.name || appointment?.barber_name || "",
@@ -409,6 +332,7 @@ export function RescheduleWizard({
                   {barbers.map((b) => {
                     const isCurrent = b.id === appointment.barber_id;
                     const isSelected = selectedBarberId === b.id;
+                    const specialtyText = [b.category, ...(b.specialties || [])].filter(Boolean).join(" • ");
                     return (
                       <button
                         key={b.id}
@@ -442,8 +366,8 @@ export function RescheduleWizard({
                               </Badge>
                             )}
                           </div>
-                          {(b.category || b.specialty) && (
-                            <p className="text-xs text-gray-400 truncate">{[b.category, b.specialty].filter(Boolean).join(" • ")}</p>
+                          {specialtyText && (
+                            <p className="text-xs text-gray-400 truncate">{specialtyText}</p>
                           )}
                         </div>
                         {isSelected && <Check className="h-5 w-5 text-[#D4AF37] shrink-0" />}
@@ -464,7 +388,10 @@ export function RescheduleWizard({
                 type="date"
                 min={format(new Date(), "yyyy-MM-dd")}
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value);
+                  setSelectedTime("");
+                }}
                 className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:border-[#D4AF37] outline-none [color-scheme:dark]"
               />
               {selectedBarber && (

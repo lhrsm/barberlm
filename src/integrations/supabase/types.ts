@@ -8059,6 +8059,14 @@ export type Database = {
           uses_this_period: number
         }[]
       }
+      get_reschedule_options: {
+        Args: {
+          p_appointment_id: string
+          p_barber_id?: string
+          p_date?: string
+        }
+        Returns: Json
+      }
       get_review_by_token: { Args: { _token: string }; Returns: Json }
       get_server_info: { Args: never; Returns: Json }
       get_subscriber_months: {
