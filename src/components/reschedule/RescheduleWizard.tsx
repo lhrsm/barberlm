@@ -400,7 +400,10 @@ export function RescheduleWizard({
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]" />
                 </div>
               ) : barbers.length === 0 ? (
-                <p className="text-sm text-gray-400 py-6 text-center">Nenhum profissional disponível para este serviço.</p>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center space-y-2">
+                  <p className="text-sm text-white/80 font-semibold">Nenhum profissional está vinculado a este serviço.</p>
+                  <p className="text-xs text-gray-400">Entre em contato com a barbearia.</p>
+                </div>
               ) : (
                 <div className="grid gap-2 max-h-[340px] overflow-y-auto p-1">
                   {barbers.map((b) => {
@@ -410,7 +413,12 @@ export function RescheduleWizard({
                       <button
                         key={b.id}
                         type="button"
-                        onClick={() => setSelectedBarberId(b.id)}
+                        onClick={() => {
+                          if (b.id !== selectedBarberId) {
+                            setSelectedBarberId(b.id);
+                            setSelectedTime("");
+                          }
+                        }}
                         className={cn(
                           "w-full text-left rounded-2xl border p-3 flex items-center gap-3 transition-all",
                           isSelected
@@ -419,9 +427,9 @@ export function RescheduleWizard({
                         )}
                       >
                         {b.avatar_url ? (
-                          <img src={b.avatar_url} alt={b.name} className="h-11 w-11 rounded-full object-cover" />
+                          <img src={b.avatar_url} alt={b.name} className="h-11 w-11 rounded-full object-cover shrink-0" />
                         ) : (
-                          <div className="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center">
+                          <div className="h-11 w-11 shrink-0 rounded-full bg-white/10 flex items-center justify-center">
                             <User className="h-5 w-5 text-white/70" />
                           </div>
                         )}
@@ -438,12 +446,13 @@ export function RescheduleWizard({
                             <p className="text-xs text-gray-400 truncate">{[b.category, b.specialty].filter(Boolean).join(" • ")}</p>
                           )}
                         </div>
-                        {isSelected && <Check className="h-5 w-5 text-[#D4AF37]" />}
+                        {isSelected && <Check className="h-5 w-5 text-[#D4AF37] shrink-0" />}
                       </button>
                     );
                   })}
                 </div>
               )}
+
             </div>
           )}
 
