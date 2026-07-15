@@ -52,6 +52,7 @@ import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialo
 import { ManagerialView } from "@/components/finances/ManagerialView";
 import { CouponsView } from "@/components/finances/CouponsView";
 import { AuditTrail } from "@/components/finances/AuditTrail";
+import { RefundsTab } from "@/components/finances/RefundsTab";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
