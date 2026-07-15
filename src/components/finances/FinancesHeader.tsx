@@ -29,6 +29,7 @@ export function FinancesHeader({
   onExportPdf,
   onSyncAll,
   onRecalculateBalances,
+  children,
 }: FinancesHeaderProps) {
   return (
     <div className="flex flex-col gap-4">
