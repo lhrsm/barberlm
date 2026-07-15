@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState, useMemo } from "react";
+import { useFinancesFilters } from "@/hooks/use-finances-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -21,8 +22,7 @@ import { KpiCards } from "@/components/finances/KpiCards";
 import { FinancesHeader } from "@/components/finances/FinancesHeader";
 import { FinancesTabsList } from "@/components/finances/FinancesTabsList";
 import { NovaTransacaoDialog } from "@/components/finances/NovaTransacaoDialog";
-import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
-import { computeBarberPeriodRange, isDateInBarberRange } from "@/lib/finances-helpers";
+import { exportFinancesPdf, periodLabel } from "@/lib/finances-pdf";
 import { useFinancesData } from "@/hooks/use-finances-data";
 import { useTransactionMutations } from "@/hooks/use-transaction-mutations";
 import { useFinancesSummary } from "@/hooks/use-finances-summary";
@@ -61,32 +61,29 @@ function FinancesComponent() {
   });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [financeTab, setFinanceTab] = useState<string>("transactions");
-  const [globalPeriod, setGlobalPeriod] = useState<ReportPeriod>("month");
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-
-  const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");
-  const [barberCustomStart, setBarberCustomStart] = useState<string>("");
-  const [barberCustomEnd, setBarberCustomEnd] = useState<string>("");
-  const barberPeriodRange = useMemo(
-    () => computeBarberPeriodRange(barberPeriodPreset, barberCustomStart, barberCustomEnd),
-    [barberPeriodPreset, barberCustomStart, barberCustomEnd],
-  );
-  const inBarberRange = (date?: string | null) => isDateInBarberRange(date, barberPeriodRange);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  const {
+    statusFilter, setStatusFilter,
+    dateFilter, setDateFilter,
+    financeTab, setFinanceTab,
+    globalPeriod, setGlobalPeriod,
+    barberPeriodPreset, setBarberPeriodPreset,
+    barberCustomStart, setBarberCustomStart,
+    barberCustomEnd, setBarberCustomEnd,
+    barberPeriodRange,
+    inBarberRange,
+    refundStatusFilter, setRefundStatusFilter,
+    refundDateStartFilter, setRefundDateStartFilter,
+    refundDateEndFilter, setRefundDateEndFilter,
+    refundSearchTerm, setRefundSearchTerm,
+  } = useFinancesFilters();
 
   const user = authUser || (session ? { id: session.barber_id } : null);
   const loading = authLoading || profLoading;
   const { summary: financialSummary, isLoading: loadingFinancial } = useFinancial(user?.id || null, dateFilter, dateFilter);
-
-  // Refund filters
-  const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
-  const [refundDateStartFilter, setRefundDateStartFilter] = useState<string>("");
-  const [refundDateEndFilter, setRefundDateEndFilter] = useState<string>("");
-  const [refundSearchTerm, setRefundSearchTerm] = useState<string>("");
 
   const role = authRole || (session ? 'barber' : null);
 
