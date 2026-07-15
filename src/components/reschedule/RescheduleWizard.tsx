@@ -566,32 +566,59 @@ export function RescheduleWizard({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-2 pt-3 border-t border-white/5 mt-2">
-          <Button
-            variant="ghost"
-            onClick={step === 1 ? () => onOpenChange(false) : goBack}
-            disabled={submitting}
-            className="text-gray-400 hover:text-white"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" /> {step === 1 ? "Fechar" : "Voltar"}
-          </Button>
-          {step < 5 ? (
-            <Button
-              onClick={goNext}
-              className="bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs px-6 h-11 rounded-xl shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110"
-            >
-              Continuar <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs px-6 h-11 rounded-xl shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 disabled:opacity-50"
-            >
-              {submitting ? "Salvando..." : "Confirmar alteração"}
-            </Button>
-          )}
-        </div>
+        {(() => {
+          const nextDisabled =
+            (step === 2 && !selectedBarberId) ||
+            (step === 3 && !selectedDate) ||
+            (step === 4 && !selectedTime);
+          const hint =
+            step === 2 && !selectedBarberId
+              ? "Escolha um profissional para continuar."
+              : step === 3 && !selectedDate
+                ? "Escolha uma data para continuar."
+                : step === 4 && !selectedTime
+                  ? "Escolha um horário para continuar."
+                  : "";
+          return (
+            <div className="pt-3 border-t border-white/5 mt-2 space-y-2">
+              {hint && step < 5 && (
+                <p className="text-[11px] text-amber-300/70 text-center sm:text-right">{hint}</p>
+              )}
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={step === 1 ? () => onOpenChange(false) : goBack}
+                  disabled={submitting}
+                  className="w-full sm:w-auto h-12 rounded-xl text-gray-300 hover:text-white hover:bg-white/5"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" /> {step === 1 ? "Fechar" : "Voltar"}
+                </Button>
+                {step < 5 ? (
+                  <Button
+                    onClick={goNext}
+                    disabled={nextDisabled}
+                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    Continuar <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={submitting}
+                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-50"
+                  >
+                    {submitting ? "Salvando..." : "Confirmar reagendamento"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
       </DialogContent>
     </Dialog>
   );
