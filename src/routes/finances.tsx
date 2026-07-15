@@ -59,6 +59,7 @@ function FinancesComponent() {
     credits_amount: "0",
     cashback_amount: "0"
   });
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
