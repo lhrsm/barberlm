@@ -97,39 +97,62 @@ export function RescheduleWizard({
     (async () => {
       setLoadingBarbers(true);
       try {
-        // Barbers that offer this service, are active, belong to tenant
-        const { data: bsRows } = await supabase
-          .from("barber_services")
-          .select("barber_id, barbers!inner(id, name, avatar_url, specialty, category, working_hours, is_active, user_id)")
-          .eq("service_id", appointment.service_id);
+        // 1) All active barbers of the tenant (mirrors the new-appointment flow)
+        const { data: activeBarbers, error: barbersErr } = await supabase
+          .from("barbers")
+          .select("id, name, avatar_url, specialty, category, working_hours, active, user_id, tenant_id")
+          .or(`user_id.eq.${appointment.tenant_id},tenant_id.eq.${appointment.tenant_id}`)
+          .eq("active", true)
+          .order("name");
+        if (barbersErr) console.warn("[RescheduleWizard] barbers query error", barbersErr);
 
-        const list: BarberOption[] = ((bsRows as any[]) || [])
-          .map((r) => r.barbers)
-          .filter((b: any) => b && b.is_active !== false)
-          .map((b: any) => ({
+        // 2) barber_services links for this service
+        const { data: bsLinks } = await supabase
+          .from("barber_services")
+          .select("barber_id")
+          .eq("service_id", appointment.service_id);
+        const linkedIds = new Set((bsLinks || []).map((r: any) => r.barber_id));
+
+        const map = new Map<string, BarberOption>();
+        (activeBarbers || []).forEach((b: any) => {
+          // If there are links for this service, restrict to linked barbers.
+          // If no links exist at all, fall back to showing every active barber
+          // (some tenants haven't configured barber_services yet).
+          if (linkedIds.size > 0 && !linkedIds.has(b.id)) return;
+          map.set(b.id, {
             id: b.id,
             name: b.name,
             avatar_url: b.avatar_url,
             specialty: b.specialty,
             category: b.category,
             working_hours: b.working_hours,
-            is_active: b.is_active,
-          }));
+            is_active: b.active,
+          });
+        });
 
-        // Deduplicate
-        const map = new Map<string, BarberOption>();
-        list.forEach((b) => map.set(b.id, b));
-
-        // Ensure current barber is present (in case service link was removed)
+        // Ensure current barber is always present
         if (!map.has(appointment.barber_id)) {
           const { data: cur } = await supabase
             .from("barbers")
-            .select("id, name, avatar_url, specialty, category, working_hours, is_active")
+            .select("id, name, avatar_url, specialty, category, working_hours, active")
             .eq("id", appointment.barber_id)
             .maybeSingle();
-          if (cur) map.set((cur as any).id, cur as any);
+          if (cur) {
+            const c: any = cur;
+            map.set(c.id, {
+              id: c.id, name: c.name, avatar_url: c.avatar_url,
+              specialty: c.specialty, category: c.category,
+              working_hours: c.working_hours, is_active: c.active,
+            });
+          }
         }
-        setBarbers(Array.from(map.values()));
+        const list = Array.from(map.values());
+        // Current barber first
+        list.sort((a, b) =>
+          a.id === appointment.barber_id ? -1 : b.id === appointment.barber_id ? 1 : a.name.localeCompare(b.name),
+        );
+        setBarbers(list);
+        console.log("[RescheduleWizard] barbers loaded", { count: list.length, linked: linkedIds.size });
 
         // Service duration
         const { data: svc } = await supabase
@@ -147,7 +170,8 @@ export function RescheduleWizard({
         setLoadingBarbers(false);
       }
     })();
-  }, [open, appointment?.service_id, appointment?.barber_id]);
+  }, [open, appointment?.service_id, appointment?.barber_id, appointment?.tenant_id]);
+
 
   // Load times whenever barber+date at step 4
   useEffect(() => {
