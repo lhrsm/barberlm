@@ -15,8 +15,12 @@ import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+
 export const Route = createFileRoute("/reviews")({
   component: ReviewsAdminPage,
+  errorComponent: DefaultRouteError,
+  notFoundComponent: DefaultRouteNotFound,
 });
 
 type FilterKey = "pending" | "approved" | "rejected" | "all";
