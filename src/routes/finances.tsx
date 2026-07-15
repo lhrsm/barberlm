@@ -1065,75 +1065,8 @@ function FinancesComponent() {
         />
 
         <Tabs value={financeTab} onValueChange={setFinanceTab} className="w-full">
-          {/* Desktop tabs */}
-          <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-7 max-w-[1220px]" : "grid-cols-3 max-w-[600px]")}>
-            {role !== 'barber' && (
-              <TabsTrigger value="managerial" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <BarChart3 size={16} /> Visão Gerencial
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <FileText size={16} /> Lançamentos
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Clock size={16} /> Pendentes
-            </TabsTrigger>
-            <TabsTrigger value="refunds" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <RefreshCcw size={16} /> Estornos
-            </TabsTrigger>
-            {role !== 'barber' && (
-              <>
-                <TabsTrigger value="coupons" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <TicketPercent size={16} /> Cupons
-                </TabsTrigger>
-                <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <Users size={16} /> Por Barbeiro
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <AlertCircle size={16} /> Configs
-                </TabsTrigger>
-              </>
-            )}
-          </TabsList>
+          <FinancesTabsList role={role} financeTab={financeTab} setFinanceTab={setFinanceTab} />
 
-
-          {/* Mobile premium tabs (Mercado Pago style) */}
-          <div className="md:hidden rounded-[24px] border border-[rgba(255,184,0,0.15)] bg-[#0A1020] overflow-hidden">
-            <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
-              <div className="flex w-max min-w-full items-end gap-1">
-                {[
-                  ...(role !== 'barber' ? [{ v: "managerial", icon: BarChart3, label: "Visão Gerencial" }] : []),
-                  { v: "transactions", icon: FileText, label: "Lançamentos" },
-                  { v: "pending", icon: Clock, label: "Pendentes" },
-                  { v: "refunds", icon: RefreshCcw, label: "Estornos" },
-                  ...(role !== 'barber' ? [
-                    { v: "coupons", icon: TicketPercent, label: "Cupons" },
-                    { v: "barbers", icon: Users, label: "Por Barbeiro" },
-                    { v: "settings", icon: AlertCircle, label: "Configs" },
-                  ] : []),
-
-                ].map(({ v, icon: Icon, label }) => {
-                  const active = financeTab === v;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => setFinanceTab(v)}
-                      className={cn(
-                        "group relative inline-flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[12px] font-semibold uppercase tracking-wider transition-all duration-300 rounded-t-[22px] focus-visible:outline-none",
-                        active
-                          ? "bg-white text-[#111111] font-bold shadow-[0_-2px_12px_rgba(0,0,0,.15)]"
-                          : "text-white/70 hover:text-white"
-                      )}
-                    >
-                      <Icon size={15} className="opacity-90" />
-                      <span>{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
 
 
           {role !== 'barber' && user && (
