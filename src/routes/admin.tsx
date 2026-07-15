@@ -147,6 +147,12 @@ function AdminLayout() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold text-white/60 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
+            onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            title="Busca rápida (⌘K)"
+          >
+            ⌘K
+          </kbd>
           <AdminNotifications />
           <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30 transition-colors">SUPER ADMIN</Badge>
           <div className="hidden md:block">
