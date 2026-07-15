@@ -204,8 +204,12 @@ function AdminDashboard() {
         </motion.div>
       </section>
 
+      {/* Anomaly Alerts — top priority visibility */}
+      <AnomalyAlerts />
+
       {/* SaaS Metrics (MRR/ARR/Churn/Conversion) */}
       <SaasMetricsCards />
+
 
       {/* Executive KPIs — real MRR/ARR/Churn/ARPU/LTV/Signups */}
       <ExecutiveKpis />
