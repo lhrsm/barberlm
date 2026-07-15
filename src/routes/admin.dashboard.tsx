@@ -37,9 +37,12 @@ import { AnomalyAlerts } from "@/components/admin/AnomalyAlerts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
+  errorComponent: DefaultRouteError,
+  notFoundComponent: DefaultRouteNotFound,
 });
 
 function AdminDashboard() {

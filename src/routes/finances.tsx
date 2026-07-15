@@ -56,8 +56,12 @@ import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finance
 
 import { BarChart3 } from "lucide-react";
 
+import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
+  errorComponent: DefaultRouteError,
+  notFoundComponent: DefaultRouteNotFound,
 });
 
 function FinancesComponent() {

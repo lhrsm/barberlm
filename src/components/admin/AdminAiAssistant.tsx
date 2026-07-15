@@ -5,7 +5,7 @@ import { askAdminAssistant } from "@/lib/admin-assistant.functions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// ScrollArea removed — using native overflow-y-auto for reliable auto-scroll
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Send, Loader2, Bot, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ export function AdminAiAssistant() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const ask = useServerFn(askAdminAssistant);
   const mutation = useMutation({
@@ -47,9 +48,7 @@ export function AdminAiAssistant() {
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, mutation.isPending]);
 
   const send = (text: string) => {
@@ -95,7 +94,7 @@ export function AdminAiAssistant() {
             </Button>
           </SheetHeader>
 
-          <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
             {messages.length === 0 ? (
               <div className="space-y-4">
                 <div className="text-sm text-white/60 leading-relaxed">
@@ -167,9 +166,10 @@ export function AdminAiAssistant() {
                     </div>
                   </div>
                 )}
+                <div ref={bottomRef} />
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           <div className="p-3 border-t border-white/10">
             <form
