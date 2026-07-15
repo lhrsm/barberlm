@@ -74,6 +74,7 @@ import {
   isDateInBarberRange,
 } from "@/lib/finances-helpers";
 import { useFinancesData } from "@/hooks/use-finances-data";
+import { useTransactionMutations } from "@/hooks/use-transaction-mutations";
 
 
 import { BarChart3 } from "lucide-react";
