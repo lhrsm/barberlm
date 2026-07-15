@@ -82,6 +82,7 @@ import { ClubBarbexUpgrade } from "@/components/portal/premium/ClubBarbexUpgrade
 import { LoyaltyTierProgress } from "@/components/portal/premium/LoyaltyTierProgress";
 import { WhySubscribeCard } from "@/components/portal/premium/WhySubscribeCard";
 import { FloatingUpgradeCTA } from "@/components/portal/premium/FloatingUpgradeCTA";
+import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
@@ -2728,83 +2729,32 @@ function ClientPortalComponent() {
 
 
 
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[440px] bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black border border-[#D4AF37]/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.35)] text-white">
-          <DialogHeader>
-            <DialogTitle className="text-white text-xl font-black tracking-tight">Reagendar atendimento</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Escolha uma nova data e horário para seu serviço.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-5 py-2">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-date" className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
-                Nova Data
-              </Label>
-              <Input
-                id="edit-date"
-                type="date"
-                value={newDate}
-                onChange={(e) => setNewDate(e.target.value)}
-                min={format(new Date(), "yyyy-MM-dd")}
-                className="h-11 bg-white/5 border-white/10 text-white focus:border-[#D4AF37] focus:ring-[#D4AF37]/30 [color-scheme:dark]"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
-                Novo Horário
-              </Label>
-              {fetchingTimes ? (
-                <div className="flex justify-center py-6">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]"></div>
-                </div>
-              ) : availableTimes.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2 max-h-[220px] overflow-y-auto p-1">
-                  {availableTimes.map((time) => {
-                    const active = newTime === time;
-                    return (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => setNewTime(time)}
-                        className={cn(
-                          "h-10 rounded-xl text-sm font-bold tracking-wide transition-all",
-                          active
-                            ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black shadow-[0_8px_20px_rgba(212,175,55,0.35)]"
-                            : "bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-[#D4AF37]/40",
-                        )}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-center text-gray-500 py-4">
-                  Nenhum horário disponível para esta data.
-                </p>
-              )}
-            </div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => setIsEditModalOpen(false)}
-              className="h-11 px-5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-wider hover:bg-white/10 hover:border-white/25 transition-all"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleUpdateAppointment}
-              disabled={submitting || !newTime}
-              className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black text-xs font-black uppercase tracking-widest shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-            >
-              {submitting ? "Salvando..." : "Confirmar alteração"}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RescheduleWizard
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        appointment={
+          editingAppointment
+            ? {
+                id: editingAppointment.id,
+                tenant_id: editingAppointment.tenant_id || shop?.id,
+                customer_id: editingAppointment.customer_id || client?.customer_id,
+                customer_name: editingAppointment.customer_name || client?.name,
+                service_id: editingAppointment.service_id,
+                service_name: editingAppointment.service_name || editingAppointment.services?.name,
+                barber_id: editingAppointment.barber_id,
+                barber_name: editingAppointment.barber_name || editingAppointment.barbers?.name,
+                start_time: editingAppointment.start_time,
+                end_time: editingAppointment.end_time,
+                appointment_group_id: editingAppointment.appointment_group_id,
+              }
+            : null
+        }
+        actor="customer"
+        source="customer_portal"
+        onSuccess={() => {
+          if (client?.customer_id) fetchClientData(client.customer_id);
+        }}
+      />
 
       {/* Refund dialog logic moved to AppointmentDetailsModal for consistency */}
 
