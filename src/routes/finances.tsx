@@ -352,16 +352,16 @@ function FinancesComponent() {
         </Tabs>
       </div>
       
-      <AppointmentDetailsModal 
-        appointmentId={selectedAppointmentId || undefined}
+      <AppointmentDetailsController
+        appointmentId={selectedAppointmentId}
         open={isDetailsModalOpen}
         onOpenChange={setIsDetailsModalOpen}
-        onSuccess={() => {
-          const barberIdFilter = role === 'barber' ? user?.id : null;
-          fetchTransactions(barberIdFilter);
-          fetchAppointments(barberIdFilter);
-        }}
+        role={role}
+        userId={user?.id}
+        fetchTransactions={fetchTransactions}
+        fetchAppointments={fetchAppointments}
       />
+
     </AppLayout>
   );
 }
