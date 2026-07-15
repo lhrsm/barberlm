@@ -9,8 +9,12 @@ import { toast } from "sonner";
 import { emitAutomationEvent } from "@/utils/emit-event";
 import { TipCard } from "@/components/tips/TipCard";
 
+import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+
 export const Route = createFileRoute("/review/$token")({
   component: PublicReviewPage,
+  errorComponent: DefaultRouteError,
+  notFoundComponent: DefaultRouteNotFound,
   head: () => ({
     meta: [
       { title: "Avaliar Atendimento | Barbex" },
