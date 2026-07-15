@@ -33,6 +33,7 @@ import { AdminChartsTab } from "@/components/admin/AdminChartsTab";
 import { SaasMetricsCards } from "@/components/admin/SaasMetricsCards";
 import { ExecutiveKpis } from "@/components/admin/ExecutiveKpis";
 import { TenantHealthList } from "@/components/admin/TenantHealthList";
+import { AnomalyAlerts } from "@/components/admin/AnomalyAlerts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
