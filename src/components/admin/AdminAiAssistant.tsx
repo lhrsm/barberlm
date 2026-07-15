@@ -94,7 +94,7 @@ export function AdminAiAssistant() {
             </Button>
           </SheetHeader>
 
-          <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
             {messages.length === 0 ? (
               <div className="space-y-4">
                 <div className="text-sm text-white/60 leading-relaxed">
@@ -166,9 +166,10 @@ export function AdminAiAssistant() {
                     </div>
                   </div>
                 )}
+                <div ref={bottomRef} />
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           <div className="p-3 border-t border-white/10">
             <form
