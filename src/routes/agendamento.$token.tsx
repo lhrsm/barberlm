@@ -643,6 +643,32 @@ function AppointmentManagementPage() {
         </div>
       </motion.div>
 
+      <RescheduleWizard
+        open={showRescheduleWizard}
+        onOpenChange={setShowRescheduleWizard}
+        appointment={
+          appointment
+            ? {
+                id: appointment.id,
+                tenant_id: appointment.tenant_id,
+                customer_id: appointment.customer_id,
+                customer_name: appointment.customer_name,
+                service_id: appointment.service_id,
+                service_name: appointment.service_name,
+                barber_id: appointment.professional_id || appointment.barber_id,
+                barber_name: appointment.professional_name,
+                start_time: appointment.start_time,
+                end_time: appointment.end_time,
+                appointment_group_id: appointment.appointment_group_id,
+              }
+            : null
+        }
+        actor={rescheduleActor}
+        source="public_link"
+        onSuccess={() => fetchAppointment()}
+      />
+
+
       {/* Diagnostic Modal */}
       <Dialog open={showDebug} onOpenChange={setShowDebug}>
         <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
