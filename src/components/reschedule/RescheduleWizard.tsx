@@ -480,13 +480,33 @@ export function RescheduleWizard({
             <div className="space-y-3 py-3">
               <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Novo horário</p>
               {fetchingTimes ? (
-                <div className="flex justify-center py-6">
+                <div className="flex flex-col items-center gap-2 py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]" />
+                  <p className="text-xs text-gray-500">Buscando horários disponíveis...</p>
                 </div>
               ) : times.length === 0 ? (
-                <p className="text-sm text-gray-400 py-6 text-center">
-                  Nenhum horário disponível para este profissional nesta data.
-                </p>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center space-y-3">
+                  <p className="text-sm text-white/80 font-semibold">Nenhum horário disponível para este profissional nesta data.</p>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(3)}
+                      className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                    >
+                      Escolher outra data
+                    </Button>
+                    {canChangeProfessional && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep(2)}
+                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                      >
+                        Trocar profissional
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
               ) : (
                 <div className="grid grid-cols-3 gap-2 max-h-[280px] overflow-y-auto p-1">
                   {times.map((t) => {
