@@ -43,6 +43,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useCustomerCancellation, type CancellationStep, type FinancialStatus } from "@/hooks/use-customer-cancellation";
+import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
@@ -60,6 +61,8 @@ function AppointmentManagementPage() {
   const [appointment, setAppointment] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [showRescheduleWizard, setShowRescheduleWizard] = useState(false);
+  const [rescheduleActor, setRescheduleActor] = useState<"customer" | "barber" | "shop">("customer");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -585,7 +588,12 @@ function AppointmentManagementPage() {
                   <div className="pt-8 border-t border-zinc-800/50 flex flex-col gap-4">
                     {canReschedule && (
                       <Button 
-                        onClick={() => setIsRescheduling(true)}
+                        onClick={async () => {
+                          const actorEvt = await detectActor();
+                          const mapped = actorEvt === 'by_barber' ? 'barber' : actorEvt === 'by_shop' ? 'shop' : 'customer';
+                          setRescheduleActor(mapped);
+                          setShowRescheduleWizard(true);
+                        }}
                         className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden"
                         style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
                       >
@@ -617,54 +625,8 @@ function AppointmentManagementPage() {
                 </CardContent>
               </Card>
             </motion.div>
-          ) : (
-            <motion.div
-              key="reschedule"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
-                <div className="p-6 bg-primary/10 flex items-center justify-between">
-                  <span className="text-primary font-black uppercase text-xs tracking-widest">Novo Horário</span>
-                  <Button variant="ghost" size="sm" onClick={() => setIsRescheduling(false)} className="text-zinc-500 hover:text-white">
-                    Cancelar
-                  </Button>
-                </div>
-                <CardContent className="p-8 space-y-6">
-                  <input 
-                    type="date" 
-                    min={format(new Date(), "yyyy-MM-dd")}
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white"
-                  />
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableTimes.map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
-                        className={cn(
-                          "h-10 rounded-lg text-xs font-bold border",
-                          selectedTime === time ? "bg-primary text-black border-primary" : "border-zinc-800 text-zinc-400"
-                        )}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                  <Button 
-                    onClick={handleReschedule}
-                    disabled={submitting || !selectedTime}
-                    className="w-full min-h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg flex items-center justify-center text-center p-4 overflow-hidden"
-                    style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
-                  >
-                    {submitting ? "Processando..." : "Confirmar Novo Horário"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+          ) : null}
+
         </AnimatePresence>
 
         <div className="flex flex-col gap-3">
