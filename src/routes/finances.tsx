@@ -59,6 +59,7 @@ import { BarbersTab } from "@/components/finances/BarbersTab";
 import { EditTransactionDialog } from "@/components/finances/EditTransactionDialog";
 import { TransactionsMobileList } from "@/components/finances/TransactionsMobileList";
 import { TransactionsDesktopTable } from "@/components/finances/TransactionsDesktopTable";
+import { KpiCards } from "@/components/finances/KpiCards";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
