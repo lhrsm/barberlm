@@ -97,39 +97,62 @@ export function RescheduleWizard({
     (async () => {
       setLoadingBarbers(true);
       try {
-        // Barbers that offer this service, are active, belong to tenant
-        const { data: bsRows } = await supabase
-          .from("barber_services")
-          .select("barber_id, barbers!inner(id, name, avatar_url, specialty, category, working_hours, is_active, user_id)")
-          .eq("service_id", appointment.service_id);
+        // 1) All active barbers of the tenant (mirrors the new-appointment flow)
+        const { data: activeBarbers, error: barbersErr } = await supabase
+          .from("barbers")
+          .select("id, name, avatar_url, specialty, category, working_hours, active, user_id, tenant_id")
+          .or(`user_id.eq.${appointment.tenant_id},tenant_id.eq.${appointment.tenant_id}`)
+          .eq("active", true)
+          .order("name");
+        if (barbersErr) console.warn("[RescheduleWizard] barbers query error", barbersErr);
 
-        const list: BarberOption[] = ((bsRows as any[]) || [])
-          .map((r) => r.barbers)
-          .filter((b: any) => b && b.is_active !== false)
-          .map((b: any) => ({
+        // 2) barber_services links for this service
+        const { data: bsLinks } = await supabase
+          .from("barber_services")
+          .select("barber_id")
+          .eq("service_id", appointment.service_id);
+        const linkedIds = new Set((bsLinks || []).map((r: any) => r.barber_id));
+
+        const map = new Map<string, BarberOption>();
+        (activeBarbers || []).forEach((b: any) => {
+          // If there are links for this service, restrict to linked barbers.
+          // If no links exist at all, fall back to showing every active barber
+          // (some tenants haven't configured barber_services yet).
+          if (linkedIds.size > 0 && !linkedIds.has(b.id)) return;
+          map.set(b.id, {
             id: b.id,
             name: b.name,
             avatar_url: b.avatar_url,
             specialty: b.specialty,
             category: b.category,
             working_hours: b.working_hours,
-            is_active: b.is_active,
-          }));
+            is_active: b.active,
+          });
+        });
 
-        // Deduplicate
-        const map = new Map<string, BarberOption>();
-        list.forEach((b) => map.set(b.id, b));
-
-        // Ensure current barber is present (in case service link was removed)
+        // Ensure current barber is always present
         if (!map.has(appointment.barber_id)) {
           const { data: cur } = await supabase
             .from("barbers")
-            .select("id, name, avatar_url, specialty, category, working_hours, is_active")
+            .select("id, name, avatar_url, specialty, category, working_hours, active")
             .eq("id", appointment.barber_id)
             .maybeSingle();
-          if (cur) map.set((cur as any).id, cur as any);
+          if (cur) {
+            const c: any = cur;
+            map.set(c.id, {
+              id: c.id, name: c.name, avatar_url: c.avatar_url,
+              specialty: c.specialty, category: c.category,
+              working_hours: c.working_hours, is_active: c.active,
+            });
+          }
         }
-        setBarbers(Array.from(map.values()));
+        const list = Array.from(map.values());
+        // Current barber first
+        list.sort((a, b) =>
+          a.id === appointment.barber_id ? -1 : b.id === appointment.barber_id ? 1 : a.name.localeCompare(b.name),
+        );
+        setBarbers(list);
+        console.log("[RescheduleWizard] barbers loaded", { count: list.length, linked: linkedIds.size });
 
         // Service duration
         const { data: svc } = await supabase
@@ -147,7 +170,8 @@ export function RescheduleWizard({
         setLoadingBarbers(false);
       }
     })();
-  }, [open, appointment?.service_id, appointment?.barber_id]);
+  }, [open, appointment?.service_id, appointment?.barber_id, appointment?.tenant_id]);
+
 
   // Load times whenever barber+date at step 4
   useEffect(() => {
@@ -376,7 +400,10 @@ export function RescheduleWizard({
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]" />
                 </div>
               ) : barbers.length === 0 ? (
-                <p className="text-sm text-gray-400 py-6 text-center">Nenhum profissional disponível para este serviço.</p>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center space-y-2">
+                  <p className="text-sm text-white/80 font-semibold">Nenhum profissional está vinculado a este serviço.</p>
+                  <p className="text-xs text-gray-400">Entre em contato com a barbearia.</p>
+                </div>
               ) : (
                 <div className="grid gap-2 max-h-[340px] overflow-y-auto p-1">
                   {barbers.map((b) => {
@@ -386,7 +413,12 @@ export function RescheduleWizard({
                       <button
                         key={b.id}
                         type="button"
-                        onClick={() => setSelectedBarberId(b.id)}
+                        onClick={() => {
+                          if (b.id !== selectedBarberId) {
+                            setSelectedBarberId(b.id);
+                            setSelectedTime("");
+                          }
+                        }}
                         className={cn(
                           "w-full text-left rounded-2xl border p-3 flex items-center gap-3 transition-all",
                           isSelected
@@ -395,9 +427,9 @@ export function RescheduleWizard({
                         )}
                       >
                         {b.avatar_url ? (
-                          <img src={b.avatar_url} alt={b.name} className="h-11 w-11 rounded-full object-cover" />
+                          <img src={b.avatar_url} alt={b.name} className="h-11 w-11 rounded-full object-cover shrink-0" />
                         ) : (
-                          <div className="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center">
+                          <div className="h-11 w-11 shrink-0 rounded-full bg-white/10 flex items-center justify-center">
                             <User className="h-5 w-5 text-white/70" />
                           </div>
                         )}
@@ -414,12 +446,13 @@ export function RescheduleWizard({
                             <p className="text-xs text-gray-400 truncate">{[b.category, b.specialty].filter(Boolean).join(" • ")}</p>
                           )}
                         </div>
-                        {isSelected && <Check className="h-5 w-5 text-[#D4AF37]" />}
+                        {isSelected && <Check className="h-5 w-5 text-[#D4AF37] shrink-0" />}
                       </button>
                     );
                   })}
                 </div>
               )}
+
             </div>
           )}
 
@@ -447,13 +480,33 @@ export function RescheduleWizard({
             <div className="space-y-3 py-3">
               <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Novo horário</p>
               {fetchingTimes ? (
-                <div className="flex justify-center py-6">
+                <div className="flex flex-col items-center gap-2 py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]" />
+                  <p className="text-xs text-gray-500">Buscando horários disponíveis...</p>
                 </div>
               ) : times.length === 0 ? (
-                <p className="text-sm text-gray-400 py-6 text-center">
-                  Nenhum horário disponível para este profissional nesta data.
-                </p>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center space-y-3">
+                  <p className="text-sm text-white/80 font-semibold">Nenhum horário disponível para este profissional nesta data.</p>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(3)}
+                      className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                    >
+                      Escolher outra data
+                    </Button>
+                    {canChangeProfessional && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep(2)}
+                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                      >
+                        Trocar profissional
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
               ) : (
                 <div className="grid grid-cols-3 gap-2 max-h-[280px] overflow-y-auto p-1">
                   {times.map((t) => {
@@ -513,36 +566,60 @@ export function RescheduleWizard({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-2 pt-3 border-t border-white/5 mt-2">
-          <Button
-            variant="ghost"
-            onClick={step === 1 ? () => onOpenChange(false) : goBack}
-            disabled={submitting}
-            className="text-gray-400 hover:text-white"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" /> {step === 1 ? "Fechar" : "Voltar"}
-          </Button>
-          {step < 5 ? (
-            <Button
-              onClick={goNext}
-              className="bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs px-6 h-11 rounded-xl shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110"
-            >
-              Continuar <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs px-6 h-11 rounded-xl shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 disabled:opacity-50"
-            >
-              {submitting ? "Salvando..." : "Confirmar alteração"}
-            </Button>
-          )}
-        </div>
+        {(() => {
+          const nextDisabled =
+            (step === 2 && !selectedBarberId) ||
+            (step === 3 && !selectedDate) ||
+            (step === 4 && !selectedTime);
+          const hint =
+            step === 2 && !selectedBarberId
+              ? "Escolha um profissional para continuar."
+              : step === 3 && !selectedDate
+                ? "Escolha uma data para continuar."
+                : step === 4 && !selectedTime
+                  ? "Escolha um horário para continuar."
+                  : "";
+          return (
+            <div className="pt-3 border-t border-white/5 mt-2 space-y-2">
+              {hint && step < 5 && (
+                <p className="text-[11px] text-amber-300/70 text-center sm:text-right">{hint}</p>
+              )}
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={step === 1 ? () => onOpenChange(false) : goBack}
+                  disabled={submitting}
+                  className="w-full sm:w-auto h-12 rounded-xl text-gray-300 hover:text-white hover:bg-white/5"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" /> {step === 1 ? "Fechar" : "Voltar"}
+                </Button>
+                {step < 5 ? (
+                  <Button
+                    onClick={goNext}
+                    disabled={nextDisabled}
+                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    Continuar <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={submitting}
+                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-50"
+                  >
+                    {submitting ? "Salvando..." : "Confirmar reagendamento"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </DialogContent>
     </Dialog>
   );
 }
+
+
 
 function SummaryRow({
   icon,
