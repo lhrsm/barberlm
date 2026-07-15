@@ -6,7 +6,7 @@ import { toast } from "sonner";
 interface Params {
   user: { id: string } | null;
   role: string | null;
-  barberPeriodRange: { start?: string; end?: string };
+  barberPeriodRange: { start?: string | null; end?: string | null };
   refundStatusFilter: string;
   refundDateStartFilter: string;
   refundDateEndFilter: string;
