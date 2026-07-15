@@ -61,6 +61,7 @@ import { TransactionsMobileList } from "@/components/finances/TransactionsMobile
 import { TransactionsDesktopTable } from "@/components/finances/TransactionsDesktopTable";
 import { KpiCards } from "@/components/finances/KpiCards";
 import { FinancesHeader } from "@/components/finances/FinancesHeader";
+import { FinancesTabsList } from "@/components/finances/FinancesTabsList";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
