@@ -57,6 +57,7 @@ import { PendingTab } from "@/components/finances/PendingTab";
 import { SettingsTab } from "@/components/finances/SettingsTab";
 import { BarbersTab } from "@/components/finances/BarbersTab";
 import { EditTransactionDialog } from "@/components/finances/EditTransactionDialog";
+import { TransactionsMobileList } from "@/components/finances/TransactionsMobileList";
 import { exportFinancesPdf, periodLabel, type ReportPeriod } from "@/lib/finances-pdf";
 import {
   TIMEZONE,
