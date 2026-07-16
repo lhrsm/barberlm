@@ -134,7 +134,7 @@ export function InternalRecipientsSettings() {
       .from("barbers")
       .select("id, name")
       .eq("user_id", tenantId!)
-      .eq("is_active", true)
+      .eq("active", true)
       .order("name");
     setBarbers((data as any) || []);
   }
