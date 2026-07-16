@@ -358,7 +358,10 @@ export function InternalRecipientsSettings() {
                     onChange={(e) => setDraft({ ...draft, email: e.target.value })}
                     className="bg-[#05070d] border-[#1f2937] mt-1"
                   />
+                </div>
               </div>
+
+
 
               <div>
                 <Label>Notificar apenas para agendamentos do profissional</Label>
