@@ -86,7 +86,22 @@ serve(async (req) => {
       .select("whatsapp_number")
       .eq("barber_id", tenant_id)
       .maybeSingle();
-    const shopWhatsappNumber = shopProfile?.whatsapp_number || barbershopSettings?.whatsapp_number || null;
+    const { data: whatsappInstance } = await supabase
+      .from("whatsapp_instances")
+      .select("phone")
+      .eq("tenant_id", tenant_id)
+      .order("connected", { ascending: false })
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const { data: whatsappCloudConnection } = await supabase
+      .from("whatsapp_cloud_connections")
+      .select("phone_number")
+      .eq("user_id", tenant_id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const shopWhatsappNumber = shopProfile?.whatsapp_number || barbershopSettings?.whatsapp_number || whatsappInstance?.phone || whatsappCloudConnection?.phone_number || null;
 
     // Derived fields for message templates
     const fmtBRL = (v: any) => {
