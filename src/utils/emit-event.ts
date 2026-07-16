@@ -9,6 +9,7 @@ export type AutomationEvent =
   | "appointment.rescheduled.by_customer"
   | "appointment.rescheduled.by_barber"
   | "appointment.rescheduled.by_shop"
+  | "appointment.professional_changed"
   | "appointment.started"
   | "appointment.completed"
   | "payment.confirmed"

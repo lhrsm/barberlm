@@ -16,6 +16,7 @@ interface EmitPayload {
   appointment_id?: string;
   customer_id?: string;
   extra?: Record<string, any>;
+  dry_run?: boolean;
 }
 
 serve(async (req) => {
@@ -29,12 +30,13 @@ serve(async (req) => {
   try {
     const body = (await req.json()) as EmitPayload;
     const { tenant_id, event, appointment_id, customer_id, extra } = body;
+    const dryRun = body.dry_run === true || (extra as any)?.__dry_run === true;
 
     if (!tenant_id || !event) {
       return json({ success: false, error: "tenant_id and event are required" }, 400);
     }
 
-    console.log("[EmitEvent] Start", { tenant_id, event, appointment_id, customer_id });
+    console.log("[EmitEvent] Start", { tenant_id, event, appointment_id, customer_id, dryRun });
 
     // 1. Load active templates for this event
     const { data: templates, error: tplErr } = await supabase
@@ -78,6 +80,28 @@ serve(async (req) => {
       .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone")
       .eq("id", tenant_id)
       .maybeSingle();
+
+    const { data: barbershopSettings } = await supabase
+      .from("barbershop_settings")
+      .select("whatsapp_number")
+      .eq("barber_id", tenant_id)
+      .maybeSingle();
+    const { data: whatsappInstance } = await supabase
+      .from("whatsapp_instances")
+      .select("phone")
+      .eq("tenant_id", tenant_id)
+      .order("connected", { ascending: false })
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const { data: whatsappCloudConnection } = await supabase
+      .from("whatsapp_cloud_connections")
+      .select("phone_number")
+      .eq("user_id", tenant_id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const shopWhatsappNumber = shopProfile?.whatsapp_number || barbershopSettings?.whatsapp_number || whatsappInstance?.phone || whatsappCloudConnection?.phone_number || null;
 
     // Derived fields for message templates
     const fmtBRL = (v: any) => {
@@ -129,7 +153,7 @@ serve(async (req) => {
         actor: event.split(".").pop(),
         customer_phone: customer?.phone,
         professional_phone: barber?.phone,
-        shop_phone: shopProfile?.whatsapp_number,
+        shop_phone: shopWhatsappNumber,
         management_link: appointmentExtras.management_link,
         old_date: extra?.old_date,
         old_time: extra?.old_time,
@@ -175,40 +199,51 @@ serve(async (req) => {
       }
     }
 
-    // For appointment.professional_changed: resolve previous/new barber info
-    // from IDs passed in `extra` (RPC returns these). Also derive actor label.
+    // For appointment.professional_changed, the caller sends a complete payload
+    // built from oldAppointment + newAppointment snapshots immediately after
+    // the update. Only fall back to lookup when legacy callers omit names.
     let previousBarber: any = null;
     let newBarber: any = null;
     if (event === "appointment.professional_changed") {
-      const prevId = (extra as any)?.previous_barber_id || null;
-      const newId = (extra as any)?.new_barber_id || appointment?.barber_id || null;
+      const prevId = (extra as any)?.previous_professional_id || (extra as any)?.previous_barber_id || null;
+      const newId = (extra as any)?.new_professional_id || (extra as any)?.new_barber_id || appointment?.barber_id || null;
+      console.log("oldAppointment", (extra as any)?.oldAppointment || null);
+      console.log("newAppointment", (extra as any)?.newAppointment || null);
+      console.log("automationPayload", extra || {});
+      previousBarber = {
+        id: prevId,
+        name: (extra as any)?.previous_professional_name || (extra as any)?.old_professional_name || "",
+        phone: (extra as any)?.previous_professional_phone || "",
+      };
+      newBarber = {
+        id: newId,
+        name: (extra as any)?.new_professional_name || "",
+        phone: (extra as any)?.new_professional_phone || "",
+      };
       const ids = [prevId, newId].filter(Boolean) as string[];
-      if (ids.length > 0) {
+      if (ids.length > 0 && (!previousBarber.phone || !newBarber.phone || !previousBarber.name || !newBarber.name)) {
         const { data: rows } = await supabase
           .from("barbers")
           .select("id, name, phone")
           .in("id", ids);
-        previousBarber = rows?.find((r: any) => r.id === prevId) || null;
-        newBarber = rows?.find((r: any) => r.id === newId) || null;
+        const prevRow = rows?.find((r: any) => r.id === prevId) || null;
+        const newRow = rows?.find((r: any) => r.id === newId) || null;
+        previousBarber = { ...prevRow, ...previousBarber, phone: previousBarber.phone || prevRow?.phone || "", name: previousBarber.name || prevRow?.name || "" };
+        newBarber = { ...newRow, ...newBarber, phone: newBarber.phone || newRow?.phone || "", name: newBarber.name || newRow?.name || "" };
       }
-      appointmentExtras.old_professional_name = previousBarber?.name || "";
-      appointmentExtras.new_professional_name = newBarber?.name || barber?.name || "";
-      const actorType = (extra as any)?.changed_by_type || (extra as any)?.actor || "";
-      const actorLabel = actorType === "customer"
-        ? (customer?.name || "Cliente")
-        : actorType === "barber"
-          ? (newBarber?.name || previousBarber?.name || "Profissional")
-          : actorType === "shop" || actorType === "admin" || actorType === "staff"
-            ? (shopProfile?.business_name || "Barbearia")
-            : "Barbearia";
-      appointmentExtras.actor_label = actorLabel;
+      appointmentExtras.previous_professional_id = prevId;
+      appointmentExtras.new_professional_id = newId;
+      appointmentExtras.old_professional_name = (extra as any)?.old_professional_name || (extra as any)?.previous_professional_name || previousBarber?.name || "";
+      appointmentExtras.previous_professional_name = (extra as any)?.previous_professional_name || appointmentExtras.old_professional_name;
+      appointmentExtras.new_professional_name = (extra as any)?.new_professional_name || newBarber?.name || barber?.name || "";
+      appointmentExtras.actor_label = (extra as any)?.actor_label || "";
       if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
       if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
       console.log("[EmitEvent] PROFESSIONAL_CHANGED", {
         prevId, newId,
-        previous_name: previousBarber?.name,
-        new_name: newBarber?.name,
-        actor: actorLabel,
+        previous_name: appointmentExtras.previous_professional_name,
+        new_name: appointmentExtras.new_professional_name,
+        actor: appointmentExtras.actor_label,
       });
     }
 
@@ -216,6 +251,8 @@ serve(async (req) => {
     const dispatched: string[] = [];
     const skipped: Array<{ template: string; reason: string }> = [];
     const eventTemplatePhones = new Set<string>();
+    const recipientList: Array<{ type: string; name: string | null; phone: string | null }> = [];
+    const dryRunMessages: Array<{ type: string; name: string | null; phone: string | null; templateVariables: Record<string, any> }> = [];
 
     for (const tpl of templates || []) {
       if (event === "appointment.completed" && tpl.key === "post_service_review" && hasModernCompletedReviewTemplate) {
@@ -232,8 +269,8 @@ serve(async (req) => {
           skipped.push({ template: tpl.key, reason: "silent_customer" });
           continue;
         }
-        phone = customer?.phone || null;
-        recipientName = customer?.name || null;
+        phone = customer?.phone || (extra as any)?.customer_phone || null;
+        recipientName = customer?.name || (extra as any)?.customer_name || null;
       } else if (recipient === "barber") {
         // STRICT: only the professional linked to this appointment.
         // Never broadcast to all barbers of the tenant.
@@ -265,7 +302,7 @@ serve(async (req) => {
           continue;
         }
       } else if (recipient === "shop") {
-        phone = shopProfile?.whatsapp_number || null;
+        phone = shopWhatsappNumber;
         recipientName = shopProfile?.business_name || null;
       } else if (recipient === "previous_barber") {
         if (!previousBarber) {
@@ -305,6 +342,31 @@ serve(async (req) => {
       const normalizedTemplatePhone = normalizePhone(phone);
       if (normalizedTemplatePhone) eventTemplatePhones.add(normalizedTemplatePhone);
 
+      const rawPayload = {
+        recipient,
+        recipient_phone: phone,
+        recipient_name: recipientName,
+        ...appointmentExtras,
+        customer_name: customer?.name,
+        customer_phone: customer?.phone,
+        professional_name: barber?.name,
+        professional_phone: barber?.phone,
+        barbershop_name: shopProfile?.business_name,
+        tenant_id,
+        appointment_id: appointment_id || null,
+        ...(extra || {}),
+      };
+
+      const templateVariables = applyRecipientLinks(rawPayload, recipient);
+      console.log("templateVariables", templateVariables);
+      recipientList.push({ type: recipient, name: recipientName, phone: normalizePhone(phone) || null });
+
+      if (dryRun) {
+        dryRunMessages.push({ type: recipient, name: recipientName, phone: normalizePhone(phone) || null, templateVariables });
+        dispatched.push(`dry-run:${tpl.key}`);
+        continue;
+      }
+
       const { error: insErr } = await supabase.from("automation_queue").insert({
         tenant_id,
         automation_id: tpl.id,
@@ -315,20 +377,7 @@ serve(async (req) => {
         status: "pending",
         scheduled_for: scheduledFor,
         idempotency_key: idem,
-        payload: {
-          recipient,
-          recipient_phone: phone,
-          recipient_name: recipientName,
-          ...appointmentExtras,
-          customer_name: customer?.name,
-          customer_phone: customer?.phone,
-          professional_name: barber?.name,
-          professional_phone: barber?.phone,
-          barbershop_name: shopProfile?.business_name,
-          tenant_id,
-          appointment_id: appointment_id || null,
-          ...(extra || {}),
-        },
+        payload: templateVariables,
       });
 
 
@@ -377,6 +426,7 @@ serve(async (req) => {
       "appointment.rescheduled.by_customer": "notify_rescheduled_appointment",
       "appointment.rescheduled.by_barber": "notify_rescheduled_appointment",
       "appointment.rescheduled.by_shop": "notify_rescheduled_appointment",
+      "appointment.professional_changed": "notify_rescheduled_appointment",
       "appointment.cancelled.by_customer": "notify_cancelled_appointment",
       "appointment.cancelled.by_barber": "notify_cancelled_appointment",
       "appointment.cancelled.by_shop": "notify_cancelled_appointment",
@@ -422,19 +472,19 @@ serve(async (req) => {
 
       console.log(`[EmitEvent] Internal flag=${internalFlag} → recipients found: ${recipients?.length || 0} (apptBarber=${apptBarberId})`);
 
-      const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
+      const officialPhone = normalizePhone(shopWhatsappNumber);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
-      const buildFor = (rcpName?: string) => buildInternalMessage(event, {
-        customer_name: customer?.name,
-        customer_phone: customer?.phone,
-        barber_name: barber?.name,
+      const internalPayload = applyRecipientLinks({
+        customer_name: customer?.name || (extra as any)?.customer_name,
+        customer_phone: customer?.phone || (extra as any)?.customer_phone,
+        barber_name: barber?.name || (extra as any)?.new_professional_name,
         shop_name: shopProfile?.business_name,
         barbershop_name: shopProfile?.business_name,
-        recipient_name: rcpName,
         ...appointmentExtras,
         ...(extra || {}),
-      });
+      }, "internal");
+      const buildFor = (rcpName?: string) => buildInternalMessage(event, { ...internalPayload, recipient_name: rcpName });
       const internalMessage = buildFor();
 
 
@@ -442,7 +492,19 @@ serve(async (req) => {
       const sentPanelUsers = new Set<string>();
 
       for (const rcp of recipients || []) {
+        recipientList.push({ type: rcp.role || "internal", name: rcp.name || null, phone: normalizePhone(rcp.phone) || null });
         console.log(`[EmitEvent] Processing recipient ${rcp.name} (${rcp.phone}) wa=${rcp.receive_whatsapp} panel=${rcp.receive_panel}`);
+
+        if (dryRun) {
+          dryRunMessages.push({
+            type: rcp.role || "internal",
+            name: rcp.name || null,
+            phone: normalizePhone(rcp.phone) || null,
+            templateVariables: { ...internalPayload, recipient_name: rcp.name },
+          });
+          internalRecipients.push(`dry-run:${rcp.name}`);
+          continue;
+        }
 
         if (rcp.receive_whatsapp && rcp.phone) {
           const norm = normalizePhone(rcp.phone);
@@ -464,7 +526,7 @@ serve(async (req) => {
                 user_id: tenant_id,
                 phone: norm,
                 content: buildFor(rcp.name),
-                metadata: { eventType: event, internal: true, recipient_id: rcp.id },
+                metadata: { eventType: event, internal: true, recipient_id: rcp.id, templateVariables: { ...internalPayload, recipient_name: rcp.name } },
               },
             });
             if (waErr) {
@@ -486,7 +548,7 @@ serve(async (req) => {
             type: event,
             title: internalTitle(event),
             message: internalMessage,
-            metadata: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
+            metadata: { event, appointment_id, customer_id, recipient_id: rcp.id, ...internalPayload },
             read: false,
           });
           if (notifErr) console.error("[EmitEvent] Panel insert failed", notifErr);
@@ -502,6 +564,8 @@ serve(async (req) => {
       console.log(`[EmitEvent] No internal flag mapping for event ${event}`);
     }
 
+    console.log("recipientList", recipientList);
+
     // 4. Kick the processor (fire and forget)
     if (dispatched.length > 0) {
       supabase.functions
@@ -509,7 +573,7 @@ serve(async (req) => {
         .catch((e) => console.error("[EmitEvent] Kick failed", e));
     }
 
-    return json({ success: true, dispatched, skipped, internal: internalRecipients });
+    return json({ success: true, dispatched, skipped, internal: internalRecipients, dry_run: dryRun, recipientList, dryRunMessages });
   } catch (e: any) {
     console.error("[EmitEvent] Fatal", e);
     return json({ success: false, error: e.message }, 500);
@@ -529,6 +593,20 @@ function normalizePhone(p?: string | null): string {
   return digits.startsWith("55") ? digits : digits.length >= 10 ? `55${digits}` : digits;
 }
 
+function applyRecipientLinks(payload: Record<string, any>, recipient: string): Record<string, any> {
+  const next = { ...payload };
+  if (payload.customer_management_link && recipient === "customer") {
+    next.management_link = payload.customer_management_link;
+  } else if (payload.new_professional_management_link && (recipient === "new_barber" || recipient === "barber")) {
+    next.management_link = payload.new_professional_management_link;
+  } else if (payload.internal_management_link && (recipient === "shop" || recipient === "internal")) {
+    next.management_link = payload.internal_management_link;
+  } else if (recipient === "previous_barber") {
+    next.management_link = "";
+  }
+  return next;
+}
+
 function internalTitle(event: string): string {
   const map: Record<string, string> = {
     "appointment.created": "Novo agendamento",
@@ -540,6 +618,7 @@ function internalTitle(event: string): string {
     "appointment.rescheduled.by_customer": "Reagendamento pelo cliente",
     "appointment.rescheduled.by_barber": "Reagendamento pelo barbeiro",
     "appointment.rescheduled.by_shop": "Reagendamento pela barbearia",
+    "appointment.professional_changed": "Troca de profissional",
     "subscription.created": "Novo assinante",
     "subscription.cancelled": "Assinatura cancelada",
     "subscription.renewed": "Assinatura renovada",
@@ -561,6 +640,24 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
   if (event.startsWith("appointment.cancelled")) {
     const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";
     return `❌ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date || d.new_date)}${line("Horário", d.appointment_time || d.new_time)}Cancelado por: ${who}\n${line("Motivo", d.cancel_reason)}`.trim();
+  }
+  if (event === "appointment.professional_changed") {
+    const parts = [
+      `🔄 Troca de profissional no agendamento`,
+      ``,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.customer_phone ? `📞 Telefone: ${d.customer_phone}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      d.service_price ? `💰 Valor: ${d.service_price}` : "",
+      d.previous_professional_name ? `💈 Profissional anterior: ${d.previous_professional_name}` : "",
+      d.new_professional_name ? `✅ Novo profissional: ${d.new_professional_name}` : "",
+      `📅 De: ${d.previous_date || d.old_date || "-"} ${d.previous_time || d.old_time || ""}`.trim(),
+      `➡ Para: ${d.new_date || "-"} ${d.new_time || ""}`.trim(),
+      d.actor_label ? `Alterado por: ${d.actor_label}` : "",
+      ``,
+      d.management_link ? `🔗 Gerenciar agendamento:\n${d.management_link}` : "",
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event.startsWith("appointment.rescheduled")) {
     const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";

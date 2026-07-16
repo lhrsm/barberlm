@@ -673,17 +673,23 @@ function AppointmentManagementPage() {
                 tenant_id: appointment.tenant_id,
                 customer_id: appointment.customer_id,
                 customer_name: appointment.customer_name,
+                customer_phone: appointment.customer_phone,
                 service_id: appointment.service_id,
                 service_name: appointment.service_name,
+                service_price: appointment.service_price,
+                payment_method: appointment.payment_method,
                 barber_id: appointment.professional_id || appointment.barber_id,
                 barber_name: appointment.professional_name,
                 start_time: appointment.start_time,
                 end_time: appointment.end_time,
+                management_token: appointment.management_token,
                 appointment_group_id: appointment.appointment_group_id,
               }
             : null
         }
         actor={rescheduleActor}
+        actorId={appointment?.customer_id}
+        actorName={appointment?.customer_name}
         source="public_link"
         onSuccess={() => fetchAppointment()}
       />
