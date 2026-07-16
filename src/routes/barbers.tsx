@@ -158,7 +158,7 @@ function BarbersComponent() {
       .select(`
         *,
         barber_services(service_id),
-        appointments:appointments(count)
+        appointments:appointments!appointments_barber_id_fkey(count)
       `)
       .eq("tenant_id", user.id)
       .order("name");
@@ -824,12 +824,17 @@ function BarbersComponent() {
               </div>
             ))
           ) : error ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 border border-dashed border-red-500/20 rounded-[20px] bg-[#0b0f17] text-center">
-              <AlertTriangle size={48} className="text-red-500 mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold text-white mb-2">Ops! Algo deu errado</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
-              <Button onClick={() => fetchData()} variant="outline" className="gap-2 border-amber-500/20 hover:bg-amber-500/10 text-amber-500">
-                <RefreshCcw size={16} /> Tentar novamente
+            <div className="col-span-full flex flex-col items-center justify-center px-6 py-20 border border-dashed border-red-500/20 rounded-[20px] bg-[#0b0f17] text-center">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 shadow-[0_0_30px_rgba(239,68,68,0.12)]">
+                <AlertTriangle size={34} className="text-red-400" />
+              </div>
+              <h3 className="text-xl font-black text-white mb-2 tracking-tight">Ops! Algo deu errado</h3>
+              <p className="text-muted-foreground mb-7 max-w-md text-sm leading-relaxed">{error}</p>
+              <Button
+                onClick={() => fetchData()}
+                className="h-12 w-full max-w-sm gap-2 rounded-xl border border-amber-400/40 bg-amber-400 text-black font-black uppercase tracking-tight shadow-[0_0_28px_rgba(251,191,36,0.22)] transition-all duration-300 hover:bg-amber-300 hover:shadow-[0_0_38px_rgba(251,191,36,0.34)] active:scale-[0.98]"
+              >
+                <RefreshCcw size={17} /> Tentar novamente
               </Button>
             </div>
           ) : filteredBarbers.length === 0 ? (
