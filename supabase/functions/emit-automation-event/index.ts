@@ -227,6 +227,7 @@ serve(async (req) => {
     const dispatched: string[] = [];
     const skipped: Array<{ template: string; reason: string }> = [];
     const eventTemplatePhones = new Set<string>();
+    const recipientList: Array<{ type: string; name: string | null; phone: string | null }> = [];
 
     for (const tpl of templates || []) {
       if (event === "appointment.completed" && tpl.key === "post_service_review" && hasModernCompletedReviewTemplate) {
@@ -243,8 +244,8 @@ serve(async (req) => {
           skipped.push({ template: tpl.key, reason: "silent_customer" });
           continue;
         }
-        phone = customer?.phone || null;
-        recipientName = customer?.name || null;
+        phone = customer?.phone || (extra as any)?.customer_phone || null;
+        recipientName = customer?.name || (extra as any)?.customer_name || null;
       } else if (recipient === "barber") {
         // STRICT: only the professional linked to this appointment.
         // Never broadcast to all barbers of the tenant.
@@ -333,7 +334,7 @@ serve(async (req) => {
 
       const templateVariables = applyRecipientLinks(rawPayload, recipient);
       console.log("templateVariables", templateVariables);
-      console.log("recipientList", [{ type: recipient, name: recipientName, phone: normalizePhone(phone) }]);
+      recipientList.push({ type: recipient, name: recipientName, phone: normalizePhone(phone) || null });
 
       const { error: insErr } = await supabase.from("automation_queue").insert({
         tenant_id,
@@ -415,7 +416,6 @@ serve(async (req) => {
     };
     const internalFlag = eventFlagMap[event];
     const internalRecipients: string[] = [];
-    const recipientList: Array<{ type: string; name: string | null; phone: string | null }> = [];
 
     if (internalFlag) {
       let recipientsQuery = supabase
@@ -445,12 +445,11 @@ serve(async (req) => {
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
       const internalPayload = applyRecipientLinks({
-        customer_name: customer?.name,
-        customer_phone: customer?.phone,
-        barber_name: barber?.name,
+        customer_name: customer?.name || (extra as any)?.customer_name,
+        customer_phone: customer?.phone || (extra as any)?.customer_phone,
+        barber_name: barber?.name || (extra as any)?.new_professional_name,
         shop_name: shopProfile?.business_name,
         barbershop_name: shopProfile?.business_name,
-        recipient_name: rcpName,
         ...appointmentExtras,
         ...(extra || {}),
       }, "internal");
@@ -519,10 +518,11 @@ serve(async (req) => {
           internalRecipients.push(`email:${rcp.name}`);
         }
       }
-      console.log("recipientList", recipientList);
     } else {
       console.log(`[EmitEvent] No internal flag mapping for event ${event}`);
     }
+
+    console.log("recipientList", recipientList);
 
     // 4. Kick the processor (fire and forget)
     if (dispatched.length > 0) {
@@ -576,6 +576,7 @@ function internalTitle(event: string): string {
     "appointment.rescheduled.by_customer": "Reagendamento pelo cliente",
     "appointment.rescheduled.by_barber": "Reagendamento pelo barbeiro",
     "appointment.rescheduled.by_shop": "Reagendamento pela barbearia",
+    "appointment.professional_changed": "Troca de profissional",
     "subscription.created": "Novo assinante",
     "subscription.cancelled": "Assinatura cancelada",
     "subscription.renewed": "Assinatura renovada",
@@ -597,6 +598,24 @@ function buildInternalMessage(event: string, d: Record<string, any>): string {
   if (event.startsWith("appointment.cancelled")) {
     const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";
     return `❌ ${header}\n\n${line("Cliente", d.customer_name)}${line("Serviço", d.service_name)}${line("Profissional", d.barber_name)}${line("Data", d.appointment_date || d.new_date)}${line("Horário", d.appointment_time || d.new_time)}Cancelado por: ${who}\n${line("Motivo", d.cancel_reason)}`.trim();
+  }
+  if (event === "appointment.professional_changed") {
+    const parts = [
+      `🔄 Troca de profissional no agendamento`,
+      ``,
+      d.customer_name ? `👤 Cliente: ${d.customer_name}` : "",
+      d.customer_phone ? `📞 Telefone: ${d.customer_phone}` : "",
+      d.service_name ? `✂️ Serviço: ${d.service_name}` : "",
+      d.service_price ? `💰 Valor: ${d.service_price}` : "",
+      d.previous_professional_name ? `💈 Profissional anterior: ${d.previous_professional_name}` : "",
+      d.new_professional_name ? `✅ Novo profissional: ${d.new_professional_name}` : "",
+      `📅 De: ${d.previous_date || d.old_date || "-"} ${d.previous_time || d.old_time || ""}`.trim(),
+      `➡ Para: ${d.new_date || "-"} ${d.new_time || ""}`.trim(),
+      d.actor_label ? `Alterado por: ${d.actor_label}` : "",
+      ``,
+      d.management_link ? `🔗 Gerenciar agendamento:\n${d.management_link}` : "",
+    ];
+    return parts.filter((l) => l !== "").join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
   if (event.startsWith("appointment.rescheduled")) {
     const who = event.endsWith("by_customer") ? "Cliente" : event.endsWith("by_barber") ? "Barbeiro" : "Barbearia";
