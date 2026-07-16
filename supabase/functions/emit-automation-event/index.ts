@@ -399,14 +399,28 @@ serve(async (req) => {
     const internalRecipients: string[] = [];
 
     if (internalFlag) {
-      const { data: recipients } = await supabase
+      let recipientsQuery = supabase
         .from("notification_recipients")
         .select("*")
         .eq("tenant_id", tenant_id)
         .eq("is_active", true)
         .eq(internalFlag, true);
 
-      console.log(`[EmitEvent] Internal flag=${internalFlag} → recipients found: ${recipients?.length || 0}`);
+      // For appointment events, filter recipients scoped to a specific
+      // barber: keep recipients with no barber_id (general) OR that match
+      // the appointment's barber. Non-appointment events ignore the scope.
+      const isAppointmentEvent = event.startsWith("appointment.");
+      const apptBarberId = appointment?.barber_id || appointment?.professional_id || null;
+      if (isAppointmentEvent) {
+        if (apptBarberId) {
+          recipientsQuery = recipientsQuery.or(`barber_id.is.null,barber_id.eq.${apptBarberId}`);
+        } else {
+          recipientsQuery = recipientsQuery.is("barber_id", null);
+        }
+      }
+      const { data: recipients } = await recipientsQuery;
+
+      console.log(`[EmitEvent] Internal flag=${internalFlag} → recipients found: ${recipients?.length || 0} (apptBarber=${apptBarberId})`);
 
       const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
