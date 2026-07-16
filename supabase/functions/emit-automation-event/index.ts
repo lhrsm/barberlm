@@ -81,6 +81,13 @@ serve(async (req) => {
       .eq("id", tenant_id)
       .maybeSingle();
 
+    const { data: barbershopSettings } = await supabase
+      .from("barbershop_settings")
+      .select("whatsapp_number")
+      .eq("barbershop_id", tenant_id)
+      .maybeSingle();
+    const shopWhatsappNumber = shopProfile?.whatsapp_number || barbershopSettings?.whatsapp_number || null;
+
     // Derived fields for message templates
     const fmtBRL = (v: any) => {
       const n = Number(v);
@@ -131,7 +138,7 @@ serve(async (req) => {
         actor: event.split(".").pop(),
         customer_phone: customer?.phone,
         professional_phone: barber?.phone,
-        shop_phone: shopProfile?.whatsapp_number,
+        shop_phone: shopWhatsappNumber,
         management_link: appointmentExtras.management_link,
         old_date: extra?.old_date,
         old_time: extra?.old_time,
@@ -280,7 +287,7 @@ serve(async (req) => {
           continue;
         }
       } else if (recipient === "shop") {
-        phone = shopProfile?.whatsapp_number || null;
+        phone = shopWhatsappNumber;
         recipientName = shopProfile?.business_name || null;
       } else if (recipient === "previous_barber") {
         if (!previousBarber) {
@@ -450,7 +457,7 @@ serve(async (req) => {
 
       console.log(`[EmitEvent] Internal flag=${internalFlag} → recipients found: ${recipients?.length || 0} (apptBarber=${apptBarberId})`);
 
-      const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
+      const officialPhone = normalizePhone(shopWhatsappNumber);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
       const internalPayload = applyRecipientLinks({
