@@ -84,7 +84,7 @@ serve(async (req) => {
     const { data: barbershopSettings } = await supabase
       .from("barbershop_settings")
       .select("whatsapp_number")
-      .eq("barbershop_id", tenant_id)
+      .eq("barber_id", tenant_id)
       .maybeSingle();
     const shopWhatsappNumber = shopProfile?.whatsapp_number || barbershopSettings?.whatsapp_number || null;
 
