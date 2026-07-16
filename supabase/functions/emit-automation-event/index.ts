@@ -532,6 +532,20 @@ function normalizePhone(p?: string | null): string {
   return digits.startsWith("55") ? digits : digits.length >= 10 ? `55${digits}` : digits;
 }
 
+function applyRecipientLinks(payload: Record<string, any>, recipient: string): Record<string, any> {
+  const next = { ...payload };
+  if (payload.customer_management_link && recipient === "customer") {
+    next.management_link = payload.customer_management_link;
+  } else if (payload.new_professional_management_link && (recipient === "new_barber" || recipient === "barber")) {
+    next.management_link = payload.new_professional_management_link;
+  } else if (payload.internal_management_link && (recipient === "shop" || recipient === "internal")) {
+    next.management_link = payload.internal_management_link;
+  } else if (recipient === "previous_barber") {
+    next.management_link = "";
+  }
+  return next;
+}
+
 function internalTitle(event: string): string {
   const map: Record<string, string> = {
     "appointment.created": "Novo agendamento",

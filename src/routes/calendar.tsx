@@ -666,7 +666,7 @@ function CalendarComponent() {
               }
             : null
         }
-        actor={role === "barber" ? "barber" : role === "reception" ? "reception" : role === "manager" ? "manager" : "admin"}
+        actor={role === "barber" ? "barber" : "admin"}
         actorId={user?.id}
         source="admin_calendar"
         onSuccess={() => fetchData()}
