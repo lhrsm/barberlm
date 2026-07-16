@@ -102,6 +102,7 @@ function emptyRecipient(tenantId: string): Recipient {
 export function InternalRecipientsSettings() {
   const { tenantId, tenantProfile } = useTenant();
   const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [barbers, setBarbers] = useState<BarberOpt[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<Recipient | null>(null);
@@ -114,6 +115,7 @@ export function InternalRecipientsSettings() {
   useEffect(() => {
     if (!tenantId) return;
     fetchAll();
+    fetchBarbers();
   }, [tenantId]);
 
   async function fetchAll() {
@@ -125,6 +127,16 @@ export function InternalRecipientsSettings() {
     if (error) toast.error("Erro ao carregar destinatários");
     setRecipients((data as any) || []);
     setLoading(false);
+  }
+
+  async function fetchBarbers() {
+    const { data } = await supabase
+      .from("barbers")
+      .select("id, name")
+      .eq("user_id", tenantId!)
+      .eq("is_active", true)
+      .order("name");
+    setBarbers((data as any) || []);
   }
 
   async function toggleAllowOnOfficial(v: boolean) {
