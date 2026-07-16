@@ -79,6 +79,7 @@ function emptyRecipient(tenantId: string): Recipient {
     role: "manager",
     phone: "",
     email: "",
+    barber_id: null,
     receive_whatsapp: true,
     receive_email: false,
     receive_panel: true,
