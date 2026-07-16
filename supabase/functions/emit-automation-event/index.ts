@@ -183,14 +183,29 @@ serve(async (req) => {
     if (event === "appointment.professional_changed") {
       const prevId = (extra as any)?.previous_professional_id || (extra as any)?.previous_barber_id || null;
       const newId = (extra as any)?.new_professional_id || (extra as any)?.new_barber_id || appointment?.barber_id || null;
+      console.log("oldAppointment", (extra as any)?.oldAppointment || null);
+      console.log("newAppointment", (extra as any)?.newAppointment || null);
+      console.log("automationPayload", extra || {});
+      previousBarber = {
+        id: prevId,
+        name: (extra as any)?.previous_professional_name || (extra as any)?.old_professional_name || "",
+        phone: (extra as any)?.previous_professional_phone || "",
+      };
+      newBarber = {
+        id: newId,
+        name: (extra as any)?.new_professional_name || "",
+        phone: (extra as any)?.new_professional_phone || "",
+      };
       const ids = [prevId, newId].filter(Boolean) as string[];
-      if (ids.length > 0 && (!(extra as any)?.previous_professional_name || !(extra as any)?.new_professional_name)) {
+      if (ids.length > 0 && (!previousBarber.phone || !newBarber.phone || !previousBarber.name || !newBarber.name)) {
         const { data: rows } = await supabase
           .from("barbers")
           .select("id, name, phone")
           .in("id", ids);
-        previousBarber = rows?.find((r: any) => r.id === prevId) || null;
-        newBarber = rows?.find((r: any) => r.id === newId) || null;
+        const prevRow = rows?.find((r: any) => r.id === prevId) || null;
+        const newRow = rows?.find((r: any) => r.id === newId) || null;
+        previousBarber = { ...prevRow, ...previousBarber, phone: previousBarber.phone || prevRow?.phone || "", name: previousBarber.name || prevRow?.name || "" };
+        newBarber = { ...newRow, ...newBarber, phone: newBarber.phone || newRow?.phone || "", name: newBarber.name || newRow?.name || "" };
       }
       appointmentExtras.previous_professional_id = prevId;
       appointmentExtras.new_professional_id = newId;
@@ -318,6 +333,7 @@ serve(async (req) => {
 
       const templateVariables = applyRecipientLinks(rawPayload, recipient);
       console.log("templateVariables", templateVariables);
+      console.log("recipientList", [{ type: recipient, name: recipientName, phone: normalizePhone(phone) }]);
 
       const { error: insErr } = await supabase.from("automation_queue").insert({
         tenant_id,
@@ -399,6 +415,7 @@ serve(async (req) => {
     };
     const internalFlag = eventFlagMap[event];
     const internalRecipients: string[] = [];
+    const recipientList: Array<{ type: string; name: string | null; phone: string | null }> = [];
 
     if (internalFlag) {
       let recipientsQuery = supabase
@@ -445,6 +462,7 @@ serve(async (req) => {
       const sentPanelUsers = new Set<string>();
 
       for (const rcp of recipients || []) {
+        recipientList.push({ type: rcp.role || "internal", name: rcp.name || null, phone: normalizePhone(rcp.phone) || null });
         console.log(`[EmitEvent] Processing recipient ${rcp.name} (${rcp.phone}) wa=${rcp.receive_whatsapp} panel=${rcp.receive_panel}`);
 
         if (rcp.receive_whatsapp && rcp.phone) {
@@ -501,6 +519,7 @@ serve(async (req) => {
           internalRecipients.push(`email:${rcp.name}`);
         }
       }
+      console.log("recipientList", recipientList);
     } else {
       console.log(`[EmitEvent] No internal flag mapping for event ${event}`);
     }

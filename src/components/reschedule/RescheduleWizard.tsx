@@ -643,6 +643,9 @@ function buildProfessionalChangeEvent({
   const newProfessionalName = newProfessional?.name || newAppointment?.barber_name || fallback.newProfessionalName || "";
 
   return {
+    oldAppointment,
+    newAppointment,
+
     appointment_id: appointmentId,
     tenant_id: tenantId,
 
@@ -658,8 +661,10 @@ function buildProfessionalChangeEvent({
 
     previous_professional_id: oldProfessional?.id || oldAppointment?.professional_id || oldAppointment?.barber_id || null,
     previous_professional_name: previousProfessionalName,
+    previous_professional_phone: oldProfessional?.phone || oldAppointment?.professional_phone || oldAppointment?.barber_phone || "",
     new_professional_id: newProfessional?.id || newAppointment?.professional_id || newAppointment?.barber_id || null,
     new_professional_name: newProfessionalName,
+    new_professional_phone: newProfessional?.phone || newAppointment?.professional_phone || newAppointment?.barber_phone || "",
 
     // Backward-compatible aliases used by existing templates.
     previous_barber_id: oldProfessional?.id || oldAppointment?.professional_id || oldAppointment?.barber_id || null,
