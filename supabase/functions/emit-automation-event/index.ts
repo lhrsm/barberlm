@@ -16,6 +16,7 @@ interface EmitPayload {
   appointment_id?: string;
   customer_id?: string;
   extra?: Record<string, any>;
+  dry_run?: boolean;
 }
 
 serve(async (req) => {
@@ -29,12 +30,13 @@ serve(async (req) => {
   try {
     const body = (await req.json()) as EmitPayload;
     const { tenant_id, event, appointment_id, customer_id, extra } = body;
+    const dryRun = body.dry_run === true || (extra as any)?.__dry_run === true;
 
     if (!tenant_id || !event) {
       return json({ success: false, error: "tenant_id and event are required" }, 400);
     }
 
-    console.log("[EmitEvent] Start", { tenant_id, event, appointment_id, customer_id });
+    console.log("[EmitEvent] Start", { tenant_id, event, appointment_id, customer_id, dryRun });
 
     // 1. Load active templates for this event
     const { data: templates, error: tplErr } = await supabase
@@ -228,6 +230,7 @@ serve(async (req) => {
     const skipped: Array<{ template: string; reason: string }> = [];
     const eventTemplatePhones = new Set<string>();
     const recipientList: Array<{ type: string; name: string | null; phone: string | null }> = [];
+    const dryRunMessages: Array<{ type: string; name: string | null; phone: string | null; templateVariables: Record<string, any> }> = [];
 
     for (const tpl of templates || []) {
       if (event === "appointment.completed" && tpl.key === "post_service_review" && hasModernCompletedReviewTemplate) {
@@ -335,6 +338,12 @@ serve(async (req) => {
       const templateVariables = applyRecipientLinks(rawPayload, recipient);
       console.log("templateVariables", templateVariables);
       recipientList.push({ type: recipient, name: recipientName, phone: normalizePhone(phone) || null });
+
+      if (dryRun) {
+        dryRunMessages.push({ type: recipient, name: recipientName, phone: normalizePhone(phone) || null, templateVariables });
+        dispatched.push(`dry-run:${tpl.key}`);
+        continue;
+      }
 
       const { error: insErr } = await supabase.from("automation_queue").insert({
         tenant_id,
@@ -464,6 +473,17 @@ serve(async (req) => {
         recipientList.push({ type: rcp.role || "internal", name: rcp.name || null, phone: normalizePhone(rcp.phone) || null });
         console.log(`[EmitEvent] Processing recipient ${rcp.name} (${rcp.phone}) wa=${rcp.receive_whatsapp} panel=${rcp.receive_panel}`);
 
+        if (dryRun) {
+          dryRunMessages.push({
+            type: rcp.role || "internal",
+            name: rcp.name || null,
+            phone: normalizePhone(rcp.phone) || null,
+            templateVariables: { ...internalPayload, recipient_name: rcp.name },
+          });
+          internalRecipients.push(`dry-run:${rcp.name}`);
+          continue;
+        }
+
         if (rcp.receive_whatsapp && rcp.phone) {
           const norm = normalizePhone(rcp.phone);
           if (!norm) continue;
@@ -531,7 +551,7 @@ serve(async (req) => {
         .catch((e) => console.error("[EmitEvent] Kick failed", e));
     }
 
-    return json({ success: true, dispatched, skipped, internal: internalRecipients });
+    return json({ success: true, dispatched, skipped, internal: internalRecipients, dry_run: dryRun, recipientList, dryRunMessages });
   } catch (e: any) {
     console.error("[EmitEvent] Fatal", e);
     return json({ success: false, error: e.message }, 500);
