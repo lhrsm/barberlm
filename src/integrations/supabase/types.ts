@@ -3982,6 +3982,7 @@ export type Database = {
       }
       notification_recipients: {
         Row: {
+          barber_id: string | null
           created_at: string
           email: string | null
           id: string
@@ -4008,6 +4009,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          barber_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -4034,6 +4036,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          barber_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -4059,7 +4062,15 @@ export type Database = {
           tenant_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notification_recipients_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {

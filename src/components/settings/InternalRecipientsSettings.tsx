@@ -21,6 +21,7 @@ type Recipient = {
   role: string;
   phone: string | null;
   email: string | null;
+  barber_id: string | null;
   receive_whatsapp: boolean;
   receive_email: boolean;
   receive_panel: boolean;
@@ -38,6 +39,8 @@ type Recipient = {
   notify_automation_failure: boolean;
   is_active: boolean;
 };
+
+type BarberOpt = { id: string; name: string };
 
 const EVENT_FLAGS: Array<{ key: keyof Recipient; label: string }> = [
   { key: "notify_new_appointment", label: "Novo agendamento" },
@@ -76,6 +79,7 @@ function emptyRecipient(tenantId: string): Recipient {
     role: "manager",
     phone: "",
     email: "",
+    barber_id: null,
     receive_whatsapp: true,
     receive_email: false,
     receive_panel: true,
@@ -98,6 +102,7 @@ function emptyRecipient(tenantId: string): Recipient {
 export function InternalRecipientsSettings() {
   const { tenantId, tenantProfile } = useTenant();
   const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [barbers, setBarbers] = useState<BarberOpt[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<Recipient | null>(null);
@@ -110,6 +115,7 @@ export function InternalRecipientsSettings() {
   useEffect(() => {
     if (!tenantId) return;
     fetchAll();
+    fetchBarbers();
   }, [tenantId]);
 
   async function fetchAll() {
@@ -121,6 +127,16 @@ export function InternalRecipientsSettings() {
     if (error) toast.error("Erro ao carregar destinatários");
     setRecipients((data as any) || []);
     setLoading(false);
+  }
+
+  async function fetchBarbers() {
+    const { data } = await supabase
+      .from("barbers")
+      .select("id, name")
+      .eq("user_id", tenantId!)
+      .eq("active", true)
+      .order("name");
+    setBarbers((data as any) || []);
   }
 
   async function toggleAllowOnOfficial(v: boolean) {
@@ -343,6 +359,29 @@ export function InternalRecipientsSettings() {
                     className="bg-[#05070d] border-[#1f2937] mt-1"
                   />
                 </div>
+              </div>
+
+
+
+              <div>
+                <Label>Notificar apenas para agendamentos do profissional</Label>
+                <Select
+                  value={draft.barber_id ?? "__all__"}
+                  onValueChange={(v) => setDraft({ ...draft, barber_id: v === "__all__" ? null : v })}
+                >
+                  <SelectTrigger className="bg-[#05070d] border-[#1f2937] mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Todos os profissionais (padrão)</SelectItem>
+                    {barbers.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Para eventos de agendamento, este destinatário recebe apenas quando o agendamento for do profissional escolhido. Deixe em "Todos" para receber sempre.
+                </p>
               </div>
 
               <div>
