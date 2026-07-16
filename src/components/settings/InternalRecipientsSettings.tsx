@@ -21,6 +21,7 @@ type Recipient = {
   role: string;
   phone: string | null;
   email: string | null;
+  barber_id: string | null;
   receive_whatsapp: boolean;
   receive_email: boolean;
   receive_panel: boolean;
@@ -38,6 +39,8 @@ type Recipient = {
   notify_automation_failure: boolean;
   is_active: boolean;
 };
+
+type BarberOpt = { id: string; name: string };
 
 const EVENT_FLAGS: Array<{ key: keyof Recipient; label: string }> = [
   { key: "notify_new_appointment", label: "Novo agendamento" },
