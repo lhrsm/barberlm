@@ -358,7 +358,27 @@ export function InternalRecipientsSettings() {
                     onChange={(e) => setDraft({ ...draft, email: e.target.value })}
                     className="bg-[#05070d] border-[#1f2937] mt-1"
                   />
-                </div>
+              </div>
+
+              <div>
+                <Label>Notificar apenas para agendamentos do profissional</Label>
+                <Select
+                  value={draft.barber_id ?? "__all__"}
+                  onValueChange={(v) => setDraft({ ...draft, barber_id: v === "__all__" ? null : v })}
+                >
+                  <SelectTrigger className="bg-[#05070d] border-[#1f2937] mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Todos os profissionais (padrão)</SelectItem>
+                    {barbers.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Para eventos de agendamento, este destinatário recebe apenas quando o agendamento for do profissional escolhido. Deixe em "Todos" para receber sempre.
+                </p>
               </div>
 
               <div>
