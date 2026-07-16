@@ -16,12 +16,16 @@ export interface RescheduleWizardAppointment {
   tenant_id: string;
   customer_id?: string | null;
   customer_name?: string | null;
+  customer_phone?: string | null;
   service_id: string;
   service_name?: string | null;
+  service_price?: number | string | null;
+  payment_method?: string | null;
   barber_id: string;
   barber_name?: string | null;
   start_time: string;
   end_time?: string | null;
+  management_token?: string | null;
   appointment_group_id?: string | null;
 }
 
@@ -29,7 +33,9 @@ export interface RescheduleWizardProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   appointment: RescheduleWizardAppointment | null;
-  actor: "customer" | "barber" | "shop";
+  actor: "customer" | "barber" | "admin" | "manager" | "reception" | "shop";
+  actorId?: string | null;
+  actorName?: string | null;
   source: string;
   allowProfessionalChange?: boolean;
   onSuccess?: () => void;
@@ -52,6 +58,8 @@ export function RescheduleWizard({
   onOpenChange,
   appointment,
   actor,
+  actorId,
+  actorName,
   source,
   allowProfessionalChange = true,
   onSuccess,
@@ -203,6 +211,10 @@ export function RescheduleWizard({
         throw new Error(error?.message || resp?.error || "Falha ao reagendar");
       }
 
+      const newAppointmentFromRpc = resp.newAppointment || null;
+      const newProfessionalName =
+        newAppointmentFromRpc?.professional?.name || selectedBarber?.name || appointment.barber_name || "";
+
       // Internal notification for shop
       try {
         await createNotification({
@@ -225,22 +237,44 @@ export function RescheduleWizard({
         new_time: format(startTime, "HH:mm"),
       };
       if (barberChanged) {
-        baseExtra.old_professional_name = originalBarberName;
-        baseExtra.new_professional_name = selectedBarber?.name || "";
-        baseExtra.previous_barber_id = appointment.barber_id;
-        baseExtra.new_barber_id = selectedBarberId;
-        baseExtra.actor_label =
-          actor === "customer" ? "cliente" : actor === "barber" ? "profissional" : "barbearia";
+        const automationPayload = buildProfessionalChangeEvent({
+          oldAppointment: resp.oldAppointment || appointment,
+          newAppointment: newAppointmentFromRpc || {
+            ...appointment,
+            barber_id: selectedBarberId,
+            barber_name: newProfessionalName,
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+          },
+          actor,
+          actorId,
+          actorName,
+          source,
+          shopName: undefined,
+          fallback: {
+            oldDate: baseExtra.old_date,
+            oldTime: baseExtra.old_time,
+            newDate: baseExtra.new_date,
+            newTime: baseExtra.new_time,
+            previousProfessionalName: originalBarberName,
+            newProfessionalName,
+          },
+        });
+
+        console.log("oldAppointment", resp.oldAppointment || appointment);
+        console.log("newAppointment", newAppointmentFromRpc || null);
+        console.log("automationPayload", automationPayload);
 
         emitAutomationEvent({
           tenantId: appointment.tenant_id,
-          event: "appointment.professional_changed" as any,
+          event: "appointment.professional_changed",
           appointmentId: appointment.id,
           customerId: appointment.customer_id || undefined,
-          extra: baseExtra,
+          extra: automationPayload,
         });
       } else {
-        const event = `appointment.rescheduled.by_${actor}` as any;
+        const eventActor = actor === "shop" || actor === "admin" || actor === "manager" || actor === "reception" ? "shop" : actor;
+        const event = `appointment.rescheduled.by_${eventActor}` as any;
         emitAutomationEvent({
           tenantId: appointment.tenant_id,
           event,
@@ -544,6 +578,112 @@ export function RescheduleWizard({
       </DialogContent>
     </Dialog>
   );
+}
+
+function buildProfessionalChangeEvent({
+  oldAppointment,
+  newAppointment,
+  actor,
+  actorId,
+  actorName,
+  source,
+  shopName,
+  fallback,
+}: {
+  oldAppointment: any;
+  newAppointment: any;
+  actor: "customer" | "barber" | "admin" | "manager" | "reception" | "shop";
+  actorId?: string | null;
+  actorName?: string | null;
+  source: string;
+  shopName?: string | null;
+  fallback: {
+    oldDate: string;
+    oldTime: string;
+    newDate: string;
+    newTime: string;
+    previousProfessionalName: string;
+    newProfessionalName: string;
+  };
+}) {
+  const oldCustomer = oldAppointment?.customer || {};
+  const newCustomer = newAppointment?.customer || oldCustomer || {};
+  const oldService = oldAppointment?.service || {};
+  const newService = newAppointment?.service || oldService || {};
+  const oldProfessional = oldAppointment?.professional || oldAppointment?.barber || {};
+  const newProfessional = newAppointment?.professional || newAppointment?.barber || {};
+
+  const appointmentId = newAppointment?.id || oldAppointment?.id;
+  const tenantId = newAppointment?.tenant_id || oldAppointment?.tenant_id;
+  const token = newAppointment?.management_token || oldAppointment?.management_token || appointmentId;
+  const managementLink = `https://barbex.shop/agendamento/${token}${tenantId ? `?tenant=${tenantId}` : ""}`;
+
+  const normalizedActorType = actor === "shop" ? "admin" : actor;
+  const businessName = shopName || "Barbearia";
+  const resolvedActorName =
+    actorName ||
+    (normalizedActorType === "customer"
+      ? newCustomer?.name || oldCustomer?.name || "Cliente"
+      : normalizedActorType === "barber"
+        ? newProfessional?.name || oldProfessional?.name || "Profissional"
+        : businessName);
+  const actorLabel =
+    normalizedActorType === "customer"
+      ? `Cliente ${resolvedActorName}`
+      : normalizedActorType === "barber"
+        ? `Profissional ${resolvedActorName}`
+        : normalizedActorType === "reception"
+          ? `Recepção ${resolvedActorName}`
+          : normalizedActorType === "manager"
+            ? `Gerente ${resolvedActorName}`
+            : `Administração ${resolvedActorName}`;
+
+  const servicePrice = newAppointment?.total_price ?? newService?.price ?? oldAppointment?.total_price ?? oldService?.price ?? null;
+  const previousProfessionalName = oldProfessional?.name || oldAppointment?.barber_name || fallback.previousProfessionalName || "";
+  const newProfessionalName = newProfessional?.name || newAppointment?.barber_name || fallback.newProfessionalName || "";
+
+  return {
+    appointment_id: appointmentId,
+    tenant_id: tenantId,
+
+    customer_id: newCustomer?.id || oldCustomer?.id || newAppointment?.customer_id || oldAppointment?.customer_id || null,
+    customer_name: newCustomer?.name || oldCustomer?.name || newAppointment?.customer_name || oldAppointment?.customer_name || "",
+    customer_phone: newCustomer?.phone || oldCustomer?.phone || newAppointment?.customer_phone || oldAppointment?.customer_phone || "",
+
+    service_id: newService?.id || oldService?.id || newAppointment?.service_id || oldAppointment?.service_id || null,
+    service_name: newService?.name || oldService?.name || newAppointment?.service_name || oldAppointment?.service_name || "",
+    service_price: servicePrice,
+
+    payment_method: newAppointment?.payment_method || oldAppointment?.payment_method || "",
+
+    previous_professional_id: oldProfessional?.id || oldAppointment?.professional_id || oldAppointment?.barber_id || null,
+    previous_professional_name: previousProfessionalName,
+    new_professional_id: newProfessional?.id || newAppointment?.professional_id || newAppointment?.barber_id || null,
+    new_professional_name: newProfessionalName,
+
+    // Backward-compatible aliases used by existing templates.
+    previous_barber_id: oldProfessional?.id || oldAppointment?.professional_id || oldAppointment?.barber_id || null,
+    new_barber_id: newProfessional?.id || newAppointment?.professional_id || newAppointment?.barber_id || null,
+    old_professional_name: previousProfessionalName,
+
+    previous_date: fallback.oldDate,
+    previous_time: fallback.oldTime,
+    new_date: fallback.newDate,
+    new_time: fallback.newTime,
+    old_date: fallback.oldDate,
+    old_time: fallback.oldTime,
+
+    actor_id: actorId || null,
+    actor_type: normalizedActorType,
+    actor_name: resolvedActorName,
+    actor_label: actorLabel,
+    source,
+
+    customer_management_link: managementLink,
+    new_professional_management_link: managementLink,
+    internal_management_link: managementLink,
+    management_link: managementLink,
+  };
 }
 
 

@@ -2739,17 +2739,23 @@ function ClientPortalComponent() {
                 tenant_id: editingAppointment.tenant_id || shop?.id,
                 customer_id: editingAppointment.customer_id || client?.customer_id,
                 customer_name: editingAppointment.customer_name || client?.name,
+                customer_phone: editingAppointment.customer_phone || client?.phone,
                 service_id: editingAppointment.service_id,
                 service_name: editingAppointment.service_name || editingAppointment.services?.name,
+                service_price: editingAppointment.total_price || editingAppointment.services?.price,
+                payment_method: editingAppointment.payment_method,
                 barber_id: editingAppointment.barber_id,
                 barber_name: editingAppointment.barber_name || editingAppointment.barbers?.name,
                 start_time: editingAppointment.start_time,
                 end_time: editingAppointment.end_time,
+                management_token: editingAppointment.management_token,
                 appointment_group_id: editingAppointment.appointment_group_id,
               }
             : null
         }
         actor="customer"
+        actorId={client?.customer_id}
+        actorName={client?.name}
         source="customer_portal"
         onSuccess={() => {
           if (client?.customer_id) fetchClientData(client.customer_id);

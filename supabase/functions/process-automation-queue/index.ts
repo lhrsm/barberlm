@@ -242,10 +242,11 @@ serve(async (req) => {
           }
         }
 
-        const customerName = appointment?.customer?.name || item.payload?.customer_name || item.customer?.name || "Cliente";
+        const payloadData = item.payload || {};
+        const customerName = payloadData.customer_name || appointment?.customer?.name || item.customer?.name || "Cliente";
         const appointmentDate = appointment?.start_time ? formatBrazilDate(appointment.start_time) : "";
         const appointmentTime = appointment?.start_time ? formatBrazilTime(appointment.start_time) : "";
-        const serviceName = appointment?.service?.name || item.payload?.service_name || "Serviço";
+        const serviceName = payloadData.service_name || appointment?.service?.name || "Serviço";
         
         let managementUrl = "";
         let groupAppointments = [];
@@ -289,33 +290,49 @@ serve(async (req) => {
           }
         }
 
+        const fallbackManagementUrl = managementUrl;
         const templateData = {
+          ...payloadData,
           customer_name: customerName,
-          customer_phone: appointment?.customer?.phone || item.payload?.customer_phone || "",
-          barbershop_name: barbershopName,
+          customer_phone: payloadData.customer_phone || appointment?.customer?.phone || "",
+          barbershop_name: payloadData.barbershop_name || barbershopName,
           service_name: serviceName,
-          professional_name: profName,
-          appointment_date: appointmentDate,
-          appointment_time: appointmentTime,
-          management_link: managementUrl,
-          management_token: appointment?.management_token || appointment?.id,
-          service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
-          payment_method: item.payload?.payment_method || appointment?.payment_method || "",
-          subscription_name: item.payload?.subscription_name || item.payload?.plan_name || "",
-          plan_name: item.payload?.plan_name || item.payload?.subscription_name || "",
-          cancel_reason: item.payload?.cancel_reason || "",
-          old_date: item.payload?.old_date || "",
-          old_time: item.payload?.old_time || "",
-          new_date: item.payload?.new_date || appointmentDate,
-          new_time: item.payload?.new_time || appointmentTime,
-          cashback_amount: item.payload?.cashback_amount || "",
-          credits_amount: item.payload?.credits_amount || "",
-          reward_name: item.payload?.reward_name || "",
-          review_link: item.payload?.review_link || "",
-          review_token: item.payload?.review_token || "",
+          professional_name: payloadData.professional_name || profName,
+          appointment_date: payloadData.appointment_date || appointmentDate,
+          appointment_time: payloadData.appointment_time || appointmentTime,
+          management_link: payloadData.management_link ?? fallbackManagementUrl,
+          management_token: payloadData.management_token || appointment?.management_token || appointment?.id,
+          service_price: payloadData.service_price || (appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0"),
+          payment_method: payloadData.payment_method || appointment?.payment_method || "",
+          subscription_name: payloadData.subscription_name || payloadData.plan_name || "",
+          plan_name: payloadData.plan_name || payloadData.subscription_name || "",
+          cancel_reason: payloadData.cancel_reason || "",
+          previous_date: payloadData.previous_date || payloadData.old_date || "",
+          previous_time: payloadData.previous_time || payloadData.old_time || "",
+          old_date: payloadData.old_date || payloadData.previous_date || "",
+          old_time: payloadData.old_time || payloadData.previous_time || "",
+          new_date: payloadData.new_date || appointmentDate,
+          new_time: payloadData.new_time || appointmentTime,
+          previous_professional_id: payloadData.previous_professional_id || payloadData.previous_barber_id || "",
+          previous_professional_name: payloadData.previous_professional_name || payloadData.old_professional_name || "",
+          old_professional_name: payloadData.old_professional_name || payloadData.previous_professional_name || "",
+          new_professional_id: payloadData.new_professional_id || payloadData.new_barber_id || "",
+          new_professional_name: payloadData.new_professional_name || "",
+          actor_id: payloadData.actor_id || "",
+          actor_type: payloadData.actor_type || "",
+          actor_name: payloadData.actor_name || "",
+          actor_label: payloadData.actor_label || "",
+          customer_management_link: payloadData.customer_management_link || "",
+          new_professional_management_link: payloadData.new_professional_management_link || "",
+          internal_management_link: payloadData.internal_management_link || "",
+          cashback_amount: payloadData.cashback_amount || "",
+          credits_amount: payloadData.credits_amount || "",
+          reward_name: payloadData.reward_name || "",
+          review_link: payloadData.review_link || "",
+          review_token: payloadData.review_token || "",
         };
 
-        console.log(`[ProcessQueue] Variables resolved for ${currentWorkflowKey}`, templateData);
+        console.log("templateVariables", templateData);
 
         let baseTemplate = automation?.template || "";
         if (isNewAppointment && !baseTemplate) {

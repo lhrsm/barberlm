@@ -175,15 +175,16 @@ serve(async (req) => {
       }
     }
 
-    // For appointment.professional_changed: resolve previous/new barber info
-    // from IDs passed in `extra` (RPC returns these). Also derive actor label.
+    // For appointment.professional_changed, the caller sends a complete payload
+    // built from oldAppointment + newAppointment snapshots immediately after
+    // the update. Only fall back to lookup when legacy callers omit names.
     let previousBarber: any = null;
     let newBarber: any = null;
     if (event === "appointment.professional_changed") {
-      const prevId = (extra as any)?.previous_barber_id || null;
-      const newId = (extra as any)?.new_barber_id || appointment?.barber_id || null;
+      const prevId = (extra as any)?.previous_professional_id || (extra as any)?.previous_barber_id || null;
+      const newId = (extra as any)?.new_professional_id || (extra as any)?.new_barber_id || appointment?.barber_id || null;
       const ids = [prevId, newId].filter(Boolean) as string[];
-      if (ids.length > 0) {
+      if (ids.length > 0 && (!(extra as any)?.previous_professional_name || !(extra as any)?.new_professional_name)) {
         const { data: rows } = await supabase
           .from("barbers")
           .select("id, name, phone")
@@ -191,24 +192,19 @@ serve(async (req) => {
         previousBarber = rows?.find((r: any) => r.id === prevId) || null;
         newBarber = rows?.find((r: any) => r.id === newId) || null;
       }
-      appointmentExtras.old_professional_name = previousBarber?.name || "";
-      appointmentExtras.new_professional_name = newBarber?.name || barber?.name || "";
-      const actorType = (extra as any)?.changed_by_type || (extra as any)?.actor || "";
-      const actorLabel = actorType === "customer"
-        ? (customer?.name || "Cliente")
-        : actorType === "barber"
-          ? (newBarber?.name || previousBarber?.name || "Profissional")
-          : actorType === "shop" || actorType === "admin" || actorType === "staff"
-            ? (shopProfile?.business_name || "Barbearia")
-            : "Barbearia";
-      appointmentExtras.actor_label = actorLabel;
+      appointmentExtras.previous_professional_id = prevId;
+      appointmentExtras.new_professional_id = newId;
+      appointmentExtras.old_professional_name = (extra as any)?.old_professional_name || (extra as any)?.previous_professional_name || previousBarber?.name || "";
+      appointmentExtras.previous_professional_name = (extra as any)?.previous_professional_name || appointmentExtras.old_professional_name;
+      appointmentExtras.new_professional_name = (extra as any)?.new_professional_name || newBarber?.name || barber?.name || "";
+      appointmentExtras.actor_label = (extra as any)?.actor_label || "";
       if (!extra?.new_date) appointmentExtras.new_date = apptDateStr;
       if (!extra?.new_time) appointmentExtras.new_time = apptTimeStr;
       console.log("[EmitEvent] PROFESSIONAL_CHANGED", {
         prevId, newId,
-        previous_name: previousBarber?.name,
-        new_name: newBarber?.name,
-        actor: actorLabel,
+        previous_name: appointmentExtras.previous_professional_name,
+        new_name: appointmentExtras.new_professional_name,
+        actor: appointmentExtras.actor_label,
       });
     }
 
@@ -305,6 +301,24 @@ serve(async (req) => {
       const normalizedTemplatePhone = normalizePhone(phone);
       if (normalizedTemplatePhone) eventTemplatePhones.add(normalizedTemplatePhone);
 
+      const rawPayload = {
+        recipient,
+        recipient_phone: phone,
+        recipient_name: recipientName,
+        ...appointmentExtras,
+        customer_name: customer?.name,
+        customer_phone: customer?.phone,
+        professional_name: barber?.name,
+        professional_phone: barber?.phone,
+        barbershop_name: shopProfile?.business_name,
+        tenant_id,
+        appointment_id: appointment_id || null,
+        ...(extra || {}),
+      };
+
+      const templateVariables = applyRecipientLinks(rawPayload, recipient);
+      console.log("templateVariables", templateVariables);
+
       const { error: insErr } = await supabase.from("automation_queue").insert({
         tenant_id,
         automation_id: tpl.id,
@@ -315,20 +329,7 @@ serve(async (req) => {
         status: "pending",
         scheduled_for: scheduledFor,
         idempotency_key: idem,
-        payload: {
-          recipient,
-          recipient_phone: phone,
-          recipient_name: recipientName,
-          ...appointmentExtras,
-          customer_name: customer?.name,
-          customer_phone: customer?.phone,
-          professional_name: barber?.name,
-          professional_phone: barber?.phone,
-          barbershop_name: shopProfile?.business_name,
-          tenant_id,
-          appointment_id: appointment_id || null,
-          ...(extra || {}),
-        },
+        payload: templateVariables,
       });
 
 
@@ -377,6 +378,7 @@ serve(async (req) => {
       "appointment.rescheduled.by_customer": "notify_rescheduled_appointment",
       "appointment.rescheduled.by_barber": "notify_rescheduled_appointment",
       "appointment.rescheduled.by_shop": "notify_rescheduled_appointment",
+      "appointment.professional_changed": "notify_rescheduled_appointment",
       "appointment.cancelled.by_customer": "notify_cancelled_appointment",
       "appointment.cancelled.by_barber": "notify_cancelled_appointment",
       "appointment.cancelled.by_shop": "notify_cancelled_appointment",
@@ -425,7 +427,7 @@ serve(async (req) => {
       const officialPhone = normalizePhone(shopProfile?.whatsapp_number);
       const allowOnOfficial = (shopProfile as any)?.allow_notifications_on_business_phone === true;
 
-      const buildFor = (rcpName?: string) => buildInternalMessage(event, {
+      const internalPayload = applyRecipientLinks({
         customer_name: customer?.name,
         customer_phone: customer?.phone,
         barber_name: barber?.name,
@@ -434,7 +436,8 @@ serve(async (req) => {
         recipient_name: rcpName,
         ...appointmentExtras,
         ...(extra || {}),
-      });
+      }, "internal");
+      const buildFor = (rcpName?: string) => buildInternalMessage(event, { ...internalPayload, recipient_name: rcpName });
       const internalMessage = buildFor();
 
 
@@ -464,7 +467,7 @@ serve(async (req) => {
                 user_id: tenant_id,
                 phone: norm,
                 content: buildFor(rcp.name),
-                metadata: { eventType: event, internal: true, recipient_id: rcp.id },
+                metadata: { eventType: event, internal: true, recipient_id: rcp.id, templateVariables: { ...internalPayload, recipient_name: rcp.name } },
               },
             });
             if (waErr) {
@@ -486,7 +489,7 @@ serve(async (req) => {
             type: event,
             title: internalTitle(event),
             message: internalMessage,
-            metadata: { event, appointment_id, customer_id, recipient_id: rcp.id, ...(extra || {}) },
+            metadata: { event, appointment_id, customer_id, recipient_id: rcp.id, ...internalPayload },
             read: false,
           });
           if (notifErr) console.error("[EmitEvent] Panel insert failed", notifErr);

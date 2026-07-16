@@ -652,17 +652,22 @@ function CalendarComponent() {
                 tenant_id: rescheduleAppt.tenant_id || rescheduleAppt.user_id,
                 customer_id: rescheduleAppt.customer_id,
                 customer_name: rescheduleAppt.customer_name || rescheduleAppt.customers?.name,
+                customer_phone: rescheduleAppt.customer_phone || rescheduleAppt.customers?.phone,
                 service_id: rescheduleAppt.service_id,
                 service_name: rescheduleAppt.service_name || rescheduleAppt.services?.name,
+                service_price: rescheduleAppt.total_price || rescheduleAppt.services?.price,
+                payment_method: rescheduleAppt.payment_method,
                 barber_id: rescheduleAppt.barber_id,
                 barber_name: rescheduleAppt.barber_name || rescheduleAppt.barbers?.name,
                 start_time: rescheduleAppt.start_time,
                 end_time: rescheduleAppt.end_time,
+                management_token: rescheduleAppt.management_token,
                 appointment_group_id: rescheduleAppt.appointment_group_id,
               }
             : null
         }
-        actor={role === "barber" ? "barber" : "shop"}
+        actor={role === "barber" ? "barber" : role === "reception" ? "reception" : role === "manager" ? "manager" : "admin"}
+        actorId={user?.id}
         source="admin_calendar"
         onSuccess={() => fetchData()}
       />
