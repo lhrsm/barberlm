@@ -137,6 +137,22 @@ function SupportPage() {
                           Enviar e-mail
                         </Button>
                       </div>
+                      <div className="w-full p-4 bg-[#050816] rounded-xl border border-zinc-800/80 text-sm transition-all hover:border-[#f59e0b]/30">
+                        <p className="text-base font-bold mb-1 text-white flex items-center gap-2">
+                          <Lightbulb className="h-4 w-4 text-amber-300" />
+                          Sugestões
+                        </p>
+                        <p className="text-zinc-400 text-[13px] mb-3">
+                          Tem uma ideia para melhorar o Barbex? Envie para nossa equipe.
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => setIsSuggestionOpen(true)}
+                          className="w-full h-9 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 hover:bg-amber-400/20 hover:text-amber-200 text-xs font-semibold transition-all"
+                        >
+                          Enviar sugestão
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
