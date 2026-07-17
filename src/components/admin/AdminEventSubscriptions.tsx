@@ -323,14 +323,14 @@ function ChannelToggle({
   return (
     <label
       className={cn(
-        "flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-white/10 bg-black/30",
+        "flex items-center justify-between gap-1 px-2 py-1.5 rounded-lg border border-white/10 bg-black/30",
         disabled && "opacity-40",
       )}
     >
-      <span className="flex items-center gap-2 text-xs text-gray-300">
+      <span className="flex items-center gap-1 text-[10px] text-gray-300 uppercase tracking-wide">
         {icon} {label}
       </span>
-      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
+      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} className="scale-75 origin-right" />
     </label>
   );
 }
