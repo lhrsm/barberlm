@@ -12,6 +12,7 @@ export type AdminEventKey =
   | "trial.expiring_soon"
   | "tenant.inactive_7d"
   | "support.ticket_created"
+  | "support.suggestion_created"
   | "support.ticket_urgent"
   | "payment.refund_requested"
   | "system.error_spike"
