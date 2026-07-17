@@ -215,10 +215,10 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Abrindo...
+                  {isSuggestion ? "Enviando..." : "Abrindo..."}
                 </>
               ) : (
-                "Abrir Chamado"
+                isSuggestion ? "Enviar Sugestão" : "Abrir Chamado"
               )}
             </Button>
           </div>
