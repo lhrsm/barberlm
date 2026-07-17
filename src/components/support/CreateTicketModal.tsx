@@ -185,11 +185,12 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
               </Select>
             </div>
           </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300">Descrição</label>
             <Textarea
-              placeholder="Descreva detalhadamente sua dúvida ou problema..."
+              placeholder={isSuggestion ? "Conte sua ideia com detalhes: o que resolveria e como imagina o funcionamento..." : "Descreva detalhadamente sua dúvida ou problema..."}
               className="min-h-[120px] bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:ring-primary/50 resize-none"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
