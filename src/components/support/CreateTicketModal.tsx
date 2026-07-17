@@ -26,6 +26,7 @@ interface CreateTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  mode?: "ticket" | "suggestion";
 }
 
 const CATEGORIES = [
@@ -45,15 +46,17 @@ const PRIORITIES = [
   { value: "urgent", label: "Urgente" },
 ];
 
-export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketModalProps) {
+export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" }: CreateTicketModalProps) {
   const { user } = useAuth();
   const { tenantId } = useTenant();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  const isSuggestion = mode === "suggestion";
+
   const [form, setForm] = useState({
     title: "",
-    category: "",
-    priority: "medium",
+    category: isSuggestion ? "Sugestões" : "",
+    priority: isSuggestion ? "low" : "medium",
     description: "",
   });
 
@@ -100,15 +103,15 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketMo
       }
 
       console.log("Ticket criado com sucesso:", data);
-      toast.success("Chamado aberto com sucesso!");
+      toast.success(isSuggestion ? "Sugestão enviada com sucesso!" : "Chamado aberto com sucesso!");
       onSuccess();
       onClose();
-      
+
       // Reset form
       setForm({
         title: "",
-        category: "",
-        priority: "medium",
+        category: isSuggestion ? "Sugestões" : "",
+        priority: isSuggestion ? "low" : "medium",
         description: "",
       });
 
@@ -125,10 +128,12 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketMo
       <DialogContent className="sm:max-w-[500px] bg-[#0c0c0c] border-white/10 text-white shadow-2xl shadow-primary/20">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Novo Chamado
+            {isSuggestion ? "Enviar Sugestão" : "Novo Chamado"}
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Preencha os dados abaixo para abrir um ticket de suporte.
+            {isSuggestion
+              ? "Compartilhe uma ideia ou melhoria para o Barbex."
+              : "Preencha os dados abaixo para abrir um ticket de suporte."}
           </DialogDescription>
         </DialogHeader>
 
@@ -136,7 +141,7 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketMo
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300">Título</label>
             <Input
-              placeholder="Ex: Problema no login"
+              placeholder={isSuggestion ? "Ex: Adicionar exportação em Excel" : "Ex: Problema no login"}
               className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:ring-primary/50"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -144,6 +149,7 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketMo
             />
           </div>
 
+          {!isSuggestion && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Categoria</label>
@@ -179,11 +185,12 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketMo
               </Select>
             </div>
           </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300">Descrição</label>
             <Textarea
-              placeholder="Descreva detalhadamente sua dúvida ou problema..."
+              placeholder={isSuggestion ? "Conte sua ideia com detalhes: o que resolveria e como imagina o funcionamento..." : "Descreva detalhadamente sua dúvida ou problema..."}
               className="min-h-[120px] bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:ring-primary/50 resize-none"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -208,10 +215,10 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketMo
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Abrindo...
+                  {isSuggestion ? "Enviando..." : "Abrindo..."}
                 </>
               ) : (
-                "Abrir Chamado"
+                isSuggestion ? "Enviar Sugestão" : "Abrir Chamado"
               )}
             </Button>
           </div>
