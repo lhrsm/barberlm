@@ -128,10 +128,12 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
       <DialogContent className="sm:max-w-[500px] bg-[#0c0c0c] border-white/10 text-white shadow-2xl shadow-primary/20">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Novo Chamado
+            {isSuggestion ? "Enviar Sugestão" : "Novo Chamado"}
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Preencha os dados abaixo para abrir um ticket de suporte.
+            {isSuggestion
+              ? "Compartilhe uma ideia ou melhoria para o Barbex."
+              : "Preencha os dados abaixo para abrir um ticket de suporte."}
           </DialogDescription>
         </DialogHeader>
 
@@ -139,7 +141,7 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300">Título</label>
             <Input
-              placeholder="Ex: Problema no login"
+              placeholder={isSuggestion ? "Ex: Adicionar exportação em Excel" : "Ex: Problema no login"}
               className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:ring-primary/50"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -147,6 +149,7 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
             />
           </div>
 
+          {!isSuggestion && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Categoria</label>
