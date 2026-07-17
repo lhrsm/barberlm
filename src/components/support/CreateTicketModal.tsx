@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { emitAdminEvent } from "@/utils/emit-admin-event";
 import {
   Select,
   SelectContent,
@@ -103,6 +104,31 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
       }
 
       console.log("Ticket criado com sucesso:", data);
+
+      // Notify super admins subscribed to the event
+      const ticketId = Array.isArray(data) ? data[0]?.id : undefined;
+      if (isSuggestion) {
+        emitAdminEvent({
+          event_key: "support.suggestion_created",
+          title: `Nova sugestão: ${form.title}`,
+          message: form.description.slice(0, 240),
+          severity: "info",
+          tenant_id: tenantId,
+          action_url: "/admin/suggestions",
+          payload: { ticket_id: ticketId, category: form.category },
+        });
+      } else {
+        emitAdminEvent({
+          event_key: form.priority === "urgent" ? "support.ticket_urgent" : "support.ticket_created",
+          title: `Novo chamado: ${form.title}`,
+          message: form.description.slice(0, 240),
+          severity: form.priority === "urgent" ? "critical" : "info",
+          tenant_id: tenantId,
+          action_url: "/admin/support",
+          payload: { ticket_id: ticketId, category: form.category, priority: form.priority },
+        });
+      }
+
       toast.success(isSuggestion ? "Sugestão enviada com sucesso!" : "Chamado aberto com sucesso!");
       onSuccess();
       onClose();
