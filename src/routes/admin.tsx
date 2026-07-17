@@ -57,6 +57,7 @@ const adminNavItems = [
   { label: "Notificações", icon: Bell, to: "/admin/notifications" },
   { label: "Status", icon: Activity, to: "/admin/status" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
+  { label: "Sugestões", icon: Lightbulb, to: "/admin/suggestions" },
   { label: "LGPD", icon: ShieldCheck, to: "/admin/lgpd" },
   { label: "Tutoriais", icon: GraduationCap, to: "/admin/tutorials" },
   { label: "Configurações", icon: Settings, to: "/admin/settings" },
