@@ -7,6 +7,7 @@ import {
   Headset,
   Plus,
   Mail,
+  Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TicketList } from "@/components/support/TicketList";
@@ -22,12 +23,18 @@ export const Route = createFileRoute("/support")({
 
 function SupportPage() {
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
   const [isEmailOpen, setIsEmailOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const handleTicketCreated = () => {
     setIsNewTicketOpen(false);
+    queryClient.invalidateQueries({ queryKey: ["tenant-tickets"] });
+  };
+
+  const handleSuggestionSent = () => {
+    setIsSuggestionOpen(false);
     queryClient.invalidateQueries({ queryKey: ["tenant-tickets"] });
   };
 
