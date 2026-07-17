@@ -10,6 +10,7 @@ import {
   Activity, 
   AlertCircle, 
   LifeBuoy,
+  Lightbulb,
   ChevronLeft,
   LogOut,
   ShieldCheck,
