@@ -56,6 +56,7 @@ import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$toke
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
+import { Route as AdminSuggestionsRouteImport } from './routes/admin.suggestions'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminStatusRouteImport } from './routes/admin.status'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -317,6 +318,11 @@ const AdminSupportRoute = AdminSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSuggestionsRoute = AdminSuggestionsRouteImport.update({
+  id: '/suggestions',
+  path: '/suggestions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   id: '/subscriptions',
   path: '/subscriptions',
@@ -500,6 +506,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/suggestions': typeof AdminSuggestionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
@@ -572,6 +579,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/suggestions': typeof AdminSuggestionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
@@ -647,6 +655,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/suggestions': typeof AdminSuggestionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
@@ -723,6 +732,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/status'
     | '/admin/subscriptions'
+    | '/admin/suggestions'
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
@@ -795,6 +805,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/status'
     | '/admin/subscriptions'
+    | '/admin/suggestions'
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
@@ -869,6 +880,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/status'
     | '/admin/subscriptions'
+    | '/admin/suggestions'
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
@@ -1276,6 +1288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSupportRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/suggestions': {
+      id: '/admin/suggestions'
+      path: '/suggestions'
+      fullPath: '/admin/suggestions'
+      preLoaderRoute: typeof AdminSuggestionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/subscriptions': {
       id: '/admin/subscriptions'
       path: '/subscriptions'
@@ -1480,6 +1499,7 @@ interface AdminRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStatusRoute: typeof AdminStatusRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
+  AdminSuggestionsRoute: typeof AdminSuggestionsRoute
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTenantsRoute: typeof AdminTenantsRoute
   AdminTutorialsRoute: typeof AdminTutorialsRoute
@@ -1498,6 +1518,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminStatusRoute: AdminStatusRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
+  AdminSuggestionsRoute: AdminSuggestionsRoute,
   AdminSupportRoute: AdminSupportRoute,
   AdminTenantsRoute: AdminTenantsRoute,
   AdminTutorialsRoute: AdminTutorialsRoute,
