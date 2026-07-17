@@ -531,7 +531,9 @@ serve(async (req) => {
           // event template (e.g. barber template). Internal recipients (reception,
           // manager) are configured per-person and must always be notified, even
           // if their phone coincides with the barber's number.
-          if (!allowOnOfficial && officialPhone && norm === officialPhone) {
+          if (senderPhoneNorm && norm === senderPhoneNorm) {
+            console.log(`[EmitEvent] Skip WA to sender phone ${norm} (${rcp.name})`);
+          } else if (!allowOnOfficial && officialPhone && norm === officialPhone) {
             console.log(`[EmitEvent] Skip WA to business phone ${norm} (${rcp.name})`);
           } else {
             sentWaPhones.add(norm);
