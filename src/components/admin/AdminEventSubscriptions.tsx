@@ -208,33 +208,32 @@ export function AdminEventSubscriptions() {
       </Card>
 
       {Object.entries(grouped).map(([category, items]) => (
-        <Card key={category} className="glass border-white/5 rounded-[2.5rem] p-8">
-          <CardHeader className="p-0 pb-6 flex flex-row items-center justify-between">
-            <div>
-              <Badge className={cn("mb-2 border", CATEGORY_COLOR[category])}>
+        <Card key={category} className="glass border-white/5 rounded-2xl p-5">
+          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Badge className={cn("border text-[10px]", CATEGORY_COLOR[category])}>
                 {CATEGORY_LABEL[category] ?? category}
               </Badge>
-              <CardTitle className="text-lg font-black uppercase tracking-widest">
+              <CardTitle className="text-xs font-bold uppercase tracking-widest text-gray-400">
                 {items.length} eventos
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="p-0 space-y-3">
+          <CardContent className="p-0 space-y-2">
             {items.map((item) => {
               const row = rows[item.event_key];
               if (!row) return null;
               return (
                 <div
                   key={item.event_key}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
+                  className="rounded-xl border border-white/10 bg-white/5 p-3"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="text-sm font-bold text-white">{item.label}</div>
-                      <div className="text-xs text-gray-400">{item.description}</div>
-                      <code className="text-[10px] text-gray-500">{item.event_key}</code>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-white truncate">{item.label}</div>
+                      <div className="text-[11px] text-gray-400 line-clamp-1">{item.description}</div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <Switch
                         checked={row.enabled}
                         onCheckedChange={(v) => updateRow(item.event_key, { enabled: v })}
@@ -244,7 +243,7 @@ export function AdminEventSubscriptions() {
                         size="sm"
                         disabled={testing === item.event_key}
                         onClick={() => fireTest(item)}
-                        className="h-8"
+                        className="h-7 w-7 p-0"
                       >
                         {testing === item.event_key ? (
                           <Loader2 className="w-3 h-3 animate-spin" />
@@ -257,7 +256,7 @@ export function AdminEventSubscriptions() {
 
                   <div
                     className={cn(
-                      "grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-white/5",
+                      "grid grid-cols-4 gap-1.5 mt-2 pt-2 border-t border-white/5",
                       !row.enabled && "opacity-40 pointer-events-none",
                     )}
                   >
@@ -275,7 +274,7 @@ export function AdminEventSubscriptions() {
                     />
                     <ChannelToggle
                       icon={<MessageCircle className="w-3 h-3" />}
-                      label="WhatsApp"
+                      label="Zap"
                       checked={row.channel_whatsapp}
                       onChange={(v) => updateRow(item.event_key, { channel_whatsapp: v })}
                     />
@@ -293,6 +292,7 @@ export function AdminEventSubscriptions() {
           </CardContent>
         </Card>
       ))}
+
 
       <div className="flex justify-end">
         <Button
