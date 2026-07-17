@@ -175,8 +175,8 @@ export function AdminEventSubscriptions() {
   }
 
   return (
-    <div className="space-y-8">
-      <Card className="glass border-white/5 rounded-[2.5rem] p-8">
+    <div className="space-y-5">
+      <Card className="glass border-white/5 rounded-2xl p-5">
         <CardHeader className="p-0 pb-6">
           <CardTitle className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
             <Bell className="w-5 h-5 text-amber-300" /> Meus canais de contato
