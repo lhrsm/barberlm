@@ -103,15 +103,15 @@ export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" 
       }
 
       console.log("Ticket criado com sucesso:", data);
-      toast.success("Chamado aberto com sucesso!");
+      toast.success(isSuggestion ? "Sugestão enviada com sucesso!" : "Chamado aberto com sucesso!");
       onSuccess();
       onClose();
-      
+
       // Reset form
       setForm({
         title: "",
-        category: "",
-        priority: "medium",
+        category: isSuggestion ? "Sugestões" : "",
+        priority: isSuggestion ? "low" : "medium",
         description: "",
       });
 
