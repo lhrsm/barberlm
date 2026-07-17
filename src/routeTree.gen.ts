@@ -82,6 +82,7 @@ import { Route as ApiPublicHooksStatusCheckRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksSendReviewRequestsRouteImport } from './routes/api/public/hooks/send-review-requests'
 import { Route as ApiPublicHooksReviewRemindersRouteImport } from './routes/api/public/hooks/review-reminders'
 import { Route as ApiPublicHooksAdminRiskScanRouteImport } from './routes/api/public/hooks/admin-risk-scan'
+import { Route as ApiPublicHooksAdminDigestRouteImport } from './routes/api/public/hooks/admin-digest'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -456,6 +457,12 @@ const ApiPublicHooksAdminRiskScanRoute =
     path: '/api/public/hooks/admin-risk-scan',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAdminDigestRoute =
+  ApiPublicHooksAdminDigestRouteImport.update({
+    id: '/api/public/hooks/admin-digest',
+    path: '/api/public/hooks/admin-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -524,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
   '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
@@ -597,6 +605,7 @@ export interface FileRoutesByTo {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
   '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
@@ -673,6 +682,7 @@ export interface FileRoutesById {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
   '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
   '/api/public/hooks/send-review-requests': typeof ApiPublicHooksSendReviewRequestsRoute
@@ -750,6 +760,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/admin-digest'
     | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
@@ -823,6 +834,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/admin-digest'
     | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
@@ -898,6 +910,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/admin-digest'
     | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
     | '/api/public/hooks/send-review-requests'
@@ -948,6 +961,7 @@ export interface RootRouteChildren {
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   ApiPublicSendPushRoute: typeof ApiPublicSendPushRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksAdminDigestRoute: typeof ApiPublicHooksAdminDigestRoute
   ApiPublicHooksAdminRiskScanRoute: typeof ApiPublicHooksAdminRiskScanRoute
   ApiPublicHooksReviewRemindersRoute: typeof ApiPublicHooksReviewRemindersRoute
   ApiPublicHooksSendReviewRequestsRoute: typeof ApiPublicHooksSendReviewRequestsRoute
@@ -1470,6 +1484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAdminRiskScanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/admin-digest': {
+      id: '/api/public/hooks/admin-digest'
+      path: '/api/public/hooks/admin-digest'
+      fullPath: '/api/public/hooks/admin-digest'
+      preLoaderRoute: typeof ApiPublicHooksAdminDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1610,6 +1631,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   ApiPublicSendPushRoute: ApiPublicSendPushRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksAdminDigestRoute: ApiPublicHooksAdminDigestRoute,
   ApiPublicHooksAdminRiskScanRoute: ApiPublicHooksAdminRiskScanRoute,
   ApiPublicHooksReviewRemindersRoute: ApiPublicHooksReviewRemindersRoute,
   ApiPublicHooksSendReviewRequestsRoute: ApiPublicHooksSendReviewRequestsRoute,
