@@ -95,6 +95,30 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_event_templates: {
+        Row: {
+          event_key: string
+          message_tpl: string
+          title_tpl: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          event_key: string
+          message_tpl?: string
+          title_tpl: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          event_key?: string
+          message_tpl?: string
+          title_tpl?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       admin_notifications: {
         Row: {
           action_url: string | null
@@ -7853,6 +7877,7 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: number
       }
+      generate_admin_digest: { Args: { _hours: number }; Returns: Json }
       generate_subscription_referral_code: { Args: never; Returns: string }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_active_subscription: {
@@ -8273,6 +8298,18 @@ export type Database = {
         Returns: Json
       }
       remove_comanda_item: { Args: { p_sale_id: string }; Returns: Json }
+      render_admin_template: {
+        Args: {
+          _event_key: string
+          _fallback_message: string
+          _fallback_title: string
+          _payload: Json
+        }
+        Returns: {
+          message: string
+          title: string
+        }[]
+      }
       request_appointment_refund: {
         Args: {
           p_account_holder_name: string
