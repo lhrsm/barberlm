@@ -102,6 +102,14 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
     const shopWhatsappNumber = shopProfile?.whatsapp_number || barbershopSettings?.whatsapp_number || whatsappInstance?.phone || whatsappCloudConnection?.phone_number || null;
+    // Number that actually dispatches messages (the WhatsApp instance itself).
+    // Never send automations to this number — it would deliver to the sender.
+    const senderPhoneNorm = (() => {
+      const raw = whatsappInstance?.phone || whatsappCloudConnection?.phone_number || shopWhatsappNumber;
+      if (!raw) return null;
+      const digits = String(raw).replace(/\D/g, "");
+      return digits || null;
+    })();
 
     // Derived fields for message templates
     const fmtBRL = (v: any) => {
