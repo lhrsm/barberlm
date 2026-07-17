@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { AdminEventSubscriptions } from "@/components/admin/AdminEventSubscriptions";
+import { AdminEventTemplates } from "@/components/admin/AdminEventTemplates";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
@@ -493,8 +494,9 @@ function AdminSettings() {
           </div>
         </TabsContent>
 
-        <TabsContent value="notificacoes" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <TabsContent value="notificacoes" className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
           <AdminEventSubscriptions />
+          <AdminEventTemplates />
         </TabsContent>
       </Tabs>
     </div>
