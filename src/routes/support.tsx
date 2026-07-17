@@ -59,10 +59,17 @@ function SupportPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex w-full sm:w-auto sm:shrink-0">
+                <div className="flex w-full sm:w-auto sm:shrink-0 flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => setIsSuggestionOpen(true)}
+                    variant="outline"
+                    className="w-full sm:w-auto h-[46px] sm:h-[42px] px-[18px] rounded-[14px] sm:rounded-xl bg-[#f59e0b]/10 border-[#f59e0b]/30 text-[#f59e0b] hover:bg-[#f59e0b]/20 hover:text-[#fbbf24] font-semibold transition-all"
+                  >
+                    <Lightbulb className="h-4 w-4 mr-2" /> Enviar Sugestão
+                  </Button>
                   <Button
                     onClick={() => setIsNewTicketOpen(true)}
-                    className="w-full sm:w-auto h-[46px] sm:h-[42px] px-[18px] rounded-[14px] sm:rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-semibold sm:font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5 mt-1 sm:mt-0"
+                    className="w-full sm:w-auto h-[46px] sm:h-[42px] px-[18px] rounded-[14px] sm:rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-semibold sm:font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5"
                   >
                     <Plus className="h-4 w-4 mr-2" /> Novo Chamado
                   </Button>
