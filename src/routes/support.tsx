@@ -175,6 +175,13 @@ function SupportPage() {
             onSuccess={handleTicketCreated}
           />
 
+          <CreateTicketModal
+            isOpen={isSuggestionOpen}
+            onClose={() => setIsSuggestionOpen(false)}
+            onSuccess={handleSuggestionSent}
+            mode="suggestion"
+          />
+
           <EmailContactModal
             isOpen={isEmailOpen}
             onClose={() => setIsEmailOpen(false)}
