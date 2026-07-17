@@ -119,44 +119,47 @@ function AdminSettings() {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">{formData?.saas_name || "Configurações de SaaS"}</h2>
-          <p className="text-gray-400 font-medium text-lg">{formData?.main_url || "Gerenciamento global de infraestrutura e segurança."}</p>
+    <div className="space-y-6 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white italic uppercase truncate">{formData?.saas_name || "Configurações de SaaS"}</h2>
+          <p className="text-gray-400 font-medium text-sm truncate">{formData?.main_url || "Gerenciamento global de infraestrutura e segurança."}</p>
         </div>
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={updateMutation.isPending}
-          className="h-12 px-8 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white gap-2 font-bold uppercase tracking-wider text-xs italic shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all hover:scale-105 active:scale-95"
+          size="sm"
+          className="h-9 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white gap-2 font-bold uppercase tracking-wider text-[11px] italic shadow-[0_0_16px_rgba(168,85,247,0.3)] transition-all hover:scale-[1.02] active:scale-95 shrink-0 self-start md:self-auto"
         >
-          <Save className="w-4 h-4" />
-          {updateMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+          <Save className="w-3.5 h-3.5" />
+          {updateMutation.isPending ? "Salvando..." : "Salvar"}
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl h-auto flex flex-wrap gap-1">
-          {[
-            { id: "geral", label: "Geral", icon: Globe },
-            { id: "faturamento", label: "Faturamento", icon: CreditCard },
-            { id: "saude", label: "Saúde & Alertas", icon: ShieldAlert },
-            { id: "seguranca", label: "Segurança", icon: Shield },
-            { id: "integracoes", label: "Integrações", icon: Share2 },
-            { id: "notificacoes", label: "Minhas Notificações", icon: Bell },
-          ].map((tab) => (
-            <TabsTrigger 
-              key={tab.id} 
-              value={tab.id}
-              className={cn(
-                "flex-1 md:flex-none px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest gap-2 transition-all data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:bg-white/5",
-              )}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <div className="overflow-x-auto -mx-2 px-2 scrollbar-none">
+          <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl h-auto inline-flex gap-0.5 w-auto">
+            {[
+              { id: "geral", label: "Geral", icon: Globe },
+              { id: "faturamento", label: "Faturamento", icon: CreditCard },
+              { id: "saude", label: "Saúde", icon: ShieldAlert },
+              { id: "seguranca", label: "Segurança", icon: Shield },
+              { id: "integracoes", label: "Integrações", icon: Share2 },
+              { id: "notificacoes", label: "Notificações", icon: Bell },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className={cn(
+                  "shrink-0 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider gap-1.5 transition-all data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:bg-white/5",
+                )}
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         <TabsContent value="geral" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
