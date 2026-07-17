@@ -330,6 +330,15 @@ serve(async (req) => {
         continue;
       }
 
+      // Never dispatch to the sender number itself (the WhatsApp instance phone),
+      // otherwise the business phone ends up receiving its own automations.
+      const phoneNormForSenderCheck = normalizePhone(phone);
+      if (senderPhoneNorm && phoneNormForSenderCheck === senderPhoneNorm) {
+        console.log(`[EmitEvent] Skip ${recipient} tpl=${tpl.key}: phone matches sender ${senderPhoneNorm}`);
+        skipped.push({ template: tpl.key, reason: `recipient_is_sender_phone` });
+        continue;
+      }
+
       // Delayed review template: only enqueue if we have a valid review_link
       const isReviewTpl = String(tpl.key || "").toLowerCase().includes("review");
       if (isReviewTpl) {
