@@ -4,6 +4,7 @@ export type AdminEventKey =
   | "tenant.signup"
   | "tenant.onboarding_completed"
   | "tenant.first_appointment"
+  | "tenant.churn_risk"
   | "subscription.created"
   | "subscription.upgraded"
   | "subscription.cancelled"
@@ -18,7 +19,13 @@ export type AdminEventKey =
   | "system.error_spike"
   | "whatsapp.instance_disconnected"
   | "revenue.milestone"
-  | "payment.high_value";
+  | "payment.high_value"
+  | "review.low_rating"
+  | "automation.template_broken"
+  | "security.suspicious_login"
+  | "finance.chargeback"
+  | "admin.digest_daily"
+  | "admin.digest_weekly";
 
 export interface EmitAdminEventArgs {
   event_key: AdminEventKey;

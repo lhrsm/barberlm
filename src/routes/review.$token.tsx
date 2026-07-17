@@ -7,6 +7,7 @@ import { Star, Send, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { emitAutomationEvent } from "@/utils/emit-event";
+import { emitAdminEvent } from "@/utils/emit-admin-event";
 import { TipCard } from "@/components/tips/TipCard";
 
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
@@ -131,6 +132,23 @@ function PublicReviewPage() {
         // `notify_review_received` is already mapped from review.excellent /
         // review.bad on the server, and firing both caused duplicate alerts
         // to the shop.
+
+        // Super admin alert: baixa avaliação (≤ 2 estrelas médias)
+        if (avg <= 2) {
+          emitAdminEvent({
+            event_key: "review.low_rating",
+            title: `⭐ Avaliação baixa (${avg.toFixed(1)})`,
+            message: (testimonial || "Sem comentário").slice(0, 240),
+            severity: "warning",
+            tenant_id: d.tenant_id,
+            action_url: "/admin/tenants",
+            payload: {
+              avg_rating: avg.toFixed(1),
+              business_name: d.business_name ?? "",
+              testimonial: (testimonial || "").slice(0, 200),
+            },
+          });
+        }
       }
     } catch (err: any) {
       toast.error("Erro: " + err.message);

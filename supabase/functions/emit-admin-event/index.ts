@@ -33,14 +33,31 @@ serve(async (req) => {
     const {
       event_key,
       severity = "info",
-      title,
-      message = "",
+      title: rawTitle,
+      message: rawMessage = "",
       tenant_id,
       action_url,
       payload = {},
     } = body;
 
-    if (!event_key || !title) throw new Error("event_key and title are required");
+    if (!event_key || !rawTitle) throw new Error("event_key and title are required");
+
+    // Renderiza template do banco (se existir). Fallback = title/message do body.
+    let title = rawTitle;
+    let message = rawMessage;
+    try {
+      const { data: rendered } = await supabase.rpc("render_admin_template", {
+        _event_key: event_key,
+        _payload: payload,
+        _fallback_title: rawTitle,
+        _fallback_message: rawMessage,
+      });
+      const row = Array.isArray(rendered) ? rendered[0] : rendered;
+      if (row?.title) title = row.title;
+      if (row?.message) message = row.message;
+    } catch (e) {
+      console.warn("[emit-admin-event] render template failed", (e as Error).message);
+    }
 
     console.log("[emit-admin-event]", event_key, severity);
 
