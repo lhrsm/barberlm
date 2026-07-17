@@ -26,6 +26,7 @@ interface CreateTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  mode?: "ticket" | "suggestion";
 }
 
 const CATEGORIES = [
@@ -45,15 +46,17 @@ const PRIORITIES = [
   { value: "urgent", label: "Urgente" },
 ];
 
-export function CreateTicketModal({ isOpen, onClose, onSuccess }: CreateTicketModalProps) {
+export function CreateTicketModal({ isOpen, onClose, onSuccess, mode = "ticket" }: CreateTicketModalProps) {
   const { user } = useAuth();
   const { tenantId } = useTenant();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  const isSuggestion = mode === "suggestion";
+
   const [form, setForm] = useState({
     title: "",
-    category: "",
-    priority: "medium",
+    category: isSuggestion ? "Sugestões" : "",
+    priority: isSuggestion ? "low" : "medium",
     description: "",
   });
 
