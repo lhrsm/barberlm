@@ -627,6 +627,129 @@ function LandingPageComponent() {
             </div>
           </div>
 
+          {/* Comparativo detalhado de planos */}
+          <div className="mt-20 max-w-6xl mx-auto">
+            <div className="text-center mb-10">
+              <h3 className="text-primary font-black uppercase tracking-widest text-xs mb-3">Comparativo</h3>
+              <h4 className="text-3xl lg:text-5xl font-black text-white tracking-tight">Compare recurso por recurso</h4>
+              <p className="mt-3 text-sm lg:text-base text-white/50 max-w-2xl mx-auto">Veja tudo o que cada plano oferece e escolha o que faz mais sentido para a sua barbearia.</p>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-zinc-900/40 backdrop-blur-sm overflow-hidden shadow-[0_30px_80px_-30px_rgba(245,197,66,0.25)]">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-left">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-black/30">
+                      <th className="py-5 px-4 lg:px-6 text-[11px] font-black uppercase tracking-widest text-white/40">Recurso</th>
+                      <th className="py-5 px-4 lg:px-6 text-center">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-white/50">Starter</div>
+                        <div className="text-sm font-black text-white mt-1">{prices.starter}<span className="text-[10px] text-white/40 font-bold">{priceSuffix}</span></div>
+                      </th>
+                      <th className="py-5 px-4 lg:px-6 text-center relative">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#F5C542] to-[#D4A017]" />
+                        <div className="text-[10px] font-black uppercase tracking-widest text-primary">Pro ⭐</div>
+                        <div className="text-sm font-black text-white mt-1">{prices.pro}<span className="text-[10px] text-white/40 font-bold">{priceSuffix}</span></div>
+                      </th>
+                      <th className="py-5 px-4 lg:px-6 text-center">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Elite</div>
+                        <div className="text-sm font-black text-white mt-1">{prices.elite}<span className="text-[10px] text-white/40 font-bold">{priceSuffix}</span></div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    {[
+                      { group: "Limites" },
+                      { label: "Barbeiros ativos", starter: "Até 3", pro: "Até 10", elite: "Ilimitados" },
+                      { label: "Clientes cadastrados", starter: "300", pro: "Ilimitados", elite: "Ilimitados" },
+                      { label: "Agendamentos/mês", starter: "Ilimitados", pro: "Ilimitados", elite: "Ilimitados" },
+                      { label: "Conexões WhatsApp", starter: "1", pro: "2", elite: "Ilimitadas" },
+
+                      { group: "Gestão & Operação" },
+                      { label: "Agenda online & Portal do cliente", starter: true, pro: true, elite: true },
+                      { label: "Clientes, barbeiros e serviços", starter: true, pro: true, elite: true },
+                      { label: "Financeiro básico", starter: true, pro: true, elite: true },
+                      { label: "Financeiro completo & Comissões", starter: false, pro: true, elite: true },
+                      { label: "Dashboard avançado & Relatórios", starter: false, pro: true, elite: true },
+                      { label: "Estoque, Loja & Cupons", starter: false, pro: true, elite: true },
+
+                      { group: "Engajamento & Receita" },
+                      { label: "Cashback & Fidelidade", starter: false, pro: true, elite: true },
+                      { label: "Assinaturas (Clube)", starter: false, pro: true, elite: true },
+                      { label: "Gateway de pagamento (PIX/Cartão)", starter: false, pro: true, elite: true },
+                      { label: "Programa de indicação", starter: false, pro: true, elite: true },
+                      { label: "Avaliações & Depoimentos", starter: true, pro: true, elite: true },
+
+                      { group: "Automação & IA" },
+                      { label: "Automações inteligentes", starter: "3", pro: "8", elite: "Ilimitadas" },
+                      { label: "Fluxos conversacionais no WhatsApp", starter: false, pro: true, elite: true },
+                      { label: "IAs Barbex (Agendadora, Comercial...)", starter: false, pro: false, elite: "12 IAs" },
+                      { label: "API aberta & Integrações", starter: false, pro: false, elite: true },
+                      { label: "White Label parcial", starter: false, pro: false, elite: true },
+
+                      { group: "Suporte" },
+                      { label: "Suporte por e-mail", starter: true, pro: true, elite: true },
+                      { label: "Suporte prioritário", starter: false, pro: true, elite: true },
+                      { label: "Prioridade máxima & Gerente dedicado", starter: false, pro: false, elite: true },
+                    ].map((row, idx) => {
+                      if ("group" in row) {
+                        return (
+                          <tr key={`g-${idx}`} className="bg-white/[0.02]">
+                            <td colSpan={4} className="py-3 px-4 lg:px-6 text-[10px] font-black uppercase tracking-[0.25em] text-primary/80">
+                              {row.group}
+                            </td>
+                          </tr>
+                        );
+                      }
+                      const renderCell = (v: boolean | string) => {
+                        if (v === true) return <Check className="w-5 h-5 text-primary mx-auto" strokeWidth={3} />;
+                        if (v === false) return <XCircle className="w-5 h-5 text-white/15 mx-auto" strokeWidth={2} />;
+                        return <span className="text-xs lg:text-sm font-bold text-white/80">{v}</span>;
+                      };
+                      return (
+                        <tr key={`r-${idx}`} className="border-t border-white/5 hover:bg-white/[0.02] transition-colors">
+                          <td className="py-4 px-4 lg:px-6 text-white/70 font-medium">{row.label}</td>
+                          <td className="py-4 px-4 lg:px-6 text-center">{renderCell(row.starter as any)}</td>
+                          <td className="py-4 px-4 lg:px-6 text-center bg-primary/[0.03]">{renderCell(row.pro as any)}</td>
+                          <td className="py-4 px-4 lg:px-6 text-center">{renderCell(row.elite as any)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t border-white/10 bg-black/30">
+                      <td className="py-5 px-4 lg:px-6" />
+                      <td className="py-5 px-4 lg:px-6 text-center">
+                        <button
+                          onClick={() => setShowSignupModal(true)}
+                          className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-[11px] border border-primary/30 hover:border-primary/60 uppercase tracking-wider transition-all"
+                        >
+                          Começar
+                        </button>
+                      </td>
+                      <td className="py-5 px-4 lg:px-6 text-center bg-primary/[0.03]">
+                        <button
+                          onClick={() => setShowSignupModal(true)}
+                          className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-gradient-to-r from-[#F5C542] to-[#D4A017] hover:brightness-110 text-black font-black text-[11px] uppercase tracking-wider transition-all shadow-[0_10px_25px_-10px_rgba(245,197,66,0.6)]"
+                        >
+                          Teste grátis
+                        </button>
+                      </td>
+                      <td className="py-5 px-4 lg:px-6 text-center">
+                        <button
+                          onClick={() => setShowSignupModal(true)}
+                          className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-[11px] border border-primary/30 hover:border-primary/60 uppercase tracking-wider transition-all"
+                        >
+                          Assinar
+                        </button>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <p className="text-center text-[11px] text-white/40 mt-4 italic">Deslize horizontalmente para ver todos os planos no celular.</p>
+          </div>
+
           {/* Plano Personalizado — card separado */}
           <div className="mt-10 max-w-5xl mx-auto">
             <div className="p-8 lg:p-10 rounded-[2rem] bg-gradient-to-br from-zinc-900 via-zinc-900/80 to-zinc-950 border border-white/10 hover:border-white/20 transition-all flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-10">
