@@ -46,3 +46,20 @@ export async function requireAddon(
   const ok = await hasActiveAddon(sb, userId, addonKey, env);
   if (!ok) throw new AddonAccessDeniedError(addonKey);
 }
+
+/**
+ * Env-agnostic guard: succeeds if the tenant has an active contract in EITHER
+ * sandbox or live. Use inside server functions that don't know the caller's
+ * current Stripe environment.
+ */
+export async function requireAddonAnyEnv(
+  sb: any,
+  tenantId: string,
+  addonKey: string,
+): Promise<void> {
+  const [live, sandbox] = await Promise.all([
+    hasActiveAddon(sb, tenantId, addonKey, "live"),
+    hasActiveAddon(sb, tenantId, addonKey, "sandbox"),
+  ]);
+  if (!live && !sandbox) throw new AddonAccessDeniedError(addonKey);
+}
