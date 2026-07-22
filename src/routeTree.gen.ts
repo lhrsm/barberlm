@@ -54,6 +54,7 @@ import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
+import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
@@ -314,6 +315,11 @@ const AgendamentoTokenRoute = AgendamentoTokenRouteImport.update({
   path: '/agendamento/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVouchersRoute = AdminVouchersRouteImport.update({
+  id: '/vouchers',
+  path: '/vouchers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTutorialsRoute = AdminTutorialsRouteImport.update({
   id: '/tutorials',
   path: '/tutorials',
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
+  '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
@@ -630,6 +637,7 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
+  '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
@@ -712,6 +720,7 @@ export interface FileRoutesById {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
+  '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
@@ -795,6 +804,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
+    | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
     | '/loyalty/campaigns'
@@ -874,6 +884,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
+    | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
     | '/loyalty/campaigns'
@@ -955,6 +966,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
+    | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
     | '/loyalty/campaigns'
@@ -1352,6 +1364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendamentoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/vouchers': {
+      id: '/admin/vouchers'
+      path: '/vouchers'
+      fullPath: '/admin/vouchers'
+      preLoaderRoute: typeof AdminVouchersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/tutorials': {
       id: '/admin/tutorials'
       path: '/tutorials'
@@ -1625,6 +1644,7 @@ interface AdminRouteChildren {
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTenantsRoute: typeof AdminTenantsRoute
   AdminTutorialsRoute: typeof AdminTutorialsRoute
+  AdminVouchersRoute: typeof AdminVouchersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -1646,6 +1666,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSupportRoute: AdminSupportRoute,
   AdminTenantsRoute: AdminTenantsRoute,
   AdminTutorialsRoute: AdminTutorialsRoute,
+  AdminVouchersRoute: AdminVouchersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
