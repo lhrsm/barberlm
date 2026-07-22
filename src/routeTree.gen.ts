@@ -47,6 +47,7 @@ import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
+import { Route as SubscriptionAddonsRouteImport } from './routes/subscription.addons'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
@@ -275,6 +276,11 @@ const SubscriptionsReportsRoute = SubscriptionsReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => SubscriptionsRoute,
 } as any)
+const SubscriptionAddonsRoute = SubscriptionAddonsRouteImport.update({
+  id: '/addons',
+  path: '/addons',
+  getParentRoute: () => SubscriptionRoute,
+} as any)
 const ReviewTokenRoute = ReviewTokenRouteImport.update({
   id: '/review/$token',
   path: '/review/$token',
@@ -498,7 +504,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/status': typeof StatusRoute
   '/subprocessors': typeof SubprocessorsRoute
-  '/subscription': typeof SubscriptionRoute
+  '/subscription': typeof SubscriptionRouteWithChildren
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
@@ -530,6 +536,7 @@ export interface FileRoutesByFullPath {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
@@ -573,7 +580,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/status': typeof StatusRoute
   '/subprocessors': typeof SubprocessorsRoute
-  '/subscription': typeof SubscriptionRoute
+  '/subscription': typeof SubscriptionRouteWithChildren
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
@@ -605,6 +612,7 @@ export interface FileRoutesByTo {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
@@ -651,7 +659,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/status': typeof StatusRoute
   '/subprocessors': typeof SubprocessorsRoute
-  '/subscription': typeof SubscriptionRoute
+  '/subscription': typeof SubscriptionRouteWithChildren
   '/subscription-rewards': typeof SubscriptionRewardsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
@@ -683,6 +691,7 @@ export interface FileRoutesById {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
@@ -762,6 +771,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/review/$token'
+    | '/subscription/addons'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
@@ -837,6 +847,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/review/$token'
+    | '/subscription/addons'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin'
@@ -914,6 +925,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/review/$token'
+    | '/subscription/addons'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
@@ -960,7 +972,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StatusRoute: typeof StatusRoute
   SubprocessorsRoute: typeof SubprocessorsRoute
-  SubscriptionRoute: typeof SubscriptionRoute
+  SubscriptionRoute: typeof SubscriptionRouteWithChildren
   SubscriptionRewardsRoute: typeof SubscriptionRewardsRoute
   SubscriptionsRoute: typeof SubscriptionsRouteWithChildren
   SupportRoute: typeof SupportRoute
@@ -1250,6 +1262,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/subscriptions/reports'
       preLoaderRoute: typeof SubscriptionsReportsRouteImport
       parentRoute: typeof SubscriptionsRoute
+    }
+    '/subscription/addons': {
+      id: '/subscription/addons'
+      path: '/addons'
+      fullPath: '/subscription/addons'
+      preLoaderRoute: typeof SubscriptionAddonsRouteImport
+      parentRoute: typeof SubscriptionRoute
     }
     '/review/$token': {
       id: '/review/$token'
@@ -1597,6 +1616,18 @@ const LoyaltyRouteChildren: LoyaltyRouteChildren = {
 const LoyaltyRouteWithChildren =
   LoyaltyRoute._addFileChildren(LoyaltyRouteChildren)
 
+interface SubscriptionRouteChildren {
+  SubscriptionAddonsRoute: typeof SubscriptionAddonsRoute
+}
+
+const SubscriptionRouteChildren: SubscriptionRouteChildren = {
+  SubscriptionAddonsRoute: SubscriptionAddonsRoute,
+}
+
+const SubscriptionRouteWithChildren = SubscriptionRoute._addFileChildren(
+  SubscriptionRouteChildren,
+)
+
 interface SubscriptionsRouteChildren {
   SubscriptionsReportsRoute: typeof SubscriptionsReportsRoute
   SubscriptionsStatusRoute: typeof SubscriptionsStatusRoute
@@ -1639,7 +1670,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StatusRoute: StatusRoute,
   SubprocessorsRoute: SubprocessorsRoute,
-  SubscriptionRoute: SubscriptionRoute,
+  SubscriptionRoute: SubscriptionRouteWithChildren,
   SubscriptionRewardsRoute: SubscriptionRewardsRoute,
   SubscriptionsRoute: SubscriptionsRouteWithChildren,
   SupportRoute: SupportRoute,
