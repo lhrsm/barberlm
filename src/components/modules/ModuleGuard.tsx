@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Lock, Settings, Crown, ArrowUpRight } from "lucide-react";
+import { Lock, Settings, Crown, ArrowUpRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModules, type ModuleKey } from "@/hooks/use-modules";
 import { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ModuleGuardProps {
   module: ModuleKey;
