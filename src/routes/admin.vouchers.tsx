@@ -467,6 +467,65 @@ function AdminVouchersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ERROR DETAILS DIALOG */}
+      <Dialog open={!!errorModal} onOpenChange={(o) => !o && setErrorModal(null)}>
+        <DialogContent className="bg-neutral-900 border-red-500/30 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-300">
+              <AlertTriangle className="w-5 h-5" />
+              {errorModal?.title || "Falha"}
+            </DialogTitle>
+          </DialogHeader>
+          {errorModal && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-[110px_1fr] gap-2">
+                <span className="text-white/50">Etapa:</span>
+                <span className="text-white/90 break-all">{errorModal.stage || "—"}</span>
+                <span className="text-white/50">Origem:</span>
+                <span className="text-white/90">{errorModal.source || "—"}</span>
+                <span className="text-white/50">Código:</span>
+                <span className="text-white/90 break-all">{errorModal.code || "—"}</span>
+                <span className="text-white/50">Mensagem:</span>
+                <span className="text-red-200 break-words">{errorModal.message}</span>
+              </div>
+              {errorModal.details && (
+                <div>
+                  <div className="text-white/50 text-xs mb-1">Detalhes técnicos</div>
+                  <pre className="text-[11px] text-white/70 bg-black/50 rounded p-3 overflow-x-auto max-h-64">
+{JSON.stringify(errorModal.details, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {errorModal.raw && (
+                <details className="text-xs text-white/60">
+                  <summary className="cursor-pointer">Resposta completa</summary>
+                  <pre className="text-[11px] text-white/60 bg-black/50 rounded p-3 overflow-x-auto max-h-64 mt-2">
+{JSON.stringify(errorModal.raw, null, 2)}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="border-white/20 text-white"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(JSON.stringify(errorModal, null, 2));
+                  toast.success("Detalhes copiados");
+                } catch {
+                  toast.error("Não foi possível copiar");
+                }
+              }}
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copiar detalhes
+            </Button>
+            <Button onClick={() => setErrorModal(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
