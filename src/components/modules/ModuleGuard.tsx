@@ -82,41 +82,9 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
   // Caso 1: não incluso no plano nem contratado como add-on → upgrade OU add-on
   if (!allowedByPlan) {
     const required = MODULE_REQUIRED_PLAN[module];
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] px-4">
-        <div className="max-w-lg w-full text-center bg-gradient-to-br from-[#0A1020] to-[#0B1426] border border-amber-500/30 rounded-2xl p-8 shadow-2xl">
-          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-amber-500/25 to-transparent border border-amber-500/40 flex items-center justify-center">
-            <Crown className="w-8 h-8 text-amber-400" />
-          </div>
-          <span className="inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 uppercase tracking-wider mb-3">
-            Recurso Premium
-          </span>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {title || "Este recurso"} não está no seu plano
-          </h2>
-          <p className="text-sm text-white/60 mb-2">
-            Seu plano atual é <strong className="text-white/80">{plan?.name ?? "—"}</strong>.
-          </p>
-          <p className="text-sm text-white/60 mb-6">
-            Contrate <strong className="text-amber-300">apenas este módulo</strong> como adicional, ou faça upgrade para o plano <strong className="text-amber-300">{required?.name || "superior"}</strong>.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link to="/subscription/addons" className="flex-1">
-              <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold rounded-xl h-11">
-                Adicionar este módulo
-                <ArrowUpRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-            <Link to="/subscription" className="flex-1">
-              <Button variant="outline" className="w-full border-white/15 bg-white/5 hover:bg-white/10 text-white rounded-xl h-11">
-                Comparar planos
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <UpgradeCard module={module} title={title} planName={plan?.name} requiredName={required?.name} />;
   }
+
 
   // Caso 2: incluso (plano ou add-on) mas desativado pela barbearia
   if (!enabledByTenant) {
