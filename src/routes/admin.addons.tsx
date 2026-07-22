@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, TrendingUp, Users, Pencil, Loader2 } from "lucide-react";
+import { Package, TrendingUp, Users, Pencil, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+import { adminCreateAddonStripePrice } from "@/utils/addons.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/admin/addons")({
   component: AdminAddonsPage,
