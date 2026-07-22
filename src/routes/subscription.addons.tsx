@@ -195,11 +195,12 @@ function AddonsCatalog() {
                       ) : (
                         <Button
                           size="sm"
-                          disabled
-                          title="Contratação self-service em breve — fale com o suporte para ativar agora"
-                          className="bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold opacity-60 cursor-not-allowed"
+                          onClick={() => setSelectedAddon(a)}
+                          disabled={!canAddMoreAddons}
+                          title={!canAddMoreAddons ? "Limite de add-ons do seu plano atingido" : undefined}
+                          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold disabled:opacity-50"
                         >
-                          Em breve
+                          Contratar
                           <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                       )}
