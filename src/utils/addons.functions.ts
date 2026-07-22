@@ -290,6 +290,23 @@ export const cancelAddon = createServerFn({ method: "POST" })
       }).eq("id", data.contractId);
       if (error) throw error;
 
+      // Fan-out admin event
+      const { data: addon } = await sb.from("saas_addons" as any)
+        .select("name, addon_key, monthly_price")
+        .eq("id", (contract as any).addon_id).maybeSingle();
+      await emitAdminEventServer(sb, {
+        event_key: "addon.canceled",
+        title: `Add-on cancelado: ${(addon as any)?.name ?? "?"}`,
+        message: `Cliente cancelou o add-on. Acesso mantido até o fim do ciclo atual.`,
+        severity: "warning",
+        tenant_id: userId,
+        payload: {
+          addon_id: (contract as any).addon_id,
+          addon_key: (addon as any)?.addon_key,
+          ends_at: (contract as any).current_period_end,
+        },
+      });
+
       return { ok: true, endsAt: (contract as any).current_period_end ?? null };
     } catch (e: any) {
       console.error("[cancelAddon] error:", e.message);
