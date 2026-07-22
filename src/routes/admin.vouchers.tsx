@@ -61,6 +61,49 @@ function AdminVouchersPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditVoucher, setAuditVoucher] = useState<any | null>(null);
 
+  // Error details modal
+  const [errorModal, setErrorModal] = useState<null | {
+    title: string;
+    stage?: string;
+    source?: string;
+    message: string;
+    code?: string | null;
+    details?: any;
+    raw?: any;
+  }>(null);
+
+  function showError(title: string, res: any, fallback: string) {
+    const d = res?.errorDetails;
+    const message = d?.message || res?.error || fallback;
+    console.error("[Voucher UI]", title, { res, errorDetails: d });
+    toast.error(message, { description: d?.stage ? `Etapa: ${d.stage}${d.code ? ` — ${d.code}` : ""}` : undefined });
+    setErrorModal({
+      title,
+      stage: d?.stage,
+      source: d?.source,
+      message,
+      code: d?.code,
+      details: d?.details,
+      raw: res,
+    });
+  }
+
+  function showException(title: string, err: unknown) {
+    const anyE = err as any;
+    const message = anyE?.message || String(err) || "Erro desconhecido";
+    console.error("[Voucher UI] exception", title, err);
+    toast.error(message);
+    setErrorModal({
+      title,
+      stage: "client_exception",
+      source: "unknown",
+      message,
+      code: anyE?.code || null,
+      details: { name: anyE?.name, stack: anyE?.stack },
+      raw: { message, stack: anyE?.stack },
+    });
+  }
+
   // form
   const [form, setForm] = useState({
     name: "Ambiente Interno de Testes Barbex",
