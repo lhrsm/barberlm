@@ -92,6 +92,9 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
 
   await syncProfilePlan(userId, priceId, subscription.status);
 
+  // Sync add-ons items (se houver items de add-on nesta subscription)
+  await syncAddonsFromSubscription(subscription, env);
+
   // 🛡️ Notify super admins
   const profile = await loadProfileForUser(userId);
   const planLabel = priceId ? (PRICE_TO_PLAN[priceId] ?? priceId) : "desconhecido";
@@ -106,8 +109,60 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   });
 }
 
+async function syncAddonsFromSubscription(subscription: any, env: StripeEnv) {
+  const userId = subscription.metadata?.userId;
+  if (!userId) return;
+  const items = subscription.items?.data ?? [];
+  for (const item of items) {
+    const price = item.price ?? {};
+    const meta = price.metadata ?? {};
+    const isAddon = meta.is_addon === "true" || (price.lookup_key ?? "").startsWith("addon_");
+    if (!isAddon) continue;
+
+    const addonKey = meta.addon_key ?? (price.lookup_key ?? "").replace(/^addon_/, "").replace(/_monthly$/, "");
+    if (!addonKey) continue;
+
+    const { data: addon } = await getSupabase().from("saas_addons")
+      .select("id, monthly_price, currency").eq("addon_key", addonKey).maybeSingle();
+    if (!addon) {
+      console.warn("[Webhook] addon não encontrado no catálogo:", addonKey);
+      continue;
+    }
+
+    const periodStart = item.current_period_start ?? subscription.current_period_start;
+    const periodEnd = item.current_period_end ?? subscription.current_period_end;
+    const itemCancel = (item.metadata?.cancel_at_period_end === "true") || subscription.cancel_at_period_end === true;
+
+    await getSupabase().from("tenant_addons").upsert(
+      {
+        tenant_id: userId,
+        addon_id: addon.id,
+        environment: env,
+        status: subscription.status,
+        quantity: item.quantity ?? 1,
+        unit_price: (price.unit_amount ?? 0) / 100 || Number(addon.monthly_price ?? 0),
+        currency: (price.currency ?? addon.currency ?? "BRL").toUpperCase(),
+        stripe_subscription_id: subscription.id,
+        stripe_subscription_item_id: item.id,
+        current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+        current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+        cancel_at_period_end: itemCancel,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "stripe_subscription_item_id" }
+    );
+  }
+}
+
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
-  const item = subscription.items?.data?.[0];
+  const items = subscription.items?.data ?? [];
+  // O item de plano é o primeiro que NÃO for add-on
+  const planItem = items.find((it: any) => {
+    const meta = it.price?.metadata ?? {};
+    const isAddon = meta.is_addon === "true" || (it.price?.lookup_key ?? "").startsWith("addon_");
+    return !isAddon;
+  }) ?? items[0];
+  const item = planItem;
   const priceId = item?.price?.lookup_key
     || item?.price?.metadata?.lovable_external_id
     || item?.price?.id;
@@ -129,6 +184,9 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+
+  // Sync add-ons items
+  await syncAddonsFromSubscription(subscription, env);
 
   const userId = subscription.metadata?.userId;
   if (userId) {
@@ -166,6 +224,13 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
       status: "canceled",
       updated_at: new Date().toISOString(),
     })
+    .eq("stripe_subscription_id", subscription.id)
+    .eq("environment", env);
+
+  // Cancela todos os add-ons vinculados a essa subscription
+  await getSupabase()
+    .from("tenant_addons")
+    .update({ status: "canceled", cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
 

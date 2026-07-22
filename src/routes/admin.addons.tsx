@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, TrendingUp, Users, Pencil, Loader2 } from "lucide-react";
+import { Package, TrendingUp, Users, Pencil, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+import { adminCreateAddonStripePrice } from "@/utils/addons.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/admin/addons")({
   component: AdminAddonsPage,
@@ -114,6 +116,22 @@ function AdminAddonsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-addons"] }),
   });
 
+  const [creatingStripeId, setCreatingStripeId] = useState<string | null>(null);
+  const createStripeMut = useMutation({
+    mutationFn: async ({ addonId, environment }: { addonId: string; environment: "sandbox" | "live" }) => {
+      setCreatingStripeId(addonId);
+      const r = await adminCreateAddonStripePrice({ data: { addonId, environment } });
+      if (!r.ok) throw new Error(r.error);
+      return r;
+    },
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["admin-addons"] });
+      toast.success(`Price criado: ${r.priceId}`);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao criar no Stripe"),
+    onSettled: () => setCreatingStripeId(null),
+  });
+
   const activeContracts = contracts.filter((c) => ["active", "trialing"].includes(c.status));
   const mrr = activeContracts.reduce((sum, c) => sum + Number(c.unit_price ?? 0) * (c.quantity ?? 1), 0);
   const topAddonMap: Record<string, number> = {};
@@ -204,7 +222,17 @@ function AdminAddonsPage() {
                       {a.stripe_price_id_test || a.stripe_price_id_live ? (
                         <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]">OK</Badge>
                       ) : (
-                        <Badge className="bg-amber-500/15 text-amber-300 border-amber-500/30 text-[10px]">Sem Price ID</Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={creatingStripeId === a.id}
+                          onClick={() => createStripeMut.mutate({ addonId: a.id, environment: getStripeEnvironment() })}
+                          className="h-7 text-[10px] border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                        >
+                          {creatingStripeId === a.id
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <><Zap className="w-3 h-3 mr-1" /> Criar no Stripe</>}
+                        </Button>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">

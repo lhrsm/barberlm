@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { createPortalSession } from "@/utils/payments.functions";
+import { YourAddons } from "@/components/subscription/YourAddons";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import {
@@ -314,6 +315,9 @@ function SubscriptionComponent() {
             </div>
 
           </header>
+
+          {/* Seus módulos adicionais */}
+          <YourAddons />
 
           {/* Status Alerts */}
           {isTrial && (

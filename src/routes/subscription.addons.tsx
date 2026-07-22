@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useModules } from "@/hooks/use-modules";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon } from "lucide-react";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+import { SubscribeAddonDialog } from "@/components/subscription/SubscribeAddonDialog";
 
 export const Route = createFileRoute("/subscription/addons")({
   component: AddonsCatalog,
@@ -50,6 +52,7 @@ interface Addon {
 
 function AddonsCatalog() {
   const { plan, activeAddons, addonsUsedCount, addonsLimit, canAddMoreAddons, isAllowed } = useModules();
+  const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
 
   const { data: addons = [], isLoading } = useQuery({
     queryKey: ["public-addons"],
@@ -192,11 +195,12 @@ function AddonsCatalog() {
                       ) : (
                         <Button
                           size="sm"
-                          disabled
-                          title="Contratação self-service em breve — fale com o suporte para ativar agora"
-                          className="bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold opacity-60 cursor-not-allowed"
+                          onClick={() => setSelectedAddon(a)}
+                          disabled={!canAddMoreAddons}
+                          title={!canAddMoreAddons ? "Limite de add-ons do seu plano atingido" : undefined}
+                          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold disabled:opacity-50"
                         >
-                          Em breve
+                          Contratar
                           <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                       )}
@@ -225,6 +229,12 @@ function AddonsCatalog() {
           </div>
         )}
       </div>
+
+      <SubscribeAddonDialog
+        open={!!selectedAddon}
+        onOpenChange={(o) => !o && setSelectedAddon(null)}
+        addon={selectedAddon}
+      />
     </div>
   );
 }
