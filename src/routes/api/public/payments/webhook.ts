@@ -132,6 +132,14 @@ async function syncAddonsFromSubscription(subscription: any, env: StripeEnv) {
     const periodStart = item.current_period_start ?? subscription.current_period_start;
     const periodEnd = item.current_period_end ?? subscription.current_period_end;
     const itemCancel = (item.metadata?.cancel_at_period_end === "true") || subscription.cancel_at_period_end === true;
+    const trialEnd = item.trial_end ?? subscription.trial_end ?? null;
+    const isTrialing = subscription.status === "trialing" || (trialEnd && trialEnd * 1000 > Date.now());
+
+    // Detecta transição trial → active para notificar
+    const { data: prevContract } = await getSupabase().from("tenant_addons")
+      .select("status, trial_used")
+      .eq("stripe_subscription_item_id", item.id)
+      .maybeSingle();
 
     await getSupabase().from("tenant_addons").upsert(
       {
@@ -147,10 +155,26 @@ async function syncAddonsFromSubscription(subscription: any, env: StripeEnv) {
         current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
         current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
         cancel_at_period_end: itemCancel,
+        trial_ends_at: trialEnd ? new Date(trialEnd * 1000).toISOString() : null,
+        trial_used: isTrialing || prevContract?.trial_used || false,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "stripe_subscription_item_id" }
     );
+
+    // Trial → Active: dispara evento admin
+    if (prevContract?.status === "trialing" && subscription.status === "active") {
+      const profile = await loadProfileForUser(userId);
+      await fireAdminEvent({
+        event_key: "addon.trial_converted",
+        title: "Trial de add-on convertido em pago",
+        message: `${profile?.business_name ?? profile?.email ?? userId} — ${addonKey}`,
+        severity: "info",
+        tenant_id: userId,
+        action_url: "/admin/addons",
+        payload: { userId, addonKey, subscription_id: subscription.id },
+      });
+    }
   }
 }
 
