@@ -294,6 +294,16 @@ async function handleCheckoutSessionCompleted(session: any, env: StripeEnv) {
   // Mas o Stripe geralmente dispara invoice.paid e subscription.created depois.
 }
 
+function extractAddonItemIds(invoice: any): string[] {
+  const lines = invoice?.lines?.data ?? [];
+  const ids: string[] = [];
+  for (const line of lines) {
+    const itemId = line?.subscription_item ?? line?.parent?.subscription_item_details?.subscription_item;
+    if (itemId) ids.push(itemId);
+  }
+  return Array.from(new Set(ids));
+}
+
 async function handleInvoicePaid(invoice: any, env: StripeEnv) {
   const userId = invoice.subscription_details?.metadata?.userId || invoice.metadata?.userId;
   const subscriptionId = invoice.subscription;
@@ -308,6 +318,22 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
     amount: amountPaid / 100,
     environment: env
   });
+
+  // Reset dunning counters on any add-on item that just paid
+  const itemIds = extractAddonItemIds(invoice);
+  if (itemIds.length > 0) {
+    await getSupabase()
+      .from("tenant_addons")
+      .update({
+        payment_failed_count: 0,
+        last_payment_error: null,
+        last_payment_failed_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .in("stripe_subscription_item_id", itemIds)
+      .eq("environment", env)
+      .gt("payment_failed_count", 0);
+  }
 
   // 🛡️ High-value payment alert (>= R$ 500)
   const amountReais = (amountPaid ?? 0) / 100;
@@ -328,7 +354,55 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
 async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
   const userId = invoice.subscription_details?.metadata?.userId || invoice.metadata?.userId;
   const amount = (invoice.amount_due ?? 0) / 100;
-  console.log("[Webhook] ⚠️ Invoice payment failed:", { id: invoice.id, userId, amount });
+  const errorMsg =
+    invoice?.last_finalization_error?.message ??
+    invoice?.charge_details?.failure_message ??
+    "Cobrança recusada";
+  const attemptCount = invoice?.attempt_count ?? 1;
+  console.log("[Webhook] ⚠️ Invoice payment failed:", { id: invoice.id, userId, amount, attemptCount });
+
+  // Increment dunning counters on any affected add-on item
+  const itemIds = extractAddonItemIds(invoice);
+  if (itemIds.length > 0) {
+    const { data: affected } = await getSupabase()
+      .from("tenant_addons")
+      .select("id, tenant_id, addon_id, payment_failed_count, saas_addons:addon_id(name)")
+      .in("stripe_subscription_item_id", itemIds)
+      .eq("environment", env);
+
+    for (const row of (affected ?? []) as any[]) {
+      const nextCount = (row.payment_failed_count ?? 0) + 1;
+      await getSupabase()
+        .from("tenant_addons")
+        .update({
+          payment_failed_count: nextCount,
+          last_payment_error: errorMsg,
+          last_payment_failed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
+
+      const profile = row.tenant_id ? await loadProfileForUser(row.tenant_id) : null;
+      const addonName = row.saas_addons?.name ?? "Módulo";
+      await fireAdminEvent({
+        event_key: "addon.payment_failed",
+        title: `Falha no pagamento do módulo ${addonName}`,
+        message: `${profile?.business_name ?? profile?.email ?? row.tenant_id} — tentativa ${nextCount} · R$ ${amount.toFixed(2)}`,
+        severity: nextCount >= 3 ? "critical" : "warning",
+        tenant_id: row.tenant_id,
+        action_url: "/subscription",
+        payload: {
+          tenant_id: row.tenant_id,
+          addon_id: row.addon_id,
+          invoice_id: invoice.id,
+          attempt: nextCount,
+          amount,
+          error: errorMsg,
+          env,
+        },
+      });
+    }
+  }
 
   const profile = userId ? await loadProfileForUser(userId) : null;
   await fireAdminEvent({
@@ -338,7 +412,7 @@ async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
     severity: "critical",
     tenant_id: userId,
     action_url: "/admin/subscriptions",
-    payload: { userId, invoice_id: invoice.id, amount, env },
+    payload: { userId, invoice_id: invoice.id, amount, attempt: attemptCount, error: errorMsg, env },
   });
 }
 

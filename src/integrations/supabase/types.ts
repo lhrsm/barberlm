@@ -6608,7 +6608,10 @@ export type Database = {
           current_period_start: string | null
           environment: string
           id: string
+          last_payment_error: string | null
+          last_payment_failed_at: string | null
           metadata: Json
+          payment_failed_count: number
           quantity: number
           starts_at: string
           status: string
@@ -6631,7 +6634,10 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_payment_error?: string | null
+          last_payment_failed_at?: string | null
           metadata?: Json
+          payment_failed_count?: number
           quantity?: number
           starts_at?: string
           status?: string
@@ -6654,7 +6660,10 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_payment_error?: string | null
+          last_payment_failed_at?: string | null
           metadata?: Json
+          payment_failed_count?: number
           quantity?: number
           starts_at?: string
           status?: string

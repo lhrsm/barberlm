@@ -36,6 +36,7 @@ import { NotificationsCenter } from "@/components/notifications/NotificationsCen
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
 import { TrialEndingBanner } from "@/components/subscription/TrialEndingBanner";
+import { AddonPaymentFailedBanner } from "@/components/subscription/AddonPaymentFailedBanner";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 
 
@@ -342,6 +343,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
             <div className="max-w-7xl mx-auto w-full">
+              <AddonPaymentFailedBanner />
               <TrialEndingBanner />
               {children}
             </div>
