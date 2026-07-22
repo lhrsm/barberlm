@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
+import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
+
+function getStripeErrorMessage(e: unknown): string {
+  const anyE = e as any;
+  return anyE?.raw?.message || anyE?.message || "Stripe request failed";
+}
 
 /**
  * Fase 2 — Backend + Stripe do sistema de Voucher Administrativo Interno.
