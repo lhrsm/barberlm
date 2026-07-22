@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
+import type { StripeEnv } from "@/lib/stripe.server";
 
 /**
  * Structured error shape returned to the client so the UI can render
@@ -133,6 +133,7 @@ async function tryCreateStripeCoupon(
 ) {
   console.log("[Voucher] Criando Coupon Stripe", { env, name, discountPct });
   try {
+    const { createStripeClient } = await import("@/lib/stripe.server");
     const stripe = createStripeClient(env);
     const coupon = await stripe.coupons.create({
       name: `[Barbex Interno] ${name}`,
@@ -345,6 +346,7 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
     let stripeCustomerId: string | null = null;
     if (sub?.stripe_subscription_id) {
       try {
+        const { createStripeClient } = await import("@/lib/stripe.server");
         const stripe = createStripeClient(data.environment);
         await stripe.subscriptions.update(sub.stripe_subscription_id as string, {
           discounts: [{ coupon: couponId }],
@@ -443,6 +445,7 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
       const env: StripeEnv = (r.metadata?.environment === "live" ? "live" : "sandbox");
       if (r.stripe_subscription_id) {
         try {
+          const { createStripeClient } = await import("@/lib/stripe.server");
           const stripe = createStripeClient(env);
           await stripe.subscriptions.update(r.stripe_subscription_id, {
             discounts: [],
