@@ -8603,6 +8603,7 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: boolean
       }
+      is_internal_test_tenant: { Args: { _user_id: string }; Returns: boolean }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_super_admin_user: { Args: never; Returns: boolean }
