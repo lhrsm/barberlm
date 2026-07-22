@@ -63,6 +63,7 @@ const adminNavItems = [
   { label: "Sugestões", icon: Lightbulb, to: "/admin/suggestions" },
   { label: "LGPD", icon: ShieldCheck, to: "/admin/lgpd" },
   { label: "Testes RLS", icon: ShieldCheck, to: "/admin/rls-tests" },
+  { label: "Vouchers", icon: Ticket, to: "/admin/vouchers" },
   { label: "Tutoriais", icon: GraduationCap, to: "/admin/tutorials" },
   { label: "Configurações", icon: Settings, to: "/admin/settings" },
 ];
