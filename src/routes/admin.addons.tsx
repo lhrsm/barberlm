@@ -116,6 +116,22 @@ function AdminAddonsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-addons"] }),
   });
 
+  const [creatingStripeId, setCreatingStripeId] = useState<string | null>(null);
+  const createStripeMut = useMutation({
+    mutationFn: async ({ addonId, environment }: { addonId: string; environment: "sandbox" | "live" }) => {
+      setCreatingStripeId(addonId);
+      const r = await adminCreateAddonStripePrice({ data: { addonId, environment } });
+      if (!r.ok) throw new Error(r.error);
+      return r;
+    },
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["admin-addons"] });
+      toast.success(`Price criado: ${r.priceId}`);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao criar no Stripe"),
+    onSettled: () => setCreatingStripeId(null),
+  });
+
   const activeContracts = contracts.filter((c) => ["active", "trialing"].includes(c.status));
   const mrr = activeContracts.reduce((sum, c) => sum + Number(c.unit_price ?? 0) * (c.quantity ?? 1), 0);
   const topAddonMap: Record<string, number> = {};
