@@ -4634,6 +4634,7 @@ export type Database = {
           gallery_images: string[]
           google_maps_url: string | null
           id: string
+          is_internal_test_tenant: boolean
           logo_url: string | null
           loyalty_mode: string
           loyalty_reward_value: number
@@ -4689,6 +4690,7 @@ export type Database = {
           gallery_images?: string[]
           google_maps_url?: string | null
           id: string
+          is_internal_test_tenant?: boolean
           logo_url?: string | null
           loyalty_mode?: string
           loyalty_reward_value?: number
@@ -4744,6 +4746,7 @@ export type Database = {
           gallery_images?: string[]
           google_maps_url?: string | null
           id?: string
+          is_internal_test_tenant?: boolean
           logo_url?: string | null
           loyalty_mode?: string
           loyalty_reward_value?: number
@@ -5134,6 +5137,282 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      saas_admin_voucher_audit_logs: {
+        Row: {
+          action: string
+          actor_ip: string | null
+          actor_user_id: string | null
+          barbershop_id: string | null
+          created_at: string
+          id: string
+          new_values: Json | null
+          previous_values: Json | null
+          reason: string | null
+          redemption_id: string | null
+          tenant_id: string | null
+          voucher_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_ip?: string | null
+          actor_user_id?: string | null
+          barbershop_id?: string | null
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          previous_values?: Json | null
+          reason?: string | null
+          redemption_id?: string | null
+          tenant_id?: string | null
+          voucher_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_ip?: string | null
+          actor_user_id?: string | null
+          barbershop_id?: string | null
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          previous_values?: Json | null
+          reason?: string | null
+          redemption_id?: string | null
+          tenant_id?: string | null
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_admin_voucher_audit_logs_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_admin_voucher_audit_logs_redemption_id_fkey"
+            columns: ["redemption_id"]
+            isOneToOne: false
+            referencedRelation: "saas_admin_voucher_redemptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_admin_voucher_audit_logs_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "saas_admin_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saas_admin_voucher_redemptions: {
+        Row: {
+          applied_at: string
+          applied_by: string | null
+          applied_plan_id: string | null
+          barbershop_id: string | null
+          covered_addon_ids: string[]
+          created_at: string
+          discount_amount: number | null
+          ends_at: string | null
+          final_monthly_amount: number | null
+          id: string
+          metadata: Json
+          original_monthly_amount: number | null
+          previous_plan_id: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          starts_at: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tenant_id: string
+          updated_at: string
+          voucher_id: string
+        }
+        Insert: {
+          applied_at?: string
+          applied_by?: string | null
+          applied_plan_id?: string | null
+          barbershop_id?: string | null
+          covered_addon_ids?: string[]
+          created_at?: string
+          discount_amount?: number | null
+          ends_at?: string | null
+          final_monthly_amount?: number | null
+          id?: string
+          metadata?: Json
+          original_monthly_amount?: number | null
+          previous_plan_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          starts_at?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          voucher_id: string
+        }
+        Update: {
+          applied_at?: string
+          applied_by?: string | null
+          applied_plan_id?: string | null
+          barbershop_id?: string | null
+          covered_addon_ids?: string[]
+          created_at?: string
+          discount_amount?: number | null
+          ends_at?: string | null
+          final_monthly_amount?: number | null
+          id?: string
+          metadata?: Json
+          original_monthly_amount?: number | null
+          previous_plan_id?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          starts_at?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          voucher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_admin_voucher_redemptions_applied_plan_id_fkey"
+            columns: ["applied_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_admin_voucher_redemptions_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_admin_voucher_redemptions_previous_plan_id_fkey"
+            columns: ["previous_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_admin_voucher_redemptions_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "saas_admin_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saas_admin_vouchers: {
+        Row: {
+          allowed_addon_ids: string[]
+          allowed_plan_id: string | null
+          applied_at: string | null
+          applied_by: string | null
+          created_at: string
+          created_by: string | null
+          discount_percentage: number
+          duration_type: string
+          expires_at: string | null
+          id: string
+          includes_all_addons: boolean
+          name: string
+          purpose: string
+          requires_payment_method: boolean
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          specific_barbershop_id: string | null
+          specific_tenant_id: string | null
+          starts_at: string | null
+          status: string
+          stripe_coupon_id_live: string | null
+          stripe_coupon_id_test: string | null
+          stripe_promotion_code_id_live: string | null
+          stripe_promotion_code_id_test: string | null
+          updated_at: string
+        }
+        Insert: {
+          allowed_addon_ids?: string[]
+          allowed_plan_id?: string | null
+          applied_at?: string | null
+          applied_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount_percentage?: number
+          duration_type?: string
+          expires_at?: string | null
+          id?: string
+          includes_all_addons?: boolean
+          name: string
+          purpose: string
+          requires_payment_method?: boolean
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          specific_barbershop_id?: string | null
+          specific_tenant_id?: string | null
+          starts_at?: string | null
+          status?: string
+          stripe_coupon_id_live?: string | null
+          stripe_coupon_id_test?: string | null
+          stripe_promotion_code_id_live?: string | null
+          stripe_promotion_code_id_test?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allowed_addon_ids?: string[]
+          allowed_plan_id?: string | null
+          applied_at?: string | null
+          applied_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount_percentage?: number
+          duration_type?: string
+          expires_at?: string | null
+          id?: string
+          includes_all_addons?: boolean
+          name?: string
+          purpose?: string
+          requires_payment_method?: boolean
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          specific_barbershop_id?: string | null
+          specific_tenant_id?: string | null
+          starts_at?: string | null
+          status?: string
+          stripe_coupon_id_live?: string | null
+          stripe_coupon_id_test?: string | null
+          stripe_promotion_code_id_live?: string | null
+          stripe_promotion_code_id_test?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_admin_vouchers_allowed_plan_id_fkey"
+            columns: ["allowed_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_admin_vouchers_specific_barbershop_id_fkey"
+            columns: ["specific_barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saas_checkout_sessions: {
         Row: {
@@ -8291,6 +8570,10 @@ export type Database = {
       grant_subscription_rewards: { Args: never; Returns: number }
       has_active_addon: {
         Args: { _addon_key: string; _env?: string; _user_id: string }
+        Returns: boolean
+      }
+      has_active_internal_voucher: {
+        Args: { _tenant_id: string }
         Returns: boolean
       }
       has_active_subscription: {
