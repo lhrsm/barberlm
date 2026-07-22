@@ -232,7 +232,14 @@ function AdminTenants() {
                           <Building2 className="w-5 h-5 text-purple-400" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-bold text-white group-hover:text-purple-400 transition-colors">{tenant.business_name || "Sem nome"}</span>
+                          <span className="font-bold text-white group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                            {tenant.business_name || "Sem nome"}
+                            {(tenant as any).is_internal_test_tenant && (
+                              <Badge className="bg-amber-500/15 text-amber-300 border border-amber-400/30 text-[10px] uppercase tracking-wider px-2 py-0.5">
+                                Teste interno
+                              </Badge>
+                            )}
+                          </span>
                           <span className="text-xs text-gray-500 font-medium">{tenant.whatsapp_number || "Sem WhatsApp"}</span>
                         </div>
                       </div>
