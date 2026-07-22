@@ -8613,6 +8613,16 @@ export type Database = {
         Args: { _module_key: string; _tenant_id: string }
         Returns: boolean
       }
+      test_rls_module_guards: {
+        Args: never
+        Returns: {
+          actual: string
+          expected: string
+          operation: string
+          passed: boolean
+          table_name: string
+        }[]
+      }
       unregister_push_subscription: {
         Args: { _endpoint: string }
         Returns: Json
