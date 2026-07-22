@@ -286,23 +286,23 @@ function AdminVouchersPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-white truncate">{v.name}</span>
                         {statusBadge(v.status)}
-                        <Badge variant="outline" className="text-xs border-white/20 text-white/70">
+                        <Badge variant="outline" className="text-xs border-white/20 text-white/80 bg-white/5">
                           {v.discount_percentage}% • {v.duration_type}
                         </Badge>
                       </div>
-                      <div className="text-xs text-white/50 mt-1">
+                      <div className="text-xs text-white/70 mt-1">
                         Tenant: {tenant?.business_name || v.specific_tenant_id?.slice(0, 8) + "…"}
                         {" • "}
                         Stripe: {hasSandboxCoupon ? "sandbox ✓" : "sandbox ✗"} / {hasLiveCoupon ? "live ✓" : "live ✗"}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {v.status !== "revoked" && v.status !== "active" && (
                         <>
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/20 text-white"
+                            className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
                             disabled={!hasSandboxCoupon || busy === v.id}
                             onClick={() => handleApply(v.id, "sandbox")}
                           >
@@ -311,7 +311,7 @@ function AdminVouchersPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-white/20 text-white"
+                            className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
                             disabled={!hasLiveCoupon || busy === v.id}
                             onClick={() => handleApply(v.id, "live")}
                           >
@@ -322,8 +322,8 @@ function AdminVouchersPage() {
                       {v.status !== "revoked" && (
                         <Button
                           size="sm"
-                          variant="ghost"
-                          className="text-red-300 hover:bg-red-500/10"
+                          variant="outline"
+                          className="border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20 hover:text-red-100"
                           disabled={busy === v.id}
                           onClick={() => handleRevoke(v.id)}
                         >
@@ -332,8 +332,8 @@ function AdminVouchersPage() {
                       )}
                       <Button
                         size="sm"
-                        variant="ghost"
-                        className="text-white/70 hover:bg-white/10"
+                        variant="outline"
+                        className="border-white/20 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
                         onClick={() => openAudit(v)}
                       >
                         <History className="w-3 h-3 mr-1" /> Histórico
@@ -342,6 +342,7 @@ function AdminVouchersPage() {
                   </div>
                 );
               })}
+
             </div>
           )}
         </CardContent>
