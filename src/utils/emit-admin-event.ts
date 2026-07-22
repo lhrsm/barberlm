@@ -25,7 +25,10 @@ export type AdminEventKey =
   | "security.suspicious_login"
   | "finance.chargeback"
   | "admin.digest_daily"
-  | "admin.digest_weekly";
+  | "admin.digest_weekly"
+  | "addon.subscribed"
+  | "addon.canceled"
+  | "addon.trial_started";
 
 export interface EmitAdminEventArgs {
   event_key: AdminEventKey;
