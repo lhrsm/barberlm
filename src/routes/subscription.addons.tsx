@@ -52,6 +52,7 @@ interface Addon {
 
 function AddonsCatalog() {
   const { plan, activeAddons, addonsUsedCount, addonsLimit, canAddMoreAddons, isAllowed } = useModules();
+  const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
 
   const { data: addons = [], isLoading } = useQuery({
     queryKey: ["public-addons"],
