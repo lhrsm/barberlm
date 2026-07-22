@@ -51,6 +51,16 @@ export const DEFAULT_MODULES: Record<string, boolean> = {
   subscription_rewards: false,
 };
 
+export interface PlanInfo {
+  id: string;
+  slug: string;
+  name: string;
+  tier: number;
+  allowed_modules: string[];
+  price_monthly: number;
+  max_addons: number;
+}
+
 export interface ActiveAddon {
   id: string;
   addon_id: string;
