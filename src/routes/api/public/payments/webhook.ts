@@ -227,6 +227,13 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
 
+  // Cancela todos os add-ons vinculados a essa subscription
+  await getSupabase()
+    .from("tenant_addons")
+    .update({ status: "canceled", cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("stripe_subscription_id", subscription.id)
+    .eq("environment", env);
+
   const userId = subscription.metadata?.userId;
   if (userId) {
     await syncProfilePlan(userId, undefined, "canceled");
