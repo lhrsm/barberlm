@@ -309,7 +309,8 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
         stripeSubId = sub.stripe_subscription_id as string;
         stripeCustomerId = (sub.stripe_customer_id as string) ?? null;
       } catch (e) {
-        return { ok: false, error: `Falha ao aplicar cupom no Stripe: ${getStripeErrorMessage(e)}` };
+        const se = extractStripeError(e, `stripe.subscriptions.update[${data.environment}]`);
+        return { ok: false, error: toErrString(se), errorDetails: se };
       }
     }
 
