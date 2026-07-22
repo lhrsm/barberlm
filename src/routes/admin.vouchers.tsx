@@ -26,6 +26,10 @@ export const Route = createFileRoute("/admin/vouchers")({
     meta: [
       { title: "Vouchers Administrativos — Barbex Admin" },
       { name: "description", content: "Gestão de vouchers internos de teste do Barbex." },
+      { property: "og:title", content: "Vouchers Administrativos — Barbex Admin" },
+      { property: "og:description", content: "Gestão de vouchers internos de teste do Barbex." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   errorComponent: DefaultRouteError,
@@ -116,7 +120,9 @@ function AdminVouchersPage() {
   async function refresh() {
     setLoading(true);
     try {
+      console.log("[Voucher UI] Listando vouchers administrativos");
       const res = await listFn({});
+      console.log("[Voucher UI] Resposta listAdminVouchers", res);
       if ("ok" in res && res.ok) setVouchers(res.vouchers);
       else showError("Falha ao listar vouchers", res, "Falha ao listar");
     } catch (e) {
