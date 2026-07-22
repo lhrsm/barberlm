@@ -231,7 +231,7 @@ export const cancelAddon = createServerFn({ method: "POST" })
 export const reactivateAddon = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contractId: string; environment: StripeEnv }) => data)
-  .handler(async ({ data, context }): Promise<Result<Record<string, never>>> => {
+  .handler(async ({ data, context }): Promise<Result<{ reactivated: boolean }>> => {
     const { supabase: sb, userId } = context;
     try {
       const { data: contract } = await sb.from("tenant_addons" as any)
