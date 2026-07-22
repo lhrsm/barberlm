@@ -55,6 +55,8 @@ export const previewAddon = createServerFn({ method: "POST" })
     nextInvoiceDate: string | null;
     unitPrice: number;
     quantity: number;
+    trialDays: number;
+    trialEligible: boolean;
   }>> => {
     const { supabase: sb, userId } = context;
     try {
