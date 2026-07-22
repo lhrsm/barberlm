@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAddonAnyEnv, AddonAccessDeniedError } from "@/lib/addon-guard.server";
 
 /**
  * AI-powered campaign suggestions for Fidelidade Premium.
@@ -9,6 +10,16 @@ export const suggestLoyaltyCampaigns = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+
+    try {
+      await requireAddonAnyEnv(supabase, userId, "loyalty");
+    } catch (e) {
+      if (e instanceof AddonAccessDeniedError) {
+        return { error: e.message, code: e.code, addonKey: e.addonKey } as const;
+      }
+      throw e;
+    }
+
 
     // Basic context for the model
     const [{ count: customersCount }, { data: recentAppts }, { count: subsCount }] =
