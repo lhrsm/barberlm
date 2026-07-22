@@ -115,10 +115,15 @@ function AdminVouchersPage() {
 
   async function refresh() {
     setLoading(true);
-    const res = await listFn({});
-    if ("ok" in res && res.ok) setVouchers(res.vouchers);
-    else toast.error((res as any).error || "Falha ao listar");
-    setLoading(false);
+    try {
+      const res = await listFn({});
+      if ("ok" in res && res.ok) setVouchers(res.vouchers);
+      else showError("Falha ao listar vouchers", res, "Falha ao listar");
+    } catch (e) {
+      showException("Falha ao listar vouchers", e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -128,33 +133,49 @@ function AdminVouchersPage() {
       .select("id, business_name")
       .order("business_name")
       .limit(500)
-      .then(({ data }) => setTenants((data as any[]) || []));
+      .then(({ data, error }) => {
+        if (error) showError("Falha ao carregar barbearias", { error: error.message, errorDetails: { stage: "supabase.profiles.select", source: "supabase", message: error.message, code: error.code, details: error } }, "Falha ao carregar tenants");
+        setTenants((data as any[]) || []);
+      });
   }, []);
 
   async function handleCreate() {
+    console.log("[Voucher UI] Iniciando criação", { form });
     if (!form.specificTenantId) {
       toast.error("Selecione a barbearia beneficiária");
       return;
     }
+    if (!form.name?.trim()) {
+      toast.error("Informe o nome do voucher");
+      return;
+    }
     setBusy("create");
+    const started = Date.now();
     try {
-      const res = await createFn({
-        data: {
-          name: form.name,
-          specificTenantId: form.specificTenantId,
-          durationType: form.durationType,
-          expiresAt: form.durationType === "until_date" ? form.expiresAt : null,
-          discountPercentage: 100,
-          includesAllAddons: true,
-        },
-      });
+      const payload = {
+        name: form.name,
+        specificTenantId: form.specificTenantId,
+        durationType: form.durationType,
+        expiresAt: form.durationType === "until_date" ? form.expiresAt : null,
+        discountPercentage: 100,
+        includesAllAddons: true,
+      };
+      console.log("[Voucher UI] Enviando payload para createAdminVoucher", payload);
+      const res = await createFn({ data: payload });
+      console.log("[Voucher UI] Resposta createAdminVoucher", { ms: Date.now() - started, res });
       if ("ok" in res && res.ok) {
-        toast.success("Voucher criado. Aplique para ativar no Stripe.");
+        if (res.warnings?.length) {
+          toast.warning("Voucher criado com avisos", { description: res.warnings.join(" | ") });
+        } else {
+          toast.success("Voucher criado. Aplique para ativar no Stripe.");
+        }
         setOpenCreate(false);
         refresh();
       } else {
-        toast.error((res as any).error);
+        showError("Falha ao criar Voucher", res, "Falha ao criar voucher");
       }
+    } catch (e) {
+      showException("Falha ao criar Voucher (exceção)", e);
     } finally {
       setBusy(null);
     }
@@ -168,8 +189,10 @@ function AdminVouchersPage() {
         toast.success(`Voucher aplicado (${env}).`);
         refresh();
       } else {
-        toast.error((res as any).error);
+        showError(`Falha ao aplicar voucher (${env})`, res, "Falha ao aplicar");
       }
+    } catch (e) {
+      showException(`Falha ao aplicar voucher (${env})`, e);
     } finally {
       setBusy(null);
     }
@@ -184,8 +207,10 @@ function AdminVouchersPage() {
         toast.success("Voucher revogado.");
         refresh();
       } else {
-        toast.error((res as any).error);
+        showError("Falha ao revogar voucher", res, "Falha ao revogar");
       }
+    } catch (e) {
+      showException("Falha ao revogar voucher", e);
     } finally {
       setBusy(null);
     }
@@ -199,7 +224,9 @@ function AdminVouchersPage() {
     try {
       const res = await auditFn({ data: { voucherId: v.id, limit: 200 } });
       if ("ok" in res && res.ok) setAuditLogs(res.logs);
-      else toast.error((res as any).error || "Falha ao carregar histórico");
+      else showError("Falha ao carregar histórico", res, "Falha ao carregar histórico");
+    } catch (e) {
+      showException("Falha ao carregar histórico", e);
     } finally {
       setAuditLoading(false);
     }
