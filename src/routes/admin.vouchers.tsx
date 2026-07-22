@@ -49,6 +49,7 @@ function AdminVouchersPage() {
   const createFn = useServerFn(createAdminVoucher);
   const applyFn = useServerFn(applyAdminVoucher);
   const revokeFn = useServerFn(revokeAdminVoucher);
+  const auditFn = useServerFn(listAdminVoucherAuditLogs);
 
   const [loading, setLoading] = useState(true);
   const [vouchers, setVouchers] = useState<any[]>([]);
