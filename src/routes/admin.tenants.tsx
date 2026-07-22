@@ -65,7 +65,8 @@ function AdminTenants() {
             plan, 
             status, 
             created_at,
-            whatsapp_number
+            whatsapp_number,
+            is_internal_test_tenant
           `)
           .order('created_at', { ascending: false }),
         supabase
