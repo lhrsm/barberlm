@@ -8280,6 +8280,10 @@ export type Database = {
         Returns: Json
       }
       grant_subscription_rewards: { Args: never; Returns: number }
+      has_active_addon: {
+        Args: { _addon_key: string; _env?: string; _user_id: string }
+        Returns: boolean
+      }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
