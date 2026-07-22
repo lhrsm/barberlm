@@ -252,7 +252,7 @@ export const reactivateAddon = createServerFn({ method: "POST" })
         cancelled_at: null,
       }).eq("id", data.contractId);
       if (error) throw error;
-      return { ok: true };
+      return { ok: true, reactivated: true };
     } catch (e: any) {
       return { ok: false, error: e.message ?? "Erro ao reativar" };
     }
