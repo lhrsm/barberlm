@@ -316,6 +316,9 @@ function SubscriptionComponent() {
 
           </header>
 
+          {/* Seus módulos adicionais */}
+          <YourAddons />
+
           {/* Status Alerts */}
           {isTrial && (
             <div className="bg-[#0b0f17] border border-sky-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_8px_28px_rgba(56,189,248,0.10)]">
