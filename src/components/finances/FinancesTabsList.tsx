@@ -1,5 +1,5 @@
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, FileText, Clock, RefreshCcw, TicketPercent, Users, AlertCircle } from "lucide-react";
+import { BarChart3, FileText, Clock, RefreshCcw, TicketPercent, Users, AlertCircle, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FinancesTabsListProps {
@@ -16,6 +16,7 @@ export function FinancesTabsList({ role, financeTab, setFinanceTab }: FinancesTa
     { v: "refunds", icon: RefreshCcw, label: "Estornos" },
     ...(role !== 'barber' ? [
       { v: "coupons", icon: TicketPercent, label: "Cupons" },
+      { v: "addons", icon: Package, label: "Add-ons" },
       { v: "barbers", icon: Users, label: "Por Barbeiro" },
       { v: "settings", icon: AlertCircle, label: "Configs" },
     ] : []),
@@ -24,7 +25,8 @@ export function FinancesTabsList({ role, financeTab, setFinanceTab }: FinancesTa
   return (
     <>
       {/* Desktop tabs */}
-      <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-7 max-w-[1220px]" : "grid-cols-3 max-w-[600px]")}>
+      <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-8 max-w-[1320px]" : "grid-cols-3 max-w-[600px]")}>
+
         {items.map(({ v, icon: Icon, label }) => (
           <TabsTrigger key={v} value={v} className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Icon size={16} /> {label}
