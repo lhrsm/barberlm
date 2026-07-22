@@ -136,7 +136,7 @@ async function tryCreateStripeCoupon(
     const { createStripeClient } = await import("@/lib/stripe.server");
     const stripe = createStripeClient(env);
     const coupon = await stripe.coupons.create({
-      name: `[Barbex Interno] ${name}`,
+      name: `[Barbex] ${name}`.slice(0, 40),
       percent_off: discountPct,
       duration: "forever",
       metadata: {
