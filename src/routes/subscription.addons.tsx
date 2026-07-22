@@ -229,6 +229,12 @@ function AddonsCatalog() {
           </div>
         )}
       </div>
+
+      <SubscribeAddonDialog
+        open={!!selectedAddon}
+        onOpenChange={(o) => !o && setSelectedAddon(null)}
+        addon={selectedAddon}
+      />
     </div>
   );
 }
