@@ -72,7 +72,7 @@ function AdminAddonsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tenant_addons" as any)
-        .select("id, tenant_id, addon_id, status, quantity, unit_price, current_period_end, created_at, saas_addons:addon_id(name, addon_key)")
+        .select("id, tenant_id, addon_id, status, quantity, unit_price, current_period_end, created_at, saas_addons:addon_id(name, addon_key), tenant:tenant_id(is_internal_test_tenant)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
