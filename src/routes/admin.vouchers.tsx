@@ -174,7 +174,8 @@ function AdminVouchersPage() {
           </p>
         </div>
         <Button
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90"
+          size="sm"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 h-9 px-3 text-sm"
           onClick={() => setOpenCreate(true)}
         >
           <Plus className="w-4 h-4 mr-2" /> Novo Voucher
