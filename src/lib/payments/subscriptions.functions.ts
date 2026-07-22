@@ -75,8 +75,13 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requireAddonAnyEnv } = await import("@/lib/addon-guard.server");
     const phone = normalizePhone(data.phone);
     if (phone.length < 8) throw new Error("Telefone inválido");
+
+    // Guard: shop must have the "subscriptions" add-on active to sell plans
+    await requireAddonAnyEnv(supabaseAdmin, data.tenantId, "subscriptions");
+
 
     // 1. Autentica o cliente: phone tem que existir neste tenant E ter client_auth
     const { data: customer, error: custErr } = await supabaseAdmin
