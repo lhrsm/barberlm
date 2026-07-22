@@ -6,6 +6,7 @@ import {
   applyAdminVoucher,
   revokeAdminVoucher,
   listAdminVouchers,
+  listAdminVoucherAuditLogs,
 } from "@/lib/admin-vouchers.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
