@@ -72,7 +72,7 @@ function AdminAddonsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tenant_addons" as any)
-        .select("id, tenant_id, addon_id, status, quantity, unit_price, current_period_end, created_at, saas_addons:addon_id(name, addon_key)")
+        .select("id, tenant_id, addon_id, status, quantity, unit_price, current_period_end, created_at, saas_addons:addon_id(name, addon_key), tenant:tenant_id(is_internal_test_tenant)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -133,9 +133,11 @@ function AdminAddonsPage() {
   });
 
   const activeContracts = contracts.filter((c) => ["active", "trialing"].includes(c.status));
-  const mrr = activeContracts.reduce((sum, c) => sum + Number(c.unit_price ?? 0) * (c.quantity ?? 1), 0);
+  // MRR exclui contratos de barbearias internas de teste (voucher administrativo).
+  const billableActiveContracts = activeContracts.filter((c) => !c.tenant?.is_internal_test_tenant);
+  const mrr = billableActiveContracts.reduce((sum, c) => sum + Number(c.unit_price ?? 0) * (c.quantity ?? 1), 0);
   const topAddonMap: Record<string, number> = {};
-  activeContracts.forEach((c) => {
+  billableActiveContracts.forEach((c) => {
     const name = c.saas_addons?.name ?? "—";
     topAddonMap[name] = (topAddonMap[name] || 0) + 1;
   });

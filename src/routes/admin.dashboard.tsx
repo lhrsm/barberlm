@@ -50,10 +50,10 @@ function AdminDashboard() {
   const { data: stats, isLoading, isError, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      // Fetch Tenants (Profiles)
+      // Fetch Tenants (Profiles) — exclui barbearias internas de teste das métricas comerciais
       const { data: profiles, error: pError } = await supabase
         .from("profiles")
-        .select("id, plan, created_at");
+        .select("id, plan, created_at, is_internal_test_tenant");
       
       if (pError) throw pError;
       if (!profiles) return null;
@@ -70,7 +70,7 @@ function AdminDashboard() {
           .map((entry) => entry.user_id)
       );
 
-      const tenants = profiles.filter((profile) => tenantIds.has(profile.id));
+      const tenants = profiles.filter((profile) => tenantIds.has(profile.id) && !(profile as any).is_internal_test_tenant);
       
       // Fetch Plans
       const { data: plans } = await supabase.from("plans").select("*");
