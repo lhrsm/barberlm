@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
+import type { StripeEnv } from "@/lib/stripe.server";
 
 /**
  * Structured error shape returned to the client so the UI can render
@@ -15,6 +15,23 @@ export type StructuredError = {
 };
 
 type Result<T> = ({ ok: true } & T) | { ok: false; error: string; errorDetails?: StructuredError };
+
+function extractUnknownError(e: unknown, stage: string, source: StructuredError["source"] = "unknown"): StructuredError {
+  const anyE = e as any;
+  const message = anyE?.message || (typeof e === "string" ? e : "Erro desconhecido");
+  return {
+    stage,
+    source,
+    message,
+    code: anyE?.code || anyE?.name || null,
+    details: {
+      name: anyE?.name,
+      stack: anyE?.stack,
+      cause: anyE?.cause,
+      status: anyE?.status,
+    },
+  };
+}
 
 function extractStripeError(e: unknown, stage: string): StructuredError {
   const anyE = e as any;
@@ -96,6 +113,17 @@ async function audit(
   }
 }
 
+async function getAdminClient(stage: string): Promise<Result<{ sb: any }>> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return { ok: true, sb: supabaseAdmin };
+  } catch (e) {
+    const se = extractUnknownError(e, stage, "supabase");
+    console.error("[Voucher] Falha ao carregar cliente administrativo", se);
+    return { ok: false, error: toErrString(se), errorDetails: se };
+  }
+}
+
 async function tryCreateStripeCoupon(
   env: StripeEnv,
   name: string,
@@ -105,6 +133,7 @@ async function tryCreateStripeCoupon(
 ) {
   console.log("[Voucher] Criando Coupon Stripe", { env, name, discountPct });
   try {
+    const { createStripeClient } = await import("@/lib/stripe.server");
     const stripe = createStripeClient(env);
     const coupon = await stripe.coupons.create({
       name: `[Barbex Interno] ${name}`,
@@ -143,7 +172,7 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
     requiresPaymentMethod?: boolean;
   }) => data)
   .handler(async ({ data, context }): Promise<Result<{ voucherId: string; warnings?: string[] }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: authSb, userId } = context;
 
     console.log("[Voucher] Iniciando criação", {
       actor: userId,
@@ -157,8 +186,12 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
     });
 
     // 0) Auth
-    const guard = await assertSuperAdmin(sb, userId);
+    const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
+
+    const admin = await getAdminClient("supabase.admin.create");
+    if (!admin.ok) return admin;
+    const sb = admin.sb;
 
     // 1) Validação
     if (!data.name?.trim()) {
@@ -269,9 +302,13 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { voucherId: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<Result<{ redemptionId: string }>> => {
-    const { supabase: sb, userId } = context;
-    const guard = await assertSuperAdmin(sb, userId);
+    const { supabase: authSb, userId } = context;
+    const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
+
+    const admin = await getAdminClient("supabase.admin.apply");
+    if (!admin.ok) return admin;
+    const sb = admin.sb;
 
     // Carrega voucher
     const { data: voucher, error: vErr } = await sb
@@ -279,7 +316,14 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.voucherId)
       .maybeSingle();
-    if (vErr || !voucher) return { ok: false, error: "Voucher não encontrado" };
+    if (vErr) {
+      const se = extractSupabaseError(vErr, "supabase.select.saas_admin_vouchers.apply");
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
+    if (!voucher) {
+      const se: StructuredError = { stage: "supabase.select.saas_admin_vouchers.apply", source: "supabase", message: "Voucher não encontrado", code: "not_found" };
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
     if ((voucher as any).status === "revoked") return { ok: false, error: "Voucher revogado" };
 
     const v = voucher as any;
@@ -302,6 +346,7 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
     let stripeCustomerId: string | null = null;
     if (sub?.stripe_subscription_id) {
       try {
+        const { createStripeClient } = await import("@/lib/stripe.server");
         const stripe = createStripeClient(data.environment);
         await stripe.subscriptions.update(sub.stripe_subscription_id as string, {
           discounts: [{ coupon: couponId }],
@@ -336,7 +381,10 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
       .select("id")
       .single();
 
-    if (rErr || !red) return { ok: false, error: rErr?.message || "Falha ao registrar redemption" };
+    if (rErr || !red) {
+      const se = extractSupabaseError(rErr || { message: "Insert de aplicação retornou vazio" }, "supabase.insert.saas_admin_voucher_redemptions");
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
 
     // Marca voucher como active e liga flag interno no tenant
     await Promise.all([
@@ -367,16 +415,23 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { voucherId: string; reason?: string }) => data)
   .handler(async ({ data, context }): Promise<Result<{}>> => {
-    const { supabase: sb, userId } = context;
-    const guard = await assertSuperAdmin(sb, userId);
+    const { supabase: authSb, userId } = context;
+    const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
+
+    const admin = await getAdminClient("supabase.admin.revoke");
+    if (!admin.ok) return admin;
+    const sb = admin.sb;
 
     const { data: voucher } = await sb
       .from("saas_admin_vouchers" as any)
       .select("*")
       .eq("id", data.voucherId)
       .maybeSingle();
-    if (!voucher) return { ok: false, error: "Voucher não encontrado" };
+    if (!voucher) {
+      const se: StructuredError = { stage: "supabase.select.saas_admin_vouchers.revoke", source: "supabase", message: "Voucher não encontrado", code: "not_found" };
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
     const v = voucher as any;
 
     // Redemptions ativas para desanexar cupom no Stripe
@@ -390,6 +445,7 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
       const env: StripeEnv = (r.metadata?.environment === "live" ? "live" : "sandbox");
       if (r.stripe_subscription_id) {
         try {
+          const { createStripeClient } = await import("@/lib/stripe.server");
           const stripe = createStripeClient(env);
           await stripe.subscriptions.update(r.stripe_subscription_id, {
             discounts: [],
@@ -453,9 +509,13 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
 export const listAdminVouchers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<Result<{ vouchers: any[] }>> => {
-    const { supabase: sb, userId } = context;
-    const guard = await assertSuperAdmin(sb, userId);
+    const { supabase: authSb, userId } = context;
+    const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
+
+    const admin = await getAdminClient("supabase.admin.list");
+    if (!admin.ok) return admin;
+    const sb = admin.sb;
 
     const { data, error } = await sb
       .from("saas_admin_vouchers" as any)
@@ -463,7 +523,10 @@ export const listAdminVouchers = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(200);
 
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      const se = extractSupabaseError(error, "supabase.select.saas_admin_vouchers.list");
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
     return { ok: true, vouchers: (data as any[]) || [] };
   });
 
@@ -474,9 +537,13 @@ export const listAdminVoucherAuditLogs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { voucherId?: string; tenantId?: string; limit?: number }) => data)
   .handler(async ({ data, context }): Promise<Result<{ logs: any[] }>> => {
-    const { supabase: sb, userId } = context;
-    const guard = await assertSuperAdmin(sb, userId);
+    const { supabase: authSb, userId } = context;
+    const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
+
+    const admin = await getAdminClient("supabase.admin.auditLogs");
+    if (!admin.ok) return admin;
+    const sb = admin.sb;
 
     let q = sb
       .from("saas_admin_voucher_audit_logs" as any)
@@ -488,6 +555,9 @@ export const listAdminVoucherAuditLogs = createServerFn({ method: "POST" })
     if (data.tenantId) q = q.eq("tenant_id", data.tenantId);
 
     const { data: rows, error } = await q;
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      const se = extractSupabaseError(error, "supabase.select.saas_admin_voucher_audit_logs");
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
     return { ok: true, logs: (rows as any[]) || [] };
   });
