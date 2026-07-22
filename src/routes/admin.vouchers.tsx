@@ -56,6 +56,10 @@ function AdminVouchersPage() {
   const [tenants, setTenants] = useState<Array<{ id: string; business_name: string }>>([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditVoucher, setAuditVoucher] = useState<any | null>(null);
 
   // form
   const [form, setForm] = useState({
