@@ -35,6 +35,7 @@ import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
+import { TrialEndingBanner } from "@/components/subscription/TrialEndingBanner";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 
 
