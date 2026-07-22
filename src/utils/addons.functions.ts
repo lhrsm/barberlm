@@ -67,6 +67,9 @@ export const previewAddon = createServerFn({ method: "POST" })
       const priceId = (addon as any)[priceIdField(data.environment)];
       if (!priceId) return { ok: false, error: "Add-on ainda não configurado no Stripe" };
 
+      const trialDays = Number((addon as any).trial_days ?? 0);
+      const trialEligible = trialDays > 0 && !(await tenantAlreadyUsedTrial(sb, userId, data.addonId));
+
       const { data: sub } = await sb.from("subscriptions")
         .select("stripe_subscription_id, stripe_customer_id")
         .eq("user_id", userId).eq("environment", data.environment)
@@ -76,17 +79,18 @@ export const previewAddon = createServerFn({ method: "POST" })
       const qty = Math.max(1, data.quantity ?? 1);
 
       if (!sub?.stripe_subscription_id) {
-        // Sem subscription ativa: mostra apenas preço cheio
         const price = await stripe.prices.retrieve(priceId);
         const unit = (price.unit_amount ?? 0) / 100;
         return {
           ok: true,
-          prorationAmount: unit * qty,
+          prorationAmount: trialEligible ? 0 : unit * qty,
           currency: price.currency ?? "brl",
           nextInvoiceAmount: unit * qty,
           nextInvoiceDate: null,
           unitPrice: unit,
           quantity: qty,
+          trialDays,
+          trialEligible,
         };
       }
 
@@ -109,7 +113,7 @@ export const previewAddon = createServerFn({ method: "POST" })
 
       return {
         ok: true,
-        prorationAmount: proration,
+        prorationAmount: trialEligible ? 0 : proration,
         currency: upcoming.currency ?? "brl",
         nextInvoiceAmount: (upcoming.amount_due ?? 0) / 100,
         nextInvoiceDate: upcoming.next_payment_attempt
@@ -119,6 +123,8 @@ export const previewAddon = createServerFn({ method: "POST" })
             : null,
         unitPrice: Number((addon as any).monthly_price ?? 0),
         quantity: qty,
+        trialDays,
+        trialEligible,
       };
     } catch (e: any) {
       console.error("[previewAddon] error:", e.message);
