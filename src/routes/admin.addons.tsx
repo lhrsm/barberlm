@@ -222,7 +222,17 @@ function AdminAddonsPage() {
                       {a.stripe_price_id_test || a.stripe_price_id_live ? (
                         <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]">OK</Badge>
                       ) : (
-                        <Badge className="bg-amber-500/15 text-amber-300 border-amber-500/30 text-[10px]">Sem Price ID</Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={creatingStripeId === a.id}
+                          onClick={() => createStripeMut.mutate({ addonId: a.id, environment: getStripeEnvironment() })}
+                          className="h-7 text-[10px] border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                        >
+                          {creatingStripeId === a.id
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <><Zap className="w-3 h-3 mr-1" /> Criar no Stripe</>}
+                        </Button>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
