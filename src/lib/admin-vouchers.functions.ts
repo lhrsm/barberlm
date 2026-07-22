@@ -395,7 +395,7 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
             discounts: [],
           } as any);
         } catch (e) {
-          console.warn("[admin-vouchers] detach coupon failed", getStripeErrorMessage(e));
+          console.warn("[Voucher] detach coupon failed", extractStripeError(e, "stripe.subscriptions.update.detach"));
         }
       }
     }
