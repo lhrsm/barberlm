@@ -84,6 +84,15 @@ export function SubscribeAddonDialog({ open, onOpenChange, addon, onSuccess }: P
             </ul>
           )}
 
+          {preview && preview.ok && preview.trialEligible && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-300 shrink-0 mt-0.5" />
+              <div className="text-xs text-emerald-100">
+                <strong>{preview.trialDays} dias grátis!</strong> Você começa com trial e só é cobrado quando ele acabar. Cancele antes se não quiser continuar.
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-2">
             {loadingPreview ? (
               <div className="flex items-center gap-2 text-white/60 text-sm">
@@ -97,18 +106,24 @@ export function SubscribeAddonDialog({ open, onOpenChange, addon, onSuccess }: P
             ) : preview && preview.ok ? (
               <>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Cobrança proporcional agora</span>
+                  <span className="text-white/60">
+                    {preview.trialEligible ? "Cobrança agora (trial)" : "Cobrança proporcional agora"}
+                  </span>
                   <span className="font-bold text-white">
-                    R$ {Math.max(0, preview.prorationAmount).toFixed(2)}
+                    {preview.trialEligible ? "R$ 0,00" : `R$ ${Math.max(0, preview.prorationAmount).toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Preço mensal a partir do próximo ciclo</span>
+                  <span className="text-white/60">
+                    {preview.trialEligible
+                      ? `Preço após ${preview.trialDays} dias de trial`
+                      : "Preço mensal a partir do próximo ciclo"}
+                  </span>
                   <span className="font-bold text-emerald-400">
                     R$ {preview.unitPrice.toFixed(2)}
                   </span>
                 </div>
-                {preview.nextInvoiceDate && (
+                {preview.nextInvoiceDate && !preview.trialEligible && (
                   <div className="flex justify-between text-xs text-white/50 pt-2 border-t border-white/5">
                     <span>Próxima fatura</span>
                     <span>{new Date(preview.nextInvoiceDate).toLocaleDateString("pt-BR")}</span>
