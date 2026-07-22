@@ -3,11 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/use-tenant";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { cancelAddon, reactivateAddon } from "@/utils/addons.functions";
+import { cancelAddon, reactivateAddon, updateAddonQuantity } from "@/utils/addons.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
-import { Package, XCircle, RefreshCw, ArrowUpRight, Loader2 } from "lucide-react";
+import { Package, XCircle, RefreshCw, ArrowUpRight, Loader2, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddonRow {
@@ -79,6 +79,22 @@ export function YourAddons() {
     onSettled: () => setPendingId(null),
   });
 
+  const quantityMut = useMutation({
+    mutationFn: async (vars: { contractId: string; quantity: number }) => {
+      setPendingId(vars.contractId);
+      const r = await updateAddonQuantity({ data: { contractId: vars.contractId, quantity: vars.quantity, environment: env } });
+      if (!r.ok) throw new Error(r.error);
+      return r;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-addons"] });
+      qc.invalidateQueries({ queryKey: ["tenant-addons"] });
+      toast.success("Quantidade atualizada. Proration aplicado no próximo ciclo.");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar quantidade"),
+    onSettled: () => setPendingId(null),
+  });
+
   const total = useMemo(
     () => addons.filter(a => ["active", "trialing"].includes(a.status))
       .reduce((s, a) => s + Number(a.unit_price) * a.quantity, 0),
@@ -142,6 +158,31 @@ export function YourAddons() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  {isActive && !isCanceling && (
+                    <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => quantityMut.mutate({ contractId: a.id, quantity: a.quantity - 1 })}
+                        disabled={pendingId === a.id || a.quantity <= 1}
+                        className="h-6 w-6 p-0 text-white/60 hover:text-white"
+                        aria-label="Diminuir quantidade"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className="text-xs font-semibold text-white w-5 text-center">{a.quantity}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => quantityMut.mutate({ contractId: a.id, quantity: a.quantity + 1 })}
+                        disabled={pendingId === a.id}
+                        className="h-6 w-6 p-0 text-white/60 hover:text-white"
+                        aria-label="Aumentar quantidade"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
                   {isActive && !isCanceling && (
                     <Button
                       size="sm"
