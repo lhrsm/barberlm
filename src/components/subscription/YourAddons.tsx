@@ -79,6 +79,22 @@ export function YourAddons() {
     onSettled: () => setPendingId(null),
   });
 
+  const quantityMut = useMutation({
+    mutationFn: async (vars: { contractId: string; quantity: number }) => {
+      setPendingId(vars.contractId);
+      const r = await updateAddonQuantity({ data: { contractId: vars.contractId, quantity: vars.quantity, environment: env } });
+      if (!r.ok) throw new Error(r.error);
+      return r;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-addons"] });
+      qc.invalidateQueries({ queryKey: ["tenant-addons"] });
+      toast.success("Quantidade atualizada. Proration aplicado no próximo ciclo.");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar quantidade"),
+    onSettled: () => setPendingId(null),
+  });
+
   const total = useMemo(
     () => addons.filter(a => ["active", "trialing"].includes(a.status))
       .reduce((s, a) => s + Number(a.unit_price) * a.quantity, 0),
