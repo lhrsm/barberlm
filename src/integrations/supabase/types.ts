@@ -4314,6 +4314,7 @@ export type Database = {
           id: string
           is_recommended: boolean
           limits: Json
+          max_addons: number
           max_barbers: number | null
           name: string
           price_monthly: number
@@ -4334,6 +4335,7 @@ export type Database = {
           id?: string
           is_recommended?: boolean
           limits?: Json
+          max_addons?: number
           max_barbers?: number | null
           name: string
           price_monthly?: number
@@ -4354,6 +4356,7 @@ export type Database = {
           id?: string
           is_recommended?: boolean
           limits?: Json
+          max_addons?: number
           max_barbers?: number | null
           name?: string
           price_monthly?: number
@@ -5062,6 +5065,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saas_addons: {
+        Row: {
+          addon_key: string
+          benefits: Json
+          category: string
+          created_at: string
+          currency: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          max_quantity: number
+          minimum_plan: string | null
+          module_key: string
+          monthly_price: number
+          name: string
+          sort_order: number
+          stripe_price_id_live: string | null
+          stripe_price_id_test: string | null
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          addon_key: string
+          benefits?: Json
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          max_quantity?: number
+          minimum_plan?: string | null
+          module_key: string
+          monthly_price?: number
+          name: string
+          sort_order?: number
+          stripe_price_id_live?: string | null
+          stripe_price_id_test?: string | null
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          addon_key?: string
+          benefits?: Json
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          max_quantity?: number
+          minimum_plan?: string | null
+          module_key?: string
+          monthly_price?: number
+          name?: string
+          sort_order?: number
+          stripe_price_id_live?: string | null
+          stripe_price_id_test?: string | null
+          trial_days?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       saas_checkout_sessions: {
         Row: {
@@ -6524,6 +6593,80 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      tenant_addons: {
+        Row: {
+          addon_id: string
+          cancel_at_period_end: boolean
+          cancelled_at: string | null
+          created_at: string
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          metadata: Json
+          quantity: number
+          starts_at: string
+          status: string
+          stripe_subscription_id: string | null
+          stripe_subscription_item_id: string | null
+          tenant_id: string
+          trial_end: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          addon_id: string
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          metadata?: Json
+          quantity?: number
+          starts_at?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          stripe_subscription_item_id?: string | null
+          tenant_id: string
+          trial_end?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          addon_id?: string
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          metadata?: Json
+          quantity?: number
+          starts_at?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          stripe_subscription_item_id?: string | null
+          tenant_id?: string
+          trial_end?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "saas_addons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tenant_integrations: {
         Row: {
@@ -8431,6 +8574,10 @@ export type Database = {
       sync_barbershop_modules: {
         Args: { p_tenant_id: string }
         Returns: undefined
+      }
+      tenant_has_active_addon: {
+        Args: { _module_key: string; _tenant_id: string }
+        Returns: boolean
       }
       unregister_push_subscription: {
         Args: { _endpoint: string }

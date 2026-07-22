@@ -58,7 +58,23 @@ export interface PlanInfo {
   tier: number;
   allowed_modules: string[];
   price_monthly: number;
+  max_addons: number;
 }
+
+export interface ActiveAddon {
+  id: string;
+  addon_id: string;
+  addon_key: string;
+  name: string;
+  module_key: string;
+  status: string;
+  quantity: number;
+  unit_price: number;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+}
+
+export type AccessSource = "plan" | "addon" | "none";
 
 export function useModules() {
   const { tenantId } = useTenant();
@@ -83,12 +99,38 @@ export function useModules() {
     staleTime: 60_000,
   });
 
+  const { data: activeAddons = [], isLoading: loadingAddons } = useQuery({
+    queryKey: ["tenant-addons", tenantId],
+    queryFn: async (): Promise<ActiveAddon[]> => {
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from("tenant_addons" as any)
+        .select("id, addon_id, status, quantity, unit_price, current_period_end, cancel_at_period_end, saas_addons:addon_id(addon_key, name, module_key)")
+        .eq("tenant_id", tenantId)
+        .in("status", ["active", "trialing", "past_due"]);
+      if (error) return [];
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        addon_id: r.addon_id,
+        addon_key: r.saas_addons?.addon_key ?? "",
+        name: r.saas_addons?.name ?? "",
+        module_key: r.saas_addons?.module_key ?? "",
+        status: r.status,
+        quantity: r.quantity ?? 1,
+        unit_price: Number(r.unit_price ?? 0),
+        current_period_end: r.current_period_end ?? null,
+        cancel_at_period_end: !!r.cancel_at_period_end,
+      }));
+    },
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  });
+
   const { data: plan, isLoading: loadingPlan } = useQuery({
     queryKey: ["barbershop-plan", tenantId],
     queryFn: async (): Promise<PlanInfo | null> => {
       if (!tenantId) return null;
 
-      // 1) Prioridade máxima: assinatura SaaS ativa (fonte de verdade real do plano pago)
       let slug: string | null = null;
       const { data: sub } = await supabase
         .from("subscriptions")
@@ -105,7 +147,6 @@ export function useModules() {
         if (["starter", "pro", "elite"].includes(fromPrice)) slug = fromPrice;
       }
 
-      // 2) Fallback: profile plan/effective_plan (com trial e mapping legacy)
       if (!slug) {
         const { data: prof } = await supabase
           .from("profiles")
@@ -126,22 +167,20 @@ export function useModules() {
         }
       }
 
-
       let planRow: any = null;
       if (slug) {
         const { data } = await supabase
           .from("plans")
-          .select("id, slug, name, tier, allowed_modules, price_monthly")
+          .select("id, slug, name, tier, allowed_modules, price_monthly, max_addons")
           .eq("slug", slug)
           .maybeSingle();
         planRow = data;
       }
 
-      // 3) Fallback: barbershops.plan_id (legado)
       if (!planRow) {
         const { data: bsh } = await supabase
           .from("barbershops" as any)
-          .select("plan_id, plans:plan_id(id, slug, name, tier, allowed_modules, price_monthly)")
+          .select("plan_id, plans:plan_id(id, slug, name, tier, allowed_modules, price_monthly, max_addons)")
           .eq("id", tenantId)
           .maybeSingle();
         planRow = (bsh as any)?.plans;
@@ -155,6 +194,7 @@ export function useModules() {
         tier: planRow.tier ?? 0,
         allowed_modules: Array.isArray(planRow.allowed_modules) ? planRow.allowed_modules : [],
         price_monthly: Number(planRow.price_monthly ?? 0),
+        max_addons: Number((planRow as any).max_addons ?? 3),
       };
     },
     enabled: !!tenantId,
@@ -163,16 +203,24 @@ export function useModules() {
 
 
   const modules = { ...DEFAULT_MODULES, ...(modulesData || {}) } as Record<string, boolean>;
-  const allowedModules = new Set<string>([
+  const planAllowed = new Set<string>([
     ...ALWAYS_ON,
     ...(plan?.allowed_modules || []),
   ]);
+  const addonAllowed = new Set<string>(activeAddons.map((a) => a.module_key).filter(Boolean));
+
+  const accessSource = (key: string): AccessSource => {
+    if (ALWAYS_ON.includes(key)) return "plan";
+    if (planAllowed.has(key)) return "plan";
+    if (addonAllowed.has(key)) return "addon";
+    return "none";
+  };
 
   const isAllowed = (key: string): boolean => {
     if (ALWAYS_ON.includes(key)) return true;
-    // If plan info hasn't loaded yet, be permissive to avoid flicker; UI gates re-render once loaded
-    if (!plan) return true;
-    return allowedModules.has(key);
+    // permissivo enquanto carrega — evita flicker
+    if (!plan && loadingPlan) return true;
+    return planAllowed.has(key) || addonAllowed.has(key);
   };
 
   const isEnabled = (key: string): boolean => {
@@ -180,6 +228,21 @@ export function useModules() {
     if (!isAllowed(key)) return false;
     return !!modules[key];
   };
+
+  // Automações extras (pacote de 5 por unidade) + ilimitadas
+  const hasUnlimitedAutomations = addonAllowed.has("automations_unlimited");
+  const extraAutomationsFromAddons = activeAddons.reduce((sum, a) => {
+    if (a.module_key === "automations_extra") {
+      // pacote: cada quantidade = +5 automações; add-on avulso: +1 por unidade
+      const perUnit = a.addon_key === "automations_pack_5" ? 5 : 1;
+      return sum + a.quantity * perUnit;
+    }
+    return sum;
+  }, 0);
+
+  const addonsUsedCount = activeAddons.length;
+  const addonsLimit = plan?.max_addons ?? 3;
+  const canAddMoreAddons = hasUnlimitedAutomations ? true : addonsUsedCount < addonsLimit;
 
   const toggleMutation = useMutation({
     mutationFn: async ({ key, enabled }: { key: ModuleKey | string; enabled: boolean }) => {
@@ -203,12 +266,20 @@ export function useModules() {
   return {
     modules,
     plan,
-    allowedModules,
+    allowedModules: new Set([...planAllowed, ...addonAllowed]),
+    activeAddons,
+    accessSource,
     isAllowed,
     isEnabled,
-    isLoading: loadingModules || loadingPlan,
+    isLoading: loadingModules || loadingPlan || loadingAddons,
+    hasUnlimitedAutomations,
+    extraAutomationsFromAddons,
+    addonsUsedCount,
+    addonsLimit,
+    canAddMoreAddons,
     toggleModule: (key: ModuleKey | string, enabled: boolean) =>
       toggleMutation.mutate({ key, enabled }),
     isToggling: toggleMutation.isPending,
   };
 }
+

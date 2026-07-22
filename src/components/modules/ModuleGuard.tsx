@@ -63,7 +63,7 @@ const MODULE_REQUIRED_PLAN: Record<string, { slug: string; name: string }> = {
 
 
 export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
-  const { isAllowed, isEnabled, plan, isLoading } = useModules();
+  const { isAllowed, isEnabled, plan, isLoading, accessSource } = useModules();
 
   if (isLoading) {
     return (
@@ -75,8 +75,9 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
 
   const allowedByPlan = isAllowed(module);
   const enabledByTenant = isEnabled(module);
+  const source = accessSource(module);
 
-  // Caso 1: não incluso no plano → tela de upgrade
+  // Caso 1: não incluso no plano nem contratado como add-on → upgrade OU add-on
   if (!allowedByPlan) {
     const required = MODULE_REQUIRED_PLAN[module];
     return (
@@ -89,24 +90,24 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
             Recurso Premium
           </span>
           <h2 className="text-2xl font-bold text-white mb-2">
-            {title || "Este recurso"} faz parte do plano {required?.name || "superior"}
+            {title || "Este recurso"} não está no seu plano
           </h2>
           <p className="text-sm text-white/60 mb-2">
             Seu plano atual é <strong className="text-white/80">{plan?.name ?? "—"}</strong>.
           </p>
           <p className="text-sm text-white/60 mb-6">
-            Faça upgrade para o plano <strong className="text-amber-300">{required?.name || "superior"}</strong> e desbloqueie este e outros recursos premium.
+            Contrate <strong className="text-amber-300">apenas este módulo</strong> como adicional, ou faça upgrade para o plano <strong className="text-amber-300">{required?.name || "superior"}</strong>.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link to="/subscription" className="flex-1">
+            <Link to="/subscription/addons" className="flex-1">
               <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold rounded-xl h-11">
-                Fazer Upgrade
+                Adicionar este módulo
                 <ArrowUpRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
             <Link to="/subscription" className="flex-1">
               <Button variant="outline" className="w-full border-white/15 bg-white/5 hover:bg-white/10 text-white rounded-xl h-11">
-                Ver Comparativo
+                Comparar planos
               </Button>
             </Link>
           </div>
@@ -115,7 +116,7 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
     );
   }
 
-  // Caso 2: incluso no plano, mas desativado pela barbearia → CTA para ativar
+  // Caso 2: incluso (plano ou add-on) mas desativado pela barbearia
   if (!enabledByTenant) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] px-4">
@@ -123,11 +124,18 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
           <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-transparent border border-[rgba(255,184,0,.25)] flex items-center justify-center">
             <Lock className="w-7 h-7 text-amber-400" />
           </div>
+          {source === "addon" && (
+            <span className="inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 uppercase tracking-wider mb-3">
+              Módulo adicional ativo
+            </span>
+          )}
           <h2 className="text-xl font-bold text-white mb-2">
             {title ? `${title} desativado` : "Este módulo está desativado"}
           </h2>
           <p className="text-sm text-white/60 mb-6">
-            Este recurso está incluso no seu plano, mas não está ativo. Ative-o nas configurações quando quiser usar.
+            {source === "addon"
+              ? "Você contratou este módulo como adicional, mas ele está desativado. Ative-o em Configurações."
+              : "Este recurso está incluso no seu plano, mas não está ativo. Ative-o nas configurações quando quiser usar."}
           </p>
           <Link to="/settings">
             <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold rounded-xl h-11">
@@ -142,3 +150,4 @@ export function ModuleGuard({ module, title, children }: ModuleGuardProps) {
 
   return <>{children}</>;
 }
+
