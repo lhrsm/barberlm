@@ -7,6 +7,36 @@ type Result<T> = ({ ok: true } & T) | { ok: false; error: string };
 const priceIdField = (env: StripeEnv) =>
   env === "live" ? "stripe_price_id_live" : "stripe_price_id_test";
 
+async function emitAdminEventServer(
+  sb: any,
+  args: {
+    event_key: string;
+    title: string;
+    message?: string;
+    severity?: "info" | "warning" | "critical";
+    tenant_id?: string;
+    payload?: Record<string, unknown>;
+  },
+) {
+  try {
+    await sb.functions.invoke("emit-admin-event", { body: args });
+  } catch (e) {
+    console.warn("[addons] emit admin event failed", args.event_key, e);
+  }
+}
+
+async function tenantAlreadyUsedTrial(sb: any, tenantId: string, addonId: string): Promise<boolean> {
+  const { data } = await sb.from("tenant_addons" as any)
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("addon_id", addonId)
+    .eq("trial_used", true)
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
+
+
 /**
  * previewAddon
  * Retorna preview de proration (valor a cobrar agora, próxima cobrança).
@@ -25,6 +55,8 @@ export const previewAddon = createServerFn({ method: "POST" })
     nextInvoiceDate: string | null;
     unitPrice: number;
     quantity: number;
+    trialDays: number;
+    trialEligible: boolean;
   }>> => {
     const { supabase: sb, userId } = context;
     try {
@@ -35,6 +67,9 @@ export const previewAddon = createServerFn({ method: "POST" })
       const priceId = (addon as any)[priceIdField(data.environment)];
       if (!priceId) return { ok: false, error: "Add-on ainda não configurado no Stripe" };
 
+      const trialDays = Number((addon as any).trial_days ?? 0);
+      const trialEligible = trialDays > 0 && !(await tenantAlreadyUsedTrial(sb, userId, data.addonId));
+
       const { data: sub } = await sb.from("subscriptions")
         .select("stripe_subscription_id, stripe_customer_id")
         .eq("user_id", userId).eq("environment", data.environment)
@@ -44,17 +79,18 @@ export const previewAddon = createServerFn({ method: "POST" })
       const qty = Math.max(1, data.quantity ?? 1);
 
       if (!sub?.stripe_subscription_id) {
-        // Sem subscription ativa: mostra apenas preço cheio
         const price = await stripe.prices.retrieve(priceId);
         const unit = (price.unit_amount ?? 0) / 100;
         return {
           ok: true,
-          prorationAmount: unit * qty,
+          prorationAmount: trialEligible ? 0 : unit * qty,
           currency: price.currency ?? "brl",
           nextInvoiceAmount: unit * qty,
           nextInvoiceDate: null,
           unitPrice: unit,
           quantity: qty,
+          trialDays,
+          trialEligible,
         };
       }
 
@@ -77,7 +113,7 @@ export const previewAddon = createServerFn({ method: "POST" })
 
       return {
         ok: true,
-        prorationAmount: proration,
+        prorationAmount: trialEligible ? 0 : proration,
         currency: upcoming.currency ?? "brl",
         nextInvoiceAmount: (upcoming.amount_due ?? 0) / 100,
         nextInvoiceDate: upcoming.next_payment_attempt
@@ -87,6 +123,8 @@ export const previewAddon = createServerFn({ method: "POST" })
             : null,
         unitPrice: Number((addon as any).monthly_price ?? 0),
         quantity: qty,
+        trialDays,
+        trialEligible,
       };
     } catch (e: any) {
       console.error("[previewAddon] error:", e.message);
@@ -141,37 +179,72 @@ export const subscribeToAddon = createServerFn({ method: "POST" })
       const stripe = createStripeClient(data.environment);
       const qty = Math.max(1, data.quantity ?? 1);
 
-      const item = await stripe.subscriptionItems.create({
+      const trialDays = Number((addon as any).trial_days ?? 0);
+      const trialEligible = trialDays > 0 && !(await tenantAlreadyUsedTrial(sb, userId, data.addonId));
+
+      const itemParams: any = {
         subscription: sub.stripe_subscription_id as string,
         price: priceId,
         quantity: qty,
-        proration_behavior: "create_prorations",
+        proration_behavior: trialEligible ? "none" : "create_prorations",
         metadata: {
           is_addon: "true",
           addon_id: data.addonId,
           addon_key: (addon as any).addon_key,
           userId,
+          ...(trialEligible && { trial_ends_at: new Date(Date.now() + trialDays * 86400_000).toISOString() }),
         },
-      });
+      };
 
-      // Insert row local (webhook completará current_period_*)
+      const item = await stripe.subscriptionItems.create(itemParams);
+
+      const trialEndsAt = trialEligible
+        ? new Date(Date.now() + trialDays * 86400_000).toISOString()
+        : null;
+
       const { data: inserted, error: insErr } = await sb.from("tenant_addons" as any)
         .insert({
           tenant_id: userId,
           addon_id: data.addonId,
           environment: data.environment,
-          status: "active",
+          status: trialEligible ? "trialing" : "active",
           quantity: qty,
           unit_price: Number((addon as any).monthly_price ?? 0),
           currency: (addon as any).currency ?? "BRL",
           stripe_subscription_id: sub.stripe_subscription_id,
           stripe_subscription_item_id: item.id,
           starts_at: new Date().toISOString(),
-          metadata: { added_via: "self_service" },
+          trial_ends_at: trialEndsAt,
+          trial_used: trialEligible,
+          metadata: { added_via: "self_service", trial_at_signup: trialEligible },
         } as any)
         .select("id").single();
 
       if (insErr) throw insErr;
+
+      // Fan-out admin event
+      const addonName = (addon as any).name;
+      const monthly = Number((addon as any).monthly_price ?? 0);
+      if (trialEligible) {
+        await emitAdminEventServer(sb, {
+          event_key: "addon.trial_started",
+          title: `Trial iniciado: ${addonName}`,
+          message: `Cliente começou trial de ${trialDays} dias no add-on ${addonName}.`,
+          severity: "info",
+          tenant_id: userId,
+          payload: { addon_id: data.addonId, addon_key: (addon as any).addon_key, trial_days: trialDays, trial_ends_at: trialEndsAt },
+        });
+      } else {
+        await emitAdminEventServer(sb, {
+          event_key: "addon.subscribed",
+          title: `Novo contrato: ${addonName}`,
+          message: `Cliente contratou o add-on ${addonName} (R$ ${monthly.toFixed(2)}/mês).`,
+          severity: "info",
+          tenant_id: userId,
+          payload: { addon_id: data.addonId, addon_key: (addon as any).addon_key, monthly_price: monthly, quantity: qty },
+        });
+      }
+
       return { ok: true, addonContractId: (inserted as any).id };
     } catch (e: any) {
       console.error("[subscribeToAddon] error:", e.message);
@@ -216,6 +289,23 @@ export const cancelAddon = createServerFn({ method: "POST" })
         cancelled_at: new Date().toISOString(),
       }).eq("id", data.contractId);
       if (error) throw error;
+
+      // Fan-out admin event
+      const { data: addon } = await sb.from("saas_addons" as any)
+        .select("name, addon_key, monthly_price")
+        .eq("id", (contract as any).addon_id).maybeSingle();
+      await emitAdminEventServer(sb, {
+        event_key: "addon.canceled",
+        title: `Add-on cancelado: ${(addon as any)?.name ?? "?"}`,
+        message: `Cliente cancelou o add-on. Acesso mantido até o fim do ciclo atual.`,
+        severity: "warning",
+        tenant_id: userId,
+        payload: {
+          addon_id: (contract as any).addon_id,
+          addon_key: (addon as any)?.addon_key,
+          ends_at: (contract as any).current_period_end,
+        },
+      });
 
       return { ok: true, endsAt: (contract as any).current_period_end ?? null };
     } catch (e: any) {

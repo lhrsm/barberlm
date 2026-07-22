@@ -5077,6 +5077,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean
+          is_premium: boolean
           max_quantity: number
           minimum_plan: string | null
           module_key: string
@@ -5098,6 +5099,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          is_premium?: boolean
           max_quantity?: number
           minimum_plan?: string | null
           module_key: string
@@ -5119,6 +5121,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          is_premium?: boolean
           max_quantity?: number
           minimum_plan?: string | null
           module_key?: string
@@ -6613,6 +6616,8 @@ export type Database = {
           stripe_subscription_item_id: string | null
           tenant_id: string
           trial_end: string | null
+          trial_ends_at: string | null
+          trial_used: boolean
           unit_price: number
           updated_at: string
         }
@@ -6634,6 +6639,8 @@ export type Database = {
           stripe_subscription_item_id?: string | null
           tenant_id: string
           trial_end?: string | null
+          trial_ends_at?: string | null
+          trial_used?: boolean
           unit_price?: number
           updated_at?: string
         }
@@ -6655,6 +6662,8 @@ export type Database = {
           stripe_subscription_item_id?: string | null
           tenant_id?: string
           trial_end?: string | null
+          trial_ends_at?: string | null
+          trial_used?: boolean
           unit_price?: number
           updated_at?: string
         }
