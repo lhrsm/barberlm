@@ -159,6 +159,31 @@ export function YourAddons() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {isActive && !isCanceling && (
+                    <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => quantityMut.mutate({ contractId: a.id, quantity: a.quantity - 1 })}
+                        disabled={pendingId === a.id || a.quantity <= 1}
+                        className="h-6 w-6 p-0 text-white/60 hover:text-white"
+                        aria-label="Diminuir quantidade"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className="text-xs font-semibold text-white w-5 text-center">{a.quantity}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => quantityMut.mutate({ contractId: a.id, quantity: a.quantity + 1 })}
+                        disabled={pendingId === a.id}
+                        className="h-6 w-6 p-0 text-white/60 hover:text-white"
+                        aria-label="Aumentar quantidade"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                  {isActive && !isCanceling && (
                     <Button
                       size="sm"
                       variant="ghost"
