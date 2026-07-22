@@ -8392,6 +8392,14 @@ export type Database = {
         Returns: number
       }
       reconcile_automation_logs: { Args: never; Returns: undefined }
+      reconcile_expired_addons: {
+        Args: never
+        Returns: {
+          addon_id: string
+          expired_at: string
+          tenant_id: string
+        }[]
+      }
       redeem_loyalty_reward: {
         Args: {
           p_applied_cost?: number
