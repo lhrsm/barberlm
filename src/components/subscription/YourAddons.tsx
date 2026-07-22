@@ -3,11 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/use-tenant";
 import { getStripeEnvironment } from "@/lib/stripe";
-import { cancelAddon, reactivateAddon } from "@/utils/addons.functions";
+import { cancelAddon, reactivateAddon, updateAddonQuantity } from "@/utils/addons.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
-import { Package, XCircle, RefreshCw, ArrowUpRight, Loader2 } from "lucide-react";
+import { Package, XCircle, RefreshCw, ArrowUpRight, Loader2, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddonRow {
