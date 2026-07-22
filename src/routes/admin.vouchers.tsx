@@ -148,6 +148,20 @@ function AdminVouchersPage() {
     }
   }
 
+  async function openAudit(v: any) {
+    setAuditVoucher(v);
+    setAuditOpen(true);
+    setAuditLoading(true);
+    setAuditLogs([]);
+    try {
+      const res = await auditFn({ data: { voucherId: v.id, limit: 200 } });
+      if ("ok" in res && res.ok) setAuditLogs(res.logs);
+      else toast.error((res as any).error || "Falha ao carregar histórico");
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
