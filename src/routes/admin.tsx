@@ -25,7 +25,8 @@ import {
   LineChart as LineChartIcon,
   Download,
   GraduationCap,
-  Bell
+  Bell,
+  Package
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ const adminNavItems = [
   { label: "Barbearias", icon: Building2, to: "/admin/tenants" },
   { label: "Assinaturas", icon: CreditCard, to: "/admin/subscriptions" },
   { label: "Planos", icon: Layout, to: "/admin/plans" },
+  { label: "Add-ons", icon: Package, to: "/admin/addons" },
   { label: "Receita", icon: TrendingUp, to: "/admin/finance" },
   { label: "Relatórios", icon: BarChart3, to: "/admin/reports" },
   { label: "Analytics", icon: LineChartIcon, to: "/admin/analytics" },

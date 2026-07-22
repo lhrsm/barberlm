@@ -68,6 +68,7 @@ import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAddonsRouteImport } from './routes/admin.addons'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SlugCheckinRouteImport } from './routes/$slug.checkin'
@@ -379,6 +380,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAddonsRoute = AdminAddonsRouteImport.update({
+  id: '/addons',
+  path: '/addons',
+  getParentRoute: () => AdminRoute,
+} as any)
 const SlugProfissionalRoute = SlugProfissionalRouteImport.update({
   id: '/profissional',
   path: '/profissional',
@@ -502,6 +508,7 @@ export interface FileRoutesByFullPath {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -576,6 +583,7 @@ export interface FileRoutesByTo {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -653,6 +661,7 @@ export interface FileRoutesById {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -731,6 +740,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -805,6 +815,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -881,6 +892,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -1386,6 +1398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/addons': {
+      id: '/admin/addons'
+      path: '/addons'
+      fullPath: '/admin/addons'
+      preLoaderRoute: typeof AdminAddonsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$slug/profissional': {
       id: '/$slug/profissional'
       path: '/profissional'
@@ -1509,6 +1528,7 @@ const SlugRouteChildren: SlugRouteChildren = {
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAddonsRoute: typeof AdminAddonsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminErrorsRoute: typeof AdminErrorsRoute
@@ -1528,6 +1548,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAddonsRoute: AdminAddonsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminErrorsRoute: AdminErrorsRoute,
