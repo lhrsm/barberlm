@@ -253,6 +253,14 @@ function AdminVouchersPage() {
                           <Ban className="w-3 h-3 mr-1" /> Revogar
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white/70 hover:bg-white/10"
+                        onClick={() => openAudit(v)}
+                      >
+                        <History className="w-3 h-3 mr-1" /> Histórico
+                      </Button>
                     </div>
                   </div>
                 );
@@ -261,6 +269,55 @@ function AdminVouchersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* AUDIT DIALOG */}
+      <Dialog open={auditOpen} onOpenChange={setAuditOpen}>
+        <DialogContent className="bg-neutral-900 border-white/10 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-4 h-4 text-purple-400" />
+              Histórico do voucher
+              {auditVoucher && (
+                <span className="text-white/50 text-sm font-normal">— {auditVoucher.name}</span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            {auditLoading ? (
+              <div className="flex items-center gap-2 text-white/60 py-8 justify-center">
+                <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
+              </div>
+            ) : auditLogs.length === 0 ? (
+              <p className="text-white/50 text-sm py-8 text-center">Nenhum registro de auditoria.</p>
+            ) : (
+              auditLogs.map((log) => (
+                <div key={log.id} className="p-3 rounded-lg border border-white/10 bg-white/5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <Badge className="bg-purple-500/20 text-purple-200 border-purple-500/40 text-xs">
+                      {log.action}
+                    </Badge>
+                    <span className="text-xs text-white/50">
+                      {new Date(log.created_at).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                  {log.reason && (
+                    <p className="text-xs text-white/70 mt-2">Motivo: {log.reason}</p>
+                  )}
+                  {log.new_values && (
+                    <pre className="text-[10px] text-white/50 mt-2 bg-black/40 rounded p-2 overflow-x-auto">
+{JSON.stringify(log.new_values, null, 2)}
+                    </pre>
+                  )}
+                  <p className="text-[10px] text-white/40 mt-1">
+                    Ator: {String(log.actor_user_id || "").slice(0, 8)}…
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
       {/* CREATE DIALOG */}
       <Dialog open={openCreate} onOpenChange={setOpenCreate}>
