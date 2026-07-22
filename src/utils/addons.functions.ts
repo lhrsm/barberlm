@@ -349,6 +349,57 @@ export const reactivateAddon = createServerFn({ method: "POST" })
   });
 
 /**
+ * updateAddonQuantity
+ * Ajusta a quantidade de licenças/seats de um add-on ativo.
+ * Aplica proration imediato no Stripe e sincroniza tenant_addons.
+ */
+export const updateAddonQuantity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contractId: string; quantity: number; environment: StripeEnv }) => data)
+  .handler(async ({ data, context }): Promise<Result<{ quantity: number }>> => {
+    const { supabase: sb, userId } = context;
+    try {
+      const qty = Math.max(1, Math.floor(data.quantity));
+      const { data: contract } = await sb.from("tenant_addons" as any)
+        .select("id, quantity, status, stripe_subscription_item_id, addon_id, saas_addons:addon_id(name, addon_key)")
+        .eq("id", data.contractId).eq("tenant_id", userId).maybeSingle();
+      if (!contract) return { ok: false, error: "Contrato não encontrado" };
+      if (!["active", "trialing", "past_due"].includes((contract as any).status)) {
+        return { ok: false, error: "Só é possível ajustar quantidade em contratos ativos" };
+      }
+      if ((contract as any).quantity === qty) return { ok: true, quantity: qty };
+
+      const itemId = (contract as any).stripe_subscription_item_id;
+      if (itemId) {
+        const stripe = createStripeClient(data.environment);
+        await stripe.subscriptionItems.update(itemId, {
+          quantity: qty,
+          proration_behavior: "create_prorations",
+        });
+      }
+
+      const { error } = await sb.from("tenant_addons" as any)
+        .update({ quantity: qty }).eq("id", data.contractId);
+      if (error) throw error;
+
+      const addonName = (contract as any).saas_addons?.name ?? "Add-on";
+      await emitAdminEventServer(sb, {
+        event_key: "addon.quantity_changed",
+        title: `Quantidade alterada: ${addonName}`,
+        message: `Cliente ajustou quantidade de ${(contract as any).quantity} para ${qty}.`,
+        severity: "info",
+        tenant_id: userId,
+        payload: { addon_id: (contract as any).addon_id, from: (contract as any).quantity, to: qty },
+      });
+
+      return { ok: true, quantity: qty };
+    } catch (e: any) {
+      console.error("[updateAddonQuantity] error:", e.message);
+      return { ok: false, error: e.message ?? "Erro ao ajustar quantidade" };
+    }
+  });
+
+/**
  * adminCreateAddonStripePrice
  * Botão do admin: cria automaticamente Product+Price no Stripe para um add-on
  * que ainda não tem stripe_price_id_test/live configurado.
