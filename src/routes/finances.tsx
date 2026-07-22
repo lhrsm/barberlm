@@ -21,6 +21,7 @@ import { TransactionsTab } from "@/components/finances/TransactionsTab";
 import { KpiCards } from "@/components/finances/KpiCards";
 import { FinancesHeader } from "@/components/finances/FinancesHeader";
 import { FinancesTabsList } from "@/components/finances/FinancesTabsList";
+import { AddonsRevenueTab } from "@/components/finances/AddonsRevenueTab";
 import { NovaTransacaoDialog } from "@/components/finances/NovaTransacaoDialog";
 import { exportFinancesPdf, periodLabel } from "@/lib/finances-pdf";
 import { useFinancesData } from "@/hooks/use-finances-data";
@@ -273,6 +274,13 @@ function FinancesComponent() {
               <CouponsView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
+
+          {role !== 'barber' && (
+            <TabsContent value="addons" className="pt-4">
+              <AddonsRevenueTab />
+            </TabsContent>
+          )}
+
 
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
