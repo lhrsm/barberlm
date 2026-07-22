@@ -7,6 +7,36 @@ type Result<T> = ({ ok: true } & T) | { ok: false; error: string };
 const priceIdField = (env: StripeEnv) =>
   env === "live" ? "stripe_price_id_live" : "stripe_price_id_test";
 
+async function emitAdminEventServer(
+  sb: any,
+  args: {
+    event_key: string;
+    title: string;
+    message?: string;
+    severity?: "info" | "warning" | "critical";
+    tenant_id?: string;
+    payload?: Record<string, unknown>;
+  },
+) {
+  try {
+    await sb.functions.invoke("emit-admin-event", { body: args });
+  } catch (e) {
+    console.warn("[addons] emit admin event failed", args.event_key, e);
+  }
+}
+
+async function tenantAlreadyUsedTrial(sb: any, tenantId: string, addonId: string): Promise<boolean> {
+  const { data } = await sb.from("tenant_addons" as any)
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("addon_id", addonId)
+    .eq("trial_used", true)
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
+
+
 /**
  * previewAddon
  * Retorna preview de proration (valor a cobrar agora, próxima cobrança).
