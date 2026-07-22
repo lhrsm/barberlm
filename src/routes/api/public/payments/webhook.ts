@@ -92,6 +92,9 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
 
   await syncProfilePlan(userId, priceId, subscription.status);
 
+  // Sync add-ons items (se houver items de add-on nesta subscription)
+  await syncAddonsFromSubscription(subscription, env);
+
   // 🛡️ Notify super admins
   const profile = await loadProfileForUser(userId);
   const planLabel = priceId ? (PRICE_TO_PLAN[priceId] ?? priceId) : "desconhecido";
