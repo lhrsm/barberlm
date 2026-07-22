@@ -85,6 +85,8 @@ import { Route as ApiPublicHooksSendReviewRequestsRouteImport } from './routes/a
 import { Route as ApiPublicHooksReviewRemindersRouteImport } from './routes/api/public/hooks/review-reminders'
 import { Route as ApiPublicHooksAdminRiskScanRouteImport } from './routes/api/public/hooks/admin-risk-scan'
 import { Route as ApiPublicHooksAdminDigestRouteImport } from './routes/api/public/hooks/admin-digest'
+import { Route as ApiPublicHooksAddonsReconcileRouteImport } from './routes/api/public/hooks/addons-reconcile'
+import { Route as ApiPublicHooksAddonsCleanupRouteImport } from './routes/api/public/hooks/addons-cleanup'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -475,6 +477,18 @@ const ApiPublicHooksAdminDigestRoute =
     path: '/api/public/hooks/admin-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAddonsReconcileRoute =
+  ApiPublicHooksAddonsReconcileRouteImport.update({
+    id: '/api/public/hooks/addons-reconcile',
+    path: '/api/public/hooks/addons-reconcile',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksAddonsCleanupRoute =
+  ApiPublicHooksAddonsCleanupRouteImport.update({
+    id: '/api/public/hooks/addons-cleanup',
+    path: '/api/public/hooks/addons-cleanup',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -545,6 +559,8 @@ export interface FileRoutesByFullPath {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
+  '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
   '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
@@ -621,6 +637,8 @@ export interface FileRoutesByTo {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
+  '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
   '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
@@ -700,6 +718,8 @@ export interface FileRoutesById {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
+  '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
   '/api/public/hooks/admin-risk-scan': typeof ApiPublicHooksAdminRiskScanRoute
   '/api/public/hooks/review-reminders': typeof ApiPublicHooksReviewRemindersRoute
@@ -780,6 +800,8 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/addons-cleanup'
+    | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
     | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
@@ -856,6 +878,8 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/addons-cleanup'
+    | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
     | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
@@ -934,6 +958,8 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/api/public/hooks/addons-cleanup'
+    | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
     | '/api/public/hooks/admin-risk-scan'
     | '/api/public/hooks/review-reminders'
@@ -985,6 +1011,8 @@ export interface RootRouteChildren {
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   ApiPublicSendPushRoute: typeof ApiPublicSendPushRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
+  ApiPublicHooksAddonsCleanupRoute: typeof ApiPublicHooksAddonsCleanupRoute
+  ApiPublicHooksAddonsReconcileRoute: typeof ApiPublicHooksAddonsReconcileRoute
   ApiPublicHooksAdminDigestRoute: typeof ApiPublicHooksAdminDigestRoute
   ApiPublicHooksAdminRiskScanRoute: typeof ApiPublicHooksAdminRiskScanRoute
   ApiPublicHooksReviewRemindersRoute: typeof ApiPublicHooksReviewRemindersRoute
@@ -1529,6 +1557,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAdminDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/addons-reconcile': {
+      id: '/api/public/hooks/addons-reconcile'
+      path: '/api/public/hooks/addons-reconcile'
+      fullPath: '/api/public/hooks/addons-reconcile'
+      preLoaderRoute: typeof ApiPublicHooksAddonsReconcileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/addons-cleanup': {
+      id: '/api/public/hooks/addons-cleanup'
+      path: '/api/public/hooks/addons-cleanup'
+      fullPath: '/api/public/hooks/addons-cleanup'
+      preLoaderRoute: typeof ApiPublicHooksAddonsCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1683,6 +1725,8 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   ApiPublicSendPushRoute: ApiPublicSendPushRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
+  ApiPublicHooksAddonsCleanupRoute: ApiPublicHooksAddonsCleanupRoute,
+  ApiPublicHooksAddonsReconcileRoute: ApiPublicHooksAddonsReconcileRoute,
   ApiPublicHooksAdminDigestRoute: ApiPublicHooksAdminDigestRoute,
   ApiPublicHooksAdminRiskScanRoute: ApiPublicHooksAdminRiskScanRoute,
   ApiPublicHooksReviewRemindersRoute: ApiPublicHooksReviewRemindersRoute,
