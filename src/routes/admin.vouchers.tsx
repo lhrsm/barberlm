@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Ticket, Plus, Play, Ban, Loader2, ShieldCheck, History } from "lucide-react";
+import { Ticket, Plus, Play, Ban, Loader2, ShieldCheck, History, Copy, AlertTriangle } from "lucide-react";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 
 export const Route = createFileRoute("/admin/vouchers")({
@@ -61,6 +61,49 @@ function AdminVouchersPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditVoucher, setAuditVoucher] = useState<any | null>(null);
 
+  // Error details modal
+  const [errorModal, setErrorModal] = useState<null | {
+    title: string;
+    stage?: string;
+    source?: string;
+    message: string;
+    code?: string | null;
+    details?: any;
+    raw?: any;
+  }>(null);
+
+  function showError(title: string, res: any, fallback: string) {
+    const d = res?.errorDetails;
+    const message = d?.message || res?.error || fallback;
+    console.error("[Voucher UI]", title, { res, errorDetails: d });
+    toast.error(message, { description: d?.stage ? `Etapa: ${d.stage}${d.code ? ` — ${d.code}` : ""}` : undefined });
+    setErrorModal({
+      title,
+      stage: d?.stage,
+      source: d?.source,
+      message,
+      code: d?.code,
+      details: d?.details,
+      raw: res,
+    });
+  }
+
+  function showException(title: string, err: unknown) {
+    const anyE = err as any;
+    const message = anyE?.message || String(err) || "Erro desconhecido";
+    console.error("[Voucher UI] exception", title, err);
+    toast.error(message);
+    setErrorModal({
+      title,
+      stage: "client_exception",
+      source: "unknown",
+      message,
+      code: anyE?.code || null,
+      details: { name: anyE?.name, stack: anyE?.stack },
+      raw: { message, stack: anyE?.stack },
+    });
+  }
+
   // form
   const [form, setForm] = useState({
     name: "Ambiente Interno de Testes Barbex",
@@ -72,10 +115,15 @@ function AdminVouchersPage() {
 
   async function refresh() {
     setLoading(true);
-    const res = await listFn({});
-    if ("ok" in res && res.ok) setVouchers(res.vouchers);
-    else toast.error((res as any).error || "Falha ao listar");
-    setLoading(false);
+    try {
+      const res = await listFn({});
+      if ("ok" in res && res.ok) setVouchers(res.vouchers);
+      else showError("Falha ao listar vouchers", res, "Falha ao listar");
+    } catch (e) {
+      showException("Falha ao listar vouchers", e);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -85,33 +133,49 @@ function AdminVouchersPage() {
       .select("id, business_name")
       .order("business_name")
       .limit(500)
-      .then(({ data }) => setTenants((data as any[]) || []));
+      .then(({ data, error }) => {
+        if (error) showError("Falha ao carregar barbearias", { error: error.message, errorDetails: { stage: "supabase.profiles.select", source: "supabase", message: error.message, code: error.code, details: error } }, "Falha ao carregar tenants");
+        setTenants((data as any[]) || []);
+      });
   }, []);
 
   async function handleCreate() {
+    console.log("[Voucher UI] Iniciando criação", { form });
     if (!form.specificTenantId) {
       toast.error("Selecione a barbearia beneficiária");
       return;
     }
+    if (!form.name?.trim()) {
+      toast.error("Informe o nome do voucher");
+      return;
+    }
     setBusy("create");
+    const started = Date.now();
     try {
-      const res = await createFn({
-        data: {
-          name: form.name,
-          specificTenantId: form.specificTenantId,
-          durationType: form.durationType,
-          expiresAt: form.durationType === "until_date" ? form.expiresAt : null,
-          discountPercentage: 100,
-          includesAllAddons: true,
-        },
-      });
+      const payload = {
+        name: form.name,
+        specificTenantId: form.specificTenantId,
+        durationType: form.durationType,
+        expiresAt: form.durationType === "until_date" ? form.expiresAt : null,
+        discountPercentage: 100,
+        includesAllAddons: true,
+      };
+      console.log("[Voucher UI] Enviando payload para createAdminVoucher", payload);
+      const res = await createFn({ data: payload });
+      console.log("[Voucher UI] Resposta createAdminVoucher", { ms: Date.now() - started, res });
       if ("ok" in res && res.ok) {
-        toast.success("Voucher criado. Aplique para ativar no Stripe.");
+        if (res.warnings?.length) {
+          toast.warning("Voucher criado com avisos", { description: res.warnings.join(" | ") });
+        } else {
+          toast.success("Voucher criado. Aplique para ativar no Stripe.");
+        }
         setOpenCreate(false);
         refresh();
       } else {
-        toast.error((res as any).error);
+        showError("Falha ao criar Voucher", res, "Falha ao criar voucher");
       }
+    } catch (e) {
+      showException("Falha ao criar Voucher (exceção)", e);
     } finally {
       setBusy(null);
     }
@@ -125,8 +189,10 @@ function AdminVouchersPage() {
         toast.success(`Voucher aplicado (${env}).`);
         refresh();
       } else {
-        toast.error((res as any).error);
+        showError(`Falha ao aplicar voucher (${env})`, res, "Falha ao aplicar");
       }
+    } catch (e) {
+      showException(`Falha ao aplicar voucher (${env})`, e);
     } finally {
       setBusy(null);
     }
@@ -141,8 +207,10 @@ function AdminVouchersPage() {
         toast.success("Voucher revogado.");
         refresh();
       } else {
-        toast.error((res as any).error);
+        showError("Falha ao revogar voucher", res, "Falha ao revogar");
       }
+    } catch (e) {
+      showException("Falha ao revogar voucher", e);
     } finally {
       setBusy(null);
     }
@@ -156,7 +224,9 @@ function AdminVouchersPage() {
     try {
       const res = await auditFn({ data: { voucherId: v.id, limit: 200 } });
       if ("ok" in res && res.ok) setAuditLogs(res.logs);
-      else toast.error((res as any).error || "Falha ao carregar histórico");
+      else showError("Falha ao carregar histórico", res, "Falha ao carregar histórico");
+    } catch (e) {
+      showException("Falha ao carregar histórico", e);
     } finally {
       setAuditLoading(false);
     }
@@ -394,6 +464,65 @@ function AdminVouchersPage() {
               {busy === "create" && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Criar Voucher
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ERROR DETAILS DIALOG */}
+      <Dialog open={!!errorModal} onOpenChange={(o) => !o && setErrorModal(null)}>
+        <DialogContent className="bg-neutral-900 border-red-500/30 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-300">
+              <AlertTriangle className="w-5 h-5" />
+              {errorModal?.title || "Falha"}
+            </DialogTitle>
+          </DialogHeader>
+          {errorModal && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-[110px_1fr] gap-2">
+                <span className="text-white/50">Etapa:</span>
+                <span className="text-white/90 break-all">{errorModal.stage || "—"}</span>
+                <span className="text-white/50">Origem:</span>
+                <span className="text-white/90">{errorModal.source || "—"}</span>
+                <span className="text-white/50">Código:</span>
+                <span className="text-white/90 break-all">{errorModal.code || "—"}</span>
+                <span className="text-white/50">Mensagem:</span>
+                <span className="text-red-200 break-words">{errorModal.message}</span>
+              </div>
+              {errorModal.details && (
+                <div>
+                  <div className="text-white/50 text-xs mb-1">Detalhes técnicos</div>
+                  <pre className="text-[11px] text-white/70 bg-black/50 rounded p-3 overflow-x-auto max-h-64">
+{JSON.stringify(errorModal.details, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {errorModal.raw && (
+                <details className="text-xs text-white/60">
+                  <summary className="cursor-pointer">Resposta completa</summary>
+                  <pre className="text-[11px] text-white/60 bg-black/50 rounded p-3 overflow-x-auto max-h-64 mt-2">
+{JSON.stringify(errorModal.raw, null, 2)}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="border-white/20 text-white"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(JSON.stringify(errorModal, null, 2));
+                  toast.success("Detalhes copiados");
+                } catch {
+                  toast.error("Não foi possível copiar");
+                }
+              }}
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copiar detalhes
+            </Button>
+            <Button onClick={() => setErrorModal(null)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

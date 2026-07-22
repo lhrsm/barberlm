@@ -2,34 +2,77 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
 
-function getStripeErrorMessage(e: unknown): string {
+/**
+ * Structured error shape returned to the client so the UI can render
+ * a rich "Falha ao criar Voucher" modal (stage, message, code, source, details).
+ */
+export type StructuredError = {
+  stage: string;
+  source: "supabase" | "stripe" | "validation" | "auth" | "unknown";
+  message: string;
+  code?: string | null;
+  details?: any;
+};
+
+type Result<T> = ({ ok: true } & T) | { ok: false; error: string; errorDetails?: StructuredError };
+
+function extractStripeError(e: unknown, stage: string): StructuredError {
   const anyE = e as any;
-  return anyE?.raw?.message || anyE?.message || "Stripe request failed";
+  const raw = anyE?.raw ?? {};
+  return {
+    stage,
+    source: "stripe",
+    message: raw.message || anyE?.message || "Stripe request failed",
+    code: raw.code || anyE?.code || anyE?.type || null,
+    details: {
+      type: raw.type || anyE?.type,
+      code: raw.code || anyE?.code,
+      decline_code: raw.decline_code,
+      param: raw.param,
+      requestId: anyE?.requestId || raw.requestId,
+      statusCode: anyE?.statusCode,
+      doc_url: raw.doc_url,
+    },
+  };
 }
 
-/**
- * Fase 2 — Backend + Stripe do sistema de Voucher Administrativo Interno.
- *
- * Fluxo:
- *  1. createAdminVoucher: cria linha em `saas_admin_vouchers` (status=draft) e
- *     provisiona cupons no Stripe (sandbox + live quando possível) — 100% off
- *     forever.
- *  2. applyAdminVoucher: anexa o cupom à assinatura ativa do tenant no Stripe
- *     e cria uma `saas_admin_voucher_redemptions` (status=active). Também marca
- *     o voucher como active e o `profiles.is_internal_test_tenant = true`.
- *  3. revokeAdminVoucher: remove o cupom da assinatura, marca redemption/voucher
- *     como revoked e desliga o flag interno.
- *
- * Todas as operações exigem role super_admin e são auditadas em
- * `saas_admin_voucher_audit_logs`.
- */
+function extractSupabaseError(err: any, stage: string): StructuredError {
+  return {
+    stage,
+    source: "supabase",
+    message: err?.message || "Supabase request failed",
+    code: err?.code || null,
+    details: {
+      hint: err?.hint,
+      details: err?.details,
+      status: err?.status,
+    },
+  };
+}
 
-type Result<T> = ({ ok: true } & T) | { ok: false; error: string };
+function toErrString(se: StructuredError): string {
+  const bits = [`[${se.stage}]`, se.source ? `(${se.source})` : "", se.message];
+  if (se.code) bits.push(`— code: ${se.code}`);
+  return bits.filter(Boolean).join(" ");
+}
 
 async function assertSuperAdmin(sb: any, userId: string): Promise<Result<{}>> {
+  console.log("[Voucher] Verificando permissão super_admin", { userId });
   const { data, error } = await sb.rpc("has_role", { _user_id: userId, _role: "super_admin" });
-  if (error) return { ok: false, error: error.message };
-  if (!data) return { ok: false, error: "Forbidden — super admin apenas" };
+  if (error) {
+    const se = extractSupabaseError(error, "assertSuperAdmin");
+    console.error("[Voucher] Falha ao checar role", se);
+    return { ok: false, error: toErrString(se), errorDetails: se };
+  }
+  if (!data) {
+    const se: StructuredError = {
+      stage: "assertSuperAdmin",
+      source: "auth",
+      message: "Forbidden — super admin apenas",
+      code: "forbidden",
+    };
+    return { ok: false, error: toErrString(se), errorDetails: se };
+  }
   return { ok: true };
 }
 
@@ -49,11 +92,18 @@ async function audit(
   try {
     await sb.from("saas_admin_voucher_audit_logs" as any).insert(args as any);
   } catch (e) {
-    console.warn("[admin-vouchers] audit insert failed", args.action, e);
+    console.warn("[Voucher] audit insert failed", args.action, e);
   }
 }
 
-async function tryCreateStripeCoupon(env: StripeEnv, name: string, discountPct: number, durationType: "forever" | "until_date", expiresAt?: string | null) {
+async function tryCreateStripeCoupon(
+  env: StripeEnv,
+  name: string,
+  discountPct: number,
+  _durationType: "forever" | "until_date",
+  expiresAt?: string | null,
+) {
+  console.log("[Voucher] Criando Coupon Stripe", { env, name, discountPct });
   try {
     const stripe = createStripeClient(env);
     const coupon = await stripe.coupons.create({
@@ -66,9 +116,12 @@ async function tryCreateStripeCoupon(env: StripeEnv, name: string, discountPct: 
         ...(expiresAt ? { expires_at: expiresAt } : {}),
       },
     });
+    console.log("[Voucher] Coupon criado", { env, couponId: coupon.id });
     return { ok: true as const, couponId: coupon.id };
   } catch (e) {
-    return { ok: false as const, error: getStripeErrorMessage(e) };
+    const se = extractStripeError(e, `stripe.coupons.create[${env}]`);
+    console.error("[Voucher] Falha Stripe", se);
+    return { ok: false as const, error: se };
   }
 }
 
@@ -89,15 +142,43 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
     expiresAt?: string | null;
     requiresPaymentMethod?: boolean;
   }) => data)
-  .handler(async ({ data, context }): Promise<Result<{ voucherId: string }>> => {
+  .handler(async ({ data, context }): Promise<Result<{ voucherId: string; warnings?: string[] }>> => {
     const { supabase: sb, userId } = context;
+
+    console.log("[Voucher] Iniciando criação", {
+      actor: userId,
+      payload: {
+        name: data.name,
+        specificTenantId: data.specificTenantId,
+        durationType: data.durationType,
+        expiresAt: data.expiresAt,
+        discountPercentage: data.discountPercentage,
+      },
+    });
+
+    // 0) Auth
     const guard = await assertSuperAdmin(sb, userId);
     if (!guard.ok) return guard;
 
+    // 1) Validação
+    if (!data.name?.trim()) {
+      const se: StructuredError = { stage: "validate", source: "validation", message: "Nome é obrigatório", code: "name_required" };
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
+    if (!data.specificTenantId) {
+      const se: StructuredError = { stage: "validate", source: "validation", message: "Tenant é obrigatório", code: "tenant_required" };
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
     const discount = data.discountPercentage ?? 100;
     const durationType = data.durationType ?? "forever";
+    if (discount <= 0 || discount > 100) {
+      const se: StructuredError = { stage: "validate", source: "validation", message: "Desconto deve estar entre 1 e 100", code: "invalid_discount" };
+      return { ok: false, error: toErrString(se), errorDetails: se };
+    }
+    console.log("[Voucher] Validação concluída");
 
-    // 1) Cria linha draft
+    // 2) Cria linha draft
+    console.log("[Voucher] Criando registro no Supabase");
     const { data: inserted, error: insErr } = await sb
       .from("saas_admin_vouchers" as any)
       .insert({
@@ -119,29 +200,37 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
       .single();
 
     if (insErr || !inserted) {
-      return { ok: false, error: insErr?.message || "Falha ao criar voucher" };
+      const se = extractSupabaseError(insErr || { message: "Insert retornou vazio" }, "supabase.insert.saas_admin_vouchers");
+      console.error("[Voucher] Falha ao inserir voucher", se);
+      return { ok: false, error: toErrString(se), errorDetails: se };
     }
 
     const voucherId = (inserted as any).id as string;
+    console.log("[Voucher] Registro criado", { voucherId });
 
-    // 2) Provisiona cupons Stripe (sandbox e live — o que falhar é apenas warning)
+    // 3) Provisiona cupons Stripe (sandbox e live). Se AMBOS falharem => erro fatal.
+    console.log("[Voucher] Criando cupons Stripe (sandbox + live)");
     const [sandboxRes, liveRes] = await Promise.all([
       tryCreateStripeCoupon("sandbox", data.name, discount, durationType, data.expiresAt ?? null),
       tryCreateStripeCoupon("live", data.name, discount, durationType, data.expiresAt ?? null),
     ]);
 
     const update: any = {};
+    const warnings: string[] = [];
     if (sandboxRes.ok) update.stripe_coupon_id_test = sandboxRes.couponId;
+    else warnings.push(`Sandbox: ${sandboxRes.error.message}`);
     if (liveRes.ok) update.stripe_coupon_id_live = liveRes.couponId;
+    else warnings.push(`Live: ${liveRes.error.message}`);
 
-    // Se ao menos um ambiente conseguiu, marcar como pending para aplicação.
-    if (sandboxRes.ok || liveRes.ok) {
-      update.status = "pending";
-    } else {
-      update.status = "failed";
+    if (sandboxRes.ok || liveRes.ok) update.status = "pending";
+    else update.status = "failed";
+
+    const { error: updErr } = await sb.from("saas_admin_vouchers" as any).update(update).eq("id", voucherId);
+    if (updErr) {
+      const se = extractSupabaseError(updErr, "supabase.update.saas_admin_vouchers");
+      console.error("[Voucher] Falha ao atualizar voucher com cupons", se);
+      return { ok: false, error: toErrString(se), errorDetails: se };
     }
-
-    await sb.from("saas_admin_vouchers" as any).update(update).eq("id", voucherId);
 
     await audit(sb, {
       voucher_id: voucherId,
@@ -152,15 +241,25 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
         name: data.name,
         discount,
         durationType,
-        stripe_sandbox: sandboxRes.ok ? "ok" : sandboxRes.error,
-        stripe_live: liveRes.ok ? "ok" : liveRes.error,
+        stripe_sandbox: sandboxRes.ok ? { ok: true, couponId: sandboxRes.couponId } : { ok: false, error: sandboxRes.error },
+        stripe_live: liveRes.ok ? { ok: true, couponId: liveRes.couponId } : { ok: false, error: liveRes.error },
       },
     });
 
     if (!sandboxRes.ok && !liveRes.ok) {
-      return { ok: false, error: `Voucher criado mas Stripe falhou: ${sandboxRes.error} / ${liveRes.error}` };
+      const se: StructuredError = {
+        stage: "stripe.coupons.create",
+        source: "stripe",
+        message: `Ambos os ambientes Stripe falharam. Sandbox: ${sandboxRes.error.message} | Live: ${liveRes.error.message}`,
+        code: sandboxRes.error.code || liveRes.error.code || "stripe_both_failed",
+        details: { sandbox: sandboxRes.error, live: liveRes.error, voucherId },
+      };
+      console.error("[Voucher] Falha total Stripe", se);
+      return { ok: false, error: toErrString(se), errorDetails: se };
     }
-    return { ok: true, voucherId };
+
+    console.log("[Voucher] Finalizando com sucesso", { voucherId, warnings });
+    return { ok: true, voucherId, warnings: warnings.length ? warnings : undefined };
   });
 
 // ---------------------------------------------------------------------------
@@ -210,7 +309,8 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
         stripeSubId = sub.stripe_subscription_id as string;
         stripeCustomerId = (sub.stripe_customer_id as string) ?? null;
       } catch (e) {
-        return { ok: false, error: `Falha ao aplicar cupom no Stripe: ${getStripeErrorMessage(e)}` };
+        const se = extractStripeError(e, `stripe.subscriptions.update[${data.environment}]`);
+        return { ok: false, error: toErrString(se), errorDetails: se };
       }
     }
 
@@ -295,7 +395,7 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
             discounts: [],
           } as any);
         } catch (e) {
-          console.warn("[admin-vouchers] detach coupon failed", getStripeErrorMessage(e));
+          console.warn("[Voucher] detach coupon failed", extractStripeError(e, "stripe.subscriptions.update.detach"));
         }
       }
     }
