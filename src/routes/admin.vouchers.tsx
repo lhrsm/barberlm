@@ -6,6 +6,7 @@ import {
   applyAdminVoucher,
   revokeAdminVoucher,
   listAdminVouchers,
+  listAdminVoucherAuditLogs,
 } from "@/lib/admin-vouchers.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Ticket, Plus, Play, Ban, Loader2, ShieldCheck } from "lucide-react";
+import { Ticket, Plus, Play, Ban, Loader2, ShieldCheck, History } from "lucide-react";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 
 export const Route = createFileRoute("/admin/vouchers")({
@@ -48,12 +49,17 @@ function AdminVouchersPage() {
   const createFn = useServerFn(createAdminVoucher);
   const applyFn = useServerFn(applyAdminVoucher);
   const revokeFn = useServerFn(revokeAdminVoucher);
+  const auditFn = useServerFn(listAdminVoucherAuditLogs);
 
   const [loading, setLoading] = useState(true);
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [tenants, setTenants] = useState<Array<{ id: string; business_name: string }>>([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditVoucher, setAuditVoucher] = useState<any | null>(null);
 
   // form
   const [form, setForm] = useState({
@@ -139,6 +145,20 @@ function AdminVouchersPage() {
       }
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function openAudit(v: any) {
+    setAuditVoucher(v);
+    setAuditOpen(true);
+    setAuditLoading(true);
+    setAuditLogs([]);
+    try {
+      const res = await auditFn({ data: { voucherId: v.id, limit: 200 } });
+      if ("ok" in res && res.ok) setAuditLogs(res.logs);
+      else toast.error((res as any).error || "Falha ao carregar histórico");
+    } finally {
+      setAuditLoading(false);
     }
   }
 
@@ -233,6 +253,14 @@ function AdminVouchersPage() {
                           <Ban className="w-3 h-3 mr-1" /> Revogar
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white/70 hover:bg-white/10"
+                        onClick={() => openAudit(v)}
+                      >
+                        <History className="w-3 h-3 mr-1" /> Histórico
+                      </Button>
                     </div>
                   </div>
                 );
@@ -241,6 +269,55 @@ function AdminVouchersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* AUDIT DIALOG */}
+      <Dialog open={auditOpen} onOpenChange={setAuditOpen}>
+        <DialogContent className="bg-neutral-900 border-white/10 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-4 h-4 text-purple-400" />
+              Histórico do voucher
+              {auditVoucher && (
+                <span className="text-white/50 text-sm font-normal">— {auditVoucher.name}</span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            {auditLoading ? (
+              <div className="flex items-center gap-2 text-white/60 py-8 justify-center">
+                <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
+              </div>
+            ) : auditLogs.length === 0 ? (
+              <p className="text-white/50 text-sm py-8 text-center">Nenhum registro de auditoria.</p>
+            ) : (
+              auditLogs.map((log) => (
+                <div key={log.id} className="p-3 rounded-lg border border-white/10 bg-white/5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <Badge className="bg-purple-500/20 text-purple-200 border-purple-500/40 text-xs">
+                      {log.action}
+                    </Badge>
+                    <span className="text-xs text-white/50">
+                      {new Date(log.created_at).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                  {log.reason && (
+                    <p className="text-xs text-white/70 mt-2">Motivo: {log.reason}</p>
+                  )}
+                  {log.new_values && (
+                    <pre className="text-[10px] text-white/50 mt-2 bg-black/40 rounded p-2 overflow-x-auto">
+{JSON.stringify(log.new_values, null, 2)}
+                    </pre>
+                  )}
+                  <p className="text-[10px] text-white/40 mt-1">
+                    Ator: {String(log.actor_user_id || "").slice(0, 8)}…
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
       {/* CREATE DIALOG */}
       <Dialog open={openCreate} onOpenChange={setOpenCreate}>

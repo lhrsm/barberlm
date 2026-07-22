@@ -366,3 +366,28 @@ export const listAdminVouchers = createServerFn({ method: "POST" })
     if (error) return { ok: false, error: error.message };
     return { ok: true, vouchers: (data as any[]) || [] };
   });
+
+// ---------------------------------------------------------------------------
+// AUDIT LOGS (Fase 5 — telemetria)
+// ---------------------------------------------------------------------------
+export const listAdminVoucherAuditLogs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { voucherId?: string; tenantId?: string; limit?: number }) => data)
+  .handler(async ({ data, context }): Promise<Result<{ logs: any[] }>> => {
+    const { supabase: sb, userId } = context;
+    const guard = await assertSuperAdmin(sb, userId);
+    if (!guard.ok) return guard;
+
+    let q = sb
+      .from("saas_admin_voucher_audit_logs" as any)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(Math.min(data.limit ?? 200, 500));
+
+    if (data.voucherId) q = q.eq("voucher_id", data.voucherId);
+    if (data.tenantId) q = q.eq("tenant_id", data.tenantId);
+
+    const { data: rows, error } = await q;
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, logs: (rows as any[]) || [] };
+  });
