@@ -6650,47 +6650,59 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          billing_source: string | null
+          billing_status: string | null
           cancel_at_period_end: boolean | null
           created_at: string | null
           current_period_end: string | null
           current_period_start: string | null
           environment: string
           id: string
+          is_internal_test_tenant: boolean
           price_id: string
           product_id: string
           status: string
           stripe_customer_id: string
           stripe_subscription_id: string
+          stripe_subscription_status: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          billing_source?: string | null
+          billing_status?: string | null
           cancel_at_period_end?: boolean | null
           created_at?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
           id?: string
+          is_internal_test_tenant?: boolean
           price_id: string
           product_id: string
           status?: string
           stripe_customer_id: string
           stripe_subscription_id: string
+          stripe_subscription_status?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          billing_source?: string | null
+          billing_status?: string | null
           cancel_at_period_end?: boolean | null
           created_at?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
           id?: string
+          is_internal_test_tenant?: boolean
           price_id?: string
           product_id?: string
           status?: string
           stripe_customer_id?: string
           stripe_subscription_id?: string
+          stripe_subscription_status?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -8799,6 +8811,10 @@ export type Database = {
           p_new_start_time: string
           p_source?: string
         }
+        Returns: Json
+      }
+      resolve_tenant_billing_context: {
+        Args: { _tenant_id: string }
         Returns: Json
       }
       resume_customer_subscription: {
