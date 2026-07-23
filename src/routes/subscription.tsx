@@ -304,7 +304,7 @@ function SubscriptionComponent() {
               >
                 <Scale className="w-3.5 h-3.5 mr-1.5" /> Ver Comparativo
               </Button>
-              {plan !== 'free' && (
+              {plan !== 'free' && !isInternalTesting && (
                 <Button
                   size="sm"
                   onClick={handleManageSubscription}
@@ -319,8 +319,11 @@ function SubscriptionComponent() {
 
           </header>
 
+          {/* Benefício administrativo (voucher permanente) — aparece só para tenants internos */}
+          {isInternalTesting && billing && <BenefitCard ctx={billing} />}
+
           {/* Seus módulos adicionais */}
-          <YourAddons />
+          {!isInternalTesting && <YourAddons />}
 
           {/* Status Alerts */}
           {isTrial && (
