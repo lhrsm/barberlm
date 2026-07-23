@@ -356,3 +356,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+function InternalTestingBannerSlot() {
+  const { isInternalTesting } = useBillingContext();
+  if (!isInternalTesting) return null;
+  return <InternalTestingBanner />;
+}
