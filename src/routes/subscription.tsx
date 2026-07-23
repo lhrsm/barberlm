@@ -18,6 +18,8 @@ import { createPortalSession } from "@/utils/payments.functions";
 import { YourAddons } from "@/components/subscription/YourAddons";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useBillingContext } from "@/hooks/use-billing-context";
+import { BenefitCard } from "@/components/subscription/BenefitCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,6 +77,7 @@ function SubscriptionComponent() {
   const { user, loading: authLoading, role } = auth;
   const { plan, usage, limits, trialDaysRemaining, isTrial, loading: planLoading, subscription } = planLimits;
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = checkout;
+  const { ctx: billing, isInternalTesting } = useBillingContext();
 
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
@@ -301,7 +304,7 @@ function SubscriptionComponent() {
               >
                 <Scale className="w-3.5 h-3.5 mr-1.5" /> Ver Comparativo
               </Button>
-              {plan !== 'free' && (
+              {plan !== 'free' && !isInternalTesting && (
                 <Button
                   size="sm"
                   onClick={handleManageSubscription}
@@ -316,8 +319,11 @@ function SubscriptionComponent() {
 
           </header>
 
+          {/* Benefício administrativo (voucher permanente) — aparece só para tenants internos */}
+          {isInternalTesting && billing && <BenefitCard ctx={billing} />}
+
           {/* Seus módulos adicionais */}
-          <YourAddons />
+          {!isInternalTesting && <YourAddons />}
 
           {/* Status Alerts */}
           {isTrial && (
