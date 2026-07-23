@@ -77,6 +77,7 @@ function SubscriptionComponent() {
   const { user, loading: authLoading, role } = auth;
   const { plan, usage, limits, trialDaysRemaining, isTrial, loading: planLoading, subscription } = planLimits;
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = checkout;
+  const { ctx: billing, isInternalTesting } = useBillingContext();
 
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
