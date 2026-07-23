@@ -18,6 +18,8 @@ import { createPortalSession } from "@/utils/payments.functions";
 import { YourAddons } from "@/components/subscription/YourAddons";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useBillingContext } from "@/hooks/use-billing-context";
+import { BenefitCard } from "@/components/subscription/BenefitCard";
 import {
   AlertDialog,
   AlertDialogAction,
