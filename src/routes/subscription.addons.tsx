@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useModules } from "@/hooks/use-modules";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpRight, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon } from "lucide-react";
+import { ArrowUpRight, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon, ShoppingCart, Plus } from "lucide-react";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 import { SubscribeAddonDialog } from "@/components/subscription/SubscribeAddonDialog";
+import { AddonsCartDrawer, type CartLine } from "@/components/subscription/AddonsCartDrawer";
+import type { BillingCycle } from "@/lib/addons-engine.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/subscription/addons")({
   component: AddonsCatalog,
