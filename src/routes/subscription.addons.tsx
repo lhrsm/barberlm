@@ -224,16 +224,28 @@ function AddonsCatalog() {
                           </Button>
                         </Link>
                       ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => setSelectedAddon(a)}
-                          disabled={!canAddMoreAddons}
-                          title={!canAddMoreAddons ? "Limite de add-ons do seu plano atingido" : undefined}
-                          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold disabled:opacity-50"
-                        >
-                          Contratar
-                          <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addToCart(a)}
+                            disabled={cartIds.has(a.id)}
+                            className="border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 h-8 px-2"
+                            title={cartIds.has(a.id) ? "Já está no carrinho" : "Adicionar ao carrinho"}
+                          >
+                            {cartIds.has(a.id) ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedAddon(a)}
+                            disabled={!canAddMoreAddons}
+                            title={!canAddMoreAddons ? "Limite de add-ons do seu plano atingido" : undefined}
+                            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold disabled:opacity-50"
+                          >
+                            Contratar
+                            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
