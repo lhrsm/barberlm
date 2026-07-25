@@ -107,9 +107,11 @@ export function InternalRecipientsSettings() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<Recipient | null>(null);
   const [allowOnOfficial, setAllowOnOfficial] = useState(false);
+  const [walkinNotify, setWalkinNotify] = useState(false);
 
   useEffect(() => {
     setAllowOnOfficial(Boolean((tenantProfile as any)?.allow_notifications_on_business_phone));
+    setWalkinNotify(Boolean((tenantProfile as any)?.walkin_send_notifications));
   }, [tenantProfile]);
 
   useEffect(() => {
@@ -149,6 +151,18 @@ export function InternalRecipientsSettings() {
     if (error) toast.error("Erro ao salvar preferência");
     else toast.success("Preferência atualizada");
   }
+
+  async function toggleWalkinNotify(v: boolean) {
+    setWalkinNotify(v);
+    if (!tenantId) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ walkin_send_notifications: v } as any)
+      .eq("id", tenantId);
+    if (error) toast.error("Erro ao salvar preferência");
+    else toast.success("Preferência atualizada");
+  }
+
 
   function openNew() {
     if (!tenantId) return;
@@ -236,6 +250,18 @@ export function InternalRecipientsSettings() {
           </div>
           <Switch checked={allowOnOfficial} onCheckedChange={toggleAllowOnOfficial} />
         </div>
+
+        <div className="flex items-center justify-between p-4 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+          <div>
+            <p className="text-sm font-bold text-white">Enviar notificações em atendimentos presenciais (walk-in)</p>
+            <p className="text-xs text-slate-500">
+              Por padrão, atendimentos presenciais não disparam mensagens automáticas ao cliente. Ative para enviar confirmações, lembretes e pedidos de avaliação também aos walk-ins.
+            </p>
+          </div>
+          <Switch checked={walkinNotify} onCheckedChange={toggleWalkinNotify} />
+        </div>
+
+
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-widest font-bold">
