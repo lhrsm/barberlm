@@ -345,27 +345,35 @@ function CalendarComponent() {
             ))}
           </div>
 
-          <AppointmentModal
-            open={isDialogOpen}
-            onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) setModalInitialData({});
-            }}
-            initialDate={modalInitialData.date}
-            initialTime={modalInitialData.time}
-            initialStep={modalInitialData.step}
-            editingAppointmentId={modalInitialData.editingId}
-            onSuccess={() => fetchData()}
-            trigger={
-              <Button
-                onClick={() => openNewAppointment()}
-                className="gap-2 w-full sm:w-auto sm:px-8 h-[60px] rounded-[18px] bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black text-base sm:text-lg shadow-[0_10px_30px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all"
-              >
-                <Plus size={22} strokeWidth={3} /> Novo Agendamento
-              </Button>
-            }
-          />
-        </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <AppointmentModal
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setModalInitialData({});
+              }}
+              initialDate={modalInitialData.date}
+              initialTime={modalInitialData.time}
+              initialStep={modalInitialData.step}
+              editingAppointmentId={modalInitialData.editingId}
+              onSuccess={() => fetchData()}
+              trigger={
+                <Button
+                  onClick={() => openNewAppointment()}
+                  className="gap-2 w-full sm:w-auto sm:px-8 h-[60px] rounded-[18px] bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black text-base sm:text-lg shadow-[0_10px_30px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                >
+                  <Plus size={22} strokeWidth={3} /> Novo Agendamento
+                </Button>
+              }
+            />
+
+            <Button
+              onClick={() => setIsWalkinOpen(true)}
+              className="gap-2 w-full sm:w-auto sm:px-6 h-[60px] rounded-[18px] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base shadow-[0_10px_30px_rgba(16,185,129,0.25)] hover:-translate-y-0.5 transition-all"
+            >
+              <UserPlus size={20} strokeWidth={2.5} /> Atendimento Presencial
+            </Button>
+          </div>
 
         {/* ============ CALENDAR HEADER ============ */}
         <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4 sm:p-6">
