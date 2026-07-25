@@ -66,7 +66,7 @@ function AddonsCatalog() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("saas_addons" as any)
-        .select("id, addon_key, name, description, category, icon, module_key, monthly_price, minimum_plan, benefits, max_quantity, sort_order")
+        .select("id, addon_key, name, description, category, icon, module_key, monthly_price, annual_price, minimum_plan, benefits, max_quantity, sort_order")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (error) throw error;
