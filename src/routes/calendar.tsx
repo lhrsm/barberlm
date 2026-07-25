@@ -465,9 +465,16 @@ function CalendarComponent() {
                                   {app.services?.name || "Serviço"}
                                 </p>
                               </div>
-                              <span className={cn("shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
-                                {sc.label}
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {app.appointment_type === 'walk_in' && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                                    <UserPlus size={9} /> Presencial
+                                  </span>
+                                )}
+                                <span className={cn("rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
+                                  {sc.label}
+                                </span>
+                              </div>
                             </div>
                             <div className="flex items-center justify-between gap-2 pl-2 pt-2 border-t border-white/5">
                               <div className="flex items-center gap-1.5 min-w-0">
