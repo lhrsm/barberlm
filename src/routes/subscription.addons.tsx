@@ -47,6 +47,7 @@ interface Addon {
   icon: string | null;
   module_key: string;
   monthly_price: number;
+  annual_price: number | null;
   minimum_plan: string | null;
   benefits: string[];
   max_quantity: number;
@@ -56,6 +57,9 @@ interface Addon {
 function AddonsCatalog() {
   const { plan, activeAddons, addonsUsedCount, addonsLimit, canAddMoreAddons, isAllowed } = useModules();
   const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
+  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [cartCycle, setCartCycle] = useState<BillingCycle>("monthly");
+  const [cartOpen, setCartOpen] = useState(false);
 
   const { data: addons = [], isLoading } = useQuery({
     queryKey: ["public-addons"],
