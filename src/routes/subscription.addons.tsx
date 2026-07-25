@@ -278,6 +278,28 @@ function AddonsCatalog() {
         onOpenChange={(o) => !o && setSelectedAddon(null)}
         addon={selectedAddon}
       />
+
+      <AddonsCartDrawer
+        open={cartOpen}
+        onOpenChange={setCartOpen}
+        lines={cartLines}
+        cycle={cartCycle}
+        onCycleChange={setCartCycle}
+        onRemove={removeFromCart}
+        onQuantityChange={updateQty}
+        onClear={() => setCartLines([])}
+      />
+
+      {cartCount > 0 && !cartOpen && (
+        <button
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-2xl shadow-amber-500/30 hover:scale-105 transition-transform"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          <span className="text-sm">{cartCount} {cartCount === 1 ? "módulo" : "módulos"}</span>
+          <Badge className="bg-black/20 text-black border-0 text-xs">Revisar</Badge>
+        </button>
+      )}
     </div>
   );
 }
