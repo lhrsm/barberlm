@@ -259,6 +259,9 @@ export function InternalRecipientsSettings() {
             </p>
           </div>
           <Switch checked={walkinNotify} onCheckedChange={toggleWalkinNotify} />
+        </div>
+
+
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-widest font-bold">
