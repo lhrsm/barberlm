@@ -59,7 +59,7 @@ serve(async (req) => {
     if (appointment_id) {
       const { data, error: apptErr } = await supabase
         .from("appointments")
-        .select("id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, total_price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers!appointments_barber_id_fkey(id, name, phone), service:services(id, name, price)")
+        .select("id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, total_price, payment_method, management_token, appointment_type, customer:customers(id, name, phone), barber:barbers!appointments_barber_id_fkey(id, name, phone), service:services(id, name, price)")
         .eq("id", appointment_id)
         .maybeSingle();
       if (apptErr) console.error("[EmitEvent] appointment fetch error", apptErr);
