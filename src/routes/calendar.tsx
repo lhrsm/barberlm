@@ -582,14 +582,21 @@ function CalendarComponent() {
                                   sc.ring
                                 )}
                               >
-                                <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-r-full", sc.dot)} />
+                                <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-r-full", app.appointment_type === 'walk_in' ? 'bg-emerald-500' : sc.dot)} />
                                 <div className="flex items-center justify-between gap-2 pl-2">
                                   <span className="font-black tracking-tight text-xs text-white">
                                     {format(parseISO(app.start_time), "HH:mm")}
                                   </span>
-                                  <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
-                                    {sc.label}
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {app.appointment_type === 'walk_in' && (
+                                      <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300">
+                                        <UserPlus size={8} /> Presencial
+                                      </span>
+                                    )}
+                                    <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
+                                      {sc.label}
+                                    </span>
+                                  </div>
                                 </div>
                                 <span className="font-black truncate text-sm leading-tight text-white pl-2">{app.customers?.name || "Cliente"}</span>
                                 <div className="flex items-center gap-2 pl-2 text-slate-400">
