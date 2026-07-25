@@ -228,6 +228,21 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     if (oldRank && newRank && newRank !== oldRank) {
       const profile = await loadProfileForUser(userId);
       const isUpgrade = newRank > oldRank;
+
+      // Item 16/17: absorver add-ons agora incluídos no novo plano
+      if (isUpgrade) {
+        try {
+          await absorbAddonsIntoPlan({
+            tenantId: userId,
+            subscriptionId: subscription.id,
+            newPriceId: priceId,
+            env,
+          });
+        } catch (err) {
+          console.error("[Webhook] absorbAddonsIntoPlan failed:", (err as Error).message);
+        }
+      }
+
       await fireAdminEvent({
         event_key: isUpgrade ? "subscription.upgraded" : "subscription.downgraded",
         title: isUpgrade ? "Upgrade de plano" : "Downgrade de plano",
