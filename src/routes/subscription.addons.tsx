@@ -83,6 +83,30 @@ function AddonsCatalog() {
   const totalAddonsCost = activeAddons.reduce((s, a) => s + a.unit_price * a.quantity, 0);
   const totalMonthly = (plan?.price_monthly ?? 0) + totalAddonsCost;
 
+  const cartIds = useMemo(() => new Set(cartLines.map((l) => l.addon.id)), [cartLines]);
+  const cartCount = cartLines.length;
+
+  const addToCart = (a: Addon) => {
+    if (cartIds.has(a.id)) {
+      toast.info(`${a.name} já está no carrinho`);
+      return;
+    }
+    if (!canAddMoreAddons && cartCount + activeAddons.length >= (addonsLimit ?? 0)) {
+      toast.error("Limite de add-ons do seu plano atingido");
+      return;
+    }
+    setCartLines((prev) => [
+      ...prev,
+      { addon: { id: a.id, addon_key: a.addon_key, name: a.name, monthly_price: Number(a.monthly_price), annual_price: a.annual_price ? Number(a.annual_price) : null, module_key: a.module_key }, quantity: 1 },
+    ]);
+    toast.success(`${a.name} adicionado ao carrinho`);
+  };
+
+  const removeFromCart = (id: string) => setCartLines((prev) => prev.filter((l) => l.addon.id !== id));
+  const updateQty = (id: string, qty: number) =>
+    setCartLines((prev) => prev.map((l) => (l.addon.id === id ? { ...l, quantity: qty } : l)));
+
+
   return (
     <div className="min-h-screen bg-[#050810] text-white">
       <div className="max-w-7xl mx-auto px-4 py-10">
