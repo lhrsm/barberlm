@@ -81,13 +81,31 @@ serve(async (req) => {
       .eq("id", tenant_id)
       .maybeSingle();
 
-    // Walk-in: por padrão não dispara mensagens (cliente já está na barbearia).
-    if (appointment?.appointment_type === 'walk_in' && !shopProfile?.walkin_send_notifications) {
-      console.log("[EmitEvent] walk-in appointment; notifications disabled for tenant. Skipping.", { appointment_id, event });
-      return new Response(JSON.stringify({ success: true, skipped: 'walkin_notifications_disabled' }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Walk-in: eventos de PRÉ-atendimento nunca são enviados (cliente já está na barbearia).
+    // Eventos pós-atendimento (recibo, pagamento, cashback, créditos, fidelidade, avaliação,
+    // aniversário, cliente inativo, campanhas) continuam disparando normalmente.
+    const PRE_APPOINTMENT_EVENTS = new Set([
+      "appointment.created",
+      "appointment.confirmed",
+      "appointment.reminder",
+      "appointment.whatsapp_confirmation",
+      "appointment.rescheduled",
+      "appointment.rescheduled.by_customer",
+      "appointment.rescheduled.by_barber",
+      "appointment.rescheduled.by_shop",
+      "appointment.cancelled",
+      "appointment.cancelled.by_customer",
+      "appointment.cancelled.by_barber",
+      "appointment.cancelled.by_shop",
+      "appointment.professional_changed",
+    ]);
+    if (appointment?.appointment_type === 'walk_in' && PRE_APPOINTMENT_EVENTS.has(event)) {
+      console.log("[EmitEvent] walk-in: pre-appointment event skipped", { appointment_id, event });
+      return new Response(JSON.stringify({ success: true, skipped: 'walkin_pre_appointment_blocked' }), {
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
+
 
     const { data: barbershopSettings } = await supabase
       .from("barbershop_settings")
