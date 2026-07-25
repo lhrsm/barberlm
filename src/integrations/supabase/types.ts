@@ -515,6 +515,7 @@ export type Database = {
         Row: {
           amount_paid: number | null
           appointment_group_id: string | null
+          appointment_type: string
           barber_id: string | null
           barbershop_amount: number | null
           cancel_reason: string | null
@@ -582,10 +583,14 @@ export type Database = {
           updated_by_id: string | null
           updated_by_type: string | null
           user_id: string
+          walkin_arrived_at: string | null
+          walkin_started_at: string | null
+          walkin_ticket_number: number | null
         }
         Insert: {
           amount_paid?: number | null
           appointment_group_id?: string | null
+          appointment_type?: string
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_reason?: string | null
@@ -653,10 +658,14 @@ export type Database = {
           updated_by_id?: string | null
           updated_by_type?: string | null
           user_id: string
+          walkin_arrived_at?: string | null
+          walkin_started_at?: string | null
+          walkin_ticket_number?: number | null
         }
         Update: {
           amount_paid?: number | null
           appointment_group_id?: string | null
+          appointment_type?: string
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_reason?: string | null
@@ -724,6 +733,9 @@ export type Database = {
           updated_by_id?: string | null
           updated_by_type?: string | null
           user_id?: string
+          walkin_arrived_at?: string | null
+          walkin_started_at?: string | null
+          walkin_ticket_number?: number | null
         }
         Relationships: [
           {
@@ -4658,6 +4670,7 @@ export type Database = {
           trial_end: string | null
           trial_start: string | null
           updated_at: string
+          walkin_send_notifications: boolean
           whatsapp_enabled: boolean | null
           whatsapp_number: string | null
         }
@@ -4714,6 +4727,7 @@ export type Database = {
           trial_end?: string | null
           trial_start?: string | null
           updated_at?: string
+          walkin_send_notifications?: boolean
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
         }
@@ -4770,6 +4784,7 @@ export type Database = {
           trial_end?: string | null
           trial_start?: string | null
           updated_at?: string
+          walkin_send_notifications?: boolean
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
         }
@@ -8283,6 +8298,19 @@ export type Database = {
           p_slug: string
         }
         Returns: string
+      }
+      create_walkin_appointment: {
+        Args: {
+          p_barber_id: string
+          p_customer_id: string
+          p_duration_minutes: number
+          p_notes?: string
+          p_service_id: string
+          p_start_time: string
+          p_tenant_id: string
+          p_total_price?: number
+        }
+        Returns: Json
       }
       customer_cancel_request_refund: {
         Args: {
