@@ -29,6 +29,8 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import {
   computeProjectedTotals,
   findBestUpgradeOption,
+  logUpgradeRecommendationShown,
+  logUpgradeRecommendationAction,
   type BillingCycle,
 } from "@/lib/addons-engine.functions";
 import {
