@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useModules } from "@/hooks/use-modules";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpRight, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon } from "lucide-react";
+import { ArrowUpRight, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon, ShoppingCart, Plus } from "lucide-react";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 import { SubscribeAddonDialog } from "@/components/subscription/SubscribeAddonDialog";
+import { AddonsCartDrawer, type CartLine } from "@/components/subscription/AddonsCartDrawer";
+import type { BillingCycle } from "@/lib/addons-engine.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/subscription/addons")({
   component: AddonsCatalog,
@@ -44,6 +47,7 @@ interface Addon {
   icon: string | null;
   module_key: string;
   monthly_price: number;
+  annual_price: number | null;
   minimum_plan: string | null;
   benefits: string[];
   max_quantity: number;
@@ -53,13 +57,16 @@ interface Addon {
 function AddonsCatalog() {
   const { plan, activeAddons, addonsUsedCount, addonsLimit, canAddMoreAddons, isAllowed } = useModules();
   const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
+  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [cartCycle, setCartCycle] = useState<BillingCycle>("monthly");
+  const [cartOpen, setCartOpen] = useState(false);
 
   const { data: addons = [], isLoading } = useQuery({
     queryKey: ["public-addons"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("saas_addons" as any)
-        .select("id, addon_key, name, description, category, icon, module_key, monthly_price, minimum_plan, benefits, max_quantity, sort_order")
+        .select("id, addon_key, name, description, category, icon, module_key, monthly_price, annual_price, minimum_plan, benefits, max_quantity, sort_order")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (error) throw error;
@@ -75,6 +82,30 @@ function AddonsCatalog() {
 
   const totalAddonsCost = activeAddons.reduce((s, a) => s + a.unit_price * a.quantity, 0);
   const totalMonthly = (plan?.price_monthly ?? 0) + totalAddonsCost;
+
+  const cartIds = useMemo(() => new Set(cartLines.map((l) => l.addon.id)), [cartLines]);
+  const cartCount = cartLines.length;
+
+  const addToCart = (a: Addon) => {
+    if (cartIds.has(a.id)) {
+      toast.info(`${a.name} já está no carrinho`);
+      return;
+    }
+    if (!canAddMoreAddons && cartCount + activeAddons.length >= (addonsLimit ?? 0)) {
+      toast.error("Limite de add-ons do seu plano atingido");
+      return;
+    }
+    setCartLines((prev) => [
+      ...prev,
+      { addon: { id: a.id, addon_key: a.addon_key, name: a.name, monthly_price: Number(a.monthly_price), annual_price: a.annual_price ? Number(a.annual_price) : null, module_key: a.module_key }, quantity: 1 },
+    ]);
+    toast.success(`${a.name} adicionado ao carrinho`);
+  };
+
+  const removeFromCart = (id: string) => setCartLines((prev) => prev.filter((l) => l.addon.id !== id));
+  const updateQty = (id: string, qty: number) =>
+    setCartLines((prev) => prev.map((l) => (l.addon.id === id ? { ...l, quantity: qty } : l)));
+
 
   return (
     <div className="min-h-screen bg-[#050810] text-white">
@@ -193,16 +224,28 @@ function AddonsCatalog() {
                           </Button>
                         </Link>
                       ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => setSelectedAddon(a)}
-                          disabled={!canAddMoreAddons}
-                          title={!canAddMoreAddons ? "Limite de add-ons do seu plano atingido" : undefined}
-                          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold disabled:opacity-50"
-                        >
-                          Contratar
-                          <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addToCart(a)}
+                            disabled={cartIds.has(a.id)}
+                            className="border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 h-8 px-2"
+                            title={cartIds.has(a.id) ? "Já está no carrinho" : "Adicionar ao carrinho"}
+                          >
+                            {cartIds.has(a.id) ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedAddon(a)}
+                            disabled={!canAddMoreAddons}
+                            title={!canAddMoreAddons ? "Limite de add-ons do seu plano atingido" : undefined}
+                            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold disabled:opacity-50"
+                          >
+                            Contratar
+                            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -235,6 +278,28 @@ function AddonsCatalog() {
         onOpenChange={(o) => !o && setSelectedAddon(null)}
         addon={selectedAddon}
       />
+
+      <AddonsCartDrawer
+        open={cartOpen}
+        onOpenChange={setCartOpen}
+        lines={cartLines}
+        cycle={cartCycle}
+        onCycleChange={setCartCycle}
+        onRemove={removeFromCart}
+        onQuantityChange={updateQty}
+        onClear={() => setCartLines([])}
+      />
+
+      {cartCount > 0 && !cartOpen && (
+        <button
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-2xl shadow-amber-500/30 hover:scale-105 transition-transform"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          <span className="text-sm">{cartCount} {cartCount === 1 ? "módulo" : "módulos"}</span>
+          <Badge className="bg-black/20 text-black border-0 text-xs">Revisar</Badge>
+        </button>
+      )}
     </div>
   );
 }
