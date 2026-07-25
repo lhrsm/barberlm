@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -29,6 +29,8 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import {
   computeProjectedTotals,
   findBestUpgradeOption,
+  logUpgradeRecommendationShown,
+  logUpgradeRecommendationAction,
   type BillingCycle,
 } from "@/lib/addons-engine.functions";
 import {
@@ -162,6 +164,8 @@ export function AddonsCartDrawer({
           ? `${r.contracts.length} módulos contratados com sucesso!`
           : "Módulo contratado com sucesso!",
       );
+      // Fechou compra sem aceitar upgrade → dispensada
+      markRecommendationAction("dismissed");
       qc.invalidateQueries({ queryKey: ["tenant-addons"] });
       qc.invalidateQueries({ queryKey: ["my-addons"] });
       qc.invalidateQueries({ queryKey: ["module-access"] });
@@ -176,7 +180,36 @@ export function AddonsCartDrawer({
   };
 
   const rec = upgrade.data;
-  const isRecommended = rec?.recommended && rec.target_plan;
+  const isRecommended = !!(rec?.recommended && rec.target_plan);
+
+  // Observabilidade: registra recomendação exibida (uma vez por combinação)
+  const loggedRecKeyRef = useRef<string | null>(null);
+  const recLogIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !isRecommended || !rec?.target_plan) return;
+    const key = `${cycle}|${rec.target_plan.id}|${cart
+      .map((c) => `${c.addon_id}x${c.quantity}`)
+      .sort()
+      .join(",")}`;
+    if (loggedRecKeyRef.current === key) return;
+    loggedRecKeyRef.current = key;
+    recLogIdRef.current = null;
+    logUpgradeRecommendationShown({
+      data: { cart, suggestion: rec, billing_cycle: cycle },
+    })
+      .then((r) => {
+        if (r && "id" in r) recLogIdRef.current = r.id;
+      })
+      .catch(() => {});
+  }, [open, isRecommended, rec, cart, cycle]);
+
+  const markRecommendationAction = (action: "accepted" | "dismissed") => {
+    const id = recLogIdRef.current;
+    if (!id) return;
+    recLogIdRef.current = null;
+    logUpgradeRecommendationAction({ data: { id, action } }).catch(() => {});
+  };
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -321,7 +354,7 @@ export function AddonsCartDrawer({
                   Inclui {rec.modules_included_by_target.length} módulo(s) do seu carrinho sem custo extra.
                 </p>
               )}
-              <Link to="/subscription">
+              <Link to="/subscription" onClick={() => markRecommendationAction("accepted")}>
                 <Button
                   size="sm"
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold"
