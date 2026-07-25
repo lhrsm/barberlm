@@ -271,6 +271,8 @@ function CalendarComponent() {
 
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
   const todayRevenue = useMemo(() => todayApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0), [todayApps]);
+  const todayWalkins = useMemo(() => todayApps.filter(a => a.appointment_type === 'walk_in').length, [todayApps]);
+  const todayOnline = todayApps.length - todayWalkins;
   const isToday = isSameDay(currentDate, new Date());
 
   if (loading || !user) return null;
