@@ -659,6 +659,12 @@ function CalendarComponent() {
         </Card>
       </div>
 
+      <WalkinModal
+        open={isWalkinOpen}
+        onOpenChange={setIsWalkinOpen}
+        onSuccess={() => fetchData()}
+      />
+
       <AppointmentDetailsModal
         open={detailsModalOpen}
         onOpenChange={setDetailsModalOpen}
