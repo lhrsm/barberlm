@@ -77,9 +77,17 @@ serve(async (req) => {
 
     const { data: shopProfile } = await supabase
       .from("profiles")
-      .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone")
+      .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone, walkin_send_notifications")
       .eq("id", tenant_id)
       .maybeSingle();
+
+    // Walk-in: por padrão não dispara mensagens (cliente já está na barbearia).
+    if (appointment?.appointment_type === 'walk_in' && !shopProfile?.walkin_send_notifications) {
+      console.log("[EmitEvent] walk-in appointment; notifications disabled for tenant. Skipping.", { appointment_id, event });
+      return new Response(JSON.stringify({ success: true, skipped: 'walkin_notifications_disabled' }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: barbershopSettings } = await supabase
       .from("barbershop_settings")
