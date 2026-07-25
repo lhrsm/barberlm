@@ -374,6 +374,9 @@ function CalendarComponent() {
               <UserPlus size={20} strokeWidth={2.5} /> Atendimento Presencial
             </Button>
           </div>
+        </div>
+
+
 
         {/* ============ CALENDAR HEADER ============ */}
         <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4 sm:p-6">
