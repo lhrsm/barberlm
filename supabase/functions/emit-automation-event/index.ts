@@ -59,7 +59,7 @@ serve(async (req) => {
     if (appointment_id) {
       const { data, error: apptErr } = await supabase
         .from("appointments")
-        .select("id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, total_price, payment_method, management_token, customer:customers(id, name, phone), barber:barbers!appointments_barber_id_fkey(id, name, phone), service:services(id, name, price)")
+        .select("id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, total_price, payment_method, management_token, appointment_type, customer:customers(id, name, phone), barber:barbers!appointments_barber_id_fkey(id, name, phone), service:services(id, name, price)")
         .eq("id", appointment_id)
         .maybeSingle();
       if (apptErr) console.error("[EmitEvent] appointment fetch error", apptErr);
@@ -77,9 +77,17 @@ serve(async (req) => {
 
     const { data: shopProfile } = await supabase
       .from("profiles")
-      .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone")
+      .select("id, business_name, whatsapp_number, whatsapp_enabled, slug, allow_notifications_on_business_phone, walkin_send_notifications")
       .eq("id", tenant_id)
       .maybeSingle();
+
+    // Walk-in: por padrão não dispara mensagens (cliente já está na barbearia).
+    if (appointment?.appointment_type === 'walk_in' && !shopProfile?.walkin_send_notifications) {
+      console.log("[EmitEvent] walk-in appointment; notifications disabled for tenant. Skipping.", { appointment_id, event });
+      return new Response(JSON.stringify({ success: true, skipped: 'walkin_notifications_disabled' }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: barbershopSettings } = await supabase
       .from("barbershop_settings")

@@ -13,10 +13,12 @@ import {
   AlertTriangle,
   Crown,
   CheckCircle2,
-  RefreshCcw
+  RefreshCcw,
+  UserPlus
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
+import { WalkinModal } from "@/components/calendar/WalkinModal";
 import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -148,6 +150,7 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number, editingId?: string}>({});
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -342,27 +345,38 @@ function CalendarComponent() {
             ))}
           </div>
 
-          <AppointmentModal
-            open={isDialogOpen}
-            onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) setModalInitialData({});
-            }}
-            initialDate={modalInitialData.date}
-            initialTime={modalInitialData.time}
-            initialStep={modalInitialData.step}
-            editingAppointmentId={modalInitialData.editingId}
-            onSuccess={() => fetchData()}
-            trigger={
-              <Button
-                onClick={() => openNewAppointment()}
-                className="gap-2 w-full sm:w-auto sm:px-8 h-[60px] rounded-[18px] bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black text-base sm:text-lg shadow-[0_10px_30px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all"
-              >
-                <Plus size={22} strokeWidth={3} /> Novo Agendamento
-              </Button>
-            }
-          />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <AppointmentModal
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setModalInitialData({});
+              }}
+              initialDate={modalInitialData.date}
+              initialTime={modalInitialData.time}
+              initialStep={modalInitialData.step}
+              editingAppointmentId={modalInitialData.editingId}
+              onSuccess={() => fetchData()}
+              trigger={
+                <Button
+                  onClick={() => openNewAppointment()}
+                  className="gap-2 w-full sm:w-auto sm:px-8 h-[60px] rounded-[18px] bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black text-base sm:text-lg shadow-[0_10px_30px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                >
+                  <Plus size={22} strokeWidth={3} /> Novo Agendamento
+                </Button>
+              }
+            />
+
+            <Button
+              onClick={() => setIsWalkinOpen(true)}
+              className="gap-2 w-full sm:w-auto sm:px-6 h-[60px] rounded-[18px] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base shadow-[0_10px_30px_rgba(16,185,129,0.25)] hover:-translate-y-0.5 transition-all"
+            >
+              <UserPlus size={20} strokeWidth={2.5} /> Atendimento Presencial
+            </Button>
+          </div>
         </div>
+
+
 
         {/* ============ CALENDAR HEADER ============ */}
         <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4 sm:p-6">
@@ -451,9 +465,16 @@ function CalendarComponent() {
                                   {app.services?.name || "Serviço"}
                                 </p>
                               </div>
-                              <span className={cn("shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
-                                {sc.label}
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {app.appointment_type === 'walk_in' && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                                    <UserPlus size={9} /> Presencial
+                                  </span>
+                                )}
+                                <span className={cn("rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
+                                  {sc.label}
+                                </span>
+                              </div>
                             </div>
                             <div className="flex items-center justify-between gap-2 pl-2 pt-2 border-t border-white/5">
                               <div className="flex items-center gap-1.5 min-w-0">
@@ -561,14 +582,21 @@ function CalendarComponent() {
                                   sc.ring
                                 )}
                               >
-                                <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-r-full", sc.dot)} />
+                                <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-r-full", app.appointment_type === 'walk_in' ? 'bg-emerald-500' : sc.dot)} />
                                 <div className="flex items-center justify-between gap-2 pl-2">
                                   <span className="font-black tracking-tight text-xs text-white">
                                     {format(parseISO(app.start_time), "HH:mm")}
                                   </span>
-                                  <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
-                                    {sc.label}
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {app.appointment_type === 'walk_in' && (
+                                      <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300">
+                                        <UserPlus size={8} /> Presencial
+                                      </span>
+                                    )}
+                                    <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
+                                      {sc.label}
+                                    </span>
+                                  </div>
                                 </div>
                                 <span className="font-black truncate text-sm leading-tight text-white pl-2">{app.customers?.name || "Cliente"}</span>
                                 <div className="flex items-center gap-2 pl-2 text-slate-400">
@@ -630,6 +658,12 @@ function CalendarComponent() {
           </ScrollArea>
         </Card>
       </div>
+
+      <WalkinModal
+        open={isWalkinOpen}
+        onOpenChange={setIsWalkinOpen}
+        onSuccess={() => fetchData()}
+      />
 
       <AppointmentDetailsModal
         open={detailsModalOpen}
