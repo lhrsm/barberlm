@@ -251,6 +251,15 @@ export function InternalRecipientsSettings() {
           <Switch checked={allowOnOfficial} onCheckedChange={toggleAllowOnOfficial} />
         </div>
 
+        <div className="flex items-center justify-between p-4 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+          <div>
+            <p className="text-sm font-bold text-white">Enviar notificações em atendimentos presenciais (walk-in)</p>
+            <p className="text-xs text-slate-500">
+              Por padrão, atendimentos presenciais não disparam mensagens automáticas ao cliente. Ative para enviar confirmações, lembretes e pedidos de avaliação também aos walk-ins.
+            </p>
+          </div>
+          <Switch checked={walkinNotify} onCheckedChange={toggleWalkinNotify} />
+
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-widest font-bold">
             <Users className="h-4 w-4" /> {recipients.length} destinatário(s)
