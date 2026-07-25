@@ -320,10 +320,13 @@ function CalendarComponent() {
             <div className="min-w-0 flex-1">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">Agenda</h2>
               <p className="text-gray-400 text-xs sm:text-sm font-medium mt-2">
-                <span className="text-white font-bold">{todayApps.length}</span> atendimentos hoje
+                <span className="text-white font-bold">{todayApps.length}</span> atendimentos
+                <span className="mx-2 text-[#F59E0B]/40">•</span>
+                <span className="text-[#F5C542] font-bold">{todayOnline}</span> online
+                <span className="mx-2 text-[#F59E0B]/40">•</span>
+                <span className="text-emerald-400 font-bold">{todayWalkins}</span> presencial
                 <span className="mx-2 text-[#F59E0B]/40">•</span>
                 <span className="text-[#F5C542] font-black">R$ {todayRevenue.toFixed(2)}</span>
-                <span className="hidden sm:inline"> em serviços</span>
               </p>
             </div>
           </div>
