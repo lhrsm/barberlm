@@ -178,7 +178,36 @@ export function AddonsCartDrawer({
   };
 
   const rec = upgrade.data;
-  const isRecommended = rec?.recommended && rec.target_plan;
+  const isRecommended = !!(rec?.recommended && rec.target_plan);
+
+  // Observabilidade: registra recomendação exibida (uma vez por combinação)
+  const loggedRecKeyRef = useRef<string | null>(null);
+  const recLogIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !isRecommended || !rec?.target_plan) return;
+    const key = `${cycle}|${rec.target_plan.id}|${cart
+      .map((c) => `${c.addon_id}x${c.quantity}`)
+      .sort()
+      .join(",")}`;
+    if (loggedRecKeyRef.current === key) return;
+    loggedRecKeyRef.current = key;
+    recLogIdRef.current = null;
+    logUpgradeRecommendationShown({
+      data: { cart, suggestion: rec, billing_cycle: cycle },
+    })
+      .then((r) => {
+        if (r && "id" in r) recLogIdRef.current = r.id;
+      })
+      .catch(() => {});
+  }, [open, isRecommended, rec, cart, cycle]);
+
+  const markRecommendationAction = (action: "accepted" | "dismissed") => {
+    const id = recLogIdRef.current;
+    if (!id) return;
+    recLogIdRef.current = null;
+    logUpgradeRecommendationAction({ data: { id, action } }).catch(() => {});
+  };
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
