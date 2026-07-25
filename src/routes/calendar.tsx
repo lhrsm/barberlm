@@ -382,6 +382,14 @@ function CalendarComponent() {
           </div>
         </div>
 
+        {isToday && view === 'day' && (
+          <WalkinQueuePanel
+            tenantId={user.id}
+            date={currentDate}
+            refreshKey={appointments.length}
+            onChange={() => fetchData()}
+          />
+        )}
 
 
         {/* ============ CALENDAR HEADER ============ */}
