@@ -152,6 +152,18 @@ export function InternalRecipientsSettings() {
     else toast.success("Preferência atualizada");
   }
 
+  async function toggleWalkinNotify(v: boolean) {
+    setWalkinNotify(v);
+    if (!tenantId) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ walkin_send_notifications: v } as any)
+      .eq("id", tenantId);
+    if (error) toast.error("Erro ao salvar preferência");
+    else toast.success("Preferência atualizada");
+  }
+
+
   function openNew() {
     if (!tenantId) return;
     setDraft(emptyRecipient(tenantId));
