@@ -354,7 +354,7 @@ export function AddonsCartDrawer({
                   Inclui {rec.modules_included_by_target.length} módulo(s) do seu carrinho sem custo extra.
                 </p>
               )}
-              <Link to="/subscription">
+              <Link to="/subscription" onClick={() => markRecommendationAction("accepted")}>
                 <Button
                   size="sm"
                   className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold"
