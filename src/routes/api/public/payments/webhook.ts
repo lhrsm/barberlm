@@ -178,6 +178,85 @@ async function syncAddonsFromSubscription(subscription: any, env: StripeEnv) {
   }
 }
 
+/**
+ * Item 16/17: quando ocorre upgrade de plano, add-ons cujo module_key
+ * agora esteja incluído no novo plano são absorvidos.
+ * - Remove o subscription_item correspondente no Stripe (com proração)
+ * - Marca tenant_addons como status='absorbed_by_plan' + access_source='plan'
+ * - Mantém dados do módulo (produtos, configs) intactos
+ */
+async function absorbAddonsIntoPlan(args: {
+  tenantId: string;
+  subscriptionId: string;
+  newPriceId: string | undefined;
+  env: StripeEnv;
+}) {
+  const { tenantId, subscriptionId, newPriceId, env } = args;
+  if (!newPriceId) return;
+
+  const sb = getSupabase();
+
+  // Buscar allowed_modules do novo plano
+  const col = env === "live" ? "stripe_price_id_live" : "stripe_price_id_test";
+  const { data: newPlan } = await sb
+    .from("plans")
+    .select("id, name, allowed_modules")
+    .or(`${col}.eq.${newPriceId},slug.eq.${newPriceId.replace(/_monthly$/, "")}`)
+    .eq("active", true)
+    .maybeSingle();
+
+  const allowed: string[] = Array.isArray(newPlan?.allowed_modules)
+    ? (newPlan!.allowed_modules as any[]).filter((v) => typeof v === "string")
+    : [];
+  if (allowed.length === 0) return;
+
+  // Add-ons ativos deste tenant/subscription cujo module_key entra no novo plano
+  const { data: contracts } = await sb
+    .from("tenant_addons")
+    .select("id, addon_id, stripe_subscription_item_id, saas_addons:addon_id(module_key, name, addon_key)")
+    .eq("tenant_id", tenantId)
+    .eq("stripe_subscription_id", subscriptionId)
+    .in("status", ["active", "trialing", "past_due"]);
+
+  const absorbCandidates = ((contracts as any[]) ?? []).filter(
+    (c) => c?.saas_addons?.module_key && allowed.includes(c.saas_addons.module_key)
+  );
+  if (absorbCandidates.length === 0) return;
+
+  const stripe = createStripeClient(env);
+  for (const c of absorbCandidates) {
+    const itemId = c.stripe_subscription_item_id;
+    if (itemId) {
+      try {
+        await stripe.subscriptionItems.del(itemId, { proration_behavior: "create_prorations" } as any);
+      } catch (err) {
+        console.warn("[absorb] falha ao remover item Stripe", itemId, (err as Error).message);
+      }
+    }
+    await sb
+      .from("tenant_addons")
+      .update({
+        status: "absorbed_by_plan",
+        access_source: "plan",
+        stripe_subscription_item_id: null,
+        cancel_at_period_end: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", c.id);
+
+    await fireAdminEvent({
+      event_key: "addon.absorbed_by_plan",
+      title: "Add-on absorvido pelo novo plano",
+      message: `${c.saas_addons?.name ?? c.saas_addons?.addon_key} — agora incluído no plano ${newPlan?.name ?? ""}`,
+      severity: "info",
+      tenant_id: tenantId,
+      action_url: "/subscription",
+      payload: { addon_id: c.addon_id, plan_id: newPlan?.id, module_key: c.saas_addons?.module_key },
+    });
+  }
+}
+
+
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
   const items = subscription.items?.data ?? [];
   // O item de plano é o primeiro que NÃO for add-on
