@@ -434,3 +434,222 @@ export const findBestUpgradeOption = createServerFn({ method: "POST" })
       return { error: err?.message ?? "Falha ao calcular recomendação" };
     }
   });
+
+// ============================================================================
+// Observability (Fase 5): log de recomendações mostradas / aceitas / dispensadas
+// ============================================================================
+
+export type RecommendationAction = "accepted" | "dismissed";
+
+/**
+ * Registra uma recomendação exibida ao tenant no carrinho.
+ * Grava um snapshot completo para análise posterior no admin.
+ */
+export const logUpgradeRecommendationShown = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      cart: CartItem[];
+      suggestion: UpgradeSuggestion;
+      billing_cycle: BillingCycle;
+    }) => input,
+  )
+  .handler(async ({ data, context }): Promise<{ id: string } | { error: string }> => {
+    try {
+      const { supabase, userId } = context;
+      const s = data.suggestion;
+      if (!s.recommended || !s.target_plan) {
+        return { error: "Nada a registrar (sem recomendação)" };
+      }
+
+      // Active add-ons snapshot (ids only, best-effort)
+      const { data: activeRows } = await supabase
+        .from("tenant_addons")
+        .select("addon_id")
+        .eq("tenant_id", userId)
+        .eq("status", "active");
+
+      const monthlySavings = Number(s.monthly_savings ?? 0);
+      const annualSavings = Number((monthlySavings * 12).toFixed(2));
+
+      const { data: inserted, error } = await supabase
+        .from("addon_upgrade_recommendations")
+        .insert({
+          tenant_id: userId,
+          current_plan_id: s.current_plan.id,
+          recommended_plan_id: s.target_plan.id,
+          selected_addon_ids: data.cart.map((c) => c.addon_id),
+          active_addon_ids: (activeRows ?? []).map((r: any) => r.addon_id),
+          billing_cycle: data.billing_cycle,
+          current_option_total: Number(s.cart_total_monthly ?? 0),
+          upgrade_option_total: Number(s.target_total_monthly ?? 0),
+          monthly_savings: monthlySavings,
+          annual_savings: annualSavings,
+          recommendation_reason: s.reason,
+        })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+      return { id: inserted.id as string };
+    } catch (err: any) {
+      console.error("[addons-engine] logUpgradeRecommendationShown", err);
+      return { error: err?.message ?? "Falha ao registrar recomendação" };
+    }
+  });
+
+/**
+ * Marca uma recomendação previamente registrada como aceita ou dispensada.
+ */
+export const logUpgradeRecommendationAction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; action: RecommendationAction }) => input)
+  .handler(async ({ data, context }): Promise<{ ok: true } | { error: string }> => {
+    try {
+      const { supabase, userId } = context;
+      const { error } = await supabase
+        .from("addon_upgrade_recommendations")
+        .update({
+          customer_action: data.action,
+          action_taken_at: new Date().toISOString(),
+        })
+        .eq("id", data.id)
+        .eq("tenant_id", userId);
+      if (error) throw error;
+      return { ok: true };
+    } catch (err: any) {
+      console.error("[addons-engine] logUpgradeRecommendationAction", err);
+      return { error: err?.message ?? "Falha ao atualizar ação da recomendação" };
+    }
+  });
+
+// ============================================================================
+// Admin observability
+// ============================================================================
+
+export type AdminRecommendationRow = {
+  id: string;
+  tenant_id: string;
+  tenant_name: string | null;
+  tenant_email: string | null;
+  current_plan_name: string | null;
+  recommended_plan_name: string | null;
+  billing_cycle: BillingCycle;
+  current_option_total: number;
+  upgrade_option_total: number;
+  monthly_savings: number;
+  annual_savings: number;
+  recommendation_reason: string | null;
+  customer_action: RecommendationAction | null;
+  shown_at: string;
+  action_taken_at: string | null;
+};
+
+export type AdminRecommendationsReport = {
+  kpis: {
+    total_shown: number;
+    total_accepted: number;
+    total_dismissed: number;
+    total_pending: number;
+    conversion_rate: number;
+    total_monthly_savings_offered: number;
+    total_monthly_savings_accepted: number;
+  };
+  rows: AdminRecommendationRow[];
+};
+
+export const listAdminUpgradeRecommendations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { days?: number } = {}) => input)
+  .handler(async ({ data, context }): Promise<AdminRecommendationsReport | { error: string }> => {
+    try {
+      const { supabase, userId } = context;
+      const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
+      if (roleErr) throw roleErr;
+      if (!isAdmin) return { error: "Acesso negado" };
+
+      const days = Math.max(1, Math.min(365, data.days ?? 90));
+      const since = new Date(Date.now() - days * 86400_000).toISOString();
+
+      const { data: recs, error } = await supabase
+        .from("addon_upgrade_recommendations")
+        .select("*")
+        .gte("shown_at", since)
+        .order("shown_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+
+      const tenantIds = Array.from(new Set((recs ?? []).map((r: any) => r.tenant_id)));
+      const planIds = Array.from(
+        new Set(
+          (recs ?? []).flatMap((r: any) => [r.current_plan_id, r.recommended_plan_id]).filter(Boolean),
+        ),
+      );
+
+      const [tenantsRes, plansRes] = await Promise.all([
+        tenantIds.length
+          ? supabase.from("profiles").select("id, business_name, email").in("id", tenantIds)
+          : Promise.resolve({ data: [] as any[] }),
+        planIds.length
+          ? supabase.from("plans").select("id, name").in("id", planIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const tenantMap = new Map(
+        ((tenantsRes as any).data ?? []).map((t: any) => [t.id, t]),
+      );
+      const planMap = new Map(((plansRes as any).data ?? []).map((p: any) => [p.id, p]));
+
+      const rows: AdminRecommendationRow[] = (recs ?? []).map((r: any) => {
+        const t = tenantMap.get(r.tenant_id) as any;
+        return {
+          id: r.id,
+          tenant_id: r.tenant_id,
+          tenant_name: t?.business_name ?? null,
+          tenant_email: t?.email ?? null,
+          current_plan_name: (planMap.get(r.current_plan_id) as any)?.name ?? null,
+          recommended_plan_name: (planMap.get(r.recommended_plan_id) as any)?.name ?? null,
+          billing_cycle: r.billing_cycle,
+          current_option_total: Number(r.current_option_total ?? 0),
+          upgrade_option_total: Number(r.upgrade_option_total ?? 0),
+          monthly_savings: Number(r.monthly_savings ?? 0),
+          annual_savings: Number(r.annual_savings ?? 0),
+          recommendation_reason: r.recommendation_reason,
+          customer_action: r.customer_action,
+          shown_at: r.shown_at,
+          action_taken_at: r.action_taken_at,
+        };
+      });
+
+      const total_shown = rows.length;
+      const total_accepted = rows.filter((r) => r.customer_action === "accepted").length;
+      const total_dismissed = rows.filter((r) => r.customer_action === "dismissed").length;
+      const total_pending = total_shown - total_accepted - total_dismissed;
+      const decided = total_accepted + total_dismissed;
+      const conversion_rate = decided > 0 ? total_accepted / decided : 0;
+      const total_monthly_savings_offered = rows.reduce((s, r) => s + r.monthly_savings, 0);
+      const total_monthly_savings_accepted = rows
+        .filter((r) => r.customer_action === "accepted")
+        .reduce((s, r) => s + r.monthly_savings, 0);
+
+      return {
+        kpis: {
+          total_shown,
+          total_accepted,
+          total_dismissed,
+          total_pending,
+          conversion_rate: Number(conversion_rate.toFixed(4)),
+          total_monthly_savings_offered: Number(total_monthly_savings_offered.toFixed(2)),
+          total_monthly_savings_accepted: Number(total_monthly_savings_accepted.toFixed(2)),
+        },
+        rows,
+      };
+    } catch (err: any) {
+      console.error("[addons-engine] listAdminUpgradeRecommendations", err);
+      return { error: err?.message ?? "Falha ao carregar recomendações" };
+    }
+  });
+
