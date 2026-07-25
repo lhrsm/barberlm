@@ -4737,6 +4737,7 @@ export type Database = {
           scheduling_mode: string | null
           secondary_color: string | null
           selected_plan: string | null
+          slot_buffer_minutes: number
           slug: string | null
           social_links: Json
           status: string | null
@@ -4794,6 +4795,7 @@ export type Database = {
           scheduling_mode?: string | null
           secondary_color?: string | null
           selected_plan?: string | null
+          slot_buffer_minutes?: number
           slug?: string | null
           social_links?: Json
           status?: string | null
@@ -4851,6 +4853,7 @@ export type Database = {
           scheduling_mode?: string | null
           secondary_color?: string | null
           selected_plan?: string | null
+          slot_buffer_minutes?: number
           slug?: string | null
           social_links?: Json
           status?: string | null
@@ -8314,6 +8317,16 @@ export type Database = {
           p_subscription_id: string
         }
         Returns: Json
+      }
+      check_appointment_conflict: {
+        Args: {
+          p_barber_id: string
+          p_buffer_minutes?: number
+          p_end: string
+          p_exclude_appointment_id?: string
+          p_start: string
+        }
+        Returns: boolean
       }
       check_appointment_financial_status: {
         Args: { p_appointment_id: string }
