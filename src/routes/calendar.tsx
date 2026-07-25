@@ -19,6 +19,7 @@ import {
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { WalkinModal } from "@/components/calendar/WalkinModal";
+import { WalkinQueuePanel } from "@/components/calendar/WalkinQueuePanel";
 import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
