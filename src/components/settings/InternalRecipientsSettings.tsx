@@ -107,9 +107,11 @@ export function InternalRecipientsSettings() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<Recipient | null>(null);
   const [allowOnOfficial, setAllowOnOfficial] = useState(false);
+  const [walkinNotify, setWalkinNotify] = useState(false);
 
   useEffect(() => {
     setAllowOnOfficial(Boolean((tenantProfile as any)?.allow_notifications_on_business_phone));
+    setWalkinNotify(Boolean((tenantProfile as any)?.walkin_send_notifications));
   }, [tenantProfile]);
 
   useEffect(() => {
