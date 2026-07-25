@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      addon_upgrade_recommendations: {
+        Row: {
+          action_taken_at: string | null
+          active_addon_ids: string[]
+          annual_savings: number
+          billing_cycle: Database["public"]["Enums"]["addon_billing_cycle"]
+          created_at: string
+          current_option_total: number
+          current_plan_id: string | null
+          customer_action: string | null
+          id: string
+          monthly_savings: number
+          recommendation_reason: string | null
+          recommended_plan_id: string | null
+          selected_addon_ids: string[]
+          shown_at: string
+          tenant_id: string
+          updated_at: string
+          upgrade_option_total: number
+        }
+        Insert: {
+          action_taken_at?: string | null
+          active_addon_ids?: string[]
+          annual_savings?: number
+          billing_cycle?: Database["public"]["Enums"]["addon_billing_cycle"]
+          created_at?: string
+          current_option_total?: number
+          current_plan_id?: string | null
+          customer_action?: string | null
+          id?: string
+          monthly_savings?: number
+          recommendation_reason?: string | null
+          recommended_plan_id?: string | null
+          selected_addon_ids?: string[]
+          shown_at?: string
+          tenant_id: string
+          updated_at?: string
+          upgrade_option_total?: number
+        }
+        Update: {
+          action_taken_at?: string | null
+          active_addon_ids?: string[]
+          annual_savings?: number
+          billing_cycle?: Database["public"]["Enums"]["addon_billing_cycle"]
+          created_at?: string
+          current_option_total?: number
+          current_plan_id?: string | null
+          customer_action?: string | null
+          id?: string
+          monthly_savings?: number
+          recommendation_reason?: string | null
+          recommended_plan_id?: string | null
+          selected_addon_ids?: string[]
+          shown_at?: string
+          tenant_id?: string
+          updated_at?: string
+          upgrade_option_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_upgrade_recommendations_current_plan_id_fkey"
+            columns: ["current_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "addon_upgrade_recommendations_recommended_plan_id_fkey"
+            columns: ["recommended_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_event_log: {
         Row: {
           channels_delivered: Json
@@ -5087,6 +5162,7 @@ export type Database = {
       saas_addons: {
         Row: {
           addon_key: string
+          annual_price: number
           benefits: Json
           category: string
           created_at: string
@@ -5098,17 +5174,21 @@ export type Database = {
           is_premium: boolean
           max_quantity: number
           minimum_plan: string | null
+          minimum_plan_id: string | null
           module_key: string
           monthly_price: number
           name: string
           sort_order: number
           stripe_price_id_live: string | null
           stripe_price_id_test: string | null
+          stripe_product_id_live: string | null
+          stripe_product_id_test: string | null
           trial_days: number
           updated_at: string
         }
         Insert: {
           addon_key: string
+          annual_price?: number
           benefits?: Json
           category?: string
           created_at?: string
@@ -5120,17 +5200,21 @@ export type Database = {
           is_premium?: boolean
           max_quantity?: number
           minimum_plan?: string | null
+          minimum_plan_id?: string | null
           module_key: string
           monthly_price?: number
           name: string
           sort_order?: number
           stripe_price_id_live?: string | null
           stripe_price_id_test?: string | null
+          stripe_product_id_live?: string | null
+          stripe_product_id_test?: string | null
           trial_days?: number
           updated_at?: string
         }
         Update: {
           addon_key?: string
+          annual_price?: number
           benefits?: Json
           category?: string
           created_at?: string
@@ -5142,16 +5226,27 @@ export type Database = {
           is_premium?: boolean
           max_quantity?: number
           minimum_plan?: string | null
+          minimum_plan_id?: string | null
           module_key?: string
           monthly_price?: number
           name?: string
           sort_order?: number
           stripe_price_id_live?: string | null
           stripe_price_id_test?: string | null
+          stripe_product_id_live?: string | null
+          stripe_product_id_test?: string | null
           trial_days?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saas_addons_minimum_plan_id_fkey"
+            columns: ["minimum_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saas_admin_voucher_audit_logs: {
         Row: {
@@ -5428,6 +5523,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saas_billing_settings: {
+        Row: {
+          created_at: string
+          id: string
+          minimum_upgrade_savings: number
+          singleton: boolean
+          updated_at: string
+          upgrade_recommendation_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          minimum_upgrade_savings?: number
+          singleton?: boolean
+          updated_at?: string
+          upgrade_recommendation_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          minimum_upgrade_savings?: number
+          singleton?: boolean
+          updated_at?: string
+          upgrade_recommendation_enabled?: boolean
+        }
+        Relationships: []
       }
       saas_checkout_sessions: {
         Row: {
@@ -6905,7 +7027,9 @@ export type Database = {
       }
       tenant_addons: {
         Row: {
+          access_source: Database["public"]["Enums"]["addon_access_source"]
           addon_id: string
+          billing_cycle: Database["public"]["Enums"]["addon_billing_cycle"]
           cancel_at_period_end: boolean
           cancelled_at: string | null
           created_at: string
@@ -6931,7 +7055,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_source?: Database["public"]["Enums"]["addon_access_source"]
           addon_id: string
+          billing_cycle?: Database["public"]["Enums"]["addon_billing_cycle"]
           cancel_at_period_end?: boolean
           cancelled_at?: string | null
           created_at?: string
@@ -6957,7 +7083,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_source?: Database["public"]["Enums"]["addon_access_source"]
           addon_id?: string
+          billing_cycle?: Database["public"]["Enums"]["addon_billing_cycle"]
           cancel_at_period_end?: boolean
           cancelled_at?: string | null
           created_at?: string
@@ -8985,6 +9113,8 @@ export type Database = {
       }
     }
     Enums: {
+      addon_access_source: "addon" | "plan" | "voucher"
+      addon_billing_cycle: "monthly" | "annual"
       app_role: "super_admin" | "admin" | "tenant_admin" | "barber" | "client"
       automation_flow_type: "single" | "multi"
       product_sale_status: "completed" | "cancelled" | "refunded"
@@ -9115,6 +9245,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      addon_access_source: ["addon", "plan", "voucher"],
+      addon_billing_cycle: ["monthly", "annual"],
       app_role: ["super_admin", "admin", "tenant_admin", "barber", "client"],
       automation_flow_type: ["single", "multi"],
       product_sale_status: ["completed", "cancelled", "refunded"],
