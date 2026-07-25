@@ -337,6 +337,14 @@ export const findBestUpgradeOption = createServerFn({ method: "POST" })
     try {
       const { supabase, userId } = context;
 
+      // Item 13: barbearias com voucher administrativo (internal_testing)
+      // não devem receber recomendação de upgrade — o benefício já cobre tudo.
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_internal_test_tenant")
+        .eq("id", userId)
+        .maybeSingle();
+
       const { data: settings } = await supabase
         .from("saas_billing_settings")
         .select("minimum_upgrade_savings, upgrade_recommendation_enabled")
@@ -377,6 +385,8 @@ export const findBestUpgradeOption = createServerFn({ method: "POST" })
       };
 
       if (!enabled || data.cart.length === 0) return empty;
+      // Item 13: voucher administrativo cobre tudo — não sugerir upgrade
+      if (profile?.is_internal_test_tenant) return empty;
 
       const { data: candidates } = await supabase
         .from("plans")

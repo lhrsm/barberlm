@@ -623,6 +623,20 @@ function SubscriptionComponent() {
                 )}
               </ul>
               <span className="block text-xs text-zinc-500">Dados existentes não serão apagados, mas funcionalidades premium ficarão bloqueadas.</span>
+              <div className="mt-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+                <div className="text-xs font-semibold text-emerald-300">Alternativa: manter recursos como módulos adicionais</div>
+                <p className="text-[11px] text-emerald-200/70 mt-1">
+                  Você pode continuar usando os recursos acima contratando-os individualmente como add-ons no plano inferior.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 h-7 text-xs border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/10"
+                  onClick={() => { setDowngradeTarget(null); navigate({ to: "/subscription/addons" }); }}
+                >
+                  Ver catálogo de add-ons
+                </Button>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
