@@ -385,6 +385,8 @@ export const findBestUpgradeOption = createServerFn({ method: "POST" })
       };
 
       if (!enabled || data.cart.length === 0) return empty;
+      // Item 13: voucher administrativo cobre tudo — não sugerir upgrade
+      if (profile?.is_internal_test_tenant) return empty;
 
       const { data: candidates } = await supabase
         .from("plans")
