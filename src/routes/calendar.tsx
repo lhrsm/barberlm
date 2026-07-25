@@ -150,6 +150,7 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number, editingId?: string}>({});
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
