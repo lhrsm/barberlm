@@ -164,6 +164,8 @@ export function AddonsCartDrawer({
           ? `${r.contracts.length} módulos contratados com sucesso!`
           : "Módulo contratado com sucesso!",
       );
+      // Fechou compra sem aceitar upgrade → dispensada
+      markRecommendationAction("dismissed");
       qc.invalidateQueries({ queryKey: ["tenant-addons"] });
       qc.invalidateQueries({ queryKey: ["my-addons"] });
       qc.invalidateQueries({ queryKey: ["module-access"] });
