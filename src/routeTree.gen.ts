@@ -55,6 +55,7 @@ import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
+import { Route as AdminUpgradeRecommendationsRouteImport } from './routes/admin.upgrade-recommendations'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
@@ -320,6 +321,12 @@ const AdminVouchersRoute = AdminVouchersRouteImport.update({
   path: '/vouchers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminUpgradeRecommendationsRoute =
+  AdminUpgradeRecommendationsRouteImport.update({
+    id: '/upgrade-recommendations',
+    path: '/upgrade-recommendations',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminTutorialsRoute = AdminTutorialsRouteImport.update({
   id: '/tutorials',
   path: '/tutorials',
@@ -557,6 +564,7 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
+  '/admin/upgrade-recommendations': typeof AdminUpgradeRecommendationsRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -637,6 +645,7 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
+  '/admin/upgrade-recommendations': typeof AdminUpgradeRecommendationsRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -720,6 +729,7 @@ export interface FileRoutesById {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
+  '/admin/upgrade-recommendations': typeof AdminUpgradeRecommendationsRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -804,6 +814,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
+    | '/admin/upgrade-recommendations'
     | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
@@ -884,6 +895,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
+    | '/admin/upgrade-recommendations'
     | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
@@ -966,6 +978,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tenants'
     | '/admin/tutorials'
+    | '/admin/upgrade-recommendations'
     | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
@@ -1371,6 +1384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVouchersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/upgrade-recommendations': {
+      id: '/admin/upgrade-recommendations'
+      path: '/upgrade-recommendations'
+      fullPath: '/admin/upgrade-recommendations'
+      preLoaderRoute: typeof AdminUpgradeRecommendationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/tutorials': {
       id: '/admin/tutorials'
       path: '/tutorials'
@@ -1644,6 +1664,7 @@ interface AdminRouteChildren {
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTenantsRoute: typeof AdminTenantsRoute
   AdminTutorialsRoute: typeof AdminTutorialsRoute
+  AdminUpgradeRecommendationsRoute: typeof AdminUpgradeRecommendationsRoute
   AdminVouchersRoute: typeof AdminVouchersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1666,6 +1687,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSupportRoute: AdminSupportRoute,
   AdminTenantsRoute: AdminTenantsRoute,
   AdminTutorialsRoute: AdminTutorialsRoute,
+  AdminUpgradeRecommendationsRoute: AdminUpgradeRecommendationsRoute,
   AdminVouchersRoute: AdminVouchersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
