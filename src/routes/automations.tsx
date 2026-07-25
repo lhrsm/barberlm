@@ -348,6 +348,30 @@ function AutomationsComponent() {
                                     <Badge variant="outline" className="text-[10px] bg-slate-500/10 text-slate-400 border-slate-500/30 font-mono">
                                       {auto.trigger_event}
                                     </Badge>
+                                    {(() => {
+                                      const preAppt = new Set([
+                                        "appointment.created","appointment.confirmed","appointment.reminder",
+                                        "appointment.whatsapp_confirmation","appointment.rescheduled",
+                                        "appointment.rescheduled.by_customer","appointment.rescheduled.by_barber","appointment.rescheduled.by_shop",
+                                        "appointment.cancelled","appointment.cancelled.by_customer","appointment.cancelled.by_barber","appointment.cancelled.by_shop",
+                                        "appointment.professional_changed",
+                                      ]);
+                                      const walkinOk = !preAppt.has(auto.trigger_event);
+                                      return (
+                                        <>
+                                          <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-300 border-emerald-500/30" title="Aplica-se a agendamentos online">
+                                            ✓ Online
+                                          </Badge>
+                                          <Badge
+                                            variant="outline"
+                                            className={`text-[10px] ${walkinOk ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" : "bg-rose-500/10 text-rose-300 border-rose-500/30"}`}
+                                            title={walkinOk ? "Executa em atendimentos presenciais" : "Não executa em atendimentos presenciais (cliente já está na barbearia)"}
+                                          >
+                                            {walkinOk ? "✓" : "✗"} Presencial
+                                          </Badge>
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                                 <CardContent className="p-4">
