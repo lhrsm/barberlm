@@ -260,7 +260,7 @@ function LoyaltyDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 min-h-screen bg-[#05070a] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
+      <div className="space-y-6 min-h-screen bg-[#05070a] -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 md:-mx-8 md:-mb-8 rounded-t-2xl p-4 sm:p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black tracking-tight text-white uppercase italic flex items-center gap-3">
@@ -698,10 +698,10 @@ function LoyaltyNavButton({
   active?: boolean;
 }) {
   const base =
-    "shrink-0 inline-flex items-center gap-2 h-11 px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 cursor-pointer";
+    "group relative overflow-hidden shrink-0 inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-300 hover:-translate-y-0.5 cursor-pointer";
   const cls = active
-    ? "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] text-black border border-[#f59e0b] shadow-[0_4px_16px_rgba(245,158,11,0.35)] hover:shadow-[0_8px_28px_rgba(245,158,11,0.55)]"
-    : "bg-[#0b0f17] text-white border border-[#f59e0b]/30 [&_svg]:text-[#f59e0b] hover:border-[#f59e0b]/70 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]";
+    ? "bg-gradient-to-r from-[#D4AF37] via-[#F2D57E] to-[#D4AF37] text-black border border-[#D4AF37] shadow-[0_4px_18px_rgba(212,175,55,0.40)] hover:shadow-[0_8px_28px_rgba(212,175,55,0.60)]"
+    : "bg-[#0b0f17] text-white border border-[#D4AF37]/30 [&_svg]:text-[#D4AF37] hover:border-[#D4AF37]/70 hover:bg-[#D4AF37]/10 hover:shadow-[0_0_22px_rgba(212,175,55,0.28)]";
   return (
     <Link
       to={to as any}
@@ -709,8 +709,11 @@ function LoyaltyNavButton({
       activeOptions={{ exact: true }}
       className={`${base} ${cls}`}
     >
-      {icon}
-      <span>{label}</span>
+      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+      <span className="relative flex items-center gap-2">
+        {icon}
+        <span>{label}</span>
+      </span>
     </Link>
   );
 }
