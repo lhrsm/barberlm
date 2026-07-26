@@ -42,6 +42,8 @@ import {
   AlertCircle
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
+import { WalkinModal } from "@/components/calendar/WalkinModal";
+import { UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek, format, formatDistanceToNow, isSameDay } from "date-fns";
@@ -74,6 +76,7 @@ function DashboardComponent() {
   const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
   const loading = authLoading || tenantLoading || planLoading;
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
+  const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -611,6 +614,14 @@ function DashboardComponent() {
                 </p>
               </div>
             </div>
+            <WalkinModal
+              open={isWalkinOpen}
+              onOpenChange={setIsWalkinOpen}
+              onSuccess={() => {
+                fetchTodayAppointments();
+                fetchStats();
+              }}
+            />
             <AppointmentModal
               onSuccess={() => {
                 fetchTodayAppointments();
@@ -1706,6 +1717,15 @@ function DashboardComponent() {
               <CardTitle>Ações Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => setIsWalkinOpen(true)}
+                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+              >
+                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <UserPlus size={14} className="relative" />
+                <span className="relative">Agendamento Presencial</span>
+              </Button>
               <Button
                 size="sm"
                 onClick={() => navigate({ to: "/customers" })}

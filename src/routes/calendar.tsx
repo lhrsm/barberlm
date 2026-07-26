@@ -340,13 +340,14 @@ function CalendarComponent() {
                 key={v}
                 onClick={() => setView(v)}
                 className={cn(
-                  "flex-1 sm:flex-initial sm:px-10 h-full rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
+                  "group relative flex-1 sm:flex-initial sm:px-10 h-full rounded-[14px] overflow-hidden text-xs font-black uppercase tracking-widest transition-all duration-300",
                   view === v
-                    ? "bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black shadow-[0_0_20px_rgba(245,197,66,0.25)]"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    ? "bg-gradient-to-b from-[#F5C542] via-[#E6B22E] to-[#D4A017] text-black border border-[#F5C542]/70 shadow-[0_8px_24px_-8px_rgba(245,197,66,0.65)]"
+                    : "text-slate-400 border border-transparent hover:border-[#F5C542]/30 hover:bg-[#F5C542]/10 hover:text-[#F5C542]"
                 )}
               >
-                {v === "day" ? "Dia" : "Semana"}
+                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <span className="relative">{v === "day" ? "Dia" : "Semana"}</span>
               </button>
             ))}
           </div>
