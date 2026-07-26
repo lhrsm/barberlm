@@ -247,9 +247,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex items-center justify-center gap-2 px-4 h-11 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#D4AF37] to-[#ea580c] text-black shadow-[0_0_12px_rgba(212,175,55,0.25)] mb-3"
+                className="group relative mb-3 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-2xl text-xs font-black uppercase tracking-[0.14em] text-black overflow-hidden bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] shadow-[0_8px_24px_-8px_rgba(212,175,55,0.6)] active:scale-[0.98] transition-transform"
               >
-                <ExternalLink size={16} /> Ver Página Pública
+                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.55)_50%,transparent_65%)] translate-x-[-120%] group-active:translate-x-[120%] transition-transform duration-700" />
+                <ExternalLink size={16} className="relative" />
+                <span className="relative">Ver Página Pública</span>
+
               </a>
             )}
             <div className="space-y-3 flex-1 pt-2">
