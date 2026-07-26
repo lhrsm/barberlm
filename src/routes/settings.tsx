@@ -1254,7 +1254,8 @@ function SettingsComponent() {
                   <div className="pt-4 border-t border-[#1f2937]/30 flex flex-col sm:flex-row gap-3 justify-center items-center">
                     <Button 
                       type="button" 
-                      className="group relative overflow-hidden bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black rounded-[10px] font-black uppercase text-xs tracking-wider h-[42px] px-6 shadow-[0_4px_16px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_22px_rgba(212,175,55,0.45)] transition-all"
+                      size="sm"
+                      className="group relative overflow-hidden bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black rounded-lg font-black uppercase text-[11px] tracking-wide h-8 px-3 shadow-[0_2px_10px_rgba(212,175,55,0.25)] hover:shadow-[0_4px_14px_rgba(212,175,55,0.4)] transition-all"
                     >
                       <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                       <span className="relative">Testar Conexão</span>
@@ -1262,10 +1263,12 @@ function SettingsComponent() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-[#D4AF37]/40 text-[#D4AF37] bg-[#D4AF37]/5 hover:bg-[#D4AF37]/15 hover:text-[#F5D877] hover:border-[#D4AF37]/70 rounded-[10px] font-bold uppercase text-xs tracking-wider h-[42px] px-6 transition-all"
+                      size="sm"
+                      className="border-[#D4AF37]/40 text-[#D4AF37] bg-[#D4AF37]/5 hover:bg-[#D4AF37]/15 hover:text-[#F5D877] hover:border-[#D4AF37]/70 rounded-lg font-bold uppercase text-[11px] tracking-wide h-8 px-3 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
+
                   </div>
                 </CardContent>
               </Card>
