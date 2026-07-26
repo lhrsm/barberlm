@@ -207,8 +207,9 @@ export function ConfigurableIntegrationCard({
         {configured && (
           <Button
             variant="ghost"
+            size="sm"
             onClick={disconnect}
-            className="h-[38px] w-[38px] p-0 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+            className="h-8 w-8 p-0 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
             title="Remover"
           >
             <Trash2 size={14} />
