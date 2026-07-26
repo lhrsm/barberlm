@@ -187,11 +187,12 @@ export function ConfigurableIntegrationCard({
           </div>
         )}
       </CardContent>
-      <CardFooter className="border-t border-zinc-800/80 pt-4 gap-2">
+      <CardFooter className="border-t border-zinc-800/80 pt-4 gap-2 justify-start">
         <Button
           onClick={openDialog}
+          size="sm"
           className={cn(
-            "flex-1 h-[38px] rounded-xl font-bold",
+            "h-8 px-3 text-xs rounded-lg font-bold",
             configured
               ? "bg-[#0b0f17] border border-zinc-700 text-white hover:bg-zinc-800"
               : "bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white shadow-[0_4px_16px_rgba(245,158,11,0.3)]"
@@ -206,8 +207,9 @@ export function ConfigurableIntegrationCard({
         {configured && (
           <Button
             variant="ghost"
+            size="sm"
             onClick={disconnect}
-            className="h-[38px] w-[38px] p-0 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+            className="h-8 w-8 p-0 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
             title="Remover"
           >
             <Trash2 size={14} />

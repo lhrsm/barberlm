@@ -350,7 +350,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   <Input type="password" value={formData.client_token} onChange={e => setFormData({...formData, client_token: e.target.value})} className="bg-white/5 border-white/10" />
                 </div>
               </div>
-              <Button type="submit" disabled={isSaving} className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
+              <Button type="submit" size="sm" disabled={isSaving} className="h-8 px-3 text-xs rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
                 {isSaving ? <><Loader2 className="animate-spin mr-2" size={16} /> Salvando...</> : <><Save className="mr-2" size={16} /> Salvar Configurações</>}
               </Button>
             </form>
