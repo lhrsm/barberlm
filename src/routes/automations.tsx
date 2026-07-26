@@ -242,9 +242,11 @@ function AutomationsComponent() {
             <p className="text-slate-500 font-medium text-sm">Gerencie disparos automáticos e auditoria de mensagens.</p>
           </div>
           <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-            <Button onClick={runDiagnosis} variant="outline" className="flex-1 lg:flex-none bg-transparent border-white/10 text-white hover:bg-white/5 hover:text-white hover:border-white/20 font-bold uppercase text-xs h-12">
-              <Search className="mr-2 h-4 w-4 text-amber-500" /> Diagnosticar Último
+            <Button onClick={runDiagnosis} className="flex-1 lg:flex-none relative overflow-hidden group/diag rounded-xl h-12 px-6 bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black uppercase tracking-wider text-xs border border-[#D4AF37] shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300">
+              <span className="absolute inset-0 -translate-x-full group-hover/diag:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+              <Search className="mr-2 h-4 w-4" /> Diagnosticar Último
             </Button>
+
             <Button onClick={runQueueNow} disabled={isProcessingQueue} className="flex-1 lg:flex-none bg-amber-500 hover:bg-amber-600 text-black font-black uppercase text-xs h-12 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
               {isProcessingQueue ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4 fill-current" />} Processar Fila Agora
             </Button>
