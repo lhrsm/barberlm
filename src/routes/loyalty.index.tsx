@@ -260,7 +260,7 @@ function LoyaltyDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 min-h-screen bg-[#05070a] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
+      <div className="space-y-6 min-h-screen bg-[#05070a] -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 md:-mx-8 md:-mb-8 rounded-t-2xl p-4 sm:p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black tracking-tight text-white uppercase italic flex items-center gap-3">
