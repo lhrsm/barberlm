@@ -247,9 +247,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex items-center justify-center gap-2 px-4 h-11 rounded-2xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#D4AF37] to-[#ea580c] text-black shadow-[0_0_12px_rgba(212,175,55,0.25)] mb-3"
+                className="group relative mb-3 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-2xl text-xs font-black uppercase tracking-[0.14em] text-black overflow-hidden bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] shadow-[0_8px_24px_-8px_rgba(212,175,55,0.6)] active:scale-[0.98] transition-transform"
               >
-                <ExternalLink size={16} /> Ver Página Pública
+                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.55)_50%,transparent_65%)] translate-x-[-120%] group-active:translate-x-[120%] transition-transform duration-700" />
+                <ExternalLink size={16} className="relative" />
+                <span className="relative">Ver Página Pública</span>
+
               </a>
             )}
             <div className="space-y-3 flex-1 pt-2">
@@ -292,10 +295,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 href={`/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-3 h-9 rounded-xl text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-[#D4AF37] to-[#ea580c] text-black hover:brightness-110 transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)]"
+                className="group relative inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-[0.16em] text-black overflow-hidden bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] ring-1 ring-inset ring-white/25 shadow-[0_8px_22px_-10px_rgba(212,175,55,0.75)] transition-all duration-300 hover:shadow-[0_12px_28px_-8px_rgba(212,175,55,0.9)] hover:brightness-[1.06] hover:-translate-y-px active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f17]"
                 title="Abrir página pública da barbearia"
               >
-                <ExternalLink size={14} /> Ver Página Pública
+                <span className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.6)_50%,transparent_65%)] transition-transform duration-700 group-hover:translate-x-[120%]" />
+                <ExternalLink size={13} className="relative transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <span className="relative">Ver Página Pública</span>
+
               </a>
             )}
           </div>
