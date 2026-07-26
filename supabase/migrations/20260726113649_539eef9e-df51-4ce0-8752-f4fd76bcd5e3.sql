@@ -1,0 +1,1 @@
+ALTER TABLE public.barbers ADD COLUMN IF NOT EXISTS pix_qr_code_url TEXT;

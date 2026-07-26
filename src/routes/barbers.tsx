@@ -326,6 +326,8 @@ function BarbersComponent() {
       working_hours: editingBarber.working_hours,
       pix_key: editingBarber.pix_key ?? null,
       pix_key_type: editingBarber.pix_key_type ?? null,
+      pix_qr_code_url: editingBarber.pix_qr_code_url ?? null,
+
       accepts_tips: editingBarber.accepts_tips ?? true,
       active: editingBarber.active
     };
@@ -449,6 +451,26 @@ function BarbersComponent() {
       setUploading(false);
     }
   }
+
+  async function handlePixQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingBarber) return;
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user?.id}/pix-qr-${Math.random()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(filePath);
+      setEditingBarber({ ...editingBarber, pix_qr_code_url: publicUrl });
+      toast.success("QR Code enviado com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao enviar QR Code: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
 
   async function handleDuplicateBarber(barber: any) {
     if (!user) return;
@@ -1196,7 +1218,41 @@ function BarbersComponent() {
                     value={editingBarber.pix_key || ""}
                     onChange={(e) => setEditingBarber({ ...editingBarber, pix_key: e.target.value })}
                   />
+                  <div className="space-y-2 pt-1">
+                    <Label htmlFor="edit_pix_qr" className="text-xs">QR Code do PIX (imagem)</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="h-20 w-20 shrink-0 rounded-lg border border-[#D4AF37]/30 bg-black/20 overflow-hidden flex items-center justify-center">
+                        {editingBarber.pix_qr_code_url ? (
+                          <img src={editingBarber.pix_qr_code_url} alt="QR Code PIX do profissional" className="h-full w-full object-contain" />
+                        ) : (
+                          <span className="text-[9px] text-muted-foreground text-center px-1">Sem QR Code</span>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          id="edit_pix_qr"
+                          type="file"
+                          accept="image/*"
+                          disabled={uploading}
+                          onChange={handlePixQrUpload}
+                          className="text-xs"
+                        />
+                        {editingBarber.pix_qr_code_url && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-red-400 hover:text-red-300"
+                            onClick={() => setEditingBarber({ ...editingBarber, pix_qr_code_url: null })}
+                          >
+                            Remover QR Code
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
 
                 <div className="space-y-2">
                   <Label>Serviços Prestados</Label>

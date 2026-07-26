@@ -2534,6 +2534,7 @@ export type Database = {
           phone: string | null
           pix_key: string | null
           pix_key_type: string | null
+          pix_qr_code_url: string | null
           specialties: string[] | null
           tenant_id: string | null
           total_ratings: number | null
@@ -2560,6 +2561,7 @@ export type Database = {
           phone?: string | null
           pix_key?: string | null
           pix_key_type?: string | null
+          pix_qr_code_url?: string | null
           specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
@@ -2586,6 +2588,7 @@ export type Database = {
           phone?: string | null
           pix_key?: string | null
           pix_key_type?: string | null
+          pix_qr_code_url?: string | null
           specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
