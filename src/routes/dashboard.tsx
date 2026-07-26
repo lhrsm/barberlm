@@ -1705,14 +1705,27 @@ function DashboardComponent() {
             <CardHeader>
               <CardTitle>Ações Rápidas</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-              <Button variant="outline" onClick={() => navigate({ to: "/customers" })} className="gap-2">
-                <Users size={18} /> Novo Cliente
+            <CardContent className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => navigate({ to: "/customers" })}
+                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+              >
+                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <Users size={14} className="relative" />
+                <span className="relative">Novo Cliente</span>
               </Button>
-              <Button variant="outline" onClick={() => navigate({ to: "/barbers" })} className="gap-2">
-                <Target size={18} /> Ver Equipe
+              <Button
+                size="sm"
+                onClick={() => navigate({ to: "/barbers" })}
+                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+              >
+                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <Target size={14} className="relative" />
+                <span className="relative">Ver Equipe</span>
               </Button>
             </CardContent>
+
           </Card>
           
           <Card className="col-span-3">
