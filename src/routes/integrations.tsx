@@ -165,9 +165,10 @@ function IntegrationsComponent() {
                 </div>
               </CardContent>
               <CardFooter className="border-t border-zinc-800/80 pt-4">
-                <Button form="email-form" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
+                <Button form="email-form" size="sm" className="w-full h-9 text-xs rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
                   Salvar Configurações
                 </Button>
+
               </CardFooter>
             </Card>
 
@@ -211,14 +212,15 @@ function IntegrationsComponent() {
               </CardContent>
               <CardFooter className="border-t border-zinc-800/80 pt-4">
                 {plan !== 'elite' ? (
-                  <Button className="w-full gap-2 bg-[#0b0f17] border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold" asChild>
-                    <a href="/subscription">Fazer Upgrade para Elite <Zap size={14} className="fill-current" /></a>
+                  <Button size="sm" className="w-full h-9 text-xs rounded-lg gap-2 bg-[#0b0f17] border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold" asChild>
+                    <a href="/subscription">Fazer Upgrade para Elite <Zap size={12} className="fill-current" /></a>
                   </Button>
                 ) : (
-                  <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
+                  <Button size="sm" className="w-full h-9 text-xs rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
                     Conectar IA
                   </Button>
                 )}
+
               </CardFooter>
             </Card>
 
