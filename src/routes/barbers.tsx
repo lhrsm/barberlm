@@ -1390,6 +1390,14 @@ function BarbersComponent() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <BarberPerformanceDialog
+          open={!!performanceBarber}
+          onOpenChange={(v) => !v && setPerformanceBarber(null)}
+          barber={performanceBarber}
+          tenantId={user?.id}
+        />
+
       </div>
     </AppLayout>
   );
