@@ -659,14 +659,15 @@ function CustomerCard({
             </p>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               {isSub ? (
-                <Badge className="bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/40 text-[9px] font-black uppercase tracking-wider">
+                <Badge className="bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[9px] font-black uppercase tracking-wider transition-colors">
                   <Crown size={9} className="mr-1" /> Assinante
                 </Badge>
               ) : (
-                <Badge className="bg-slate-500/10 text-slate-300 border border-slate-500/30 text-[9px] font-black uppercase tracking-wider">
+                <Badge className="bg-slate-500/10 text-slate-300 border border-slate-500/30 hover:bg-slate-500/20 hover:border-slate-500/60 text-[9px] font-black uppercase tracking-wider transition-colors">
                   <UserIcon size={9} className="mr-1" /> Cliente
                 </Badge>
               )}
+
               <Badge className={cn("text-[9px] font-black uppercase tracking-wider border", tierMeta.ring, tierMeta.color)}>
                 <TierIcon size={9} className="mr-1" /> {tierMeta.label}
               </Badge>
