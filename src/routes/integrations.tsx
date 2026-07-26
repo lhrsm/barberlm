@@ -164,8 +164,8 @@ function IntegrationsComponent() {
                   <p className="text-[11px] text-sky-300/80 leading-relaxed">Certifique-se de configurar o DNS no painel do Resend para garantir a entrega dos e-mails.</p>
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-zinc-800/80 pt-4">
-                <Button form="email-form" size="sm" className="w-full h-9 text-xs rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
+              <CardFooter className="border-t border-zinc-800/80 pt-4 justify-start">
+                <Button form="email-form" size="sm" className="h-8 px-3 text-xs rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
                   Salvar Configurações
                 </Button>
 
