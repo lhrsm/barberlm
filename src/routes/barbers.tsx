@@ -449,6 +449,7 @@ function BarbersComponent() {
       toast.error("Erro ao enviar imagem: " + error.message);
     } finally {
       setUploading(false);
+    }
   }
 
   async function handlePixQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -470,7 +471,6 @@ function BarbersComponent() {
     }
   }
 
-  }
 
   async function handleDuplicateBarber(barber: any) {
     if (!user) return;
