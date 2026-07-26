@@ -646,15 +646,15 @@ function SettingsComponent() {
                     <CardDescription className="text-slate-400 font-medium">Logado como: <span className="text-[#ea580c]">{user?.email}</span></CardDescription>
                   </div>
                   <Button 
-                    variant="outline" 
                     size="sm" 
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-[10px] h-10 px-[18px] py-3"
+                    className="group relative overflow-hidden gap-2 h-10 px-5 rounded-[10px] bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black font-black uppercase text-xs tracking-wider shadow-[0_4px_16px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_22px_rgba(212,175,55,0.45)] transition-all disabled:opacity-60"
                   >
-                    <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Sincronizando..." : "Sincronizar"}
+                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                    <RefreshCw className={`relative h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                    <span className="relative">{isSyncing ? "Sincronizando..." : "Sincronizar"}</span>
                   </Button>
                 </CardHeader>
                 <CardContent className="p-6 space-y-8">
@@ -1254,15 +1254,15 @@ function SettingsComponent() {
                   <div className="pt-4 border-t border-[#1f2937]/30 flex flex-col sm:flex-row gap-3 justify-center items-center">
                     <Button 
                       type="button" 
-                      variant="outline" 
-                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-[10px] font-bold uppercase text-xs tracking-wider h-[42px] px-5 min-w-[180px] max-w-[220px] w-full sm:w-auto transition-all"
+                      className="group relative overflow-hidden bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black rounded-[10px] font-black uppercase text-xs tracking-wider h-[42px] px-6 shadow-[0_4px_16px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_22px_rgba(212,175,55,0.45)] transition-all"
                     >
-                      Testar Conexão
+                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                      <span className="relative">Testar Conexão</span>
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white rounded-[10px] font-bold uppercase text-xs tracking-wider h-[42px] px-5 min-w-[180px] max-w-[220px] w-full sm:w-auto transition-all"
+                      className="border-[#D4AF37]/40 text-[#D4AF37] bg-[#D4AF37]/5 hover:bg-[#D4AF37]/15 hover:text-[#F5D877] hover:border-[#D4AF37]/70 rounded-[10px] font-bold uppercase text-xs tracking-wider h-[42px] px-6 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
@@ -1543,15 +1543,16 @@ function SettingsComponent() {
                       <li>• Dashboard de desempenho e sugestões com IA.</li>
                     </ul>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button asChild className="flex-1 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider h-11 rounded-xl">
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild size="sm" className="h-9 px-4 text-[11px] bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider rounded-lg">
                       <Link to="/loyalty/templates">
-                        <Trophy className="h-4 w-4 mr-2" /> Gerenciar Fidelidade Premium
+                        <Trophy className="h-3.5 w-3.5 mr-1.5" /> Gerenciar Fidelidade
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="flex-1 border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold uppercase tracking-wider h-11 rounded-xl">
+                    <Button asChild size="sm" className="group relative overflow-hidden h-9 px-4 text-[11px] rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black font-black uppercase tracking-wider shadow-[0_4px_14px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_20px_rgba(212,175,55,0.45)] transition-all">
                       <Link to="/loyalty">
-                        Recompensas de Assinantes
+                        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                        <span className="relative">Recompensas de Assinantes</span>
                       </Link>
                     </Button>
                   </div>
