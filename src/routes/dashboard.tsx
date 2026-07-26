@@ -76,6 +76,7 @@ function DashboardComponent() {
   const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
   const loading = authLoading || tenantLoading || planLoading;
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
+  const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
