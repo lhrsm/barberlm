@@ -45,6 +45,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
+import { BarberPerformanceDialog } from "@/components/barbers/BarberPerformanceDialog";
+
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
@@ -107,6 +109,8 @@ function BarbersComponent() {
     working_hours: DEFAULT_WORKING_HOURS
   });
   const [uploading, setUploading] = useState(false);
+  const [performanceBarber, setPerformanceBarber] = useState<any>(null);
+
   const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
