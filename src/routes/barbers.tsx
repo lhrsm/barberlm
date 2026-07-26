@@ -972,24 +972,17 @@ function BarbersComponent() {
                       onPaid={fetchBarbers}
                     />
                   )}
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          className="flex-1 h-10 relative overflow-hidden group/perf bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black uppercase tracking-wider text-xs border border-[#D4AF37] shadow-[0_4px_16px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_6px_22px_-6px_rgba(212,175,55,0.9)] transition-all duration-300"
-                          onClick={() => setPerformanceBarber(barber)}
-                        >
-                          <span className="absolute inset-0 -translate-x-full group-hover/perf:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-                          <BarChart3 size={14} className="mr-1.5" />
-                          Desempenho
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Ver métricas e desempenho do profissional</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="w-full">
+                    <Button
+                      className="w-full h-12 relative overflow-hidden group/perf rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black uppercase tracking-wider text-sm border border-[#D4AF37] shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300"
+                      onClick={() => setPerformanceBarber(barber)}
+                    >
+                      <span className="absolute inset-0 -translate-x-full group-hover/perf:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                      <BarChart3 size={18} className="mr-2" />
+                      Ver desempenho
+                    </Button>
+                  </div>
+
 
                   
                   <div className="flex items-center gap-1">
