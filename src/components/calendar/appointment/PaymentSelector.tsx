@@ -7,21 +7,15 @@ import { cn } from "@/lib/utils";
 export const PAYMENT_STATUSES = [
   { value: "pending", label: "Pendente" },
   { value: "paid", label: "Pago" },
-  { value: "partial", label: "Parcial" },
-  { value: "exempt", label: "Isento" },
-  { value: "courtesy", label: "Cortesia" },
 ];
 
 export const PAYMENT_METHODS = [
   { value: "cash", label: "Dinheiro" },
   { value: "pix", label: "PIX" },
-  { value: "credit_card", label: "Cartão de crédito" },
-  { value: "debit_card", label: "Cartão de débito" },
-  { value: "credits", label: "Crédito do cliente" },
-  { value: "cashback", label: "Cashback" },
-  { value: "mixed", label: "Pagamento misto" },
-  { value: "later", label: "Pagar depois" },
+  { value: "card", label: "Cartão" },
+  { value: "wallet", label: "Créditos do cliente" },
 ];
+
 
 interface Props {
   status: string;
