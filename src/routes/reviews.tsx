@@ -438,12 +438,12 @@ function ReviewsAdminPage() {
                   )}
                   {canReject && (
                     <Button
-                      variant="outline"
                       onClick={() => moderate(r.id, "reject")}
-                      className="h-11 rounded-[14px] w-full sm:w-auto border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold"
+                      className="h-11 rounded-[14px] w-full sm:w-auto bg-red-500/15 text-red-300 border border-red-500/40 hover:bg-red-500/25 hover:text-red-200 hover:border-red-500/60 font-bold shadow-none transition-colors"
                     >
                       <XIcon className="h-4 w-4 mr-1.5" /> Rejeitar
                     </Button>
+
                   )}
                   {canPublish && r.allow_public_display && (
                     r.show_on_frontend ? (
