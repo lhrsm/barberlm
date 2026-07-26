@@ -326,6 +326,8 @@ function BarbersComponent() {
       working_hours: editingBarber.working_hours,
       pix_key: editingBarber.pix_key ?? null,
       pix_key_type: editingBarber.pix_key_type ?? null,
+      pix_qr_code_url: editingBarber.pix_qr_code_url ?? null,
+
       accepts_tips: editingBarber.accepts_tips ?? true,
       active: editingBarber.active
     };
@@ -447,7 +449,27 @@ function BarbersComponent() {
       toast.error("Erro ao enviar imagem: " + error.message);
     } finally {
       setUploading(false);
+  }
+
+  async function handlePixQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingBarber) return;
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user?.id}/pix-qr-${Math.random()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(filePath);
+      setEditingBarber({ ...editingBarber, pix_qr_code_url: publicUrl });
+      toast.success("QR Code enviado com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao enviar QR Code: " + error.message);
+    } finally {
+      setUploading(false);
     }
+  }
+
   }
 
   async function handleDuplicateBarber(barber: any) {
