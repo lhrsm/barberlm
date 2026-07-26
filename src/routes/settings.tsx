@@ -1543,15 +1543,16 @@ function SettingsComponent() {
                       <li>• Dashboard de desempenho e sugestões com IA.</li>
                     </ul>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button asChild className="flex-1 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider h-11 rounded-xl">
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild size="sm" className="h-9 px-4 text-[11px] bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider rounded-lg">
                       <Link to="/loyalty/templates">
-                        <Trophy className="h-4 w-4 mr-2" /> Gerenciar Fidelidade Premium
+                        <Trophy className="h-3.5 w-3.5 mr-1.5" /> Gerenciar Fidelidade
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="flex-1 border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold uppercase tracking-wider h-11 rounded-xl">
+                    <Button asChild size="sm" className="group relative overflow-hidden h-9 px-4 text-[11px] rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black font-black uppercase tracking-wider shadow-[0_4px_14px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_20px_rgba(212,175,55,0.45)] transition-all">
                       <Link to="/loyalty">
-                        Recompensas de Assinantes
+                        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                        <span className="relative">Recompensas de Assinantes</span>
                       </Link>
                     </Button>
                   </div>
