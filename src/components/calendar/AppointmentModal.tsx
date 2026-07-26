@@ -424,6 +424,8 @@ export function AppointmentModal({
 
     try {
       const tenantId = await resolveTenantId();
+      if (!tenantId) throw new Error("Não foi possível identificar a barbearia.");
+
 
       const service = services.find((s) => s.id === selectedService);
       const customer = customers.find((c) => c.id === selectedCustomer);
