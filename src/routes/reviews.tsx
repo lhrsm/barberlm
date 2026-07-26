@@ -308,8 +308,9 @@ function ReviewsAdminPage() {
               ? format(parseISO(r.appointments.start_time), "dd/MM/yyyy", { locale: ptBR })
               : null;
             const hasText = !!r.testimonial_text;
-            const canApprove = r.testimonial_status !== "approved" && hasText;
-            const canReject = r.testimonial_status !== "rejected" && hasText;
+            const canApprove = r.testimonial_status !== "approved";
+            const canReject = r.testimonial_status !== "rejected";
+
             const canPublish = r.testimonial_status === "approved" && hasText;
             const isOpen = !!replyOpen[r.id];
 
