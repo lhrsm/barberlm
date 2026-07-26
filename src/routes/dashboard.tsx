@@ -701,11 +701,18 @@ function DashboardComponent() {
                 >
                   <Copy size={14} /> Copiar Link
                 </Button>
-                <Button variant="default" size="sm" className="flex-1 sm:flex-none gap-2" asChild>
+                <Button
+                  size="sm"
+                  className="group relative flex-1 sm:flex-none gap-2 overflow-hidden border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] font-bold text-black shadow-[0_8px_24px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+                  asChild
+                >
                   <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink size={14} /> Abrir Página
+                    <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                    <ExternalLink size={14} className="relative" />
+                    <span className="relative">Abrir Página</span>
                   </a>
                 </Button>
+
               </div>
             </CardContent>
           </Card>
