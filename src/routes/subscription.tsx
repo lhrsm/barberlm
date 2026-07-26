@@ -323,7 +323,8 @@ function SubscriptionComponent() {
           {isInternalTesting && billing && <BenefitCard ctx={billing} />}
 
           {/* Seus módulos adicionais */}
-          {!isInternalTesting && <YourAddons />}
+          <YourAddons />
+
 
           {/* Status Alerts */}
           {isTrial && (
