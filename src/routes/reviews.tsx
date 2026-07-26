@@ -112,8 +112,10 @@ function ReviewsAdminPage() {
   const moderate = async (id: string, action: "approve" | "reject" | "hide" | "show") => {
     const { data: user } = await supabase.auth.getUser();
     const now = new Date().toISOString();
+    const target = reviews.find((r) => r.id === id);
+    const hasText = !!target?.testimonial_text;
     const update: any =
-      action === "approve" ? { testimonial_status: "approved", show_on_frontend: true, approved_at: now, approved_by: user.user?.id, rejected_at: null, rejected_by: null }
+      action === "approve" ? { testimonial_status: "approved", show_on_frontend: hasText, approved_at: now, approved_by: user.user?.id, rejected_at: null, rejected_by: null }
       : action === "reject" ? { testimonial_status: "rejected", show_on_frontend: false, rejected_at: now, rejected_by: user.user?.id }
       : action === "hide"   ? { show_on_frontend: false }
       : { show_on_frontend: true };
@@ -121,13 +123,14 @@ function ReviewsAdminPage() {
     if (error) toast.error("Erro: " + error.message);
     else {
       toast.success(
-        action === "approve" ? "Aprovado e publicado!" :
+        action === "approve" ? (hasText ? "Aprovado e publicado!" : "Aprovado (sem comentário — não aparece no site)") :
         action === "reject" ? "Rejeitado" :
         action === "hide" ? "Ocultado do site" : "Exibido no site"
       );
       fetchReviews();
     }
   };
+
 
   const saveReply = async (id: string) => {
     const text = (replyDraft[id] || "").trim();
