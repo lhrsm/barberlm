@@ -82,9 +82,9 @@ function getCustomerTier(c: any, isSubscriber: boolean): Tier {
 }
 
 const TIER_META: Record<Tier, { label: string; color: string; ring: string; icon: any }> = {
-  bronze: { label: "Bronze", color: "text-amber-700", ring: "border-amber-800/40 bg-amber-900/10", icon: Medal },
-  prata: { label: "Prata", color: "text-slate-300", ring: "border-slate-500/40 bg-slate-500/10", icon: Medal },
-  ouro: { label: "Ouro", color: "text-[#D4AF37]", ring: "border-[#D4AF37]/40 bg-[#D4AF37]/10", icon: Award },
+  bronze: { label: "Bronze", color: "text-amber-700", ring: "border-amber-800/40 bg-amber-900/10 hover:bg-amber-900/20 hover:border-amber-800/60", icon: Medal },
+  prata: { label: "Prata", color: "text-slate-300", ring: "border-slate-500/40 bg-slate-500/10 hover:bg-slate-500/20 hover:border-slate-500/60", icon: Medal },
+  ouro: { label: "Ouro", color: "text-[#D4AF37]", ring: "border-[#D4AF37]/40 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 hover:border-[#D4AF37]/60", icon: Award },
   diamante: { label: "Diamante", color: "text-cyan-300", ring: "border-cyan-400/40 bg-cyan-400/10", icon: Gem },
 };
 
