@@ -461,26 +461,16 @@ function ServicesComponent() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-4 border-t border-white/5">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 h-10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-300 font-semibold gap-2"
-                          onClick={() => {
-                            // Logic to view professionals could be here or handled elsewhere
-                            toast.info(`Profissionais: ${service.barber_services?.map((bs: any) => bs.barbers?.name).join(', ') || 'Nenhum'}`);
-                          }}
-                        >
-                          <Users size={14} /> Profissionais
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Ver lista completa de profissionais que realizam este serviço</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button
+                    className="flex-1 h-12 relative overflow-hidden group/prof rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black uppercase tracking-wider text-sm border border-[#D4AF37] shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300"
+                    onClick={() => {
+                      toast.info(`Profissionais: ${service.barber_services?.map((bs: any) => bs.barbers?.name).join(', ') || 'Nenhum'}`);
+                    }}
+                  >
+                    <span className="absolute inset-0 -translate-x-full group-hover/prof:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                    <Users size={18} className="mr-2" /> Profissionais
+                  </Button>
+
                   
                   <div className="flex items-center gap-1">
                     <TooltipProvider>
