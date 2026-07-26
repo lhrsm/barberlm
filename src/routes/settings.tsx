@@ -646,15 +646,15 @@ function SettingsComponent() {
                     <CardDescription className="text-slate-400 font-medium">Logado como: <span className="text-[#ea580c]">{user?.email}</span></CardDescription>
                   </div>
                   <Button 
-                    variant="outline" 
                     size="sm" 
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-[10px] h-10 px-[18px] py-3"
+                    className="group relative overflow-hidden gap-2 h-10 px-5 rounded-[10px] bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black font-black uppercase text-xs tracking-wider shadow-[0_4px_16px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_22px_rgba(212,175,55,0.45)] transition-all disabled:opacity-60"
                   >
-                    <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Sincronizando..." : "Sincronizar"}
+                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                    <RefreshCw className={`relative h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                    <span className="relative">{isSyncing ? "Sincronizando..." : "Sincronizar"}</span>
                   </Button>
                 </CardHeader>
                 <CardContent className="p-6 space-y-8">
