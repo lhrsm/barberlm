@@ -271,8 +271,8 @@ function LoyaltyDashboardPage() {
               Acompanhe o progresso dos clientes, recompensas e economia gerada.
             </p>
           </div>
-          <div className="-mx-1 px-1 overflow-x-auto">
-            <div className="flex gap-2 min-w-max">
+          <div className="-mx-1 -my-2 px-1 py-2 overflow-x-auto overflow-y-visible">
+            <div className="flex gap-2 min-w-max py-1">
               <LoyaltyNavButton to="/loyalty/templates" icon={<Sparkles className="h-4 w-4" />} label="Templates Premium" />
               <LoyaltyNavButton to="/loyalty/campaigns" icon={<ListChecks className="h-4 w-4" />} label="Minhas Campanhas" />
               <LoyaltyNavButton to="/loyalty/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Dashboard" />
