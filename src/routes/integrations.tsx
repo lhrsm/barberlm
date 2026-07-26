@@ -165,9 +165,10 @@ function IntegrationsComponent() {
                 </div>
               </CardContent>
               <CardFooter className="border-t border-zinc-800/80 pt-4">
-                <Button form="email-form" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
+                <Button form="email-form" size="sm" className="w-full h-9 text-xs rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
                   Salvar Configurações
                 </Button>
+
               </CardFooter>
             </Card>
 
