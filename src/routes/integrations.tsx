@@ -210,13 +210,13 @@ function IntegrationsComponent() {
                   <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-zinc-800/80 pt-4">
+              <CardFooter className="border-t border-zinc-800/80 pt-4 justify-start">
                 {plan !== 'elite' ? (
-                  <Button size="sm" className="w-full h-9 text-xs rounded-lg gap-2 bg-[#0b0f17] border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold" asChild>
-                    <a href="/subscription">Fazer Upgrade para Elite <Zap size={12} className="fill-current" /></a>
+                  <Button size="sm" className="h-8 px-3 text-xs rounded-lg gap-1.5 bg-[#0b0f17] border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 font-bold" asChild>
+                    <a href="/subscription">Upgrade Elite <Zap size={12} className="fill-current" /></a>
                   </Button>
                 ) : (
-                  <Button size="sm" className="w-full h-9 text-xs rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
+                  <Button size="sm" className="h-8 px-3 text-xs rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
                     Conectar IA
                   </Button>
                 )}
