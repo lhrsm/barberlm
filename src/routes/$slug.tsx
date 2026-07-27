@@ -181,6 +181,16 @@ function ShopPageComponent() {
   const [loadingDayData, setLoadingDayData] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
+  const [pixReceipt, setPixReceipt] = useState<{
+    appointmentId: string;
+    amount: number;
+    customerId: string | null;
+    serviceName: string | null;
+    dateLabel: string;
+    timeLabel: string;
+    onDone: () => void;
+  } | null>(null);
+
   // Standalone product-purchase identification flow (no appointment required)
   const [isIdentifyOpen, setIsIdentifyOpen] = useState(false);
   const [identifyForm, setIdentifyForm] = useState({ name: "", phone: "", email: "", acceptTerms: false, allowMarketing: false });
