@@ -118,8 +118,14 @@ export function YourAddons() {
           </div>
         </div>
         <Link to="/subscription/addons">
-          <Button size="sm" variant="outline" className="border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs">
-            Ver catálogo <ArrowUpRight className="w-3 h-3 ml-1" />
+          <Button
+            size="sm"
+            className="group relative h-8 overflow-hidden px-3 text-[11px] font-bold text-black bg-gradient-to-r from-[#D4AF37] via-[#F0D060] to-[#D4AF37] hover:from-[#E5C158] hover:to-[#E5C158] border border-[#D4AF37]/50 shadow-[0_0_16px_rgba(212,175,55,0.25)] transition-all"
+          >
+            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+            <span className="relative flex items-center">
+              Ver catálogo <ArrowUpRight className="w-3 h-3 ml-1" />
+            </span>
           </Button>
         </Link>
       </div>
