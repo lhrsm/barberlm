@@ -378,6 +378,8 @@ function SettingsComponent() {
         slug: profileUpdateData.slug,
         whatsapp_enabled: profileUpdateData.whatsapp_enabled,
         scheduling_mode: profileUpdateData.scheduling_mode,
+        slot_buffer_minutes: Number(profileUpdateData.slot_buffer_minutes || 0),
+
         payment_gateway_provider: profileUpdateData.payment_gateway_provider === "none" ? null : profileUpdateData.payment_gateway_provider,
         payment_gateway_key: profileUpdateData.payment_gateway_key,
         ...(profileUpdateData.primary_color ? { primary_color: profileUpdateData.primary_color } : {}),
