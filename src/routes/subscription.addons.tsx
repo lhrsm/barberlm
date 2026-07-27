@@ -110,6 +110,18 @@ function AddonsCatalog() {
   return (
     <div className="min-h-screen bg-[#050810] text-white">
       <div className="max-w-7xl mx-auto px-4 py-10">
+        {/* Back navigation */}
+        <div className="mb-6">
+          <Link
+            from={Route.fullPath}
+            to=".."
+            className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-amber-300 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar para assinatura
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-10">
           <span className="inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 uppercase tracking-wider mb-3">
