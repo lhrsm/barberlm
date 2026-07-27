@@ -1,4 +1,4 @@
-import { Check, User, CalendarDays, UserRound, ClipboardCheck } from "lucide-react";
+import { Check, User, CalendarDays, UserRound, ClipboardCheck, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -8,21 +8,31 @@ const STEPS = [
   { id: 4, label: "Confirmação", Icon: ClipboardCheck },
 ];
 
-export function AppointmentStepper({ current }: { current: number }) {
-  const active = STEPS.find((s) => s.id === current);
+const RECEIPT_STEP = { id: 5, label: "Comprovante", Icon: Receipt };
+
+export function AppointmentStepper({
+  current,
+  withReceipt = false,
+}: {
+  current: number;
+  withReceipt?: boolean;
+}) {
+  const steps = withReceipt ? [...STEPS, RECEIPT_STEP] : STEPS;
+  const total = steps.length;
+  const active = steps.find((s) => s.id === current);
   return (
     <div>
       {/* Mobile compacto */}
       <div className="sm:hidden" aria-hidden>
         <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
           <span>
-            Etapa {current} de 4 — <span className="text-foreground">{active?.label}</span>
+            Etapa {current} de {total} — <span className="text-foreground">{active?.label}</span>
           </span>
         </div>
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${(current / 4) * 100}%` }}
+            style={{ width: `${(current / total) * 100}%` }}
           />
         </div>
       </div>
@@ -30,9 +40,9 @@ export function AppointmentStepper({ current }: { current: number }) {
       {/* Desktop */}
       <ol
         className="hidden items-center gap-2 sm:flex"
-        aria-label={`Etapa ${current} de 4: ${active?.label}`}
+        aria-label={`Etapa ${current} de ${total}: ${active?.label}`}
       >
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const done = current > step.id;
           const isCurrent = current === step.id;
           const { Icon } = step;
@@ -59,7 +69,7 @@ export function AppointmentStepper({ current }: { current: number }) {
                   {step.id}. {step.label}
                 </span>
               </div>
-              {i < STEPS.length - 1 && (
+              {i < steps.length - 1 && (
                 <span
                   className={cn(
                     "h-px flex-1 rounded-full",
