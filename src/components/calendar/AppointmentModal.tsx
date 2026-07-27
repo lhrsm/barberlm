@@ -280,22 +280,15 @@ export function AppointmentModal({
     const startIso = startTime.toISOString();
     const endIso = endTime.toISOString();
 
-    let barberQuery = supabase
-      .from("appointments")
-      .select("id, start_time, end_time, status")
-      .eq("barber_id", barberId)
-      .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
-      .lt("start_time", endIso)
-      .gt("end_time", startIso);
+    // Profissional: usa o motor central (considera buffer e todos os status ativos)
+    const barberBusy = await hasConflict({
+      barberId,
+      startISO: startIso,
+      endISO: endIso,
+      excludeAppointmentId: editingAppointmentId || null,
+    });
+    if (barberBusy) return { conflict: true, type: "barber" };
 
-    if (editingAppointmentId) barberQuery = barberQuery.neq("id", editingAppointmentId);
-
-    const { data: barberConflict, error: barberError } = await barberQuery.limit(1);
-    if (barberError) {
-      console.error("Barber conflict query error:", barberError);
-      return { conflict: false };
-    }
-    if (barberConflict && barberConflict.length > 0) return { conflict: true, type: "barber" };
 
     if (customerId) {
       let customerQuery = supabase
