@@ -102,6 +102,8 @@ function SettingsComponent() {
     slug: "",
     whatsapp_enabled: false,
     scheduling_mode: "automatic" as "manual" | "automatic",
+    slot_buffer_minutes: 0,
+
     payment_gateway_provider: "none",
     payment_gateway_key: "",
     primary_color: "",
