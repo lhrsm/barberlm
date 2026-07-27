@@ -2338,6 +2338,48 @@ export type Database = {
           },
         ]
       }
+      availability_conflict_logs: {
+        Row: {
+          barber_id: string | null
+          buffer_minutes: number | null
+          conflicting: Json | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          requested_end: string
+          requested_start: string
+          result: string
+          source: string
+          tenant_id: string | null
+        }
+        Insert: {
+          barber_id?: string | null
+          buffer_minutes?: number | null
+          conflicting?: Json | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          requested_end: string
+          requested_start: string
+          result?: string
+          source?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          barber_id?: string | null
+          buffer_minutes?: number | null
+          conflicting?: Json | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          requested_end?: string
+          requested_start?: string
+          result?: string
+          source?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
       barber_commissions: {
         Row: {
           appointment_id: string
@@ -8810,6 +8852,16 @@ export type Database = {
           event_key: string
           label: string
         }[]
+      }
+      log_availability_conflict: {
+        Args: {
+          p_barber_id: string
+          p_end: string
+          p_result?: string
+          p_source?: string
+          p_start: string
+        }
+        Returns: undefined
       }
       pause_customer_subscription: {
         Args: {
