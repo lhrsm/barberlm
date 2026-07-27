@@ -27,6 +27,8 @@ import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
 import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
 import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 import { SubscribePlanModal } from "@/components/portal/SubscribePlanModal";
+import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
+
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
