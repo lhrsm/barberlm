@@ -120,6 +120,16 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
 
       const startISO = new Date(`${date}T${time}:00`).toISOString();
       const duration = Number(selectedService.duration_minutes) || 30;
+      const endISO = new Date(new Date(startISO).getTime() + duration * 60000).toISOString();
+
+      // Motor central: bloqueia sobreposição antes de chamar o RPC
+      if (await hasConflict({ barberId, startISO, endISO })) {
+        toast.error(OVERLAP_MESSAGE);
+        setSubmitting(false);
+        return;
+      }
+
+
 
       const { data, error } = await supabase.rpc("create_walkin_appointment" as any, {
         p_tenant_id: user.id,
