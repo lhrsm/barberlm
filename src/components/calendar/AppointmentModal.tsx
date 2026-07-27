@@ -29,6 +29,7 @@ import { DateTimeStep } from "./appointment/DateTimeStep";
 import { CustomerStep } from "./appointment/CustomerStep";
 import { AppointmentReviewStep } from "./appointment/AppointmentReviewStep";
 import { AppointmentModalFooter } from "./appointment/AppointmentModalFooter";
+import { PixReceiptStep } from "./appointment/PixReceiptStep";
 import {
   computeAppointmentTotal,
   dayKeyFromDate,
@@ -76,6 +77,13 @@ export function AppointmentModal({
   const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
   const [shopName, setShopName] = useState<string | null>(null);
   const [bufferMinutes, setBufferMinutes] = useState(0);
+  const [shopWhatsapp, setShopWhatsapp] = useState<string | null>(null);
+  const [shopPixKey, setShopPixKey] = useState<string | null>(null);
+  const [receiptContext, setReceiptContext] = useState<{
+    tenantId: string;
+    appointmentId: string;
+    amount: number;
+  } | null>(null);
 
   // Form State
   const [selectedCustomer, setSelectedCustomer] = useState("");
@@ -102,6 +110,7 @@ export function AppointmentModal({
     } else {
       setCurrentStep(1);
       setErrors({});
+      setReceiptContext(null);
     }
   }, [isOpen, initialDate, initialTime, initialStep]);
 
@@ -164,7 +173,7 @@ export function AppointmentModal({
       supabase.from("barber_services").select("*").eq("user_id", tenantId),
       supabase
         .from("profiles")
-        .select("business_name, slot_buffer_minutes")
+        .select("business_name, slot_buffer_minutes, whatsapp_number, pix_key")
         .eq("id", tenantId)
         .maybeSingle(),
     ]);
@@ -181,6 +190,8 @@ export function AppointmentModal({
     if (profRes.data) {
       setShopName((profRes.data as any).business_name ?? null);
       setBufferMinutes(Number((profRes.data as any).slot_buffer_minutes || 0));
+      setShopWhatsapp((profRes.data as any).whatsapp_number ?? null);
+      setShopPixKey((profRes.data as any).pix_key ?? null);
     }
   }
 
@@ -561,8 +572,19 @@ export function AppointmentModal({
           ? "Agendamento atualizado com sucesso!"
           : "Agendamento criado com sucesso!",
       );
-      setOpen(false);
-      setCurrentStep(1);
+
+      const needsReceipt = paymentMethod === "pix" && Number(finalAmount) > 0;
+      if (needsReceipt) {
+        setReceiptContext({
+          tenantId: tenantId as string,
+          appointmentId: appointmentData.id,
+          amount: Number(finalAmount),
+        });
+        setCurrentStep(5);
+      } else {
+        setOpen(false);
+        setCurrentStep(1);
+      }
       refreshLimits();
       if (onSuccess) onSuccess();
 
@@ -621,7 +643,7 @@ export function AppointmentModal({
                     </p>
                   </div>
                 </div>
-                <AppointmentStepper current={currentStep} />
+                <AppointmentStepper current={currentStep} withReceipt={paymentMethod === "pix"} />
               </DialogHeader>
 
               <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
@@ -703,8 +725,30 @@ export function AppointmentModal({
                     errors={errors}
                   />
                 )}
+
+                {currentStep === 5 && receiptContext && (
+                  <PixReceiptStep
+                    tenantId={receiptContext.tenantId}
+                    appointmentId={receiptContext.appointmentId}
+                    customerId={selectedCustomer}
+                    customerName={customerObj?.name}
+                    serviceName={serviceObj?.name}
+                    amount={receiptContext.amount}
+                    dateLabel={format(parseISO(selectedDate), "dd/MM/yyyy")}
+                    timeLabel={selectedTime}
+                    shopName={shopName}
+                    pixKey={shopPixKey}
+                    whatsappNumber={shopWhatsapp}
+                    onFinish={() => {
+                      setOpen(false);
+                      setCurrentStep(1);
+                      setReceiptContext(null);
+                    }}
+                  />
+                )}
               </div>
 
+              {currentStep < 5 && (
               <DialogFooter className="border-t border-border bg-card px-5 py-4 sm:px-6">
                 <AppointmentModalFooter
                   step={currentStep}
@@ -715,6 +759,7 @@ export function AppointmentModal({
                   onConfirm={handleCreateAppointment}
                 />
               </DialogFooter>
+              )}
             </>
           ) : (
             <div className="space-y-4 p-6">
