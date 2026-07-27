@@ -12,6 +12,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { PixReceiptStep } from "@/components/calendar/appointment/PixReceiptStep";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format, addMinutes, parseISO, isSameDay } from "date-fns";
@@ -181,6 +183,16 @@ function ShopPageComponent() {
   const [loadingDayData, setLoadingDayData] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
+  const [pixReceipt, setPixReceipt] = useState<{
+    appointmentId: string;
+    amount: number;
+    customerId: string | null;
+    serviceName: string | null;
+    dateLabel: string;
+    timeLabel: string;
+    onDone: () => void;
+  } | null>(null);
+
   // Standalone product-purchase identification flow (no appointment required)
   const [isIdentifyOpen, setIsIdentifyOpen] = useState(false);
   const [identifyForm, setIdentifyForm] = useState({ name: "", phone: "", email: "", acceptTerms: false, allowMarketing: false });
@@ -1497,6 +1509,7 @@ function ShopPageComponent() {
       }
 
       // Reset and redirect
+      const receiptAmount = calculateTotal();
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
@@ -1510,7 +1523,7 @@ function ShopPageComponent() {
       const isMultipleFinal = createdAppointments.length > 1;
       const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
 
-      setTimeout(() => {
+      const runRedirect = () => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
@@ -1526,7 +1539,26 @@ function ShopPageComponent() {
         } else {
           navigate({ to: `/${slug}/portal` as any, replace: true });
         }
-      }, 1500);
+      };
+
+      // PIX: pede o comprovante antes de redirecionar
+      if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
+        const firstAppt = createdAppointments[0] as any;
+        const firstItem = finalCart.find((i) => i.service_id === firstAppt.service_id) || finalCart[0];
+        setPixReceipt({
+          appointmentId: firstAppt.id,
+          amount: receiptAmount,
+          customerId: finalCustId || null,
+          serviceName: firstItem?.service_name || null,
+          dateLabel: firstItem?.date ? format(parseISO(firstItem.date), "dd/MM/yyyy") : "",
+          timeLabel: firstItem?.start_time || "",
+          onDone: runRedirect,
+        });
+        return;
+      }
+
+      setTimeout(runRedirect, 1500);
+
 
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
@@ -5559,7 +5591,45 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={!!pixReceipt}
+        onOpenChange={(v) => {
+          if (!v && pixReceipt) {
+            const done = pixReceipt.onDone;
+            setPixReceipt(null);
+            done();
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Envie o comprovante do PIX</DialogTitle>
+          </DialogHeader>
+          {pixReceipt && (
+            <PixReceiptStep
+              tenantId={shop.id}
+              appointmentId={pixReceipt.appointmentId}
+              customerId={pixReceipt.customerId}
+              customerName={customerName}
+              serviceName={pixReceipt.serviceName}
+              amount={pixReceipt.amount}
+              dateLabel={pixReceipt.dateLabel}
+              timeLabel={pixReceipt.timeLabel}
+              shopName={shop.business_name}
+              pixKey={(shop as any).pix_key}
+              whatsappNumber={shop.whatsapp_number}
+              onFinish={() => {
+                const done = pixReceipt.onDone;
+                setPixReceipt(null);
+                done();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <BackToTopButton />
+
     </div>
   );
 }
