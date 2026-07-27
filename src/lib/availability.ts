@@ -91,6 +91,7 @@ export async function hasConflict(params: {
   startISO: string;
   endISO: string;
   excludeAppointmentId?: string | null;
+  source?: "online" | "manual" | "walkin" | "reschedule" | "unknown";
 }): Promise<boolean> {
   const { data, error } = await supabase.rpc("check_appointment_conflict" as any, {
     p_barber_id: params.barberId,
@@ -102,8 +103,25 @@ export async function hasConflict(params: {
     console.error("AVAILABILITY_CONFLICT_CHECK_ERROR", error);
     return false;
   }
-  return !!data;
+
+  const conflict = !!data;
+  if (conflict) {
+    // Auditoria da tentativa de conflito (fire-and-forget)
+    supabase
+      .rpc("log_availability_conflict" as any, {
+        p_barber_id: params.barberId,
+        p_start: params.startISO,
+        p_end: params.endISO,
+        p_source: params.source || "unknown",
+        p_result: "conflict",
+      })
+      .then(({ error: logError }) => {
+        if (logError) console.warn("AVAILABILITY_CONFLICT_LOG_FAILED", logError);
+      });
+  }
+  return conflict;
 }
+
 
 export const OVERLAP_MESSAGE =
   "Este profissional já possui um atendimento nesse intervalo. Escolha outro horário.";

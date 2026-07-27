@@ -125,7 +125,7 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
       const endISO = new Date(new Date(startISO).getTime() + duration * 60000).toISOString();
 
       // Motor central: bloqueia sobreposição antes de chamar o RPC
-      if (await hasConflict({ barberId, startISO, endISO })) {
+      if (await hasConflict({ barberId, startISO, endISO, source: "walkin" })) {
         toast.error(OVERLAP_MESSAGE);
         setSubmitting(false);
         return;

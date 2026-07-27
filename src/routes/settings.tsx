@@ -102,6 +102,8 @@ function SettingsComponent() {
     slug: "",
     whatsapp_enabled: false,
     scheduling_mode: "automatic" as "manual" | "automatic",
+    slot_buffer_minutes: 0,
+
     payment_gateway_provider: "none",
     payment_gateway_key: "",
     primary_color: "",
@@ -266,6 +268,8 @@ function SettingsComponent() {
           slug: profile.slug || shopData?.slug || "",
           whatsapp_enabled: profile.whatsapp_enabled || false,
           scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
+          slot_buffer_minutes: Number((profile as any).slot_buffer_minutes || 0),
+
           payment_gateway_provider: profile.payment_gateway_provider || "none",
           payment_gateway_key: profile.payment_gateway_key || "",
           primary_color: profile.primary_color || "",
@@ -374,6 +378,8 @@ function SettingsComponent() {
         slug: profileUpdateData.slug,
         whatsapp_enabled: profileUpdateData.whatsapp_enabled,
         scheduling_mode: profileUpdateData.scheduling_mode,
+        slot_buffer_minutes: Number(profileUpdateData.slot_buffer_minutes || 0),
+
         payment_gateway_provider: profileUpdateData.payment_gateway_provider === "none" ? null : profileUpdateData.payment_gateway_provider,
         payment_gateway_key: profileUpdateData.payment_gateway_key,
         ...(profileUpdateData.primary_color ? { primary_color: profileUpdateData.primary_color } : {}),
@@ -1124,8 +1130,31 @@ function SettingsComponent() {
                       </p>
                     </div>
                   )}
+
+                  <div className="space-y-2 rounded-2xl border border-[#1f2937] bg-[#05070d] p-5">
+                    <Label className="text-base font-black uppercase italic">Intervalo entre atendimentos</Label>
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                      Tempo reservado automaticamente após cada atendimento (limpeza, higienização e organização).
+                    </p>
+                    <Select
+                      value={String(formData.slot_buffer_minutes ?? 0)}
+                      onValueChange={(v) => setFormData({ ...formData, slot_buffer_minutes: Number(v) })}
+                    >
+                      <SelectTrigger className="h-12 bg-[#0b0f17] border-[#1f2937] text-white">
+                        <SelectValue placeholder="0 minutos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[0, 5, 10, 15, 20, 30].map((m) => (
+                          <SelectItem key={m} value={String(m)}>
+                            {m} minutos
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardContent>
               </Card>
+
 
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden mt-6">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
