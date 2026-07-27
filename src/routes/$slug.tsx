@@ -1497,6 +1497,7 @@ function ShopPageComponent() {
       }
 
       // Reset and redirect
+      const receiptAmount = calculateTotal();
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
@@ -1510,7 +1511,7 @@ function ShopPageComponent() {
       const isMultipleFinal = createdAppointments.length > 1;
       const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
 
-      setTimeout(() => {
+      const runRedirect = () => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
@@ -1526,7 +1527,26 @@ function ShopPageComponent() {
         } else {
           navigate({ to: `/${slug}/portal` as any, replace: true });
         }
-      }, 1500);
+      };
+
+      // PIX: pede o comprovante antes de redirecionar
+      if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
+        const firstAppt = createdAppointments[0] as any;
+        const firstItem = finalCart.find((i) => i.service_id === firstAppt.service_id) || finalCart[0];
+        setPixReceipt({
+          appointmentId: firstAppt.id,
+          amount: receiptAmount,
+          customerId: finalCustId || null,
+          serviceName: firstItem?.service_name || null,
+          dateLabel: firstItem?.date ? format(parseISO(firstItem.date), "dd/MM/yyyy") : "",
+          timeLabel: firstItem?.start_time || "",
+          onDone: runRedirect,
+        });
+        return;
+      }
+
+      setTimeout(runRedirect, 1500);
+
 
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
