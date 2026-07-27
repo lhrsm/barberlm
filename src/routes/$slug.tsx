@@ -3792,7 +3792,7 @@ function ShopPageComponent() {
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
-                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
+                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService))
                         .map(b => (
                         <motion.div 
                           key={b.id} 
