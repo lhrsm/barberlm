@@ -268,6 +268,8 @@ function SettingsComponent() {
           slug: profile.slug || shopData?.slug || "",
           whatsapp_enabled: profile.whatsapp_enabled || false,
           scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
+          slot_buffer_minutes: Number((profile as any).slot_buffer_minutes || 0),
+
           payment_gateway_provider: profile.payment_gateway_provider || "none",
           payment_gateway_key: profile.payment_gateway_key || "",
           primary_color: profile.primary_color || "",
