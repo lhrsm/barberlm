@@ -454,6 +454,54 @@ function ShopPageComponent() {
     }
   }, [selectedDate, shop?.id, isBookingOpen]);
 
+  // Pré-cálculo da disponibilidade de cada profissional no dia (motor central)
+  useEffect(() => {
+    let cancelled = false;
+    async function computeBarberAvailability() {
+      if (!selectedDate || !selectedService || !isBookingOpen || barbers.length === 0) {
+        setAvailableBarberIds([]);
+        return;
+      }
+      const eligible = barbers.filter((b: any) =>
+        b.barber_services?.some((bs: any) => bs.service_id === selectedService.id),
+      );
+      const results = await Promise.all(
+        eligible.map(async (b: any) => {
+          const { slots } = await fetchAvailability({
+            barberId: b.id,
+            date: selectedDate,
+            durationMinutes: selectedService.duration_minutes || 30,
+          });
+          const cartItems = bookingCart.filter(
+            (item: any) => item.barber_id === b.id && item.date === selectedDate,
+          );
+          const [y, m, d] = selectedDate.split("-").map(Number);
+          const duration = (selectedService.duration_minutes || 30) * 60 * 1000;
+          const free = slots.some((slot) => {
+            if (slot.state !== "available") return false;
+            const [h, min] = slot.time.split(":").map(Number);
+            const startMs = new Date(y, m - 1, d, h, min, 0).getTime();
+            const endMs = startMs + duration;
+            return !cartItems.some((item: any) => {
+              const [ih, im] = item.start_time.split(":").map(Number);
+              const itemStart = new Date(y, m - 1, d, ih, im, 0).getTime();
+              const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
+              return startMs < itemEnd && endMs > itemStart;
+            });
+          });
+          return free ? b.id : null;
+        }),
+      );
+      if (cancelled) return;
+      setAvailableBarberIds(results.filter(Boolean) as string[]);
+    }
+    computeBarberAvailability();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate, selectedService, isBookingOpen, barbers, bookingCart]);
+
+
   // Font loading
   useEffect(() => {
     // Only attempt to load if it's not the default Inter
