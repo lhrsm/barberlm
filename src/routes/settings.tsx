@@ -1130,8 +1130,31 @@ function SettingsComponent() {
                       </p>
                     </div>
                   )}
+
+                  <div className="space-y-2 rounded-2xl border border-[#1f2937] bg-[#05070d] p-5">
+                    <Label className="text-base font-black uppercase italic">Intervalo entre atendimentos</Label>
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                      Tempo reservado automaticamente após cada atendimento (limpeza, higienização e organização).
+                    </p>
+                    <Select
+                      value={String(formData.slot_buffer_minutes ?? 0)}
+                      onValueChange={(v) => setFormData({ ...formData, slot_buffer_minutes: Number(v) })}
+                    >
+                      <SelectTrigger className="h-12 bg-[#0b0f17] border-[#1f2937] text-white">
+                        <SelectValue placeholder="0 minutos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[0, 5, 10, 15, 20, 30].map((m) => (
+                          <SelectItem key={m} value={String(m)}>
+                            {m} minutos
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardContent>
               </Card>
+
 
               <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden mt-6">
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
