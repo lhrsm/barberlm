@@ -227,38 +227,20 @@ export function AppointmentModal({
     setNextAvailableDate(null);
   }, [barberObj, isDayEnabled]);
 
-  // Load busy intervals and build the slot grid
+  // Motor único de disponibilidade (mesma lógica do online/walk-in)
   useEffect(() => {
     let cancelled = false;
     async function load() {
       if (!isOpen || currentStep !== 2 || !selectedBarber || !selectedDate) return;
       setSlotsLoading(true);
-      const { data } = await supabase
-        .from("appointments")
-        .select("id, start_time, end_time, status")
-        .eq("barber_id", selectedBarber)
-        .in("status", ["pending", "scheduled", "confirmed", "in_progress", "awaiting_payment"])
-        .gte("start_time", `${selectedDate}T00:00:00`)
-        .lte("start_time", `${selectedDate}T23:59:59`);
-
+      const { slots: engineSlots } = await fetchAvailability({
+        barberId: selectedBarber,
+        date: selectedDate,
+        durationMinutes: serviceObj?.duration_minutes || 30,
+        excludeAppointmentId: editingAppointmentId || null,
+      });
       if (cancelled) return;
-
-      const busy = (data || [])
-        .filter((a: any) => a.id !== editingAppointmentId)
-        .map((a: any) => ({
-          start: toMinutes(format(parseISO(a.start_time), "HH:mm")),
-          end: toMinutes(format(parseISO(a.end_time), "HH:mm")),
-        }));
-
-      setSlots(
-        buildSlots({
-          date: selectedDate,
-          workingHours: workingHoursForDate,
-          serviceDuration: serviceObj?.duration_minutes || 30,
-          bufferMinutes,
-          busy,
-        }),
-      );
+      setSlots(engineSlots as unknown as Slot[]);
       setSlotsLoading(false);
     }
     load();
@@ -270,11 +252,10 @@ export function AppointmentModal({
     currentStep,
     selectedBarber,
     selectedDate,
-    workingHoursForDate,
     serviceObj,
-    bufferMinutes,
     editingAppointmentId,
   ]);
+
 
   const breakdown = computeAppointmentTotal({
     servicePrice: Number(serviceObj?.price || 0),
