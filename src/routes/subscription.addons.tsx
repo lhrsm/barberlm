@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useModules } from "@/hooks/use-modules";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpRight, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon, ShoppingCart, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, Check, Package, Sparkles, ShoppingBag, CreditCard, Wallet, Trophy, Ticket, TrendingUp, BarChart3, Percent, Zap, Infinity as InfinityIcon, Code, Plug, Palette, LucideIcon, ShoppingCart, Plus } from "lucide-react";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 import { SubscribeAddonDialog } from "@/components/subscription/SubscribeAddonDialog";
 import { AddonsCartDrawer, type CartLine } from "@/components/subscription/AddonsCartDrawer";
@@ -110,6 +110,18 @@ function AddonsCatalog() {
   return (
     <div className="min-h-screen bg-[#050810] text-white">
       <div className="max-w-7xl mx-auto px-4 py-10">
+        {/* Back navigation */}
+        <div className="mb-6">
+          <Link
+            from={Route.fullPath}
+            to=".."
+            className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-amber-300 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar para assinatura
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-10">
           <span className="inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 uppercase tracking-wider mb-3">
