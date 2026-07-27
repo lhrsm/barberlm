@@ -176,6 +176,8 @@ function ShopPageComponent() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
+  const [availableBarberIds, setAvailableBarberIds] = useState<string[]>([]);
+
   const [loadingDayData, setLoadingDayData] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
