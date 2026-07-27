@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { emitAutomationEvent } from "@/utils/emit-event";
 import { createNotification } from "@/utils/notifications";
+import { fetchAvailableTimes } from "@/lib/availability";
+
 import { Check, ChevronLeft, ChevronRight, Scissors, User, Calendar as CalIcon, Clock, Sparkles } from "lucide-react";
 
 export interface RescheduleWizardAppointment {
