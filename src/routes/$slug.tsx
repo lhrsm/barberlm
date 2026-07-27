@@ -5591,7 +5591,45 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={!!pixReceipt}
+        onOpenChange={(v) => {
+          if (!v && pixReceipt) {
+            const done = pixReceipt.onDone;
+            setPixReceipt(null);
+            done();
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Envie o comprovante do PIX</DialogTitle>
+          </DialogHeader>
+          {pixReceipt && (
+            <PixReceiptStep
+              tenantId={shop.id}
+              appointmentId={pixReceipt.appointmentId}
+              customerId={pixReceipt.customerId}
+              customerName={customerName}
+              serviceName={pixReceipt.serviceName}
+              amount={pixReceipt.amount}
+              dateLabel={pixReceipt.dateLabel}
+              timeLabel={pixReceipt.timeLabel}
+              shopName={shop.business_name}
+              pixKey={(shop as any).pix_key}
+              whatsappNumber={shop.whatsapp_number}
+              onFinish={() => {
+                const done = pixReceipt.onDone;
+                setPixReceipt(null);
+                done();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <BackToTopButton />
+
     </div>
   );
 }
