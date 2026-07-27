@@ -479,115 +479,49 @@ function ShopPageComponent() {
   }, [bookingStep, selectedBarber, selectedDate, selectedService]);
 
   const fetchAvailableTimes = async (barberId: string, date: string, service: any) => {
-    console.log('BOOKING DATA DEBUG: fetchAvailableTimes', { 
-      customerName, 
-      customerPhone, 
-      selectedService: service?.name, 
-      barberId, 
-      date 
-    });
-
-    if (!barberId || !service) {
-      console.warn('DEBUG: No professional or service selected, skipping fetchAvailableTimes');
-      return;
-    }
+    if (!barberId || !service) return;
 
     setFetchingTimes(true);
     try {
-      const barber = barbers.find(b => b.id === barberId);
-      if (!barber) {
-        console.error("DEBUG: Barber not found in local state", { barberId, barbersCount: barbers.length });
-        return;
-      }
+      // Motor central de disponibilidade (mesmo usado no painel e no walk-in)
+      const { slots } = await fetchAvailability({
+        barberId,
+        date,
+        durationMinutes: service.duration_minutes || 30,
+      });
 
-      const dateObj = parseISO(date);
-      const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
-      
-      const dayMap: Record<string, string> = {
-        'segunda-feira': 'monday',
-        'terça-feira': 'tuesday',
-        'quarta-feira': 'wednesday',
-        'quinta-feira': 'thursday',
-        'sexta-feira': 'friday',
-        'sábado': 'saturday',
-        'domingo': 'sunday'
-      };
-      
-      const dayKey = dayMap[dayName] || dayName;
-      const workingHours = (barber.working_hours as any)?.[dayKey];
+      const [y, m, d] = date.split("-").map(Number);
+      const duration = (service.duration_minutes || 30) * 60 * 1000;
 
-      if (!workingHours || !workingHours.enabled) {
-        setAvailableTimes([]);
-        return;
-      }
+      const times = slots
+        .filter((slot) => slot.state === "available")
+        .filter((slot) => {
+          const [h, min] = slot.time.split(":").map(Number);
+          const startMs = new Date(y, m - 1, d, h, min, 0).getTime();
+          const endMs = startMs + duration;
 
-      const times = [];
-      const [startHour, startMin] = workingHours.start.split(':').map(Number);
-      const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      
-      const [y, m, d] = date.split('-').map(Number);
-
-      console.log('WORKING HOURS', { start: workingHours.start, end: workingHours.end });
-      console.log('EXISTING APPOINTMENTS', dayAppointments.filter(app => app.barber_id === barberId));
-
-      for (let hour = startHour; hour <= endHour; hour++) {
-        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
-          if (hour === endHour && min >= endMin) break;
-          
-          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          const checkTime = new Date(y, m - 1, d, hour, min, 0);
-          const now = new Date();
-          const isToday = y === now.getFullYear() && (m - 1) === now.getMonth() && d === now.getDate();
-          
-          if (isToday && checkTime < now) continue;
-
-          const checkTimeMs = checkTime.getTime();
-          const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
-
-          // Check DB Appointments
-          const isBusyApp = dayAppointments.some(app => {
-            if (app.barber_id !== barberId) return false;
-            const appStart = new Date(app.start_time).getTime();
-            const appEnd = new Date(app.end_time).getTime();
-            // Conflict rule: slotStart < appointmentEnd && slotEnd > appointmentStart
-            return checkTimeMs < appEnd && serviceEndMs > appStart;
-          });
-
-          if (isBusyApp) continue;
-
-          // Check Customer Conflict in Cart (Any barber)
-          const isBusyCartCustomer = bookingCart.some(item => {
-            const [itemHour, itemMin] = item.start_time.split(':').map(Number);
-            const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
+          // Conflitos do próprio carrinho (cliente e profissional)
+          return !bookingCart.some((item) => {
+            const sameCustomerWindow = true;
+            const sameBarber = item.barber_id === barberId;
+            if (!sameCustomerWindow && !sameBarber) return false;
+            const [ih, im] = item.start_time.split(":").map(Number);
+            const itemStart = new Date(y, m - 1, d, ih, im, 0).getTime();
             const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
-            return checkTimeMs < itemEnd && serviceEndMs > itemStart;
+            return startMs < itemEnd && endMs > itemStart;
           });
+        })
+        .map((slot) => slot.time);
 
-          if (isBusyCartCustomer) continue;
-
-          // Check Barber Conflict in Cart (Specific barber)
-          const isBusyCartBarber = bookingCart.some(item => {
-            if (item.barber_id !== barberId) return false;
-            const [itemHour, itemMin] = item.start_time.split(':').map(Number);
-            const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
-            const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
-            return checkTimeMs < itemEnd && serviceEndMs > itemStart;
-          });
-
-          if (isBusyCartBarber) continue;
-
-          times.push(timeStr);
-        }
-      }
-      
-      console.log('AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
+      setAvailableTimes([]);
     } finally {
       setFetchingTimes(false);
     }
   };
+
 
   const fetchDayData = async (date: string) => {
     if (!shop?.id) return;
