@@ -8545,6 +8545,16 @@ export type Database = {
         Args: { _token: string }
         Returns: Json
       }
+      get_availability_slots: {
+        Args: {
+          p_barber_id: string
+          p_date: string
+          p_duration_minutes?: number
+          p_exclude_appointment_id?: string
+          p_step_minutes?: number
+        }
+        Returns: Json
+      }
       get_barber_appointments: { Args: { p_barber_id: string }; Returns: Json }
       get_barber_commission_summary: {
         Args: {

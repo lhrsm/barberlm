@@ -27,6 +27,8 @@ import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
 import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
 import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 import { SubscribePlanModal } from "@/components/portal/SubscribePlanModal";
+import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
+
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -174,6 +176,8 @@ function ShopPageComponent() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
+  const [availableBarberIds, setAvailableBarberIds] = useState<string[]>([]);
+
   const [loadingDayData, setLoadingDayData] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
@@ -452,6 +456,54 @@ function ShopPageComponent() {
     }
   }, [selectedDate, shop?.id, isBookingOpen]);
 
+  // Pré-cálculo da disponibilidade de cada profissional no dia (motor central)
+  useEffect(() => {
+    let cancelled = false;
+    async function computeBarberAvailability() {
+      if (!selectedDate || !selectedService || !isBookingOpen || barbers.length === 0) {
+        setAvailableBarberIds([]);
+        return;
+      }
+      const eligible = barbers.filter((b: any) =>
+        b.barber_services?.some((bs: any) => bs.service_id === selectedService.id),
+      );
+      const results = await Promise.all(
+        eligible.map(async (b: any) => {
+          const { slots } = await fetchAvailability({
+            barberId: b.id,
+            date: selectedDate,
+            durationMinutes: selectedService.duration_minutes || 30,
+          });
+          const cartItems = bookingCart.filter(
+            (item: any) => item.barber_id === b.id && item.date === selectedDate,
+          );
+          const [y, m, d] = selectedDate.split("-").map(Number);
+          const duration = (selectedService.duration_minutes || 30) * 60 * 1000;
+          const free = slots.some((slot) => {
+            if (slot.state !== "available") return false;
+            const [h, min] = slot.time.split(":").map(Number);
+            const startMs = new Date(y, m - 1, d, h, min, 0).getTime();
+            const endMs = startMs + duration;
+            return !cartItems.some((item: any) => {
+              const [ih, im] = item.start_time.split(":").map(Number);
+              const itemStart = new Date(y, m - 1, d, ih, im, 0).getTime();
+              const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
+              return startMs < itemEnd && endMs > itemStart;
+            });
+          });
+          return free ? b.id : null;
+        }),
+      );
+      if (cancelled) return;
+      setAvailableBarberIds(results.filter(Boolean) as string[]);
+    }
+    computeBarberAvailability();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate, selectedService, isBookingOpen, barbers, bookingCart]);
+
+
   // Font loading
   useEffect(() => {
     // Only attempt to load if it's not the default Inter
@@ -479,115 +531,49 @@ function ShopPageComponent() {
   }, [bookingStep, selectedBarber, selectedDate, selectedService]);
 
   const fetchAvailableTimes = async (barberId: string, date: string, service: any) => {
-    console.log('BOOKING DATA DEBUG: fetchAvailableTimes', { 
-      customerName, 
-      customerPhone, 
-      selectedService: service?.name, 
-      barberId, 
-      date 
-    });
-
-    if (!barberId || !service) {
-      console.warn('DEBUG: No professional or service selected, skipping fetchAvailableTimes');
-      return;
-    }
+    if (!barberId || !service) return;
 
     setFetchingTimes(true);
     try {
-      const barber = barbers.find(b => b.id === barberId);
-      if (!barber) {
-        console.error("DEBUG: Barber not found in local state", { barberId, barbersCount: barbers.length });
-        return;
-      }
+      // Motor central de disponibilidade (mesmo usado no painel e no walk-in)
+      const { slots } = await fetchAvailability({
+        barberId,
+        date,
+        durationMinutes: service.duration_minutes || 30,
+      });
 
-      const dateObj = parseISO(date);
-      const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
-      
-      const dayMap: Record<string, string> = {
-        'segunda-feira': 'monday',
-        'terça-feira': 'tuesday',
-        'quarta-feira': 'wednesday',
-        'quinta-feira': 'thursday',
-        'sexta-feira': 'friday',
-        'sábado': 'saturday',
-        'domingo': 'sunday'
-      };
-      
-      const dayKey = dayMap[dayName] || dayName;
-      const workingHours = (barber.working_hours as any)?.[dayKey];
+      const [y, m, d] = date.split("-").map(Number);
+      const duration = (service.duration_minutes || 30) * 60 * 1000;
 
-      if (!workingHours || !workingHours.enabled) {
-        setAvailableTimes([]);
-        return;
-      }
+      const times = slots
+        .filter((slot) => slot.state === "available")
+        .filter((slot) => {
+          const [h, min] = slot.time.split(":").map(Number);
+          const startMs = new Date(y, m - 1, d, h, min, 0).getTime();
+          const endMs = startMs + duration;
 
-      const times = [];
-      const [startHour, startMin] = workingHours.start.split(':').map(Number);
-      const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      
-      const [y, m, d] = date.split('-').map(Number);
-
-      console.log('WORKING HOURS', { start: workingHours.start, end: workingHours.end });
-      console.log('EXISTING APPOINTMENTS', dayAppointments.filter(app => app.barber_id === barberId));
-
-      for (let hour = startHour; hour <= endHour; hour++) {
-        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
-          if (hour === endHour && min >= endMin) break;
-          
-          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          const checkTime = new Date(y, m - 1, d, hour, min, 0);
-          const now = new Date();
-          const isToday = y === now.getFullYear() && (m - 1) === now.getMonth() && d === now.getDate();
-          
-          if (isToday && checkTime < now) continue;
-
-          const checkTimeMs = checkTime.getTime();
-          const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
-
-          // Check DB Appointments
-          const isBusyApp = dayAppointments.some(app => {
-            if (app.barber_id !== barberId) return false;
-            const appStart = new Date(app.start_time).getTime();
-            const appEnd = new Date(app.end_time).getTime();
-            // Conflict rule: slotStart < appointmentEnd && slotEnd > appointmentStart
-            return checkTimeMs < appEnd && serviceEndMs > appStart;
-          });
-
-          if (isBusyApp) continue;
-
-          // Check Customer Conflict in Cart (Any barber)
-          const isBusyCartCustomer = bookingCart.some(item => {
-            const [itemHour, itemMin] = item.start_time.split(':').map(Number);
-            const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
+          // Conflitos do próprio carrinho (cliente e profissional)
+          return !bookingCart.some((item) => {
+            const sameCustomerWindow = true;
+            const sameBarber = item.barber_id === barberId;
+            if (!sameCustomerWindow && !sameBarber) return false;
+            const [ih, im] = item.start_time.split(":").map(Number);
+            const itemStart = new Date(y, m - 1, d, ih, im, 0).getTime();
             const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
-            return checkTimeMs < itemEnd && serviceEndMs > itemStart;
+            return startMs < itemEnd && endMs > itemStart;
           });
+        })
+        .map((slot) => slot.time);
 
-          if (isBusyCartCustomer) continue;
-
-          // Check Barber Conflict in Cart (Specific barber)
-          const isBusyCartBarber = bookingCart.some(item => {
-            if (item.barber_id !== barberId) return false;
-            const [itemHour, itemMin] = item.start_time.split(':').map(Number);
-            const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
-            const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
-            return checkTimeMs < itemEnd && serviceEndMs > itemStart;
-          });
-
-          if (isBusyCartBarber) continue;
-
-          times.push(timeStr);
-        }
-      }
-      
-      console.log('AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
+      setAvailableTimes([]);
     } finally {
       setFetchingTimes(false);
     }
   };
+
 
   const fetchDayData = async (date: string) => {
     if (!shop?.id) return;
@@ -612,78 +598,18 @@ function ShopPageComponent() {
     }
   };
 
-  const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[], cartItems: any[] = []) => {
+  /**
+   * Disponibilidade do profissional no dia — usa o motor central.
+   * O resultado é pré-calculado uma única vez por (data + serviço) e
+   * consultado de forma síncrona pela UI.
+   */
+  const isBarberAvailableOnDate = (barber: any, _date: string, service: any) => {
     if (!service || !barber) return false;
-    
     const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
-    if (!performsService) {
-      console.log(`BARBER ${barber.name} DOES NOT PERFORM SERVICE ${service.name}`);
-      return false;
-    }
-
-    const dateObj = parseISO(date);
-    const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
-    const dayMap: Record<string, string> = {
-      'segunda-feira': 'monday',
-      'terça-feira': 'tuesday',
-      'quarta-feira': 'wednesday',
-      'quinta-feira': 'thursday',
-      'sexta-feira': 'friday',
-      'sábado': 'saturday',
-      'domingo': 'sunday'
-    };
-    const dayKey = dayMap[dayName] || dayName;
-    const workingHours = barber.working_hours?.[dayKey];
-
-    if (!workingHours || !workingHours.enabled) {
-      console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey, barber: barber.name });
-      return false;
-    }
-
-    const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
-    const barberCartItems = cartItems.filter(item => item.barber_id === barber.id && item.date === date);
-    
-    console.log(`CHECKING AVAILABILITY for ${barber.name} on ${date}. Appointments: ${barberAppointments.length}, CartItems: ${barberCartItems.length}`);
-    const [startHour, startMin] = workingHours.start.split(':').map(Number);
-    const [endHour, endMin] = workingHours.end.split(':').map(Number);
-    const interval = 30; // Min interval to check for a free slot
-
-    for (let hour = startHour; hour <= endHour; hour++) {
-      for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
-        if (hour === endHour && min >= endMin) break;
-        const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-        const [y, m, d] = date.split('-').map(Number);
-        const checkTime = new Date(y, m - 1, d, hour, min, 0);
-        
-        if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
-
-        const checkTimeMs = checkTime.getTime();
-        const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
-
-        // Check Existing Appointments
-        const isBusyApp = barberAppointments.some(app => {
-          const appStart = new Date(app.start_time).getTime();
-          const appEnd = new Date(app.end_time).getTime();
-          const conflict = checkTimeMs < appEnd && serviceEndMs > appStart;
-          return conflict;
-        });
-
-        if (isBusyApp) continue;
-
-        // Check Items Already in Cart
-        const isBusyCart = barberCartItems.some(item => {
-          const [itemHour, itemMin] = item.start_time.split(':').map(Number);
-          const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
-          const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
-          const conflict = checkTimeMs < itemEnd && serviceEndMs > itemStart;
-          return conflict;
-        });
-
-        if (!isBusyCart) return true;
-      }
-    }
-    return false;
+    if (!performsService) return false;
+    return availableBarberIds.includes(barber.id);
   };
+
 
   async function fetchShopData(targetSlug: string) {
     console.log('DEBUG: Fetching shop data for slug:', targetSlug);
@@ -1131,35 +1057,20 @@ function ShopPageComponent() {
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
-    console.log('DEBUG: checkConflict (Barber)', { barberId, date, time, serviceId });
     const service = services.find(s => s.id === serviceId);
     if (!service) return false;
-    
+
     const startTime = parseISO(`${date}T${time}:00`);
     const endTime = addMinutes(startTime, service.duration_minutes || 30);
-    const startIso = startTime.toISOString();
-    const endIso = endTime.toISOString();
 
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("id, start_time, end_time, status")
-      .eq("barber_id", barberId)
-      .in("status", ["scheduled", "confirmed", "in_progress"])
-      .lt("start_time", endIso)
-      .gt("end_time", startIso)
-      .limit(1);
-
-    if (error) {
-      console.error("Erro ao verificar conflitos (barbeiro):", error);
-      return false;
-    }
-
-    const hasConflict = data && data.length > 0;
-    if (hasConflict) {
-      console.log('CONFLITO DETECTADO (BARBEIRO):', data[0]);
-    }
-    return hasConflict;
+    // Motor central: considera buffer técnico e todos os status ativos (inclui walk-in)
+    return await hasConflict({
+      barberId,
+      startISO: startTime.toISOString(),
+      endISO: endTime.toISOString(),
+    });
   };
+
 
 
 
@@ -3866,7 +3777,7 @@ function ShopPageComponent() {
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
-                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
+                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService))
                         .map(b => (
                         <motion.div 
                           key={b.id} 

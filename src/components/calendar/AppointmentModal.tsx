@@ -30,12 +30,13 @@ import { CustomerStep } from "./appointment/CustomerStep";
 import { AppointmentReviewStep } from "./appointment/AppointmentReviewStep";
 import { AppointmentModalFooter } from "./appointment/AppointmentModalFooter";
 import {
-  buildSlots,
   computeAppointmentTotal,
   dayKeyFromDate,
   toMinutes,
   type Slot,
 } from "./appointment/appointment-utils";
+import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
+
 
 interface AppointmentModalProps {
   trigger?: React.ReactNode;
@@ -227,38 +228,20 @@ export function AppointmentModal({
     setNextAvailableDate(null);
   }, [barberObj, isDayEnabled]);
 
-  // Load busy intervals and build the slot grid
+  // Motor único de disponibilidade (mesma lógica do online/walk-in)
   useEffect(() => {
     let cancelled = false;
     async function load() {
       if (!isOpen || currentStep !== 2 || !selectedBarber || !selectedDate) return;
       setSlotsLoading(true);
-      const { data } = await supabase
-        .from("appointments")
-        .select("id, start_time, end_time, status")
-        .eq("barber_id", selectedBarber)
-        .in("status", ["pending", "scheduled", "confirmed", "in_progress", "awaiting_payment"])
-        .gte("start_time", `${selectedDate}T00:00:00`)
-        .lte("start_time", `${selectedDate}T23:59:59`);
-
+      const { slots: engineSlots } = await fetchAvailability({
+        barberId: selectedBarber,
+        date: selectedDate,
+        durationMinutes: serviceObj?.duration_minutes || 30,
+        excludeAppointmentId: editingAppointmentId || null,
+      });
       if (cancelled) return;
-
-      const busy = (data || [])
-        .filter((a: any) => a.id !== editingAppointmentId)
-        .map((a: any) => ({
-          start: toMinutes(format(parseISO(a.start_time), "HH:mm")),
-          end: toMinutes(format(parseISO(a.end_time), "HH:mm")),
-        }));
-
-      setSlots(
-        buildSlots({
-          date: selectedDate,
-          workingHours: workingHoursForDate,
-          serviceDuration: serviceObj?.duration_minutes || 30,
-          bufferMinutes,
-          busy,
-        }),
-      );
+      setSlots(engineSlots as unknown as Slot[]);
       setSlotsLoading(false);
     }
     load();
@@ -270,11 +253,10 @@ export function AppointmentModal({
     currentStep,
     selectedBarber,
     selectedDate,
-    workingHoursForDate,
     serviceObj,
-    bufferMinutes,
     editingAppointmentId,
   ]);
+
 
   const breakdown = computeAppointmentTotal({
     servicePrice: Number(serviceObj?.price || 0),
@@ -298,22 +280,15 @@ export function AppointmentModal({
     const startIso = startTime.toISOString();
     const endIso = endTime.toISOString();
 
-    let barberQuery = supabase
-      .from("appointments")
-      .select("id, start_time, end_time, status")
-      .eq("barber_id", barberId)
-      .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
-      .lt("start_time", endIso)
-      .gt("end_time", startIso);
+    // Profissional: usa o motor central (considera buffer e todos os status ativos)
+    const barberBusy = await hasConflict({
+      barberId,
+      startISO: startIso,
+      endISO: endIso,
+      excludeAppointmentId: editingAppointmentId || null,
+    });
+    if (barberBusy) return { conflict: true, type: "barber" };
 
-    if (editingAppointmentId) barberQuery = barberQuery.neq("id", editingAppointmentId);
-
-    const { data: barberConflict, error: barberError } = await barberQuery.limit(1);
-    if (barberError) {
-      console.error("Barber conflict query error:", barberError);
-      return { conflict: false };
-    }
-    if (barberConflict && barberConflict.length > 0) return { conflict: true, type: "barber" };
 
     if (customerId) {
       let customerQuery = supabase
@@ -366,7 +341,7 @@ export function AppointmentModal({
 
       if (conflict) {
         if (type === "barber") {
-          toast.error("Este profissional já possui um agendamento neste horário.");
+          toast.error(OVERLAP_MESSAGE);
         } else {
           toast.error("Este cliente já possui um agendamento conflitante neste horário.");
         }

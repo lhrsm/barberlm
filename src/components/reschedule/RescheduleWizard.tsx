@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { emitAutomationEvent } from "@/utils/emit-event";
 import { createNotification } from "@/utils/notifications";
+import { fetchAvailableTimes } from "@/lib/availability";
+
 import { Check, ChevronLeft, ChevronRight, Scissors, User, Calendar as CalIcon, Clock, Sparkles } from "lucide-react";
 
 export interface RescheduleWizardAppointment {
@@ -137,17 +139,14 @@ export function RescheduleWizard({
       setFetchingTimes(true);
       setTimes([]);
       try {
-        const { data, error } = await supabase.rpc("get_reschedule_options" as any, {
-          p_appointment_id: appointment.id,
-          p_barber_id: selectedBarberId,
-          p_date: selectedDate,
-        } as any);
-        if (error) throw error;
-
-        const payload = data as any;
-        if (!payload?.success) throw new Error(payload?.error || "Falha ao carregar horários");
-        setTimes(Array.isArray(payload.times) ? payload.times : []);
-        if (payload.durationMinutes) setDurationMinutes(Number(payload.durationMinutes));
+        // Motor central de disponibilidade, ignorando o próprio agendamento
+        const list = await fetchAvailableTimes({
+          barberId: selectedBarberId,
+          date: selectedDate,
+          durationMinutes: durationMinutes || 30,
+          excludeAppointmentId: appointment.id,
+        });
+        setTimes(list);
       } catch (err) {
         console.warn("[RescheduleWizard] failed to load times", err);
         setTimes([]);
@@ -155,7 +154,8 @@ export function RescheduleWizard({
         setFetchingTimes(false);
       }
     })();
-  }, [step, selectedBarberId, selectedDate, appointment?.id]);
+  }, [step, selectedBarberId, selectedDate, appointment?.id, durationMinutes]);
+
 
   const originalBarberName = useMemo(
     () => barbers.find((b) => b.id === appointment?.barber_id)?.name || appointment?.barber_name || "",
