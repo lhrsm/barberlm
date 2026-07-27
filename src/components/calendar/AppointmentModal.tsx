@@ -341,7 +341,7 @@ export function AppointmentModal({
 
       if (conflict) {
         if (type === "barber") {
-          toast.error("Este profissional já possui um agendamento neste horário.");
+          toast.error(OVERLAP_MESSAGE);
         } else {
           toast.error("Este cliente já possui um agendamento conflitante neste horário.");
         }
