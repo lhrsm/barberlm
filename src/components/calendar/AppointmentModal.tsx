@@ -30,12 +30,13 @@ import { CustomerStep } from "./appointment/CustomerStep";
 import { AppointmentReviewStep } from "./appointment/AppointmentReviewStep";
 import { AppointmentModalFooter } from "./appointment/AppointmentModalFooter";
 import {
-  buildSlots,
   computeAppointmentTotal,
   dayKeyFromDate,
   toMinutes,
   type Slot,
 } from "./appointment/appointment-utils";
+import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
+
 
 interface AppointmentModalProps {
   trigger?: React.ReactNode;
