@@ -286,6 +286,7 @@ export function AppointmentModal({
       startISO: startIso,
       endISO: endIso,
       excludeAppointmentId: editingAppointmentId || null,
+      source: "manual",
     });
     if (barberBusy) return { conflict: true, type: "barber" };
 

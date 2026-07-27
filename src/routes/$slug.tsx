@@ -1068,6 +1068,7 @@ function ShopPageComponent() {
       barberId,
       startISO: startTime.toISOString(),
       endISO: endTime.toISOString(),
+      source: "online",
     });
   };
 
