@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
+
 import {
   Dialog,
   DialogContent,
