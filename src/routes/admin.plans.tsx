@@ -428,11 +428,18 @@ function AdminPlans() {
                 ) : (
                   <Button
                     variant="outline"
-                    className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white"
                     onClick={() => setEditing(plan.id)}
+                    className={cn(
+                      "w-full group relative overflow-hidden",
+                      "border-amber-500/30 bg-amber-500/5 text-amber-100",
+                      "hover:border-amber-500/70 hover:bg-amber-500/15 hover:text-amber-50",
+                      "hover:shadow-[0_0_24px_rgba(245,158,11,0.25)]",
+                      "transition-all duration-300 ease-out"
+                    )}
                   >
-                    <Edit2 className="w-4 h-4 mr-2" />
-                    Editar plano
+                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent transition-transform duration-500 ease-out" />
+                    <Edit2 className="w-4 h-4 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                    <span className="relative z-10 font-semibold tracking-wide">Editar plano</span>
                   </Button>
                 )}
               </CardFooter>
