@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminChartsTab } from "@/components/admin/AdminChartsTab";
+import { AdminEngagementTab } from "@/components/admin/AdminEngagementTab";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
