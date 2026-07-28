@@ -196,8 +196,10 @@ function AdminDashboard() {
             </div>
             
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10 text-white gap-2 h-12 px-6 rounded-2xl backdrop-blur-md">
-                <Filter className="w-4 h-4" /> Filtros Avançados
+              <Button variant="outline" className="group relative overflow-hidden bg-transparent border-[#D4AF37]/30 hover:border-[#D4AF37]/60 text-white gap-2 h-12 px-6 rounded-2xl backdrop-blur-md transition-all duration-300 hover:shadow-[0_0_25px_rgba(212,175,55,0.15)]">
+                <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37]/10 to-[#D4AF37]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                <Filter className="w-4 h-4 text-[#D4AF37] relative" /> 
+                <span className="relative">Filtros Avançados</span>
               </Button>
               <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white gap-2 h-12 px-6 rounded-2xl border-none transition-all duration-300">
                 <RefreshCw className="w-4 h-4" /> Novo Snapshot

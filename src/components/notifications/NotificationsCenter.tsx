@@ -141,18 +141,28 @@ export function NotificationsCenter() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative group">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={cn(
+            "relative group rounded-full h-10 w-10 border border-[#D4AF37]/20 bg-[#D4AF37]/5",
+            "hover:bg-[#D4AF37]/15 hover:border-[#D4AF37]/40 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)]",
+            "transition-all duration-300",
+            unreadCount > 0 && "ring-2 ring-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+          )}
+        >
           <Bell className={cn(
-            "h-5 w-5 transition-all",
-            unreadCount > 0 ? "text-primary animate-pulse" : "text-muted-foreground"
+            "h-5 w-5 transition-all duration-300",
+            unreadCount > 0 ? "text-[#D4AF37] animate-pulse" : "text-[#D4AF37]/70 group-hover:text-[#D4AF37]"
           )} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-background">
-              {unreadCount}
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8860B] text-[10px] font-black text-black ring-2 ring-background shadow-[0_2px_8px_rgba(212,175,55,0.5)]">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between p-4 border-b">
           <DropdownMenuLabel className="p-0 font-bold">Notificações</DropdownMenuLabel>
