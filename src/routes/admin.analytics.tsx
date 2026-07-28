@@ -126,19 +126,7 @@ function AdminAnalytics() {
         </TabsContent>
 
         <TabsContent value="usage" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Card className="glass border-white/5 rounded-[3rem] p-12 text-center overflow-hidden relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600 rounded-full blur-[160px] opacity-20" />
-            <div className="relative z-10 space-y-6">
-              <div className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto border border-white/10 shadow-2xl">
-                <MousePointer2 className="h-10 w-10 text-purple-400 animate-bounce" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black tracking-tighter text-white italic">HEATMAPS & FLOWS</h3>
-                <p className="text-gray-400 font-medium max-w-sm mx-auto">Métricas detalhadas de cliques e fluxo de navegação inteligente.</p>
-              </div>
-              <Badge className="bg-purple-600 text-white border-none rounded-xl px-4 py-1 font-bold">INTEGRAÇÃO POSTHOG EM BREVE</Badge>
-            </div>
-          </Card>
+          <AdminEngagementTab />
         </TabsContent>
       </Tabs>
     </div>
