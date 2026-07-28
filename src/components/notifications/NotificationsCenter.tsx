@@ -141,19 +141,26 @@ export function NotificationsCenter() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className={cn(
-            "relative group rounded-full h-10 w-10 border border-[#D4AF37]/20 bg-[#D4AF37]/5",
-            "hover:bg-[#D4AF37]/15 hover:border-[#D4AF37]/40 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)]",
-            "transition-all duration-300",
-            unreadCount > 0 && "ring-2 ring-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+            "relative group rounded-full h-10 w-10",
+            "border border-[#D4AF37]/30 bg-[#D4AF37]/5",
+            "hover:bg-[#D4AF37]/25 hover:border-[#D4AF37]/70 hover:scale-105",
+            "hover:shadow-[0_0_24px_rgba(212,175,55,0.35)]",
+            "hover:ring-2 hover:ring-[#D4AF37]/40",
+            "transition-all duration-300 ease-out",
+            "after:absolute after:inset-0 after:rounded-full",
+            "after:opacity-0 group-hover:after:opacity-100",
+            "after:bg-gradient-to-tr after:from-[#D4AF37]/10 after:via-white/20 after:to-transparent",
+            "after:transition-opacity after:duration-300",
+            unreadCount > 0 && "ring-2 ring-[#D4AF37]/40 shadow-[0_0_18px_rgba(212,175,55,0.25)]"
           )}
         >
           <Bell className={cn(
-            "h-5 w-5 transition-all duration-300",
-            unreadCount > 0 ? "text-[#D4AF37] animate-pulse" : "text-[#D4AF37]/70 group-hover:text-[#D4AF37]"
+            "h-5 w-5 transition-all duration-300 relative z-10",
+            unreadCount > 0 ? "text-[#D4AF37] animate-pulse" : "text-[#D4AF37]/60 group-hover:text-[#D4AF37] group-hover:drop-shadow-[0_0_6px_rgba(212,175,55,0.7)]"
           )} />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8860B] text-[10px] font-black text-black ring-2 ring-background shadow-[0_2px_8px_rgba(212,175,55,0.5)]">
