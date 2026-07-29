@@ -210,7 +210,7 @@ function AdminTutorials() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() = aria-label="Editar"> setEditingTutorial(tutorial)}
+                          onClick={() => setEditingTutorial(tutorial)}
                           className="text-gray-400 hover:text-white"
                         >
                           <Edit size={16} />
@@ -218,7 +218,7 @@ function AdminTutorials() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() = aria-label="Excluir"> {
+                          onClick={() => {
                             if (confirm("Excluir este tutorial?")) {
                               deleteTutorialMutation.mutate(tutorial.id);
                             }

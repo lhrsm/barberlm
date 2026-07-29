@@ -395,7 +395,7 @@ function AdminErrors() {
                                size="icon" 
                                className="h-8 w-8" 
                                disabled={reprocessingId === item.automation_id || item.reprocessing_status === 'processing'}
-                               onClick={(e) = aria-label="Atualizar"> {
+                               onClick={(e) => {
                                  e.stopPropagation();
                                  handleReprocess(item);
                                }}

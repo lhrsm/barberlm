@@ -399,7 +399,7 @@ function CalendarComponent() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() = aria-label="Anterior"> setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}
+              onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}
               className="rounded-2xl border-white/10 bg-[#05070D] text-[#F5C542] hover:bg-[#F5C542]/10 hover:border-[#F5C542]/40 h-11 w-11 shrink-0"
             >
               <ChevronLeft size={22} />
@@ -431,7 +431,7 @@ function CalendarComponent() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() = aria-label="Próximo"> setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}
+              onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}
               className="rounded-2xl border-white/10 bg-[#05070D] text-[#F5C542] hover:bg-[#F5C542]/10 hover:border-[#F5C542]/40 h-11 w-11 shrink-0"
             >
               <ChevronRight size={22} />

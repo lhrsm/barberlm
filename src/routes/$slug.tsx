@@ -3178,7 +3178,7 @@ function ShopPageComponent() {
             variant="ghost" 
             size="icon" 
             className="rounded-full text-white hover:bg-white/10" 
-            onClick={() = aria-label="Voltar"> navigate({ to: `/${slug}` })}
+            onClick={() => navigate({ to: `/${slug}` })}
           >
             <ArrowLeft size={24} />
           </Button>
@@ -3261,7 +3261,7 @@ function ShopPageComponent() {
                     variant="ghost" 
                     size="icon" 
                     className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
-                    onClick={() = aria-label="Voltar"> {
+                    onClick={() => {
                       if (bookingStep === 5 && paymentMethod) {
                         setPaymentMethod(null);
                       }
@@ -4009,7 +4009,7 @@ function ShopPageComponent() {
                               variant="ghost" 
                               size="icon" 
                               className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
-                              onClick={() = aria-label="Excluir"> removeFromBookingCart(item.id)}
+                              onClick={() => removeFromBookingCart(item.id)}
                             >
                               <Trash2 size={14} />
                             </Button>
@@ -4029,7 +4029,7 @@ function ShopPageComponent() {
                               variant="ghost" 
                               size="icon" 
                               className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
-                              onClick={() = aria-label="Excluir"> {
+                              onClick={() => {
                                 setSelectedService(null);
                                 setSelectedBarber(null);
                                 setSelectedTime("");
@@ -4154,7 +4154,7 @@ function ShopPageComponent() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() = aria-label="Excluir"> setAppliedCoupon(null)}
+                        onClick={() => setAppliedCoupon(null)}
                         className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
                       >
                         <Trash2 size={16} />

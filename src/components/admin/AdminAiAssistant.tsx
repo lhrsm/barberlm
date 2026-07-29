@@ -87,7 +87,7 @@ export function AdminAiAssistant() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() = aria-label="Fechar"> setOpen(false)}
+              onClick={() => setOpen(false)}
               className="text-white/60 hover:text-white hover:bg-white/10"
             >
               <X className="w-4 h-4" />

@@ -303,19 +303,19 @@ export const InteractionsEditor = forwardRef<InteractionsEditorHandle, Props>(fu
                 {!it.active && <Badge variant="secondary" className="text-[10px]">Inativa</Badge>}
               </div>
               <div className="flex gap-1">
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() = aria-label="Recolher"> move(idx, -1)} disabled={idx === 0}>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => move(idx, -1)} disabled={idx === 0}>
                   <ChevronUp className="h-3 w-3" />
                 </Button>
                 <Button
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7"
-                  onClick={() = aria-label="Expandir"> move(idx, 1)}
+                  onClick={() => move(idx, 1)}
                   disabled={idx === items.length - 1}
                 >
                   <ChevronDown className="h-3 w-3" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() = aria-label="Excluir"> removeItem(idx)}>
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeItem(idx)}>
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>

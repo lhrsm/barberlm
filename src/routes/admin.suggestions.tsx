@@ -152,7 +152,7 @@ function AdminSuggestions() {
                         {t.created_at ? format(new Date(t.created_at), "dd MMM · HH:mm", { locale: ptBR }) : "-"}
                       </TableCell>
                       <TableCell className="py-4">
-                        <Button variant="ghost" size="icon" onClick={(e) = aria-label="Excluir"> handleDelete(t.id, e)} className="text-muted-foreground hover:text-destructive">
+                        <Button variant="ghost" size="icon" onClick={(e) => handleDelete(t.id, e)} className="text-muted-foreground hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>

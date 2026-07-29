@@ -480,7 +480,7 @@ function ServicesComponent() {
                             variant="ghost" 
                             size="icon" 
                             className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
-                            onClick={() = aria-label="Editar"> {
+                            onClick={() => {
                               setEditingService(service);
                               setIsEditDialogOpen(true);
                             }}
@@ -501,7 +501,7 @@ function ServicesComponent() {
                             variant="ghost" 
                             size="icon" 
                             className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
-                            onClick={() = aria-label="Copiar"> handleDuplicateService(service)}
+                            onClick={() => handleDuplicateService(service)}
                           >
                             <Copy size={18} />
                           </Button>
@@ -519,7 +519,7 @@ function ServicesComponent() {
                             variant="ghost" 
                             size="icon" 
                             className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
-                            onClick={() = aria-label="Excluir"> {
+                            onClick={() => {
                               setServiceToDelete(service);
                               setIsDeleteDialogOpen(true);
                             }}

@@ -2404,7 +2404,7 @@ function SubscriptionsPage() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() = aria-label="Fechar"> {
+                    onClick={() => {
                       setNewSubCustomerId("");
                       setCustomerSearch("");
                     }}

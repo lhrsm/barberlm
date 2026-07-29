@@ -148,7 +148,7 @@ function LandingPageComponent() {
               variant="ghost" 
               size="icon" 
               className="lg:hidden text-white" 
-              onClick={() = aria-label="Menu"> setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <Menu className="h-6 w-6" />
             </Button>

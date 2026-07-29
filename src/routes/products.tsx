@@ -610,7 +610,7 @@ function ProductsComponent() {
                               data-product-action
                               size="icon"
                               className="h-11 w-11 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md"
-                              onClick={(e) = aria-label="Editar"> {
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveProductId(null);
                                 setEditingProduct(product);
@@ -624,7 +624,7 @@ function ProductsComponent() {
                               data-product-action
                               size="icon"
                               className="h-11 w-11 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 text-[#f59e0b] border border-[#f59e0b]/40 backdrop-blur-md"
-                              onClick={(e) = aria-label="Copiar"> {
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveProductId(null);
                                 handleDuplicateProduct(product);
@@ -637,7 +637,7 @@ function ProductsComponent() {
                               data-product-action
                               size="icon"
                               className="h-11 w-11 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 backdrop-blur-md"
-                              onClick={(e) = aria-label="Excluir"> {
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveProductId(null);
                                 handleDeleteProduct(product.id);

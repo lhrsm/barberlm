@@ -993,7 +993,7 @@ function BarbersComponent() {
                             variant="ghost" 
                             size="icon" 
                             className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
-                            onClick={() = aria-label="Editar"> {
+                            onClick={() => {
                               setEditingBarber(barber);
                               setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
                               setIsEditDialogOpen(true);
@@ -1016,7 +1016,7 @@ function BarbersComponent() {
                               variant="ghost" 
                               size="icon" 
                               className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
-                              onClick={() = aria-label="Copiar"> handleDuplicateBarber(barber)}
+                              onClick={() => handleDuplicateBarber(barber)}
                             >
                               <Copy size={18} />
                             </Button>
@@ -1035,7 +1035,7 @@ function BarbersComponent() {
                             variant="ghost" 
                             size="icon" 
                             className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
-                            onClick={() = aria-label="Excluir"> {
+                            onClick={() => {
                               setBarberToDelete(barber);
                               setIsDeleteDialogOpen(true);
                             }}

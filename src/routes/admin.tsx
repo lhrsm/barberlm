@@ -152,7 +152,7 @@ function AdminLayout() {
       {/* Top Header */}
       <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 glass bg-black/40 sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="md:hidden text-gray-400" onClick={() = aria-label="Menu"> setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <Button variant="ghost" size="icon" className="md:hidden text-gray-400" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             <Menu className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ function AdminLayout() {
               <ShieldCheck className="text-purple-500 h-6 w-6" />
               <h1 className="font-bold text-white uppercase tracking-tighter">Barbex Admin</h1>
             </div>
-            <Button variant="ghost" size="icon" className="text-gray-400" onClick={() = aria-label="Fechar"> setIsMobileMenuOpen(false)}>
+            <Button variant="ghost" size="icon" className="text-gray-400" onClick={() => setIsMobileMenuOpen(false)}>
               <X />
             </Button>
           </div>
