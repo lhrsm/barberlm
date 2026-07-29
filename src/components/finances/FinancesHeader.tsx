@@ -66,21 +66,21 @@ export function FinancesHeader({
             <Button
               variant="outline"
               disabled={isExportingPdf}
-              className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-gold/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-gold hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100 disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={onExportPdf}
             >
               <FileDown size={18} /> {isExportingPdf ? "Gerando..." : "Exportar PDF"}
             </Button>
             <Button
               variant="outline"
-              className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
+              className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-gold/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-gold hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
               onClick={onSyncAll}
             >
               <RefreshCcw size={18} /> Sincronizar Tudo
             </Button>
             <Button
               variant="outline"
-              className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-[#D4AF37]/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
+              className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-5 rounded-[14px] font-semibold bg-white text-[#B8860B] border border-gold/60 shadow-sm transition-all duration-200 hover:bg-[#FFF4D6] hover:text-black hover:border-gold hover:shadow-[0_10px_28px_-12px_rgba(212,175,55,0.55)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100"
               onClick={onRecalculateBalances}
             >
               <Calculator size={18} /> Recalcular Saldos

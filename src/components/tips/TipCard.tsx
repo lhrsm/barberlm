@@ -68,16 +68,16 @@ export function TipCard({ token, barberName, barberAvatar, pixKey, serviceAmount
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(pixKey)}&size=220x220&bgcolor=05070d&color=D4AF37&margin=8`;
 
   return (
-    <div className="rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#0b0f17] to-black p-5 space-y-5">
+    <div className="rounded-2xl border border-gold/30 bg-gradient-to-br from-[#0b0f17] to-black p-5 space-y-5">
       <div className="flex items-center gap-3">
-        <Avatar className="h-12 w-12 border border-[#D4AF37]/40">
+        <Avatar className="h-12 w-12 border border-gold/40">
           <AvatarImage src={barberAvatar || undefined} />
-          <AvatarFallback className="bg-[#D4AF37]/20 text-[#D4AF37] font-black">
+          <AvatarFallback className="bg-gold/20 text-gold font-black">
             {(barberName || "B").slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-bold">Gorjeta digital</p>
+          <p className="text-[10px] uppercase tracking-widest text-gold font-bold">Gorjeta digital</p>
           <p className="text-white font-black">Agradecer {barberName || "o barbeiro"}</p>
         </div>
       </div>
@@ -96,7 +96,7 @@ export function TipCard({ token, barberName, barberAvatar, pixKey, serviceAmount
             {PRESETS.map((v) => (
               <button key={v} onClick={() => setPreset(v)}
                 className={`rounded-xl border py-2.5 text-sm font-bold transition ${
-                  amount === v ? "bg-[#D4AF37] text-black border-[#D4AF37]" : "border-white/10 text-gray-300 hover:border-[#D4AF37]/50"
+                  amount === v ? "bg-gold text-black border-gold" : "border-white/10 text-gray-300 hover:border-gold/50"
                 }`}>
                 R$ {v}
               </button>
@@ -106,7 +106,7 @@ export function TipCard({ token, barberName, barberAvatar, pixKey, serviceAmount
             <div className="grid grid-cols-3 gap-2">
               {[10, 15, 20].map((p) => (
                 <button key={p} onClick={() => setPct(p)}
-                  className="rounded-xl border border-white/10 text-gray-300 py-2 text-xs font-bold hover:border-[#D4AF37]/50 transition">
+                  className="rounded-xl border border-white/10 text-gray-300 py-2 text-xs font-bold hover:border-gold/50 transition">
                   {p}% do serviço
                 </button>
               ))}
@@ -116,13 +116,13 @@ export function TipCard({ token, barberName, barberAvatar, pixKey, serviceAmount
             <label className="text-[10px] uppercase tracking-widest text-white/60">Outro valor</label>
             <Input type="number" step="0.5" min={0} value={amount || ""}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="bg-black border-[#D4AF37]/30 text-white mt-1" />
+              className="bg-black border-gold/30 text-white mt-1" />
           </div>
         </>
       )}
 
-      <div className="rounded-xl border border-[#D4AF37]/20 bg-black/60 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#D4AF37]">
+      <div className="rounded-xl border border-gold/20 bg-black/60 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-gold">
           <QrCode className="h-3 w-3" /> Chave PIX
         </div>
         <div className="flex items-center gap-2">
@@ -130,19 +130,19 @@ export function TipCard({ token, barberName, barberAvatar, pixKey, serviceAmount
             {pixKey}
           </div>
           <Button variant="outline" size="sm" onClick={copy}
-            className="rounded-lg border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10">
+            className="rounded-lg border-gold/50 text-gold hover:bg-gold/10">
             <Copy className="h-4 w-4" />
           </Button>
         </div>
         <div className="flex justify-center">
           <img src={qrUrl} alt="QR PIX" width={180} height={180}
-            className="rounded-xl border border-[#D4AF37]/30" />
+            className="rounded-xl border border-gold/30" />
         </div>
       </div>
 
       {!sent && (
         <Button onClick={register} disabled={saving || amount <= 0}
-          className="w-full h-12 bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black">
+          className="w-full h-12 bg-gold hover:bg-[#B8962E] text-black font-black">
           <Heart className="h-4 w-4 mr-2" />
           {saving ? "Registrando..." : `Confirmar gorjeta de R$ ${amount.toFixed(2)}`}
         </Button>

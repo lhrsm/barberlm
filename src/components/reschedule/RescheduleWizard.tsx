@@ -298,10 +298,10 @@ export function RescheduleWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black border border-[#D4AF37]/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.35)] text-white max-h-[92vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[520px] bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black border border-gold/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.35)] text-white max-h-[92vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-white text-xl font-black tracking-tight flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[#D4AF37]" /> Reagendar atendimento
+            <Sparkles className="h-5 w-5 text-gold" /> Reagendar atendimento
           </DialogTitle>
           <DialogDescription className="text-gray-400">
             Etapa {step} de {canChangeProfessional ? 5 : 4}
@@ -315,7 +315,7 @@ export function RescheduleWizard({
               key={i}
               className={cn(
                 "h-1.5 flex-1 rounded-full transition-all",
-                i + 1 <= step ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D061]" : "bg-white/10",
+                i + 1 <= step ? "bg-gradient-to-r from-gold to-[#F5D061]" : "bg-white/10",
               )}
             />
           ))}
@@ -325,9 +325,9 @@ export function RescheduleWizard({
           {/* Step 1: Serviço */}
           {step === 1 && (
             <div className="space-y-4 py-3">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Serviço</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Serviço</p>
               <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center gap-3">
-                <Scissors className="h-5 w-5 text-[#D4AF37]" />
+                <Scissors className="h-5 w-5 text-gold" />
                 <div>
                   <p className="font-bold text-white">{appointment.service_name || "Serviço"}</p>
                   <p className="text-xs text-gray-400">Duração: {durationMinutes} min</p>
@@ -351,10 +351,10 @@ export function RescheduleWizard({
           {/* Step 2: Profissional */}
           {step === 2 && canChangeProfessional && (
             <div className="space-y-3 py-3">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Escolha o profissional</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Escolha o profissional</p>
               {loadingBarbers ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold" />
                 </div>
               ) : barbers.length === 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center space-y-2">
@@ -380,8 +380,8 @@ export function RescheduleWizard({
                         className={cn(
                           "w-full text-left rounded-2xl border p-3 flex items-center gap-3 transition-all",
                           isSelected
-                            ? "bg-gradient-to-r from-[#D4AF37]/20 to-transparent border-[#D4AF37]"
-                            : "bg-white/5 border-white/10 hover:border-[#D4AF37]/40",
+                            ? "bg-gradient-to-r from-gold/20 to-transparent border-gold"
+                            : "bg-white/5 border-white/10 hover:border-gold/40",
                         )}
                       >
                         {b.avatar_url ? (
@@ -395,7 +395,7 @@ export function RescheduleWizard({
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-bold text-white truncate">{b.name}</p>
                             {isCurrent && (
-                              <Badge className="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 text-[10px] uppercase">
+                              <Badge className="bg-gold/20 text-gold border border-gold/40 text-[10px] uppercase">
                                 Profissional atual
                               </Badge>
                             )}
@@ -404,7 +404,7 @@ export function RescheduleWizard({
                             <p className="text-xs text-gray-400 truncate">{specialtyText}</p>
                           )}
                         </div>
-                        {isSelected && <Check className="h-5 w-5 text-[#D4AF37] shrink-0" />}
+                        {isSelected && <Check className="h-5 w-5 text-gold shrink-0" />}
                       </button>
                     );
                   })}
@@ -417,7 +417,7 @@ export function RescheduleWizard({
           {/* Step 3: Data */}
           {step === 3 && (
             <div className="space-y-3 py-3">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Nova data</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Nova data</p>
               <input
                 type="date"
                 min={format(new Date(), "yyyy-MM-dd")}
@@ -426,7 +426,7 @@ export function RescheduleWizard({
                   setSelectedDate(e.target.value);
                   setSelectedTime("");
                 }}
-                className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:border-[#D4AF37] outline-none [color-scheme:dark]"
+                className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-white focus:border-gold outline-none [color-scheme:dark]"
               />
               {selectedBarber && (
                 <p className="text-xs text-gray-500 flex items-center gap-2">
@@ -439,10 +439,10 @@ export function RescheduleWizard({
           {/* Step 4: Horário */}
           {step === 4 && (
             <div className="space-y-3 py-3">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Novo horário</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Novo horário</p>
               {fetchingTimes ? (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D4AF37]" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold" />
                   <p className="text-xs text-gray-500">Buscando horários disponíveis...</p>
                 </div>
               ) : times.length === 0 ? (
@@ -452,7 +452,7 @@ export function RescheduleWizard({
                     <Button
                       variant="outline"
                       onClick={() => setStep(3)}
-                      className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                      className="border-gold/40 text-gold hover:bg-gold/10 hover:text-gold"
                     >
                       Escolher outra data
                     </Button>
@@ -460,7 +460,7 @@ export function RescheduleWizard({
                       <Button
                         variant="outline"
                         onClick={() => setStep(2)}
-                        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+                        className="border-gold/40 text-gold hover:bg-gold/10 hover:text-gold"
                       >
                         Trocar profissional
                       </Button>
@@ -479,8 +479,8 @@ export function RescheduleWizard({
                         className={cn(
                           "h-11 rounded-xl text-sm font-bold border transition-all",
                           active
-                            ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black border-transparent shadow-[0_8px_20px_rgba(212,175,55,0.35)]"
-                            : "bg-white/5 border-white/10 text-white hover:border-[#D4AF37]/40",
+                            ? "bg-gradient-to-r from-gold to-[#F5D061] text-black border-transparent shadow-[0_8px_20px_rgba(212,175,55,0.35)]"
+                            : "bg-white/5 border-white/10 text-white hover:border-gold/40",
                         )}
                       >
                         {t}
@@ -495,7 +495,7 @@ export function RescheduleWizard({
           {/* Step 5: Resumo */}
           {step === 5 && (
             <div className="space-y-3 py-3">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Confirme a alteração</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Confirme a alteração</p>
               <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
                 <SummaryRow icon={<Scissors className="h-4 w-4" />} label="Serviço" value={appointment.service_name || "—"} />
                 <SummaryRow
@@ -518,7 +518,7 @@ export function RescheduleWizard({
                 />
               </div>
               {barberChanged && (
-                <p className="text-xs text-[#D4AF37]/90">
+                <p className="text-xs text-gold/90">
                   ✨ O novo profissional será notificado e as comissões futuras serão atribuídas a ele.
                 </p>
               )}
@@ -558,7 +558,7 @@ export function RescheduleWizard({
                   <Button
                     onClick={goNext}
                     disabled={nextDisabled}
-                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none"
+                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-gold to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-40 disabled:pointer-events-none"
                   >
                     Continuar <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -566,7 +566,7 @@ export function RescheduleWizard({
                   <Button
                     onClick={handleConfirm}
                     disabled={submitting}
-                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-50"
+                    className="w-full sm:w-auto h-12 rounded-[14px] px-6 bg-gradient-to-r from-gold to-[#F5D061] text-black font-semibold shadow-[0_10px_28px_rgba(212,175,55,0.4)] hover:brightness-110 hover:-translate-y-[1px] transition-all disabled:opacity-50"
                   >
                     {submitting ? "Salvando..." : "Confirmar reagendamento"}
                   </Button>
@@ -706,7 +706,7 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 text-[#D4AF37]">{icon}</div>
+      <div className="mt-0.5 text-gold">{icon}</div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] uppercase tracking-widest text-gray-500">{label}</p>
         <p className="font-bold text-white truncate">{value}</p>

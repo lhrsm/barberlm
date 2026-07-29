@@ -751,7 +751,7 @@ function AppointmentManagementPage() {
               variant="outline"
               onClick={() => setCancellationStep('none')}
               disabled={cancelling}
-              className="w-full sm:flex-1 h-12 rounded-[14px] uppercase font-black text-xs sm:text-sm tracking-wider bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all"
+              className="w-full sm:flex-1 h-12 rounded-[14px] uppercase font-black text-xs sm:text-sm tracking-wider bg-transparent border border-gold/40 text-gold hover:bg-gold/10 hover:border-gold/60 transition-all"
             >
               Manter Agendamento
             </Button>

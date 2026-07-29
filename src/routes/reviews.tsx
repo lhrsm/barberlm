@@ -31,7 +31,7 @@ function StarsDisplay({ value, size = "sm" }: { value: number | null; size?: "sm
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} className={cn(px, n <= value ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-600")} />
+        <Star key={n} className={cn(px, n <= value ? "text-gold fill-gold" : "text-gray-600")} />
       ))}
       <span className="ml-1.5 text-xs text-gray-200 font-bold tabular-nums">{value}</span>
     </div>
@@ -63,7 +63,7 @@ const EMPTY_COPY: Record<FilterKey, string> = {
 
 function KpiCard({ label, value, icon: Icon, tone = "gold" }: { label: string; value: string | number; icon: any; tone?: "gold" | "emerald" | "amber" | "sky" }) {
   const tones: Record<string, string> = {
-    gold: "from-[#D4AF37]/20 to-[#D4AF37]/5 text-[#D4AF37] border-[#D4AF37]/25",
+    gold: "from-gold/20 to-gold/5 text-gold border-gold/25",
     emerald: "from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/25",
     amber: "from-amber-500/20 to-amber-500/5 text-amber-400 border-amber-500/25",
     sky: "from-sky-500/20 to-sky-500/5 text-sky-400 border-sky-500/25",
@@ -220,7 +220,7 @@ function ReviewsAdminPage() {
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-black text-foreground flex items-center gap-2 sm:gap-3 truncate">
-              <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-[#D4AF37] shrink-0" />
+              <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-gold shrink-0" />
               <span className="truncate">Avaliações</span>
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
@@ -248,7 +248,7 @@ function ReviewsAdminPage() {
         {/* Toolbar: tabs + search */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto scrollbar-none">
-            <div className="inline-flex items-center gap-1.5 rounded-2xl border border-[#D4AF37]/15 bg-[#0b0d12]/80 p-1.5 shadow-[0_4px_24px_-12px_rgba(212,175,55,0.25)] min-w-max">
+            <div className="inline-flex items-center gap-1.5 rounded-2xl border border-gold/15 bg-[#0b0d12]/80 p-1.5 shadow-[0_4px_24px_-12px_rgba(212,175,55,0.25)] min-w-max">
               {TABS.map((t) => {
                 const active = filter === t.key;
                 return (
@@ -258,14 +258,14 @@ function ReviewsAdminPage() {
                     className={cn(
                       "group inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0",
                       active
-                        ? "bg-gradient-to-b from-[#D4AF37] to-[#b8941f] text-black shadow-[0_6px_18px_-6px_rgba(212,175,55,0.6)]"
-                        : "text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 border border-transparent hover:border-[#D4AF37]/20"
+                        ? "bg-gradient-to-b from-gold to-[#b8941f] text-black shadow-[0_6px_18px_-6px_rgba(212,175,55,0.6)]"
+                        : "text-gray-400 hover:text-gold hover:bg-gold/5 border border-transparent hover:border-gold/20"
                     )}
                   >
                     <span>{t.label}</span>
                     <span className={cn(
                       "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums",
-                      active ? "bg-black/20 text-black" : "bg-[#D4AF37]/10 text-[#D4AF37] group-hover:bg-[#D4AF37]/20"
+                      active ? "bg-black/20 text-black" : "bg-gold/10 text-gold group-hover:bg-gold/20"
                     )}>
                       {counts[t.key]}
                     </span>
@@ -280,7 +280,7 @@ function ReviewsAdminPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por cliente, barbeiro, serviço..."
-              className="pl-9 bg-[#0b0d12]/80 border-[#D4AF37]/20 text-white placeholder:text-gray-500"
+              className="pl-9 bg-[#0b0d12]/80 border-gold/20 text-white placeholder:text-gray-500"
             />
           </div>
         </div>
@@ -288,15 +288,15 @@ function ReviewsAdminPage() {
         {/* List */}
         <div className="space-y-4">
           {loading && (
-            <div className="rounded-2xl border border-[#D4AF37]/10 bg-[#0b0d12]/60 p-10 text-center text-muted-foreground text-sm">
+            <div className="rounded-2xl border border-gold/10 bg-[#0b0d12]/60 p-10 text-center text-muted-foreground text-sm">
               Carregando avaliações...
             </div>
           )}
 
           {!loading && filtered.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[#D4AF37]/20 bg-[#0b0d12]/40 p-12 text-center">
-              <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#D4AF37]/10">
-                <Inbox className="h-7 w-7 text-[#D4AF37]" />
+            <div className="rounded-2xl border border-dashed border-gold/20 bg-[#0b0d12]/40 p-12 text-center">
+              <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gold/10">
+                <Inbox className="h-7 w-7 text-gold" />
               </div>
               <p className="text-gray-300 font-semibold text-sm">{EMPTY_COPY[filter]}</p>
               <p className="text-gray-500 text-xs mt-1">Quando houver atividade, ela aparecerá aqui.</p>
@@ -317,11 +317,11 @@ function ReviewsAdminPage() {
             return (
               <article
                 key={r.id}
-                className="rounded-[20px] border border-[#D4AF37]/15 bg-gradient-to-b from-[#0d1017] to-[#0a0c11] p-5 sm:p-6 shadow-[0_8px_32px_-16px_rgba(0,0,0,0.6)] hover:border-[#D4AF37]/30 transition-colors"
+                className="rounded-[20px] border border-gold/15 bg-gradient-to-b from-[#0d1017] to-[#0a0c11] p-5 sm:p-6 shadow-[0_8px_32px_-16px_rgba(0,0,0,0.6)] hover:border-gold/30 transition-colors"
               >
                 <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] font-black text-sm">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold/10 border border-gold/20 text-gold font-black text-sm">
                       {(r.customers?.name || "C").charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -350,13 +350,13 @@ function ReviewsAdminPage() {
                 {/* Meta */}
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-400">
                   {r.appointments?.services?.name && (
-                    <span className="inline-flex items-center gap-1.5"><Scissors className="h-3.5 w-3.5 text-[#D4AF37]/70" /><span className="font-semibold text-gray-300">{r.appointments.services.name}</span></span>
+                    <span className="inline-flex items-center gap-1.5"><Scissors className="h-3.5 w-3.5 text-gold/70" /><span className="font-semibold text-gray-300">{r.appointments.services.name}</span></span>
                   )}
                   {r.barbers?.name && (
-                    <span className="inline-flex items-center gap-1.5"><UserIcon className="h-3.5 w-3.5 text-[#D4AF37]/70" /><span className="font-semibold text-gray-300">{r.barbers.name}</span></span>
+                    <span className="inline-flex items-center gap-1.5"><UserIcon className="h-3.5 w-3.5 text-gold/70" /><span className="font-semibold text-gray-300">{r.barbers.name}</span></span>
                   )}
                   {dateStr && (
-                    <span className="inline-flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5 text-[#D4AF37]/70" /><span className="font-semibold text-gray-300">{dateStr}</span></span>
+                    <span className="inline-flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5 text-gold/70" /><span className="font-semibold text-gray-300">{dateStr}</span></span>
                   )}
                 </div>
 
@@ -378,8 +378,8 @@ function ReviewsAdminPage() {
 
                 {/* Testimonial */}
                 {hasText && (
-                  <blockquote className="mt-4 relative rounded-xl border border-[#D4AF37]/15 border-l-[3px] border-l-[#D4AF37] bg-[#D4AF37]/[0.04] p-4 pl-5">
-                    <Quote className="absolute top-3 right-3 h-5 w-5 text-[#D4AF37]/30" />
+                  <blockquote className="mt-4 relative rounded-xl border border-gold/15 border-l-[3px] border-l-gold bg-gold/[0.04] p-4 pl-5">
+                    <Quote className="absolute top-3 right-3 h-5 w-5 text-gold/30" />
                     <p className="text-sm text-gray-200 italic leading-relaxed pr-6 break-words">"{r.testimonial_text}"</p>
                   </blockquote>
                 )}
@@ -401,12 +401,12 @@ function ReviewsAdminPage() {
 
                 {/* Reply editor */}
                 {isOpen && (
-                  <div className="mt-3 rounded-xl border border-[#D4AF37]/20 bg-[#05070d] p-3 space-y-2">
+                  <div className="mt-3 rounded-xl border border-gold/20 bg-[#05070d] p-3 space-y-2">
                     <Textarea
                       value={replyDraft[r.id] ?? r.reply ?? ""}
                       onChange={(e) => setReplyDraft((s) => ({ ...s, [r.id]: e.target.value }))}
                       placeholder="Escreva uma resposta para o cliente..."
-                      className="bg-[#0b0d12] border-[#D4AF37]/20 text-white min-h-[80px]"
+                      className="bg-[#0b0d12] border-gold/20 text-white min-h-[80px]"
                       maxLength={500}
                     />
                     <div className="flex justify-end gap-2">
@@ -416,7 +416,7 @@ function ReviewsAdminPage() {
                       <Button
                         onClick={() => saveReply(r.id)}
                         disabled={savingReply[r.id]}
-                        className="bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black"
+                        className="bg-gold hover:bg-[#B8962E] text-black font-black"
                       >
                         <Send className="h-4 w-4 mr-1.5" />
                         {savingReply[r.id] ? "Enviando..." : "Enviar resposta"}
@@ -458,7 +458,7 @@ function ReviewsAdminPage() {
                       <Button
                         variant="ghost"
                         onClick={() => moderate(r.id, "show")}
-                        className="h-11 rounded-[14px] w-full sm:w-auto text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold"
+                        className="h-11 rounded-[14px] w-full sm:w-auto text-gold hover:bg-gold/10 font-bold"
                       >
                         <Eye className="h-4 w-4 mr-1.5" /> Exibir no site
                       </Button>

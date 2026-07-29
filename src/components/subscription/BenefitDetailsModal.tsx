@@ -19,9 +19,9 @@ export function BenefitDetailsModal({ open, onOpenChange, ctx }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/30 text-white max-w-lg">
+      <DialogContent className="bg-[#0b0f17] border border-gold/30 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black text-[#D4AF37]">
+          <DialogTitle className="text-xl font-black text-gold">
             Benefício administrativo do Barbex
           </DialogTitle>
           <DialogDescription className="text-zinc-400">

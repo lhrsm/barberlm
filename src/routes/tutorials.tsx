@@ -266,7 +266,7 @@ function TutorialsPage() {
 
           {/* Tutorial Modal */}
           <Dialog open={!!selectedTutorial} onOpenChange={() => setSelectedTutorial(null)}>
-            <DialogContent className="max-w-4xl p-0 bg-[#0b0f17] border border-[#D4AF37]/40 text-white overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.15)]">
+            <DialogContent className="max-w-4xl p-0 bg-[#0b0f17] border border-gold/40 text-white overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.15)]">
               {selectedTutorial && (
                 <div className="flex flex-col h-[90vh] md:h-auto max-h-[90vh]">
                   <div className="p-6 md:p-8 space-y-6 overflow-y-auto">
@@ -337,7 +337,7 @@ function TutorialsPage() {
                     </div>
                   </div>
                   <div className="p-6 border-t border-zinc-800 flex justify-end bg-[#05070d]">
-                    <Button size="sm" onClick={() => setSelectedTutorial(null)} className="h-8 px-4 rounded-lg bg-[#D4AF37] text-black text-xs font-bold hover:bg-[#B8941F] hover:scale-105 hover:shadow-[0_0_16px_rgba(212,175,55,0.5)] transition-all duration-300">
+                    <Button size="sm" onClick={() => setSelectedTutorial(null)} className="h-8 px-4 rounded-lg bg-gold text-black text-xs font-bold hover:bg-[#B8941F] hover:scale-105 hover:shadow-[0_0_16px_rgba(212,175,55,0.5)] transition-all duration-300">
                       Fechar
                     </Button>
                   </div>

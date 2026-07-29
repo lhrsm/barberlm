@@ -129,10 +129,10 @@ export function BarberPerformanceDialog({ open, onOpenChange, barber, tenantId }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[88vh] overflow-y-auto bg-[#0b0f17] border-[#D4AF37]/30">
+      <DialogContent className="max-w-3xl max-h-[88vh] overflow-y-auto bg-[#0b0f17] border-gold/30">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
-            <BarChart3 className="text-[#D4AF37]" size={20} />
+            <BarChart3 className="text-gold" size={20} />
             Desempenho — {barber?.name}
           </DialogTitle>
         </DialogHeader>
@@ -145,10 +145,10 @@ export function BarberPerformanceDialog({ open, onOpenChange, barber, tenantId }
               variant="outline"
               onClick={() => setPeriod(p.key)}
               className={cn(
-                "h-8 text-xs border-[#D4AF37]/30",
+                "h-8 text-xs border-gold/30",
                 period === p.key
-                  ? "bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black border-[#D4AF37]"
-                  : "text-[#D4AF37] hover:bg-[#D4AF37]/10",
+                  ? "bg-gradient-to-r from-gold to-[#F0D67B] text-black font-black border-gold"
+                  : "text-gold hover:bg-gold/10",
               )}
             >
               {p.label}
@@ -157,7 +157,7 @@ export function BarberPerformanceDialog({ open, onOpenChange, barber, tenantId }
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-[#D4AF37]">
+          <div className="flex items-center justify-center py-16 text-gold">
             <Loader2 className="animate-spin" />
           </div>
         ) : (
@@ -182,7 +182,7 @@ export function BarberPerformanceDialog({ open, onOpenChange, barber, tenantId }
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] mb-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gold mb-3">
                 Serviços mais rentáveis
               </p>
               {stats.topServices.length === 0 ? (
@@ -199,7 +199,7 @@ export function BarberPerformanceDialog({ open, onOpenChange, barber, tenantId }
                       </div>
                       <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F0D67B]"
+                          className="h-full rounded-full bg-gradient-to-r from-gold to-[#F0D67B]"
                           style={{ width: `${Math.max(6, (s.total / maxService) * 100)}%` }}
                         />
                       </div>
@@ -218,7 +218,7 @@ export function BarberPerformanceDialog({ open, onOpenChange, barber, tenantId }
 function Metric({ icon: Icon, label, value, hint }: { icon: any; label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
-      <div className="flex items-center gap-2 text-[#D4AF37]">
+      <div className="flex items-center gap-2 text-gold">
         <Icon size={14} />
         <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
       </div>

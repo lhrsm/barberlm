@@ -952,7 +952,7 @@ function SubscriptionsPage() {
               </Button>
               <Button
                 onClick={openNewSub}
-                className="group relative overflow-hidden w-full md:w-auto h-11 md:h-10 rounded-[14px] md:rounded-md bg-gradient-to-r from-[#D4AF37] via-[#F2D57E] to-[#D4AF37] text-black font-bold shadow-[0_4px_16px_rgba(212,175,55,0.3)] hover:shadow-[0_6px_24px_rgba(212,175,55,0.5)] transition-all hover:-translate-y-0.5"
+                className="group relative overflow-hidden w-full md:w-auto h-11 md:h-10 rounded-[14px] md:rounded-md bg-gradient-to-r from-gold via-[#F2D57E] to-gold text-black font-bold shadow-[0_4px_16px_rgba(212,175,55,0.3)] hover:shadow-[0_6px_24px_rgba(212,175,55,0.5)] transition-all hover:-translate-y-0.5"
               >
                 <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                 <Plus className="h-4 w-4 mr-2 relative" />

@@ -295,14 +295,14 @@ export function ManagerialView({ tenantId, initialPeriod, periodKey }: { tenantI
       {/* Header + Period filter */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Inteligência financeira</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Inteligência financeira</p>
           <h3 className="text-xl md:text-2xl font-black text-foreground mt-1">Visão Gerencial</h3>
           <p className="text-xs text-muted-foreground">De onde vem sua receita e para onde vão seus benefícios.</p>
         </div>
         <div className="space-y-1">
           <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Período</Label>
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-            <SelectTrigger className="w-[180px] h-10 rounded-[12px] border-[#D4AF37]/40 bg-white text-[#B8860B] font-semibold">
+            <SelectTrigger className="w-[180px] h-10 rounded-[12px] border-gold/40 bg-white text-[#B8860B] font-semibold">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -454,7 +454,7 @@ export function ManagerialView({ tenantId, initialPeriod, periodKey }: { tenantI
 function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="pt-2">
-      <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">{eyebrow}</p>
+      <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">{eyebrow}</p>
       <h4 className="text-base md:text-lg font-black text-foreground mt-1">{title}</h4>
     </div>
   );
@@ -468,7 +468,7 @@ function KpiCard({
   highlight?: boolean;
 }) {
   const tone: Record<string, string> = {
-    gold: "text-[#D4AF37] bg-[#D4AF37]/12",
+    gold: "text-gold bg-gold/12",
     emerald: "text-emerald-500 bg-emerald-500/12",
     sky: "text-sky-500 bg-sky-500/12",
     violet: "text-violet-500 bg-violet-500/12",
@@ -481,7 +481,7 @@ function KpiCard({
       className={cn(
         "rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-14px_rgba(0,0,0,0.5)]",
         highlight
-          ? "border-[#D4AF37]/60 bg-gradient-to-br from-[#D4AF37]/10 via-transparent to-transparent shadow-[0_8px_28px_-14px_rgba(212,175,55,0.5)]"
+          ? "border-gold/60 bg-gradient-to-br from-gold/10 via-transparent to-transparent shadow-[0_8px_28px_-14px_rgba(212,175,55,0.5)]"
           : "border-border bg-card/60 backdrop-blur",
       )}
     >
@@ -492,7 +492,7 @@ function KpiCard({
           </div>
         </div>
         <p className="text-[9px] uppercase tracking-widest font-black text-muted-foreground">{label}</p>
-        <p className={cn("mt-1 text-base md:text-lg font-black truncate", highlight ? "text-[#D4AF37]" : "text-foreground")}>{value}</p>
+        <p className={cn("mt-1 text-base md:text-lg font-black truncate", highlight ? "text-gold" : "text-foreground")}>{value}</p>
         {hint && <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{hint}</p>}
       </CardContent>
     </Card>

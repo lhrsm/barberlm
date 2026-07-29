@@ -64,7 +64,7 @@ export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfir
           </div>
           
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em] ml-1">Motivo do Cancelamento</label>
+            <label className="text-[10px] font-black uppercase text-gold tracking-[0.2em] ml-1">Motivo do Cancelamento</label>
             <Textarea 
               placeholder="Ex: Profissional teve um imprevisto, cliente solicitou via telefone..." 
               value={reason} 
