@@ -32,7 +32,26 @@ export const Route = createFileRoute("/$slug/profissional")({
     }
   },
   component: ProfessionalDashboard,
+  head: () => ({
+    meta: [
+      { title: "Área do Profissional — Sua agenda do dia" },
+      {
+        name: "description",
+        content:
+          "Acompanhe sua agenda, atenda clientes, registre comandas e veja suas comissões em tempo real.",
+      },
+      { property: "og:title", content: "Área do Profissional" },
+      {
+        property: "og:description",
+        content: "Agenda do dia, comandas e comissões do profissional da barbearia.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
 });
+
 
 function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();

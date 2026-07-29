@@ -86,7 +86,27 @@ import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
+  head: ({ params }) => ({
+    meta: [
+      { title: "Portal do Cliente — Seus agendamentos e benefícios" },
+      {
+        name: "description",
+        content:
+          "Acompanhe seus agendamentos, plano de assinatura, cashback e recompensas de fidelidade da barbearia.",
+      },
+      { property: "og:title", content: "Portal do Cliente" },
+      {
+        property: "og:description",
+        content: "Agendamentos, assinatura, cashback e fidelidade em um só lugar.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: `https://barbex.shop/${params.slug}/portal` },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
 });
+
 
 
 function ClientPortalComponent() {
