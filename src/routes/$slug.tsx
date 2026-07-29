@@ -39,18 +39,32 @@ import 'react-international-phone/style.css';
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
   head: ({ params }) => {
-    // We can't easily fetch shop data here in a sync head function without a loader, 
-    // but the component itself updates the document.title.
+    // O componente atualiza o document.title com o nome real da barbearia ao carregar.
+    const pretty = params.slug
+      .split("-")
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(" ");
     return {
-      title: `Barbearia | ${params.slug}`,
       meta: [
-        { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
-        { property: "og:title", content: "Barbearia Premium" },
-        { property: "og:description", content: "Experiência premium de barbearia com agendamento online." },
+        { title: `${pretty} — Agende seu horário online` },
+        {
+          name: "description",
+          content: `Agende cortes, barba e serviços na ${pretty} em poucos cliques. Horários em tempo real e confirmação pelo WhatsApp.`,
+        },
+        { property: "og:title", content: `${pretty} — Agendamento online` },
+        {
+          property: "og:description",
+          content: `Escolha profissional, serviço e horário na ${pretty}. Agendamento rápido, sem ligações.`,
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `https://barbex.shop/${params.slug}` },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
+      links: [{ rel: "canonical", href: `https://barbex.shop/${params.slug}` }],
     };
   },
 });
+
 
 function ShopPageComponent() {
   const { slug } = Route.useParams();

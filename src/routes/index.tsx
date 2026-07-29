@@ -53,7 +53,28 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: LandingPageComponent,
+  head: () => ({
+    meta: [
+      { title: "Barbex — Sistema de gestão e agendamento para barbearias" },
+      {
+        name: "description",
+        content:
+          "Agenda online, assinaturas, fidelidade, automações no WhatsApp e financeiro em uma só plataforma para barbearias.",
+      },
+      { property: "og:title", content: "Barbex — Gestão completa para barbearias" },
+      {
+        property: "og:description",
+        content:
+          "Agenda inteligente, planos de assinatura, fidelidade e automações de WhatsApp para sua barbearia crescer.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://barbex.shop/" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://barbex.shop/" }],
+  }),
 });
+
 
 function LandingPageComponent() {
   const { user, loading, role } = useAuth();

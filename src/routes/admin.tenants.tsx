@@ -188,7 +188,7 @@ function AdminTenants() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10">
+          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10" aria-label="Filtrar">
             <Filter className="h-5 w-5 text-gray-400" />
           </Button>
         </div>
@@ -274,7 +274,7 @@ function AdminTenants() {
                     <TableCell className="text-right pr-8">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="hover:bg-purple-500/20 hover:text-purple-400 rounded-xl transition-all">
+                          <Button variant="ghost" size="icon" className="hover:bg-purple-500/20 hover:text-purple-400 rounded-xl transition-all" aria-label="Mais opções">
                             <MoreVertical className="h-5 w-5" />
                           </Button>
                         </DropdownMenuTrigger>

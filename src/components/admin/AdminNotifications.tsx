@@ -159,7 +159,7 @@ export function AdminNotifications() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative group overflow-visible">
+        <Button variant="ghost" size="icon" className="relative group overflow-visible" aria-label="Notificações">
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
           <Bell className={cn(
             "h-5 w-5 transition-all duration-300",

@@ -94,7 +94,7 @@ function AdminSubscriptions() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10">
+          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10" aria-label="Filtrar">
             <Filter className="h-5 w-5 text-gray-400" />
           </Button>
         </div>

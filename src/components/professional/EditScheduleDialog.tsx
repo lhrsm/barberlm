@@ -125,7 +125,7 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-black text-gold/70 tracking-widest ml-1">Início</Label>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/50" />
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/70" />
                       <Input
                         type="time"
                         value={hours[day].start}
@@ -137,7 +137,7 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-black text-gold/70 tracking-widest ml-1">Fim</Label>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/50" />
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/70" />
                       <Input
                         type="time"
                         value={hours[day].end}

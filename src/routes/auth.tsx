@@ -8,7 +8,27 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPageComponent,
+  head: () => ({
+    meta: [
+      { title: "Entrar no Barbex — Acesse sua barbearia" },
+      {
+        name: "description",
+        content:
+          "Acesse o painel da sua barbearia no Barbex para gerenciar agenda, clientes, assinaturas e financeiro.",
+      },
+      { property: "og:title", content: "Entrar no Barbex" },
+      {
+        property: "og:description",
+        content: "Login do painel de gestão da sua barbearia.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://barbex.shop/auth" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://barbex.shop/auth" }],
+  }),
 });
+
 
 const TESTIMONIALS = [
   {

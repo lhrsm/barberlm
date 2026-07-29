@@ -271,7 +271,7 @@ function CampaignsComponent() {
                               variant="ghost"
                               size="icon"
                               className="h-[42px] w-[42px] rounded-xl text-zinc-400 hover:text-white hover:bg-white/5"
-                            >
+                             aria-label="Mais opções">
                               <MoreVertical size={18} />
                             </Button>
                           </DropdownMenuTrigger>

@@ -32,7 +32,26 @@ export const Route = createFileRoute("/$slug/profissional")({
     }
   },
   component: ProfessionalDashboard,
+  head: () => ({
+    meta: [
+      { title: "Área do Profissional — Sua agenda do dia" },
+      {
+        name: "description",
+        content:
+          "Acompanhe sua agenda, atenda clientes, registre comandas e veja suas comissões em tempo real.",
+      },
+      { property: "og:title", content: "Área do Profissional" },
+      {
+        property: "og:description",
+        content: "Agenda do dia, comandas e comissões do profissional da barbearia.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
 });
+
 
 function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
@@ -675,8 +694,8 @@ function ProfessionalDashboard() {
                   <div className="bg-[#05070d]/50 p-4 border-t border-gold/10 flex items-center justify-between">
                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Mostrando 1-10 de {appointments.length} atendimentos</p>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10"><ChevronLeft size={18} /></Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10"><ChevronRight size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10" aria-label="Anterior"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10" aria-label="Próximo"><ChevronRight size={18} /></Button>
                     </div>
                   </div>
                 )}
