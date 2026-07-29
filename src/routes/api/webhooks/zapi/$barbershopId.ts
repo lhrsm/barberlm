@@ -8,6 +8,12 @@ const getSupabase = () => {
   return createClient(url, key);
 };
 
+/** Mantém apenas dígitos e ignora o DDI 55 para comparar telefones. */
+function normalizePhone(raw: unknown): string {
+  const digits = String(raw ?? "").replace(/\D/g, "");
+  return digits.startsWith("55") ? digits.slice(2) : digits;
+}
+
 export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
   server: {
     handlers: {
@@ -20,12 +26,31 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
       POST: async ({ request, params }) => {
         const { barbershopId } = params;
         const supabase = getSupabase();
-        
-        try {
-          const body = await request.json();
-          console.log(`[Z-API Webhook] Body from ${barbershopId}:`, JSON.stringify(body));
 
-          // 1. Log immediately
+        try {
+          // 0. Verificação de origem: exige o token da barbearia ANTES de logar
+          //    ou processar qualquer coisa. Sem isso, qualquer POST anônimo com
+          //    o ID da barbearia conseguiria confirmar agendamentos alheios.
+          const url = new URL(request.url);
+          const providedToken =
+            request.headers.get("x-webhook-token") ??
+            url.searchParams.get("token") ??
+            "";
+
+          const { data: instance } = await supabase
+            .from("whatsapp_instances")
+            .select("*")
+            .eq("tenant_id", barbershopId)
+            .maybeSingle();
+
+          if (!instance?.webhook_token || providedToken !== instance.webhook_token) {
+            console.warn(`[Z-API Webhook] Token inválido para ${barbershopId}`);
+            return Response.json({ success: false, error: "unauthorized" }, { status: 401 });
+          }
+
+          const body = await request.json();
+
+          // 1. Log (somente após validar a origem)
           await supabase.from("webhook_logs").insert({
             barbershop_id: barbershopId,
             payload: body,
@@ -33,52 +58,42 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
             status: 'received'
           });
 
-          // 2. Simple logic for Single Flow Confirmation
-          // In the functional version, we handle 'ReceivedCallback' from Z-API
+          // 2. Confirmação via botão do WhatsApp
           if (body.type === 'ReceivedCallback' && body.buttonsResponseMessage) {
             const buttonId = body.buttonsResponseMessage.buttonId;
             const phone = body.phone;
-            
-            console.log(`[Z-API Webhook] Button clicked: ${buttonId} by ${phone}`);
+            const normalized = normalizePhone(phone);
 
-            if (buttonId === 'main_confirm') {
-              // Find the most recent pending/scheduled appointment for this phone
+            if (buttonId === 'main_confirm' && normalized.length >= 8) {
+              // Só confirma agendamentos FUTUROS do telefone que respondeu.
               const { data: appts } = await supabase
                 .from("appointments")
-                .select("id, tenant_id")
+                .select("id, customer_phone, appointment_date")
                 .eq("tenant_id", barbershopId)
                 .in("status", ["scheduled", "awaiting_confirmation"])
-                .order("created_at", { ascending: false })
-                .limit(1);
+                .gte("appointment_date", new Date().toISOString())
+                .order("appointment_date", { ascending: true })
+                .limit(50);
 
-              if (appts && appts.length > 0) {
-                const apptId = appts[0].id;
-                console.log(`[Z-API Webhook] Auto-confirming appointment ${apptId}`);
-                
-                // Call the RPC to update status
+              const match = (appts ?? []).find(
+                (a: any) => normalizePhone(a.customer_phone) === normalized,
+              );
+
+              if (match) {
                 await supabase.rpc('update_appointment_status', {
-                  p_appointment_id: apptId,
+                  p_appointment_id: match.id,
                   p_new_status: 'confirmed',
                   p_changed_by_type: 'customer',
                   p_source: 'whatsapp_webhook'
                 });
 
-                // Send success message fallback
-                // We'll need instance details
-                const { data: instance } = await supabase
-                  .from("whatsapp_instances")
-                  .select("*")
-                  .eq("tenant_id", barbershopId)
-                  .eq("connected", true)
-                  .maybeSingle();
-
-                if (instance) {
+                if (instance.connected) {
                   const baseUrl = instance.server_url || "https://api.z-api.io";
                   const sendUrl = `${baseUrl}/instances/${instance.instance_id}/token/${instance.token}/send-text`;
-                  
+
                   await fetch(sendUrl, {
                     method: "POST",
-                    headers: { 
+                    headers: {
                       "Content-Type": "application/json",
                       ...(instance.client_token ? { "Client-Token": instance.client_token } : {})
                     },
@@ -88,6 +103,8 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
                     })
                   });
                 }
+              } else {
+                console.log(`[Z-API Webhook] Nenhum agendamento futuro para o telefone informado`);
               }
             }
           }
