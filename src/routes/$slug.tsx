@@ -1652,11 +1652,13 @@ function ShopPageComponent() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("appointments")
-        .select("*, service_ratings(id)")
-        .eq("cancel_token", cancelTokenInput)
-        .single();
+      // O token de cancelamento não é mais legível diretamente pela tabela
+      // (evita varredura pública de tokens). A busca passa por RPC escopada.
+      const { data: rows, error } = await supabase.rpc(
+        "get_appointment_for_rating" as any,
+        { p_cancel_token: cancelTokenInput },
+      );
+      const data: any = Array.isArray(rows) ? rows[0] : rows;
 
       if (error || !data) {
         toast.error("Agendamento não encontrado.");
@@ -1668,10 +1670,11 @@ function ShopPageComponent() {
         return;
       }
 
-      if (data.service_ratings && (Array.isArray(data.service_ratings) ? data.service_ratings.length > 0 : !!data.service_ratings)) {
+      if (data.already_rated) {
         toast.error("Este atendimento já foi avaliado.");
         return;
       }
+
 
       setRatingAppointment(data);
       setIsRatingModalOpen(true);
