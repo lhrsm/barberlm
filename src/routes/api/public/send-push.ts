@@ -31,8 +31,14 @@ async function handler({ request }: { request: Request }) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return new Response("Invalid body", { status: 400 });
 
-  const internal = process.env.PUSH_INTERNAL_SECRET || process.env.VAPID_PRIVATE_KEY!;
+  // Segredo dedicado — sem fallback para a chave VAPID (papéis distintos).
+  const internal = process.env.PUSH_INTERNAL_SECRET;
+  if (!internal) {
+    console.error("PUSH_INTERNAL_SECRET não configurado — endpoint de push bloqueado");
+    return new Response("Push not configured", { status: 503 });
+  }
   if (parsed.data.secret !== internal) return new Response("Unauthorized", { status: 401 });
+
 
   const pub = process.env.VAPID_PUBLIC_KEY!;
   const priv = process.env.VAPID_PRIVATE_KEY!;
