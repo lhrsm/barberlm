@@ -84,7 +84,7 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
     switch (type) {
       case 'appointment': return <Calendar className="h-4 w-4 text-gold" />;
       case 'success': return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      default: return <Info className="h-4 w-4 text-gold/50" />;
+      default: return <Info className="h-4 w-4 text-gold/70" />;
     }
   };
 
