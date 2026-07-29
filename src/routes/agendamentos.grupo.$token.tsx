@@ -47,6 +47,24 @@ import { useCustomerCancellation, type FinancialStatus } from "@/hooks/use-custo
 
 export const Route = createFileRoute("/agendamentos/grupo/$token")({
   component: AppointmentGroupPage,
+  head: () => ({
+    meta: [
+      { title: "Meus agendamentos | Barbex" },
+      {
+        name: "description",
+        content:
+          "Veja todos os seus horários agendados na barbearia e gerencie cada um deles.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Meus agendamentos | Barbex" },
+      {
+        property: "og:description",
+        content: "Veja e gerencie todos os seus horários agendados.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function AppointmentGroupPage() {
