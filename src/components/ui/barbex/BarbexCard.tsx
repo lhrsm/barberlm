@@ -32,7 +32,7 @@ export const BarbexCardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-lg font-black uppercase tracking-wider text-white", className)}
+    className={cn("text-lg font-black uppercase tracking-wider text-foreground", className)}
     {...props}
   />
 ));
@@ -42,7 +42,7 @@ export const BarbexCardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn("text-sm text-slate-400", className)} {...props} />
+  <p ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
 ));
 BarbexCardDescription.displayName = "BarbexCardDescription";
 
