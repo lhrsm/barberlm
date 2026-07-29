@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { assertCronAuth } from "@/lib/cron-auth";
+import { assertCronOrSuperAdmin } from "@/lib/cron-auth";
 import { createClient } from "@supabase/supabase-js";
 
 // Public monitoring endpoint — pings each service and stores a check row.
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/public/hooks/status-check")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const denied = assertCronAuth(request);
+        const denied = await assertCronOrSuperAdmin(request);
         if (denied) return denied;
 
         const url = process.env.SUPABASE_URL!;
