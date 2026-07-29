@@ -8843,6 +8843,10 @@ export type Database = {
       }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
+      get_new_appointment_management_token: {
+        Args: { p_appointment_id: string }
+        Returns: string
+      }
       get_or_create_automation: {
         Args: { p_name?: string; p_tenant_id: string; p_type: string }
         Returns: string
