@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { assertCronAuth } from "@/lib/cron-auth";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -12,7 +13,10 @@ import { createClient } from "@supabase/supabase-js";
 export const Route = createFileRoute("/api/public/hooks/admin-risk-scan")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const denied = assertCronAuth(request);
+        if (denied) return denied;
+
         const SUPABASE_URL = process.env.SUPABASE_URL!;
         const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
         const supabase = createClient(SUPABASE_URL, KEY, {

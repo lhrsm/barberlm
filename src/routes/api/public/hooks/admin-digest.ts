@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { assertCronAuth } from "@/lib/cron-auth";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/api/public/hooks/admin-digest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const denied = assertCronAuth(request);
+        if (denied) return denied;
+
         const url = new URL(request.url);
         const period = (url.searchParams.get("period") ?? "daily") as "daily" | "weekly";
         const hours = period === "weekly" ? 168 : 24;

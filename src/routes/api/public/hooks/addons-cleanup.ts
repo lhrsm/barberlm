@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { assertCronAuth } from "@/lib/cron-auth";
 import { createClient } from "@supabase/supabase-js";
 import { createStripeClient, type StripeEnv } from "@/lib/stripe.server";
 
@@ -12,7 +13,10 @@ import { createStripeClient, type StripeEnv } from "@/lib/stripe.server";
 export const Route = createFileRoute("/api/public/hooks/addons-cleanup")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const denied = assertCronAuth(request);
+        if (denied) return denied;
+
         const sb = createClient(
           process.env.SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!,

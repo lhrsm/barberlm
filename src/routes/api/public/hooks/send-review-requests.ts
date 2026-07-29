@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { assertCronAuth } from "@/lib/cron-auth";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -10,6 +11,9 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const denied = assertCronAuth(request);
+        if (denied) return denied;
+
         // Public origin for review links. The cron calls this endpoint via the
         // stable `project--<id>.lovable.app` URL, but that host serves 403
         // ("Forbidden") for non /api/public/* routes. Use the published app
