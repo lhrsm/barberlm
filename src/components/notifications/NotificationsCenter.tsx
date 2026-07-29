@@ -142,6 +142,7 @@ export function NotificationsCenter() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          aria-label="Notificações"
           variant="ghost"
           size="icon"
           className={cn(
