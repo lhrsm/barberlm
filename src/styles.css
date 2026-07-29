@@ -207,6 +207,10 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans-family);
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     max-width: 100vw;
     overflow-x: hidden;
     padding-left: 16px;
@@ -217,28 +221,52 @@
     }
   }
 
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display-family);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
   h1 {
-    font-size: 22px;
-    line-height: 1.2;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.15;
     @media (min-width: 768px) {
-      font-size: 28px;
+      font-size: 30px;
     }
     @media (min-width: 1024px) {
-      font-size: 32px;
+      font-size: 34px;
     }
   }
 
   h2 {
-    font-size: 18px;
-    line-height: 1.3;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.25;
     @media (min-width: 768px) {
-      font-size: 20px;
+      font-size: 21px;
     }
     @media (min-width: 1024px) {
       font-size: 24px;
     }
   }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+
+  /* Consistent, accessible focus ring across the whole app */
+  :focus-visible {
+    outline: 2px solid var(--gold-400);
+    outline-offset: 2px;
+  }
 }
+
 
 @layer utilities {
   .animate-float {
