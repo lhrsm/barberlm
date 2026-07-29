@@ -46,6 +46,38 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* ===== Barbex Design Tokens — Wave 1 ===== */
+  --font-display: var(--font-display-family);
+  --font-sans: var(--font-sans-family);
+
+  /* Gold scale */
+  --color-gold-50: var(--gold-50);
+  --color-gold-100: var(--gold-100);
+  --color-gold-200: var(--gold-200);
+  --color-gold-300: var(--gold-300);
+  --color-gold: var(--gold-400);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold-foreground: var(--gold-foreground);
+
+  /* Surfaces (dark premium) */
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-hairline: var(--hairline);
+
+  /* Status */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+
   /* Custom Animations */
   @keyframes float {
     0% { transform: translateY(0px); }
@@ -93,7 +125,45 @@
   --sidebar-accent-foreground: oklch(0.98 0.01 260);
   --sidebar-border: oklch(0.2 0.02 260 / 0.8);
   --sidebar-ring: oklch(0.75 0.15 65);
+
+  /* ===== Barbex Design Tokens — values ===== */
+  --font-display-family: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Gold scale — #D4AF37 family, canonical source of truth */
+  --gold-50: oklch(0.97 0.03 90);
+  --gold-100: oklch(0.94 0.05 90);
+  --gold-200: oklch(0.89 0.08 88);
+  --gold-300: oklch(0.84 0.11 86);
+  --gold-400: oklch(0.78 0.13 85);   /* #D4AF37 */
+  --gold-500: oklch(0.72 0.14 82);
+  --gold-600: oklch(0.64 0.13 78);
+  --gold-700: oklch(0.54 0.11 75);
+  --gold-foreground: oklch(0.13 0.015 260);
+
+  /* Surfaces */
+  --surface: oklch(0.13 0.018 260);
+  --surface-raised: oklch(0.17 0.018 260);
+  --surface-sunken: oklch(0.1 0.018 260);
+  --surface-overlay: oklch(0.16 0.018 260 / 0.92);
+  --hairline: oklch(1 0 0 / 0.08);
+
+  /* Status */
+  --success: oklch(0.72 0.16 155);
+  --success-foreground: oklch(0.14 0.02 260);
+  --warning: oklch(0.8 0.15 78);
+  --warning-foreground: oklch(0.14 0.02 260);
+  --info: oklch(0.7 0.13 235);
+  --info-foreground: oklch(0.14 0.02 260);
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.35), 0 1px 3px oklch(0 0 0 / 0.2);
+  --shadow-raised: 0 8px 24px -12px oklch(0 0 0 / 0.65);
+  --shadow-overlay: 0 24px 60px -20px oklch(0 0 0 / 0.8);
+  --shadow-gold: 0 8px 26px -10px oklch(0.78 0.13 85 / 0.45);
+  --gradient-gold: linear-gradient(135deg, var(--gold-300), var(--gold-500));
 }
+
 
 .dark {
   --background: oklch(0.08 0.02 260);
@@ -137,6 +207,10 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans-family);
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     max-width: 100vw;
     overflow-x: hidden;
     padding-left: 16px;
@@ -147,30 +221,112 @@
     }
   }
 
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display-family);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
   h1 {
-    font-size: 22px;
-    line-height: 1.2;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.15;
     @media (min-width: 768px) {
-      font-size: 28px;
+      font-size: 30px;
     }
     @media (min-width: 1024px) {
-      font-size: 32px;
+      font-size: 34px;
     }
   }
 
   h2 {
-    font-size: 18px;
-    line-height: 1.3;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.25;
     @media (min-width: 768px) {
-      font-size: 20px;
+      font-size: 21px;
     }
     @media (min-width: 1024px) {
       font-size: 24px;
     }
   }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+
+  /* Consistent, accessible focus ring across the whole app */
+  :focus-visible {
+    outline: 2px solid var(--gold-400);
+    outline-offset: 2px;
+  }
+}
+
+
+/* ===== Barbex premium utilities (Wave 1) ===== */
+@utility text-gradient-gold {
+  background-image: var(--gradient-gold);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility bg-gradient-gold {
+  background-image: var(--gradient-gold);
+}
+
+@utility surface-panel {
+  background-color: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-raised);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-raised {
+  box-shadow: var(--shadow-raised);
+}
+
+@utility shadow-overlay {
+  box-shadow: var(--shadow-overlay);
+}
+
+@utility shadow-gold {
+  box-shadow: var(--shadow-gold);
+}
+
+@utility shine {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(1 0 0 / 0.18),
+      transparent
+    );
+    transition: transform 700ms ease;
+    pointer-events: none;
+  }
+  &:hover::after {
+    transform: translateX(120%);
+  }
 }
 
 @layer utilities {
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }

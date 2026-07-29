@@ -7,12 +7,13 @@ const barbexBadgeVariants = cva(
   {
     variants: {
       status: {
-        active: "bg-[#16A34A]/15 text-[#4ADE80] border-[#16A34A]/30",
-        inactive: "bg-slate-500/15 text-slate-400 border-slate-500/30",
-        canceled: "bg-[#DC2626]/15 text-[#F87171] border-[#DC2626]/30",
-        pending: "bg-[#F59E0B]/15 text-[#FBBF24] border-[#F59E0B]/30",
-        paid: "bg-[#16A34A]/15 text-[#4ADE80] border-[#16A34A]/30",
-        completed: "bg-[#16A34A]/15 text-[#4ADE80] border-[#16A34A]/30",
+        active: "bg-success/15 text-success border-success/30",
+        inactive: "bg-muted text-muted-foreground border-hairline",
+        canceled: "bg-destructive/15 text-destructive border-destructive/30",
+        pending: "bg-warning/15 text-warning border-warning/30",
+        paid: "bg-success/15 text-success border-success/30",
+        completed: "bg-success/15 text-success border-success/30",
+
       },
     },
     defaultVariants: { status: "active" },
