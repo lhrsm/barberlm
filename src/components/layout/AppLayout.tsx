@@ -224,7 +224,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-1">
           <NotificationsCenter />
           {role === 'super_admin' && <AdminNotifications />}
-          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
+          <Button variant="ghost" size="icon" onClick={() = aria-label="Fechar"> setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
         </div>
@@ -236,7 +236,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
           <div className="flex items-center justify-between p-4 border-b bg-card">
             <p className="text-xl font-bold text-primary truncate">{businessName}</p>
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+            <Button variant="ghost" size="icon" onClick={() = aria-label="Fechar"> setIsMobileMenuOpen(false)}>
               <X />
             </Button>
           </div>

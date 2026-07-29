@@ -237,7 +237,7 @@ export function SuperAdminTicketDetails({ ticket, onClose }: SuperAdminTicketDet
               </SelectContent>
             </Select>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 rounded-full hover:bg-white/10 mt-5">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 rounded-full hover:bg-white/10 mt-5" aria-label="Fechar">
             <X size={20} />
           </Button>
         </div>

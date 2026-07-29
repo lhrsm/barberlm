@@ -1198,7 +1198,7 @@ function SubscriptionsPage() {
                                   size="icon"
                                   variant="ghost"
                                   className="h-10 w-10 rounded-xl text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10"
-                                >
+                                 aria-label="Mais opções">
                                   <MoreVertical className="h-5 w-5" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -2404,7 +2404,7 @@ function SubscriptionsPage() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => {
+                    onClick={() = aria-label="Fechar"> {
                       setNewSubCustomerId("");
                       setCustomerSearch("");
                     }}

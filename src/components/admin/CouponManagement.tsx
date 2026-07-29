@@ -475,7 +475,7 @@ export function CouponManagement() {
                             variant="ghost" 
                             size="icon" 
                             className="h-9 w-9 text-slate-400 hover:text-[#ea580c] hover:bg-[#ea580c]/10 rounded-xl transition-all"
-                            onClick={() => handleEdit(coupon)}
+                            onClick={() = aria-label="Editar"> handleEdit(coupon)}
                             title="Editar"
                           >
                             <Pencil size={16} />
@@ -484,7 +484,7 @@ export function CouponManagement() {
                             variant="ghost" 
                             size="icon" 
                             className="h-9 w-9 text-slate-400 hover:text-white hover:bg-[#ea580c]/20 rounded-xl transition-all"
-                            onClick={() => handleDuplicate(coupon)}
+                            onClick={() = aria-label="Copiar"> handleDuplicate(coupon)}
                             title="Duplicar"
                           >
                             <Copy size={16} />
@@ -493,7 +493,7 @@ export function CouponManagement() {
                             variant="ghost" 
                             size="icon" 
                             className="h-9 w-9 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
-                            onClick={() => {
+                            onClick={() = aria-label="Excluir"> {
                               if (confirm("Deseja realmente excluir este cupom?")) {
                                 deleteCouponMutation.mutate(coupon.id);
                               }

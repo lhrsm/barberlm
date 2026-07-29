@@ -395,7 +395,7 @@ function AdminErrors() {
                                size="icon" 
                                className="h-8 w-8" 
                                disabled={reprocessingId === item.automation_id || item.reprocessing_status === 'processing'}
-                               onClick={(e) => {
+                               onClick={(e) = aria-label="Atualizar"> {
                                  e.stopPropagation();
                                  handleReprocess(item);
                                }}
@@ -416,7 +416,7 @@ function AdminErrors() {
                                  <Terminal className="h-4 w-4" />
                                </a>
                              </Button>
-                             <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver Detalhes">
+                             <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver Detalhes" aria-label="Próximo">
                                <ChevronRight className="h-4 w-4" />
                              </Button>
                           </div>

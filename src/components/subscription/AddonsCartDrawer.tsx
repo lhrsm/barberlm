@@ -296,7 +296,7 @@ export function AddonsCartDrawer({
                         size="icon"
                         variant="outline"
                         className="h-7 w-7 border-white/10 bg-white/[0.03] hover:bg-white/10"
-                        onClick={() => onQuantityChange(l.addon.id, Math.max(1, l.quantity - 1))}
+                        onClick={() = aria-label="Remover"> onQuantityChange(l.addon.id, Math.max(1, l.quantity - 1))}
                         disabled={l.quantity <= 1}
                       >
                         <Minus className="w-3 h-3" />
@@ -306,7 +306,7 @@ export function AddonsCartDrawer({
                         size="icon"
                         variant="outline"
                         className="h-7 w-7 border-white/10 bg-white/[0.03] hover:bg-white/10"
-                        onClick={() => onQuantityChange(l.addon.id, l.quantity + 1)}
+                        onClick={() = aria-label="Adicionar"> onQuantityChange(l.addon.id, l.quantity + 1)}
                       >
                         <Plus className="w-3 h-3" />
                       </Button>

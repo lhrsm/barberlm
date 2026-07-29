@@ -300,7 +300,7 @@ export function WebhooksCard({ tenantId }: WebhooksCardProps) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => remove(wh.id)}
+                    onClick={() = aria-label="Excluir"> remove(wh.id)}
                     className="h-8 w-8 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
                   >
                     <Trash2 size={14} />

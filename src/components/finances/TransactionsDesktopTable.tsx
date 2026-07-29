@@ -152,7 +152,7 @@ export function TransactionsDesktopTable({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => {
+                      onClick={() = aria-label="Excluir"> {
                         if (confirm("Tem certeza que deseja excluir esta transação?")) {
                           onDelete(t.id);
                         }

@@ -372,7 +372,7 @@ export function AppointmentDetailsModal({
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-white hover:bg-white/5" onClick={() => onOpenChange(false)}>
+              <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-white hover:bg-white/5" onClick={() = aria-label="Fechar"> onOpenChange(false)}>
                 <X size={20} />
               </Button>
             </div>

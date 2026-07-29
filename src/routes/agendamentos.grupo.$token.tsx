@@ -685,7 +685,7 @@ function AppointmentGroupPage() {
                       size="icon" 
                       className="text-zinc-600 hover:text-white"
                       asChild
-                    >
+                     aria-label="Próximo">
                       <a href={`/agendamento/${appt.management_token}?tenant=${group.tenant_id}`}>
                         <ChevronRight size={20} />
                       </a>

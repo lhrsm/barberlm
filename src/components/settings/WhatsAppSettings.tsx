@@ -206,7 +206,7 @@ export function WhatsAppSettings() {
                   variant="ghost" 
                   size="icon" 
                   className="text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all" 
-                  onClick={() => handleDeleteConnection(conn.id)}
+                  onClick={() = aria-label="Excluir"> handleDeleteConnection(conn.id)}
                 >
                   <Trash2 size={18} />
                 </Button>

@@ -694,8 +694,8 @@ function ProfessionalDashboard() {
                   <div className="bg-[#05070d]/50 p-4 border-t border-gold/10 flex items-center justify-between">
                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Mostrando 1-10 de {appointments.length} atendimentos</p>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10"><ChevronLeft size={18} /></Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10"><ChevronRight size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10" aria-label="Anterior"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10" aria-label="Próximo"><ChevronRight size={18} /></Button>
                     </div>
                   </div>
                 )}

@@ -155,7 +155,7 @@ export function NotificationsCenter() {
             "after:opacity-0 group-hover:after:opacity-100",
             "after:bg-gradient-to-tr after:from-gold/10 after:via-white/20 after:to-transparent",
             "after:transition-opacity after:duration-300",
-            unreadCount > 0 && "ring-2 ring-gold/40 shadow-[0_0_18px_rgba(212,175,55,0.25)]"
+            unreadCount  aria-label="Notificações"> 0 && "ring-2 ring-gold/40 shadow-[0_0_18px_rgba(212,175,55,0.25)]"
           )}
         >
           <Bell className={cn(
