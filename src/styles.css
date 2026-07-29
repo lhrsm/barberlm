@@ -125,7 +125,45 @@
   --sidebar-accent-foreground: oklch(0.98 0.01 260);
   --sidebar-border: oklch(0.2 0.02 260 / 0.8);
   --sidebar-ring: oklch(0.75 0.15 65);
+
+  /* ===== Barbex Design Tokens — values ===== */
+  --font-display-family: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Gold scale — #D4AF37 family, canonical source of truth */
+  --gold-50: oklch(0.97 0.03 90);
+  --gold-100: oklch(0.94 0.05 90);
+  --gold-200: oklch(0.89 0.08 88);
+  --gold-300: oklch(0.84 0.11 86);
+  --gold-400: oklch(0.78 0.13 85);   /* #D4AF37 */
+  --gold-500: oklch(0.72 0.14 82);
+  --gold-600: oklch(0.64 0.13 78);
+  --gold-700: oklch(0.54 0.11 75);
+  --gold-foreground: oklch(0.13 0.015 260);
+
+  /* Surfaces */
+  --surface: oklch(0.13 0.018 260);
+  --surface-raised: oklch(0.17 0.018 260);
+  --surface-sunken: oklch(0.1 0.018 260);
+  --surface-overlay: oklch(0.16 0.018 260 / 0.92);
+  --hairline: oklch(1 0 0 / 0.08);
+
+  /* Status */
+  --success: oklch(0.72 0.16 155);
+  --success-foreground: oklch(0.14 0.02 260);
+  --warning: oklch(0.8 0.15 78);
+  --warning-foreground: oklch(0.14 0.02 260);
+  --info: oklch(0.7 0.13 235);
+  --info-foreground: oklch(0.14 0.02 260);
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.35), 0 1px 3px oklch(0 0 0 / 0.2);
+  --shadow-raised: 0 8px 24px -12px oklch(0 0 0 / 0.65);
+  --shadow-overlay: 0 24px 60px -20px oklch(0 0 0 / 0.8);
+  --shadow-gold: 0 8px 26px -10px oklch(0.78 0.13 85 / 0.45);
+  --gradient-gold: linear-gradient(135deg, var(--gold-300), var(--gold-500));
 }
+
 
 .dark {
   --background: oklch(0.08 0.02 260);
