@@ -7938,6 +7938,7 @@ export type Database = {
           webhook_received_configured_at: string | null
           webhook_received_last_response: Json | null
           webhook_received_url: string | null
+          webhook_token: string
           webhook_url: string | null
         }
         Insert: {
@@ -7957,6 +7958,7 @@ export type Database = {
           webhook_received_configured_at?: string | null
           webhook_received_last_response?: Json | null
           webhook_received_url?: string | null
+          webhook_token?: string
           webhook_url?: string | null
         }
         Update: {
@@ -7976,6 +7978,7 @@ export type Database = {
           webhook_received_configured_at?: string | null
           webhook_received_last_response?: Json | null
           webhook_received_url?: string | null
+          webhook_token?: string
           webhook_url?: string | null
         }
         Relationships: [
