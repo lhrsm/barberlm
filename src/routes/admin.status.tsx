@@ -50,7 +50,16 @@ function AdminStatusPage() {
   const runHealthCheck = async () => {
     setRunning(true);
     try {
-      const res = await fetch("/api/public/hooks/status-check", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      const res = await fetch("/api/public/hooks/status-check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: "{}",
+      });
       if (!res.ok) throw new Error(await res.text());
       toast.success("Verificação executada");
       await load();
