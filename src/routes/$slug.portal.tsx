@@ -982,7 +982,7 @@ function ClientPortalComponent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
       </div>
     );
   }
@@ -1007,12 +1007,12 @@ function ClientPortalComponent() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 text-center"
         >
-          <h1 className="text-4xl font-black text-[#D4AF37] mb-2 uppercase italic tracking-tighter">Barber<span className="text-white">LM</span></h1>
+          <h1 className="text-4xl font-black text-gold mb-2 uppercase italic tracking-tighter">Barber<span className="text-white">LM</span></h1>
           <p className="text-white/60 text-xs font-black uppercase tracking-[0.3em]">Portal do Cliente</p>
         </motion.div>
 
         <Card className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border-none p-2 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#D4AF37] via-black to-[#D4AF37]" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-gold via-black to-gold" />
           <CardHeader className="text-center pt-8">
             <CardTitle className="text-3xl font-black uppercase italic tracking-tighter text-black leading-none">{shop?.business_name}</CardTitle>
             <CardDescription className="text-gray-500 font-medium mt-2">Acesse seu histórico e agendamentos</CardDescription>
@@ -1032,7 +1032,7 @@ function ClientPortalComponent() {
                       <Input 
                         id="reg-name" 
                         placeholder="João Silva" 
-                        className="h-14 pl-12 border-gray-100 bg-gray-50 focus:bg-white focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black text-lg font-bold rounded-2xl transition-all"
+                        className="h-14 pl-12 border-gray-100 bg-gray-50 focus:bg-white focus:border-gold focus:ring-gold text-black text-lg font-bold rounded-2xl transition-all"
                         value={customerName} 
                         onChange={(e) => setCustomerName(e.target.value)} 
                         required 
@@ -1050,7 +1050,7 @@ function ClientPortalComponent() {
                     value={phone}
                     onChange={(p) => setPhone(p)}
                     className="w-full"
-                    inputClassName="!w-full !h-14 !bg-gray-50 !border-gray-100 !focus:bg-white !focus:border-[#D4AF37] !focus:ring-[#D4AF37] !text-black !text-lg !font-bold !rounded-2xl !pl-12 !transition-all"
+                    inputClassName="!w-full !h-14 !bg-gray-50 !border-gray-100 !focus:bg-white !focus:border-gold !focus:ring-gold !text-black !text-lg !font-bold !rounded-2xl !pl-12 !transition-all"
                     countrySelectorStyleProps={{
                       buttonClassName: "!h-14 !bg-transparent !border-none !absolute !left-0 !z-10 !rounded-l-2xl",
                       flagClassName: "!ml-2"
@@ -1082,7 +1082,7 @@ function ClientPortalComponent() {
                 <span>{isRegistering ? "Já tem conta?" : "Ainda não tem conta?"}</span>
                 <button 
                   type="button"
-                  className="text-[#D4AF37] hover:text-[#F5C542] transition-all duration-300 font-extrabold border-b-2 border-[#D4AF37] hover:border-[#F5C542] pb-[2px] hover:-translate-y-[1px]" 
+                  className="text-gold hover:text-[#F5C542] transition-all duration-300 font-extrabold border-b-2 border-gold hover:border-[#F5C542] pb-[2px] hover:-translate-y-[1px]" 
                   onClick={() => setIsRegistering(!isRegistering)}
                 >
                   {isRegistering ? "Fazer Login" : "Cadastre-se"}
@@ -1094,7 +1094,7 @@ function ClientPortalComponent() {
         
         <Button 
           variant="ghost" 
-          className="mt-4 w-full max-w-md h-[52px] bg-[rgba(255,255,255,0.10)] border border-[rgba(212,175,55,0.45)] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#000] transition-all duration-300 rounded-[16px] font-extrabold text-[14px] tracking-[1px] uppercase hover:-translate-y-[2px] active:translate-y-0 hover:shadow-[0_10px_25px_rgba(212,175,55,0.25)]" 
+          className="mt-4 w-full max-w-md h-[52px] bg-[rgba(255,255,255,0.10)] border border-[rgba(212,175,55,0.45)] text-gold hover:bg-gold hover:text-[#000] transition-all duration-300 rounded-[16px] font-extrabold text-[14px] tracking-[1px] uppercase hover:-translate-y-[2px] active:translate-y-0 hover:shadow-[0_10px_25px_rgba(212,175,55,0.25)]" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
           <ChevronLeft className="mr-2" size={18} /> Voltar para a barbearia
@@ -1108,7 +1108,7 @@ function ClientPortalComponent() {
     <div className="min-h-screen bg-black pb-20">
       <header className="bg-black border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="font-bold text-lg flex items-center gap-3 text-[#D4AF37]">
+          <h1 className="font-bold text-lg flex items-center gap-3 text-gold">
             <img src={barbexLogo.url} alt="Barbex" className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
             <span className="hidden sm:inline">Portal do Cliente</span>
           </h1>
@@ -1119,7 +1119,7 @@ function ClientPortalComponent() {
                 size="icon"
                 title="Sair"
                 aria-label="Sair"
-                className="group h-8 w-8 rounded-full border border-[#D4AF37]/25 bg-white/[0.03] text-[#D4AF37] backdrop-blur transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                className="group h-8 w-8 rounded-full border border-gold/25 bg-white/[0.03] text-gold backdrop-blur transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
               >
                 <LogOut size={14} className="transition-transform group-hover:-translate-x-0.5" />
               </Button>
@@ -1256,7 +1256,7 @@ function ClientPortalComponent() {
               <CardTitle className="text-2xl font-bold flex items-center justify-between text-white">
                 <span>{customerData?.loyalty_points || 0} / 10</span>
                 {customerData?.loyalty_points >= 10 && (
-                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-[#D4AF37] hover:bg-[#B8860B] text-white">
+                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-gold hover:bg-[#B8860B] text-white">
                     Resgatar
                   </Button>
                 )}
@@ -1275,10 +1275,10 @@ function ClientPortalComponent() {
             </CardHeader>
           </Card>
           {cashbackEnabled && (
-          <Card className="bg-white/5 border-white/10 shadow-md group hover:border-[#D4AF37]/30 transition-all duration-300">
+          <Card className="bg-white/5 border-white/10 shadow-md group hover:border-gold/30 transition-all duration-300">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-400 group-hover:text-[#D4AF37]/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CASHBACK</CardDescription>
-              <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
+              <CardDescription className="text-gray-400 group-hover:text-gold/80 transition-colors uppercase font-bold text-[10px]">SALDO DE CASHBACK</CardDescription>
+              <CardTitle className="text-2xl font-bold text-gold">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
               <div className="flex flex-col gap-0.5 mt-1">
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Concedido: R$ {cashbackTransactions.filter(t => ['earned', 'cashback_earned', 'granted', 'cashback_refund', 'refunded'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Cashback Utilizado: R$ {cashbackTransactions.filter(t => ['used', 'debit', 'expired'].includes(t.type)).reduce((acc, t) => acc + Number(t.amount || 0), 0).toFixed(2)}</p>
@@ -1301,12 +1301,12 @@ function ClientPortalComponent() {
                 "shadow-[0_8px_28px_rgba(212,175,55,0.18)] md:col-span-2 lg:col-span-3",
                 isPaused
                   ? "bg-gradient-to-br from-blue-500/10 via-black/40 to-black border-blue-500/40"
-                  : "bg-gradient-to-br from-[#D4AF37]/10 via-black/40 to-black border-[#D4AF37]/40",
+                  : "bg-gradient-to-br from-gold/10 via-black/40 to-black border-gold/40",
               )}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardDescription className={cn("uppercase font-black text-[10px] tracking-widest", isPaused ? "text-blue-300/80" : "text-[#D4AF37]/80")}>
+                      <CardDescription className={cn("uppercase font-black text-[10px] tracking-widest", isPaused ? "text-blue-300/80" : "text-gold/80")}>
                         ★ Assinatura Premium
                       </CardDescription>
                       <CardTitle className="text-xl font-black text-white mt-1">
@@ -1316,7 +1316,7 @@ function ClientPortalComponent() {
                         {months} {months === 1 ? "mês" : "meses"} de fidelidade premium
                       </p>
                     </div>
-                    <Badge className={cn("font-black uppercase text-[10px]", isPaused ? "bg-blue-400 text-black" : "bg-[#D4AF37] text-black")}>
+                    <Badge className={cn("font-black uppercase text-[10px]", isPaused ? "bg-blue-400 text-black" : "bg-gold text-black")}>
                       {isPaused ? "Pausada" : "Ativa"}
                     </Badge>
                   </div>
@@ -1343,7 +1343,7 @@ function ClientPortalComponent() {
                     <Button
                       onClick={() => setCardOpen(true)}
                       size="sm"
-                      className="mt-3 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] hover:from-[#F5D061] hover:to-[#D4AF37] text-black font-black uppercase text-[11px] tracking-widest gap-2 shadow-[0_4px_16px_rgba(212,175,55,0.35)]"
+                      className="mt-3 bg-gradient-to-r from-gold to-[#F5D061] hover:from-[#F5D061] hover:to-gold text-black font-black uppercase text-[11px] tracking-widest gap-2 shadow-[0_4px_16px_rgba(212,175,55,0.35)]"
                     >
                       <QrCode className="h-4 w-4" /> Meu Cartão de Assinante
                     </Button>
@@ -1354,21 +1354,21 @@ function ClientPortalComponent() {
                     <>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-400 font-bold">
-                          Próxima recompensa: <span className="text-[#D4AF37]">{next.description || next.reward_type}</span>
+                          Próxima recompensa: <span className="text-gold">{next.description || next.reward_type}</span>
                         </span>
-                        <span className="text-[#D4AF37] font-black">
+                        <span className="text-gold font-black">
                           {months}/{next.months_required} meses
                         </span>
                       </div>
                       <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F5D061] transition-all duration-700"
+                          className="h-full bg-gradient-to-r from-gold to-[#F5D061] transition-all duration-700"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
                     </>
                   ) : (
-                    <p className="text-xs text-[#D4AF37] font-bold">
+                    <p className="text-xs text-gold font-bold">
                       Você já desbloqueou todas as recompensas disponíveis. Obrigado pela fidelidade!
                     </p>
                   )}
@@ -1382,7 +1382,7 @@ function ClientPortalComponent() {
                           <Badge
                             key={h.id}
                             variant="outline"
-                            className="bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40 text-[10px] font-bold"
+                            className="bg-gold/10 text-gold border-gold/40 text-[10px] font-bold"
                           >
                             {h.notes || "Recompensa"}
                           </Badge>
@@ -1501,34 +1501,34 @@ function ClientPortalComponent() {
 
         <Tabs defaultValue="appointments" className="w-full">
           <TabsList className={cn("flex w-full flex-wrap bg-white/5 p-1 rounded-xl gap-1", mySubscription ? "md:grid md:grid-cols-8 md:max-w-[1200px]" : "md:grid md:grid-cols-5 md:max-w-[900px]")}>
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <Gift size={16} /> Fidelidade
             </TabsTrigger>
             {mySubscription && (
-              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 Benefícios
               </TabsTrigger>
             )}
             {mySubscription && (
-              <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+              <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 <QrCode size={16} /> Cartão
               </TabsTrigger>
             )}
             {mySubscription && (
-              <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+              <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                 VIP
               </TabsTrigger>
             )}
-            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
                Extrato
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
-            <TabsTrigger value="privacy" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
+            <TabsTrigger value="privacy" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
               <ShieldCheck size={16} /> Privacidade
             </TabsTrigger>
           </TabsList>
@@ -1556,8 +1556,8 @@ function ClientPortalComponent() {
                         }}
                       >
                         <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                            <Scissors className="text-[#D4AF37] h-6 w-6" />
+                          <div className="h-12 w-12 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+                            <Scissors className="text-gold h-6 w-6" />
                           </div>
                           <div>
                             <p className="font-bold text-white">{app.services?.name}</p>
@@ -1574,14 +1574,14 @@ function ClientPortalComponent() {
                                  return (
                                    <Badge variant="outline" className={cn(
                                      "capitalize text-[10px]",
-                                     isSubCovered && "text-[#D4AF37] border-[#D4AF37]/40 bg-[#D4AF37]/10"
+                                     isSubCovered && "text-gold border-gold/40 bg-gold/10"
                                    )}>
                                      {label}
                                    </Badge>
                                  );
                                })()}
                                {app.notes && app.notes.includes('Pagamento:') && (
-                                 <span className="text-[10px] text-[#D4AF37] font-medium">{app.notes}</span>
+                                 <span className="text-[10px] text-gold font-medium">{app.notes}</span>
                                )}
                                {app.status === 'cancelled' && (
                                  <Badge variant="outline" className="text-[10px] ml-2 text-red-600 border-red-200 bg-red-50">
@@ -1607,7 +1607,7 @@ function ClientPortalComponent() {
                                  const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
                                  if (isSubCovered) {
                                    return (
-                                     <Badge className="bg-[#D4AF37] hover:bg-[#B8962E] text-black">
+                                     <Badge className="bg-gold hover:bg-[#B8962E] text-black">
                                        Incluso no Plano
                                      </Badge>
                                    );
@@ -1630,7 +1630,7 @@ function ClientPortalComponent() {
                                   <Button
                                     size="sm"
                                     onClick={(e) => { e.stopPropagation(); setReviewAppointment(app); setIsReviewOpen(true); }}
-                                    className="group relative h-7 px-3 text-[10px] font-bold tracking-wide uppercase rounded-full border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37]/15 via-[#F5C95A]/10 to-[#D4AF37]/15 text-[#F5C95A] shadow-[0_0_0_rgba(212,175,55,0)] transition-all duration-300 hover:border-[#F5C95A] hover:from-[#D4AF37] hover:via-[#F5C95A] hover:to-[#D4AF37] hover:text-black hover:shadow-[0_6px_20px_-4px_rgba(212,175,55,0.6)] hover:-translate-y-0.5"
+                                    className="group relative h-7 px-3 text-[10px] font-bold tracking-wide uppercase rounded-full border border-gold/60 bg-gradient-to-r from-gold/15 via-[#F5C95A]/10 to-gold/15 text-[#F5C95A] shadow-[0_0_0_rgba(212,175,55,0)] transition-all duration-300 hover:border-[#F5C95A] hover:from-gold hover:via-[#F5C95A] hover:to-gold hover:text-black hover:shadow-[0_6px_20px_-4px_rgba(212,175,55,0.6)] hover:-translate-y-0.5"
                                   >
                                     <span className="mr-1 transition-transform duration-300 group-hover:rotate-[18deg] group-hover:scale-110">★</span>
                                     Avaliar
@@ -1648,7 +1648,7 @@ function ClientPortalComponent() {
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
-                                 className="text-white hover:text-[#D4AF37] hover:bg-white/10 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
+                                 className="text-white hover:text-gold hover:bg-white/10 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
                                  onClick={(e) => {
                                    e.stopPropagation();
                                    handleEditAppointment(app);
@@ -1715,7 +1715,7 @@ function ClientPortalComponent() {
                       <div className="relative h-40 w-40 flex items-center justify-center">
                         <svg className="h-full w-full rotate-[-90deg]">
                           <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" className="text-white/5" />
-                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={dash} strokeDashoffset={offset} className="text-[#D4AF37] transition-all duration-1000" />
+                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={dash} strokeDashoffset={offset} className="text-gold transition-all duration-1000" />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                           <span className="text-4xl font-black text-white">{current}</span>
@@ -1733,7 +1733,7 @@ function ClientPortalComponent() {
                         </div>
                       ) : (
                         <p className="mt-8 text-sm text-gray-400 font-medium italic text-center px-4">
-                          Falta(m) {remaining} atendimento(s) para você ganhar: <span className="text-[#D4AF37] font-bold">{benefitText}</span>
+                          Falta(m) {remaining} atendimento(s) para você ganhar: <span className="text-gold font-bold">{benefitText}</span>
                         </p>
                       )}
                     </CardContent>
@@ -1864,13 +1864,13 @@ function ClientPortalComponent() {
                   {/* Premium Dashboard - 4 cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <Card
-                      className="bg-gradient-to-br from-[#D4AF37]/25 via-[#D4AF37]/10 to-transparent border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(212,175,55,0.15)] cursor-pointer hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(212,175,55,0.25)] transition-all"
+                      className="bg-gradient-to-br from-gold/25 via-gold/10 to-transparent border-gold/40 shadow-[0_8px_30px_rgba(212,175,55,0.15)] cursor-pointer hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(212,175,55,0.25)] transition-all"
                       onClick={() => setPlanDetailsOpen(true)}
                     >
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
-                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Plano Atual</CardDescription>
-                          <Info size={14} className="text-[#D4AF37]" />
+                          <CardDescription className="text-gold uppercase text-[10px] font-black tracking-widest">Plano Atual</CardDescription>
+                          <Info size={14} className="text-gold" />
                         </div>
                         <CardTitle className="text-white text-lg leading-tight">{usage.plan_name}</CardTitle>
                       </CardHeader>
@@ -1879,7 +1879,7 @@ function ClientPortalComponent() {
                         {nextBilling && (
                           <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">Renovação: {format(nextBilling, "dd/MM/yyyy", { locale: ptBR })}</p>
                         )}
-                        <p className="text-[10px] text-[#D4AF37] mt-1 uppercase font-bold tracking-wider">Ver detalhes ›</p>
+                        <p className="text-[10px] text-gold mt-1 uppercase font-bold tracking-wider">Ver detalhes ›</p>
                       </CardContent>
                     </Card>
 
@@ -1898,7 +1898,7 @@ function ClientPortalComponent() {
                         {usage.has_limits ? (
                           <>
                             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${totalPct}%` }} />
+                              <div className="h-full bg-gradient-to-r from-gold to-[#B8941F] transition-all" style={{ width: `${totalPct}%` }} />
                             </div>
                             <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">
                               {usage.total_uses_consumed} de {usage.total_uses_allowed} consumidas
@@ -1928,11 +1928,11 @@ function ClientPortalComponent() {
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-br from-[#D4AF37]/15 to-purple-500/5 border-[#D4AF37]/30 shadow-lg">
+                    <Card className="bg-gradient-to-br from-gold/15 to-purple-500/5 border-gold/30 shadow-lg">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
-                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Próxima Recompensa</CardDescription>
-                          <Gift size={14} className="text-[#D4AF37]" />
+                          <CardDescription className="text-gold uppercase text-[10px] font-black tracking-widest">Próxima Recompensa</CardDescription>
+                          <Gift size={14} className="text-gold" />
                         </div>
                         <CardTitle className="text-white text-base leading-tight line-clamp-2">
                           {pendingRewardsAll.length > 0
@@ -1946,7 +1946,7 @@ function ClientPortalComponent() {
                         ) : nextRewardCfg ? (
                           <>
                             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${nextRewardProgress}%` }} />
+                              <div className="h-full bg-gradient-to-r from-gold to-[#B8941F] transition-all" style={{ width: `${nextRewardProgress}%` }} />
                             </div>
                             <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">
                               Faltam {Math.max(0, Number(nextRewardCfg.months_required) - monthsActive)} mes(es) • {monthsActive} / {nextRewardCfg.months_required}
@@ -1961,10 +1961,10 @@ function ClientPortalComponent() {
 
                   {/* Recompensas para resgatar */}
                   {(pendingRewards.length > 0 || redeemedRewards.length > 0) && (
-                    <Card className="bg-gradient-to-br from-[#D4AF37]/10 to-transparent border-[#D4AF37]/30 shadow-lg">
+                    <Card className="bg-gradient-to-br from-gold/10 to-transparent border-gold/30 shadow-lg">
                       <CardHeader>
                         <CardTitle className="text-white flex items-center gap-2">
-                          <Gift className="text-[#D4AF37]" size={20} />
+                          <Gift className="text-gold" size={20} />
                           Benefícios para Resgatar
                         </CardTitle>
                         <CardDescription className="text-gray-400">
@@ -1979,10 +1979,10 @@ function ClientPortalComponent() {
                             {pendingRewards.map((r: any) => {
                               const cfg = subRewards.find((c: any) => c.id === r.reward_id);
                               return (
-                                <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-black/30 border border-[#D4AF37]/30 rounded-xl">
+                                <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-black/30 border border-gold/30 rounded-xl">
                                   <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center shrink-0">
-                                      <Gift className="text-[#D4AF37] h-5 w-5" />
+                                    <div className="h-10 w-10 rounded-lg bg-gold/20 flex items-center justify-center shrink-0">
+                                      <Gift className="text-gold h-5 w-5" />
                                     </div>
                                     <div>
                                       <p className="text-sm font-bold text-white">{cfg?.description || "Recompensa"}</p>
@@ -1995,7 +1995,7 @@ function ClientPortalComponent() {
                                   <Button
                                     onClick={() => handleRedeemReward(r.id)}
                                     disabled={redeemingRewardId === r.id}
-                                    className="bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold shrink-0"
+                                    className="bg-gold hover:bg-[#B8941F] text-black font-bold shrink-0"
                                   >
                                     {redeemingRewardId === r.id ? "Resgatando..." : "Resgatar"}
                                   </Button>
@@ -2048,8 +2048,8 @@ function ClientPortalComponent() {
                               <div key={ps.id} className="p-3 bg-white/5 border border-white/10 rounded-lg space-y-2">
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex items-center gap-3 min-w-0">
-                                    <div className="h-9 w-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-                                      <CheckCircle2 className="text-[#D4AF37] h-5 w-5" />
+                                    <div className="h-9 w-9 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+                                      <CheckCircle2 className="text-gold h-5 w-5" />
                                     </div>
                                     <div className="min-w-0">
                                       <p className="text-sm font-bold text-white truncate">{ps.services?.name || "Serviço"}</p>
@@ -2068,7 +2068,7 @@ function ClientPortalComponent() {
                                 </div>
                                 {!isCombo && allowed > 0 && (
                                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] transition-all" style={{ width: `${pct}%` }} />
+                                    <div className="h-full bg-gradient-to-r from-gold to-[#B8941F] transition-all" style={{ width: `${pct}%` }} />
                                   </div>
                                 )}
                                 {isCombo && (
@@ -2174,7 +2174,7 @@ function ClientPortalComponent() {
                   <Dialog open={planDetailsOpen} onOpenChange={setPlanDetailsOpen}>
                     <DialogContent className="max-w-lg bg-zinc-950 border-white/10 text-white max-h-[85vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-[#D4AF37] flex items-center gap-2">
+                        <DialogTitle className="text-gold flex items-center gap-2">
                           <Info size={18} /> Detalhes do Plano {plan?.name}
                         </DialogTitle>
                         <DialogDescription className="text-gray-400">
@@ -2184,7 +2184,7 @@ function ClientPortalComponent() {
 
                       <div className="space-y-4 mt-2">
                         {plan?.description && (
-                          <p className="text-sm text-gray-300 italic border-l-2 border-[#D4AF37]/40 pl-3">{plan.description}</p>
+                          <p className="text-sm text-gray-300 italic border-l-2 border-gold/40 pl-3">{plan.description}</p>
                         )}
 
                         <div className="grid grid-cols-2 gap-3">
@@ -2296,12 +2296,12 @@ function ClientPortalComponent() {
                 : "—";
               return (
                 <div className="max-w-sm mx-auto">
-                  <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
+                  <div className="relative rounded-3xl overflow-hidden border-2 border-gold/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
                     <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
                       style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
                     <div className="relative flex items-start justify-between">
                       <div>
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/80 font-black">Carteirinha Premium</p>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-gold/80 font-black">Carteirinha Premium</p>
                         <p className="text-xs text-gray-400 mt-1">{planName}</p>
                       </div>
                       <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest", statusColor)}>
@@ -2309,7 +2309,7 @@ function ClientPortalComponent() {
                       </span>
                     </div>
                     <div className="relative flex items-center gap-3 mt-5">
-                      <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-[#D4AF37]">
+                      <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gold to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-gold">
                         {client?.avatar_url ? (
                           <img src={client.avatar_url} alt={client?.name} className="h-full w-full object-cover" />
                         ) : (
@@ -2318,7 +2318,7 @@ function ClientPortalComponent() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-white font-black text-lg truncate">{client?.name || "Cliente"}</p>
-                        <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-widest">Assinante Premium</p>
+                        <p className="text-[11px] text-gold/80 uppercase tracking-widest">Assinante Premium</p>
                       </div>
                     </div>
                     {qrUrl ? (
@@ -2364,23 +2364,23 @@ function ClientPortalComponent() {
               const referralsConverted = myReferrals.filter((r: any) => r.status === "converted" || r.converted_at).length;
               return (
                 <div className="space-y-6">
-                  <Card className="bg-gradient-to-br from-[#D4AF37]/20 via-[#1a1408] to-black border-[#D4AF37]/40 shadow-[0_20px_60px_rgba(212,175,55,0.2)] overflow-hidden relative">
+                  <Card className="bg-gradient-to-br from-gold/20 via-[#1a1408] to-black border-gold/40 shadow-[0_20px_60px_rgba(212,175,55,0.2)] overflow-hidden relative">
                     <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
                       style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
                     <CardHeader className="relative">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold to-[#8a6d12] grid place-items-center text-black">
                           <Gift size={22} />
                         </div>
                         <div>
-                          <CardDescription className="text-[#D4AF37] uppercase text-[10px] font-black tracking-widest">Clube VIP</CardDescription>
+                          <CardDescription className="text-gold uppercase text-[10px] font-black tracking-widest">Clube VIP</CardDescription>
                           <CardTitle className="text-white text-2xl">Bem-vindo, {client?.name?.split(" ")[0] || "Assinante"}</CardTitle>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="relative">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-xl p-3">
+                        <div className="bg-black/40 border border-gold/20 rounded-xl p-3">
                           <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Tempo VIP</p>
                           <p className="text-xl font-black text-white mt-1">{monthsActive}<span className="text-xs text-gray-400 font-normal"> {monthsActive === 1 ? "mês" : "meses"}</span></p>
                         </div>
@@ -2388,7 +2388,7 @@ function ClientPortalComponent() {
                           <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Economia</p>
                           <p className="text-xl font-black text-emerald-400 mt-1">R$ {totalCovered.toFixed(0)}</p>
                         </div>
-                        <div className="bg-black/40 border border-[#D4AF37]/20 rounded-xl p-3">
+                        <div className="bg-black/40 border border-gold/20 rounded-xl p-3">
                           <p className="text-[9px] uppercase text-gray-500 tracking-widest font-bold">Recompensas</p>
                           <p className="text-xl font-black text-white mt-1">{redeemedCount}</p>
                         </div>
@@ -2403,7 +2403,7 @@ function ClientPortalComponent() {
                   <Card className="bg-white/5 border-white/10 shadow-lg">
                     <CardHeader>
                       <CardTitle className="text-white flex items-center gap-2">
-                        <CheckCircle2 className="text-[#D4AF37]" size={20} />
+                        <CheckCircle2 className="text-gold" size={20} />
                         Vantagens Exclusivas
                       </CardTitle>
                       <CardDescription className="text-gray-400">Benefícios que só assinantes têm acesso</CardDescription>
@@ -2411,25 +2411,25 @@ function ClientPortalComponent() {
                     <CardContent>
                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-300">
                         {plan?.agenda_priority && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Prioridade na agenda</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Prioridade na agenda</li>
                         )}
                         {plan?.exclusive_hours && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Horários exclusivos</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Horários exclusivos</li>
                         )}
                         {plan?.exclusive_days && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Dias exclusivos</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Dias exclusivos</li>
                         )}
                         {plan?.preferential_service && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Atendimento preferencial</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Atendimento preferencial</li>
                         )}
                         {plan?.allows_product_discount && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Desconto em produtos</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Desconto em produtos</li>
                         )}
                         {plan?.accumulates_premium_loyalty && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Acumula recompensas premium</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Acumula recompensas premium</li>
                         )}
                         {plan?.participates_cashback && (
-                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-[#D4AF37] mt-0.5 shrink-0" /> Cashback em compras</li>
+                          <li className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10"><CheckCircle2 size={16} className="text-gold mt-0.5 shrink-0" /> Cashback em compras</li>
                         )}
                         {!plan?.agenda_priority && !plan?.exclusive_hours && !plan?.exclusive_days && !plan?.preferential_service && !plan?.allows_product_discount && (
                           <li className="text-gray-500 italic text-xs col-span-2">Consulte sua barbearia sobre vantagens adicionais do seu plano.</li>
@@ -2439,16 +2439,16 @@ function ClientPortalComponent() {
                   </Card>
 
                   {mySubscription.referral_code && (
-                    <Card className="bg-gradient-to-br from-purple-500/10 to-[#D4AF37]/5 border-purple-500/30 shadow-lg">
+                    <Card className="bg-gradient-to-br from-purple-500/10 to-gold/5 border-purple-500/30 shadow-lg">
                       <CardHeader>
                         <CardTitle className="text-white">Indique e ganhe</CardTitle>
                         <CardDescription className="text-gray-400">Compartilhe seu código VIP e ganhe vantagens</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex items-center justify-between gap-3 p-4 bg-black/40 border border-[#D4AF37]/30 rounded-xl">
+                        <div className="flex items-center justify-between gap-3 p-4 bg-black/40 border border-gold/30 rounded-xl">
                           <div>
                             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Seu código</p>
-                            <p className="text-2xl font-black text-[#D4AF37] tracking-widest">{mySubscription.referral_code}</p>
+                            <p className="text-2xl font-black text-gold tracking-widest">{mySubscription.referral_code}</p>
                           </div>
                           <Button
                             size="sm"
@@ -2456,7 +2456,7 @@ function ClientPortalComponent() {
                               navigator.clipboard.writeText(mySubscription.referral_code);
                               toast.success("Código copiado!");
                             }}
-                            className="bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold"
+                            className="bg-gold hover:bg-[#B8941F] text-black font-bold"
                           >
                             Copiar
                           </Button>
@@ -2523,7 +2523,7 @@ function ClientPortalComponent() {
                                 <p className="text-sm font-bold text-white">{tx.description || (tx.type === 'cashback_earned' ? 'Ganho por Agendamento' : 'Uso em Agendamento')}</p>
                                 <p className="text-[10px] text-gray-500 uppercase">{format(parseISO(tx.created_at), "dd/MM/yyyy HH:mm")}</p>
                              </div>
-                             <span className={cn("font-black", tx.type === 'cashback_earned' ? "text-[#D4AF37]" : "text-red-500")}>
+                             <span className={cn("font-black", tx.type === 'cashback_earned' ? "text-gold" : "text-red-500")}>
                                 {tx.type === 'cashback_earned' ? "+" : "-"} R$ {Number(tx.amount).toFixed(2)}
                              </span>
                           </div>
@@ -2544,7 +2544,7 @@ function ClientPortalComponent() {
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4 py-4">
                   <div className="relative group">
-                    <div className="h-24 w-24 rounded-full bg-gray-100 overflow-hidden border-2 border-[#D4AF37]">
+                    <div className="h-24 w-24 rounded-full bg-gray-100 overflow-hidden border-2 border-gold">
                       {customerData?.avatar_url ? (
                         <img src={customerData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
                       ) : (
@@ -2605,7 +2605,7 @@ function ClientPortalComponent() {
                     <Label htmlFor="profile-name" className="text-white">Nome Completo</Label>
                     <Input 
                       id="profile-name" 
-                      className="bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
+                      className="bg-white/5 border-white/10 text-white focus:border-gold"
                       value={customerName || (customerData?.name || "")} 
                       onChange={(e) => setCustomerName(e.target.value)}
                     />
@@ -2618,7 +2618,7 @@ function ClientPortalComponent() {
                         id="profile-email" 
                         type="email"
                         placeholder="seu@email.com"
-                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
+                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-gold"
                         value={customerData?.email || ""}
                         onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })}
                       />
@@ -2632,7 +2632,7 @@ function ClientPortalComponent() {
                         id="profile-birthdate" 
                         type="text"
                         placeholder="dd/mm/aaaa"
-                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
+                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-gold"
                         value={(() => {
                           const date = customerData?.birth_date || "";
                           if (date.includes("-")) {
@@ -2678,7 +2678,7 @@ function ClientPortalComponent() {
               </CardContent>
               <CardContent className="pt-0 pb-6">
                 <Button 
-                  className="w-full gap-2 bg-[#D4AF37] text-black hover:bg-[#B8860B] transition-all duration-300 hover:scale-105 font-bold" 
+                  className="w-full gap-2 bg-gold text-black hover:bg-[#B8860B] transition-all duration-300 hover:scale-105 font-bold" 
                   disabled={submitting}
                   onClick={async () => {
                     if (!customerData?.id || !customerName) return;
@@ -2803,12 +2803,12 @@ function ClientPortalComponent() {
                 ? new Date(mySubscription.current_period_end).toLocaleDateString("pt-BR")
                 : "—";
               return (
-                <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
+                <div className="relative rounded-3xl overflow-hidden border-2 border-gold/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_20px_60px_rgba(212,175,55,0.35)]">
                   <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
                     style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
                   <div className="relative flex items-start justify-between">
                     <div>
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/80 font-black">Cartão Premium</p>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-gold/80 font-black">Cartão Premium</p>
                       <p className="text-xs text-gray-400 mt-1">{planName}</p>
                     </div>
                     <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest", statusColor)}>
@@ -2816,7 +2816,7 @@ function ClientPortalComponent() {
                     </span>
                   </div>
                   <div className="relative flex items-center gap-3 mt-5">
-                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-[#D4AF37]">
+                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gold to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden border border-gold">
                       {client?.avatar_url ? (
                         <img src={client.avatar_url} alt={client?.name} className="h-full w-full object-cover" />
                       ) : (
@@ -2825,7 +2825,7 @@ function ClientPortalComponent() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-white font-black text-lg truncate">{client?.name || "Cliente"}</p>
-                      <p className="text-[11px] text-[#D4AF37]/80 uppercase tracking-widest">Assinante Premium</p>
+                      <p className="text-[11px] text-gold/80 uppercase tracking-widest">Assinante Premium</p>
                     </div>
                   </div>
                   <div className="relative mt-6 bg-white rounded-2xl p-4 grid place-items-center">
@@ -2942,7 +2942,7 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="bg-white/5 border-white/10">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2"><ShieldCheck size={18} className="text-[#D4AF37]" /> Preferências de comunicação</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2"><ShieldCheck size={18} className="text-gold" /> Preferências de comunicação</CardTitle>
           <CardDescription className="text-gray-400">Controle como entramos em contato com você.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -2951,7 +2951,7 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
               type="checkbox"
               checked={allowNotifications}
               onChange={(e) => setAllowNotifications(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[#D4AF37]"
+              className="mt-0.5 h-4 w-4 accent-gold"
             />
             <span className="text-sm text-white/85">
               <span className="block font-semibold">Notificações operacionais</span>
@@ -2963,7 +2963,7 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
               type="checkbox"
               checked={allowMarketing}
               onChange={(e) => setAllowMarketing(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[#D4AF37]"
+              className="mt-0.5 h-4 w-4 accent-gold"
             />
             <span className="text-sm text-white/85">
               <span className="block font-semibold">Promoções e campanhas</span>
@@ -2973,7 +2973,7 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
           <Button
             onClick={savePreferences}
             disabled={savingPrefs}
-            className="w-full h-[42px] rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
+            className="w-full h-[42px] rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-bold hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
           >
             {savingPrefs ? 'Salvando...' : 'Salvar preferências'}
           </Button>
@@ -2982,16 +2982,16 @@ function PrivacyPanel({ customerData, appointments }: { customerData: any; appoi
 
       <Card className="bg-white/5 border-white/10">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2"><Download size={18} className="text-[#D4AF37]" /> Meus dados</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2"><Download size={18} className="text-gold" /> Meus dados</CardTitle>
           <CardDescription className="text-gray-400">Exporte uma cópia ou solicite exclusão (LGPD).</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Button
             onClick={exportData}
             variant="outline"
-            className="w-full h-[42px] rounded-xl bg-black/40 border border-[#D4AF37]/40 text-white font-semibold hover:bg-[#D4AF37]/10 hover:text-white hover:border-[#D4AF37]/70 hover:-translate-y-0.5 transition-all duration-200"
+            className="w-full h-[42px] rounded-xl bg-black/40 border border-gold/40 text-white font-semibold hover:bg-gold/10 hover:text-white hover:border-gold/70 hover:-translate-y-0.5 transition-all duration-200"
           >
-            <Download size={16} className="mr-2 text-[#D4AF37]" /> Baixar meus dados (JSON)
+            <Download size={16} className="mr-2 text-gold" /> Baixar meus dados (JSON)
           </Button>
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
             <p className="text-xs text-white/70">

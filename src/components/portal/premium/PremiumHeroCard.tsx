@@ -133,7 +133,7 @@ export function PremiumHeroCard({
         "relative overflow-hidden rounded-3xl border p-6 md:p-8",
         "bg-gradient-to-br from-[#0B0B0F] via-[#0A0A0A] to-black",
         isSubscriber
-          ? "border-[#D4AF37]/40 shadow-[0_20px_60px_-20px_rgba(212,175,55,0.35)]"
+          ? "border-gold/40 shadow-[0_20px_60px_-20px_rgba(212,175,55,0.35)]"
           : "border-white/10 shadow-[0_20px_60px_-30px_rgba(255,255,255,0.15)]",
       )}
     >
@@ -141,7 +141,7 @@ export function PremiumHeroCard({
       <div
         className={cn(
           "pointer-events-none absolute -top-32 -right-24 h-72 w-72 rounded-full blur-3xl opacity-40",
-          isSubscriber ? "bg-[#D4AF37]/20" : "bg-white/5",
+          isSubscriber ? "bg-gold/20" : "bg-white/5",
         )}
       />
       <div className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full bg-[#F59E0B]/10 blur-3xl opacity-30" />
@@ -155,28 +155,28 @@ export function PremiumHeroCard({
                 alt={client?.name}
                 className={cn(
                   "h-20 w-20 md:h-24 md:w-24 rounded-2xl object-cover border-2",
-                  isSubscriber ? "border-[#D4AF37]" : "border-white/20",
+                  isSubscriber ? "border-gold" : "border-white/20",
                 )}
               />
             ) : (
               <div
                 className={cn(
                   "h-20 w-20 md:h-24 md:w-24 rounded-2xl grid place-items-center border-2 bg-white/5",
-                  isSubscriber ? "border-[#D4AF37] text-[#D4AF37]" : "border-white/20 text-white/70",
+                  isSubscriber ? "border-gold text-gold" : "border-white/20 text-white/70",
                 )}
               >
                 <UserIcon className="h-10 w-10" />
               </div>
             )}
             {isSubscriber && (
-              <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F5D061] grid place-items-center shadow-lg ring-2 ring-black">
+              <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-gradient-to-br from-gold to-[#F5D061] grid place-items-center shadow-lg ring-2 ring-black">
                 <Crown className="h-4 w-4 text-black" />
               </div>
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-xs uppercase tracking-[0.3em] font-black text-[#D4AF37]/80">
+            <p className="text-xs uppercase tracking-[0.3em] font-black text-gold/80">
               {text}, {icon}
             </p>
             <h1 className="mt-1 text-2xl md:text-4xl font-black text-white tracking-tight truncate">
@@ -199,7 +199,7 @@ export function PremiumHeroCard({
                 <TierIcon className="h-3 w-3" /> {tier.label}
               </Badge>
               {isSubscriber && mySubscription?.plan?.name && (
-                <Badge className="bg-[#D4AF37] text-black font-black uppercase text-[10px] tracking-wider gap-1 border-0">
+                <Badge className="bg-gold text-black font-black uppercase text-[10px] tracking-wider gap-1 border-0">
                   <Sparkles className="h-3 w-3" /> {mySubscription.plan.name}
                 </Badge>
               )}
@@ -232,7 +232,7 @@ export function PremiumHeroCard({
                 className={cn(
                   "mt-1 font-black text-sm md:text-[15px] whitespace-nowrap",
                   s.accent === "gold"
-                    ? "text-[#D4AF37]"
+                    ? "text-gold"
                     : s.accent === "emerald"
                     ? "text-emerald-400"
                     : "text-white",

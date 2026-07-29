@@ -66,12 +66,12 @@ export function WhySubscribeCard({ appointments, shopId, onSubscribe }: Props) {
           </div>
 
           <div className="hidden md:flex items-center justify-center">
-            <ArrowRight className="h-8 w-8 text-[#D4AF37]" />
+            <ArrowRight className="h-8 w-8 text-gold" />
           </div>
 
-          <div className="rounded-2xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/10 to-transparent p-5 text-center shadow-[0_10px_30px_-10px_rgba(212,175,55,0.4)]">
-            <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-black">Assinando</p>
-            <p className="mt-2 text-3xl font-black text-[#D4AF37]">R$ {planPrice.toFixed(0)}</p>
+          <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-gold/10 to-transparent p-5 text-center shadow-[0_10px_30px_-10px_rgba(212,175,55,0.4)]">
+            <p className="text-[10px] uppercase tracking-widest text-gold font-black">Assinando</p>
+            <p className="mt-2 text-3xl font-black text-gold">R$ {planPrice.toFixed(0)}</p>
             <p className="text-xs text-gray-400 mt-1">
               {cheapestPlan?.name || "Plano"} • ilimitado
             </p>
@@ -87,7 +87,7 @@ export function WhySubscribeCard({ appointments, shopId, onSubscribe }: Props) {
           </div>
           <button
             onClick={onSubscribe}
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase tracking-widest text-xs shadow-[0_8px_24px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all"
+            className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-black uppercase tracking-widest text-xs shadow-[0_8px_24px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all"
           >
             <Sparkles className="h-4 w-4" /> Quero Economizar
           </button>

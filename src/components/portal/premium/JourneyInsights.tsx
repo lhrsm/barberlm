@@ -137,7 +137,7 @@ export function JourneyInsights({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">
             Personalizado para você
           </p>
           <h2 className="text-lg md:text-xl font-black text-white mt-1">Sua Jornada Barbex</h2>
@@ -145,7 +145,7 @@ export function JourneyInsights({
         {onNewAppointment && (
           <button
             onClick={onNewAppointment}
-            className="hidden md:inline-flex items-center gap-2 text-[11px] uppercase tracking-widest font-black text-[#D4AF37] hover:text-[#F5D061] transition-colors"
+            className="hidden md:inline-flex items-center gap-2 text-[11px] uppercase tracking-widest font-black text-gold hover:text-[#F5D061] transition-colors"
           >
             Novo agendamento →
           </button>
@@ -162,7 +162,7 @@ export function JourneyInsights({
             className={cn(
               "group relative overflow-hidden rounded-2xl border p-4 backdrop-blur",
               "bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-300",
-              it.tone === "gold" && "border-[#D4AF37]/25 hover:border-[#D4AF37]/50",
+              it.tone === "gold" && "border-gold/25 hover:border-gold/50",
               it.tone === "emerald" && "border-emerald-500/20 hover:border-emerald-500/40",
               it.tone === "info" && "border-sky-500/20 hover:border-sky-500/40",
               it.tone === "warn" && "border-amber-500/25 hover:border-amber-500/50",
@@ -171,7 +171,7 @@ export function JourneyInsights({
             <div
               className={cn(
                 "h-9 w-9 rounded-xl grid place-items-center mb-3",
-                it.tone === "gold" && "bg-[#D4AF37]/15 text-[#D4AF37]",
+                it.tone === "gold" && "bg-gold/15 text-gold",
                 it.tone === "emerald" && "bg-emerald-500/15 text-emerald-400",
                 it.tone === "info" && "bg-sky-500/15 text-sky-400",
                 it.tone === "warn" && "bg-amber-500/15 text-amber-400",

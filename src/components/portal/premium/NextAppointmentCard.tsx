@@ -63,7 +63,7 @@ export function NextAppointmentCard({
         {onNewAppointment && (
           <button
             onClick={onNewAppointment}
-            className="mt-4 inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black uppercase text-xs tracking-widest shadow-[0_8px_24px_rgba(212,175,55,0.35)] hover:brightness-110 hover:-translate-y-0.5 transition-all"
+            className="mt-4 inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-black uppercase text-xs tracking-widest shadow-[0_8px_24px_rgba(212,175,55,0.35)] hover:brightness-110 hover:-translate-y-0.5 transition-all"
           >
             <Plus className="h-4 w-4" /> Novo Agendamento
           </button>
@@ -104,20 +104,20 @@ export function NextAppointmentCard({
               "relative overflow-hidden rounded-2xl border p-5 md:p-6",
               "bg-gradient-to-br from-[#0F0F14] via-[#0A0A0A] to-black",
               isFirst
-                ? "border-[#D4AF37]/30 shadow-[0_12px_40px_-15px_rgba(212,175,55,0.35)]"
+                ? "border-gold/30 shadow-[0_12px_40px_-15px_rgba(212,175,55,0.35)]"
                 : "border-white/10",
             )}
           >
             {isFirst && (
-              <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#D4AF37]/15 blur-3xl" />
+              <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gold/15 blur-3xl" />
             )}
             <div className="relative flex flex-col md:flex-row md:items-center gap-5">
               <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] grid place-items-center shadow-lg">
+                <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-gold to-[#B8860B] grid place-items-center shadow-lg">
                   <Scissors className="h-6 w-6 text-black" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">
                     {isFirst ? "Próximo Atendimento" : `Agendamento ${idx + 1}`}
                   </p>
                   <h3 className="text-lg md:text-xl font-black text-white truncate">

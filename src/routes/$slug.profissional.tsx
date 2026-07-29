@@ -268,7 +268,7 @@ function ProfessionalDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#05070d] gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
         <p className="text-[#6B7280] text-sm animate-pulse font-medium">Carregando painel do profissional...</p>
       </div>
     );
@@ -292,7 +292,7 @@ function ProfessionalDashboard() {
               {error}
             </div>
             <Button 
-              className="w-full bg-[#D4AF37] hover:bg-[#B8962E] text-black font-bold h-11" 
+              className="w-full bg-gold hover:bg-[#B8962E] text-black font-bold h-11" 
               onClick={() => window.location.reload()}
             >
               <RefreshCcw className="h-4 w-4 mr-2" /> Tentar Novamente
@@ -306,7 +306,7 @@ function ProfessionalDashboard() {
   if (!stats && !error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#05070d] gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
         <p className="text-[#6B7280] text-sm font-medium">Sincronizando dados...</p>
       </div>
     );
@@ -329,11 +329,11 @@ function ProfessionalDashboard() {
   return (
     <AppLayout>
       <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#05070d] min-h-screen text-white">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0b0f17] p-8 rounded-2xl border border-[#D4AF37]/20 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0b0f17] p-8 rounded-2xl border border-gold/20 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
           <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20 border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+            <Avatar className="h-20 w-20 border-2 border-gold shadow-[0_0_20px_rgba(212,175,55,0.3)]">
               <AvatarImage src={barber?.avatar_url} />
-              <AvatarFallback className="bg-[#D4AF37]/10 text-[#D4AF37] text-2xl font-black">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="bg-gold/10 text-gold text-2xl font-black">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight">Olá, {session.name} 👋</h1>
@@ -344,7 +344,7 @@ function ProfessionalDashboard() {
                 )}>
                   {barber?.active ? "🟢 Disponível" : "🔴 Indisponível"}
                 </Badge>
-                <Badge className="px-3 py-1 bg-[#D4AF37] text-black font-black text-[10px] uppercase tracking-wider border-0 shadow-sm">
+                <Badge className="px-3 py-1 bg-gold text-black font-black text-[10px] uppercase tracking-wider border-0 shadow-sm">
                   👑 {barber?.category || "Profissional"}
                 </Badge>
               </div>
@@ -358,7 +358,7 @@ function ProfessionalDashboard() {
               onClick={handleManualRefresh}
               disabled={isRefreshing}
               title="Atualizar painel"
-              className="h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200 disabled:opacity-60"
+              className="h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200 disabled:opacity-60"
             >
               <RefreshCcw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
             </Button>
@@ -367,7 +367,7 @@ function ProfessionalDashboard() {
               size="icon"
               onClick={() => setShowEditProfile(true)}
               title="Meu perfil"
-              className="h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
+              className="h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
             >
               <UserIcon className="h-5 w-5" />
             </Button>
@@ -392,10 +392,10 @@ function ProfessionalDashboard() {
             { title: "Cancelamentos", value: stats.cancelledMonth, icon: X },
             { title: "Próximo Atendimento", value: stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---", icon: Clock },
           ].map((stat, i) => (
-            <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl p-6 transition-all hover:border-[#D4AF37]/50 hover:shadow-[0_8px_24px_rgba(212,175,55,0.1)]">
+            <Card key={i} className="bg-[#0b0f17] border-gold/20 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl p-6 transition-all hover:border-gold/50 hover:shadow-[0_8px_24px_rgba(212,175,55,0.1)]">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">{stat.title}</span>
-                <stat.icon className="h-6 w-6 text-[#D4AF37]" />
+                <stat.icon className="h-6 w-6 text-gold" />
               </div>
               <div className="text-3xl font-black text-white">{stat.value}</div>
             </Card>
@@ -403,34 +403,34 @@ function ProfessionalDashboard() {
         </div>
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="bg-[#0b0f17] p-1.5 gap-2 flex overflow-x-auto h-auto rounded-2xl border border-[#D4AF37]/10 w-fit">
+          <TabsList className="bg-[#0b0f17] p-1.5 gap-2 flex overflow-x-auto h-auto rounded-2xl border border-gold/10 w-fit">
             <TabsTrigger 
               value="appointments" 
-              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
             <TabsTrigger 
               value="commission" 
-              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <CircleDollarSign className="h-4 w-4" /> Comissão
             </TabsTrigger>
             <TabsTrigger 
               value="finances" 
-              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <CircleDollarSign className="h-4 w-4" /> Financeiro
             </TabsTrigger>
             <TabsTrigger 
               value="profile" 
-              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
@@ -439,12 +439,12 @@ function ProfessionalDashboard() {
           
           <TabsContent value="appointments" className="mt-8 space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">
+              <h2 className="text-gold font-black uppercase text-xs tracking-[0.2em]">
                 Minha Agenda — {filterLabels[appointmentFilter]}
               </h2>
               <Button
                 size="sm"
-                className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+                className="bg-gold hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(212,175,55,0.2)]"
                 onClick={() => toast.info("Funcionalidade de novo agendamento disponível em breve no painel do profissional.")}
               >
                 <Plus className="h-4 w-4 mr-2" /> Novo Agendamento
@@ -459,8 +459,8 @@ function ProfessionalDashboard() {
                   className={cn(
                     "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
                     appointmentFilter === f
-                      ? "bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.25)]"
-                      : "bg-[#0b0f17] text-gray-400 border-[#D4AF37]/20 hover:border-[#D4AF37]/50 hover:text-white"
+                      ? "bg-gold text-black border-gold shadow-[0_0_15px_rgba(212,175,55,0.25)]"
+                      : "bg-[#0b0f17] text-gray-400 border-gold/20 hover:border-gold/50 hover:text-white"
                   )}
                 >
                   {filterLabels[f]}
@@ -470,9 +470,9 @@ function ProfessionalDashboard() {
 
             <div className="grid gap-4">
               {filteredAppointments.length === 0 ? (
-                <Card className="border-dashed border-[#D4AF37]/20 py-16 text-center bg-[#0b0f17] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+                <Card className="border-dashed border-gold/20 py-16 text-center bg-[#0b0f17] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                   <CardContent className="flex flex-col items-center">
-                    <Calendar className="h-16 w-16 text-[#D4AF37] opacity-20 mb-4" />
+                    <Calendar className="h-16 w-16 text-gold opacity-20 mb-4" />
                     <p className="text-gray-400 font-medium text-lg">Nenhum atendimento neste filtro.</p>
                   </CardContent>
                 </Card>
@@ -481,19 +481,19 @@ function ProfessionalDashboard() {
                   const isPending = app.status === 'scheduled' || app.status === 'confirmed';
                   const canCancel = !!tenant?.barber_can_cancel;
                   return (
-                    <Card key={app.id} className="overflow-hidden bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl transition-all hover:border-[#D4AF37]/30">
+                    <Card key={app.id} className="overflow-hidden bg-[#0b0f17] border-gold/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl transition-all hover:border-gold/30">
                       <div className="flex flex-col md:flex-row md:items-stretch">
-                        <div className="w-full md:w-36 bg-[#D4AF37]/5 p-5 flex md:flex-col items-center justify-center gap-2 md:gap-1 border-b md:border-b-0 md:border-r border-[#D4AF37]/10">
+                        <div className="w-full md:w-36 bg-gold/5 p-5 flex md:flex-col items-center justify-center gap-2 md:gap-1 border-b md:border-b-0 md:border-r border-gold/10">
                           <span className="text-2xl md:text-3xl font-black text-white">{format(new Date(app.start_time), "HH:mm")}</span>
-                          <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider">
+                          <span className="text-[10px] uppercase font-black text-gold tracking-wider">
                             {format(new Date(app.start_time), "dd/MM")}
                           </span>
                         </div>
 
                         <div className="flex-1 p-5 flex items-center gap-4">
-                          <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-[#D4AF37]/20 shadow-md shrink-0">
+                          <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-gold/20 shadow-md shrink-0">
                             <AvatarImage src={app.customers?.avatar_url} />
-                            <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-black">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback className="bg-gold/5 text-gold font-black">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                           </Avatar>
 
                           <div className="flex-1 min-w-0">
@@ -516,20 +516,20 @@ function ProfessionalDashboard() {
                               </div>
                             </div>
                             <p className="text-sm text-gray-400 flex items-center gap-2 font-medium flex-wrap">
-                              <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
+                              <Scissors size={14} className="text-gold" /> {app.services?.name}
                               <span className="text-gray-600">•</span>
                               <span className="font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                             </p>
                           </div>
                         </div>
 
-                        <div className="p-5 bg-[#05070d]/50 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-[#D4AF37]/10 md:w-[260px]">
+                        <div className="p-5 bg-[#05070d]/50 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-gold/10 md:w-[260px]">
                           {isPending ? (
                             <>
                               <Button
                                 size="sm"
                                 onClick={() => handleAction(app, 'completed')}
-                                className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black h-10 w-full"
+                                className="bg-gold hover:bg-[#B8962E] text-black rounded-xl font-black h-10 w-full"
                               >
                                 <CheckCircle2 className="h-4 w-4 mr-2" /> Concluir
                               </Button>
@@ -545,7 +545,7 @@ function ProfessionalDashboard() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => openWhatsapp(app, 'reschedule')}
-                                  className="bg-transparent text-[#D4AF37] border-[#D4AF37]/30 hover:bg-[#D4AF37]/10 rounded-xl font-black h-10 flex-1 text-[10px] uppercase tracking-wider"
+                                  className="bg-transparent text-gold border-gold/30 hover:bg-gold/10 rounded-xl font-black h-10 flex-1 text-[10px] uppercase tracking-wider"
                                 >
                                   Reagendar
                                 </Button>
@@ -599,51 +599,51 @@ function ProfessionalDashboard() {
 
 
           <TabsContent value="history" className="mt-8 space-y-6">
-            <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
-              <CardHeader className="border-b border-[#D4AF37]/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <Card className="bg-[#0b0f17] border-gold/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-gold/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-xl font-black text-white">Histórico de Atendimentos</CardTitle>
                   <CardDescription className="text-gray-400 font-medium">Lista completa dos seus serviços prestados.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="bg-[#D4AF37] text-black border-0 rounded-lg h-9 px-4 font-black text-[10px] uppercase">Tudo</Button>
-                  <Button variant="outline" size="sm" className="bg-transparent text-white border-[#D4AF37]/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
-                  <Button variant="outline" size="sm" className="bg-transparent text-white border-[#D4AF37]/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-[#D4AF37]/5 transition-all">
-                    <Filter className="h-4 w-4 mr-2 text-[#D4AF37]" /> Filtros
+                  <Button variant="outline" size="sm" className="bg-gold text-black border-0 rounded-lg h-9 px-4 font-black text-[10px] uppercase">Tudo</Button>
+                  <Button variant="outline" size="sm" className="bg-transparent text-white border-gold/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-gold/5 transition-all">Este Mês</Button>
+                  <Button variant="outline" size="sm" className="bg-transparent text-white border-gold/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-gold/5 transition-all">
+                    <Filter className="h-4 w-4 mr-2 text-gold" /> Filtros
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
+                    <thead className="bg-[#05070d] border-b border-gold/10">
                       <tr>
-                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Data</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Cliente</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Serviço</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Valor</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#D4AF37]/5 bg-[#0b0f17]">
+                    <tbody className="divide-y divide-gold/5 bg-[#0b0f17]">
                       {appointments.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic font-medium">Nenhum atendimento registrado.</td>
                         </tr>
                       ) : (
                         appointments.slice(0, 10).map((app, index) => (
-                          <tr key={app.id} className="transition-colors hover:bg-[#D4AF37]/5">
+                          <tr key={app.id} className="transition-colors hover:bg-gold/5">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
-                                <Calendar className="h-4 w-4 text-[#D4AF37]" />
+                                <Calendar className="h-4 w-4 text-gold" />
                                 <span className="text-sm font-bold text-white">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border border-[#D4AF37]/10">
+                                <Avatar className="h-8 w-8 border border-gold/10">
                                   <AvatarImage src={app.customers?.avatar_url} />
-                                  <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                  <AvatarFallback className="text-[10px] bg-gold/5 text-gold font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <span className="text-sm font-bold text-white">{app.customers?.name || "Cliente"}</span>
                               </div>
@@ -672,11 +672,11 @@ function ProfessionalDashboard() {
                   </table>
                 </div>
                 {appointments.length > 0 && (
-                  <div className="bg-[#05070d]/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
+                  <div className="bg-[#05070d]/50 p-4 border-t border-gold/10 flex items-center justify-between">
                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Mostrando 1-10 de {appointments.length} atendimentos</p>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-[#D4AF37]/20 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10"><ChevronLeft size={18} /></Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-[#D4AF37]/20 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10"><ChevronRight size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gold/20 text-gold bg-transparent hover:bg-gold/10"><ChevronRight size={18} /></Button>
                     </div>
                   </div>
                 )}
@@ -702,18 +702,18 @@ function ProfessionalDashboard() {
                       { title: "A Receber", value: `R$ ${pendingMonth.toFixed(2)}`, icon: Clock },
                       { title: "Produção do Mês", value: `R$ ${productionMonth.toFixed(2)}`, icon: TrendingUp },
                     ].map((s, i) => (
-                      <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 rounded-2xl p-6">
+                      <Card key={i} className="bg-[#0b0f17] border-gold/20 rounded-2xl p-6">
                         <div className="flex items-center justify-between mb-4">
                           <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">{s.title}</span>
-                          <s.icon className="h-6 w-6 text-[#D4AF37]" />
+                          <s.icon className="h-6 w-6 text-gold" />
                         </div>
                         <div className="text-2xl font-black text-white">{s.value}</div>
                       </Card>
                     ))}
                   </div>
 
-                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl">
-                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                  <Card className="bg-[#0b0f17] border-gold/10 rounded-2xl">
+                    <CardHeader className="border-b border-gold/10 p-6">
                       <CardTitle className="text-xl font-black text-white">Minha Meta Mensal</CardTitle>
                       <CardDescription className="text-gray-400 font-medium">
                         {goal > 0 ? `Meta de produção: R$ ${goal.toFixed(2)}` : "Nenhuma meta definida pelo administrador."}
@@ -723,42 +723,42 @@ function ProfessionalDashboard() {
                       <CardContent className="p-6 space-y-3">
                         <div className="flex justify-between text-sm font-bold text-white">
                           <span>R$ {productionMonth.toFixed(2)}</span>
-                          <span className="text-[#D4AF37]">{goalPct.toFixed(0)}%</span>
+                          <span className="text-gold">{goalPct.toFixed(0)}%</span>
                         </div>
-                        <div className="h-3 bg-[#05070d] rounded-full overflow-hidden border border-[#D4AF37]/10">
-                          <div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${goalPct}%` }} />
+                        <div className="h-3 bg-[#05070d] rounded-full overflow-hidden border border-gold/10">
+                          <div className="h-full bg-gold transition-all" style={{ width: `${goalPct}%` }} />
                         </div>
                       </CardContent>
                     )}
                   </Card>
 
-                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl overflow-hidden">
-                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                  <Card className="bg-[#0b0f17] border-gold/10 rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-gold/10 p-6">
                       <CardTitle className="text-xl font-black text-white">Minha Produção (últimos lançamentos)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
+                          <thead className="bg-[#05070d] border-b border-gold/10">
                             <tr>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor do Serviço</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Comissão</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Data</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Cliente</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Serviço</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Valor do Serviço</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Comissão</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Status</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#D4AF37]/5">
+                          <tbody className="divide-y divide-gold/5">
                             {commissionEntries.length === 0 ? (
                               <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">Nenhum lançamento de comissão ainda.</td></tr>
                             ) : commissionEntries.slice(0, 15).map(e => (
-                              <tr key={e.id} className="hover:bg-[#D4AF37]/5">
+                              <tr key={e.id} className="hover:bg-gold/5">
                                 <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(e.appointment_date || e.created_at), "dd/MM/yyyy")}</td>
                                 <td className="px-6 py-3 text-sm text-gray-300">{e.customer_name || "Cliente"}</td>
                                 <td className="px-6 py-3 text-sm text-gray-300">{e.service_name || "Serviço"}</td>
                                 <td className="px-6 py-3 text-sm text-gray-300">R$ {Number(e.service_amount || 0).toFixed(2)}</td>
-                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(e.commission_amount).toFixed(2)}</td>
+                                <td className="px-6 py-3 text-sm font-black text-gold">R$ {Number(e.commission_amount).toFixed(2)}</td>
                                 <td className="px-6 py-3">
                                   <Badge className={cn(
                                     "text-[9px] font-black px-2 py-0.5 uppercase border-0",
@@ -777,7 +777,7 @@ function ProfessionalDashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl p-6">
+                  <Card className="bg-[#0b0f17] border-gold/10 rounded-2xl p-6">
                     <CardTitle className="text-xl font-black text-white mb-2">Ciclo de Pagamento</CardTitle>
                     <CardDescription className="text-gray-400 font-medium">
                       As comissões nascem como pendentes e só entram como recebidas após autorização do administrador.
@@ -809,49 +809,49 @@ function ProfessionalDashboard() {
 
               return (
                 <>
-                  <div className="bg-[#0b0f17] border border-[#D4AF37]/20 rounded-2xl p-6">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mb-1">Financeiro Pessoal</p>
+                  <div className="bg-[#0b0f17] border border-gold/20 rounded-2xl p-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-1">Financeiro Pessoal</p>
                     <h2 className="text-2xl font-black text-white">Resumo do Mês</h2>
                     <p className="text-sm text-gray-400 font-medium mt-1">Dados exclusivos do seu desempenho. Não inclui informações da barbearia.</p>
                   </div>
 
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     {cards.map((c, i) => (
-                      <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 rounded-2xl p-6">
+                      <Card key={i} className="bg-[#0b0f17] border-gold/20 rounded-2xl p-6">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{c.title}</span>
-                          <c.icon className="h-5 w-5 text-[#D4AF37]" />
+                          <c.icon className="h-5 w-5 text-gold" />
                         </div>
                         <div className="text-2xl font-black text-white">{c.value}</div>
                       </Card>
                     ))}
                   </div>
 
-                  <Card className="bg-[#0b0f17] border-[#D4AF37]/10 rounded-2xl overflow-hidden">
-                    <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                  <Card className="bg-[#0b0f17] border-gold/10 rounded-2xl overflow-hidden">
+                    <CardHeader className="border-b border-gold/10 p-6">
                       <CardTitle className="text-xl font-black text-white">Histórico de Serviços (mês)</CardTitle>
                       <CardDescription className="text-gray-400 font-medium">Últimos atendimentos concluídos por você.</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
+                          <thead className="bg-[#05070d] border-b border-gold/10">
                             <tr>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
-                              <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Data</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Cliente</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Serviço</th>
+                              <th className="px-6 py-4 text-left text-[10px] font-black text-gold uppercase tracking-widest">Valor</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#D4AF37]/5">
+                          <tbody className="divide-y divide-gold/5">
                             {commissionEntries.length === 0 ? (
                               <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum atendimento concluído este mês.</td></tr>
                             ) : commissionEntries.slice(0, 20).map(e => (
-                              <tr key={e.id} className="hover:bg-[#D4AF37]/5">
+                              <tr key={e.id} className="hover:bg-gold/5">
                                 <td className="px-6 py-3 text-sm text-white font-bold">{format(new Date(e.appointment_date || e.created_at), "dd/MM HH:mm")}</td>
                                 <td className="px-6 py-3 text-sm text-gray-300">{e.customer_name || 'Cliente'}</td>
                                 <td className="px-6 py-3 text-sm text-gray-300">{e.service_name || 'Serviço'}</td>
-                                <td className="px-6 py-3 text-sm font-black text-[#D4AF37]">R$ {Number(e.service_amount || 0).toFixed(2)}</td>
+                                <td className="px-6 py-3 text-sm font-black text-gold">R$ {Number(e.service_amount || 0).toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -867,13 +867,13 @@ function ProfessionalDashboard() {
           <TabsContent value="profile" className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
 
-              <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
+              <Card className="bg-[#0b0f17] border-gold/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-gold/10 p-6">
                   <CardTitle className="text-xl font-black text-white">Perfil Profissional</CardTitle>
                   <Button 
                     size="sm" 
                     onClick={() => setShowEditProfile(true)}
-                    className="bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-transparent hover:bg-gold/10 text-gold border border-gold/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <Edit2 className="h-4 w-4 mr-2" /> Editar
                   </Button>
@@ -881,45 +881,45 @@ function ProfessionalDashboard() {
                 <CardContent className="space-y-8 pt-8 px-6 pb-8">
                   <div className="flex flex-col items-center gap-6">
                     <div className="relative">
-                      <Avatar className="h-32 w-32 border-4 border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                      <Avatar className="h-32 w-32 border-4 border-gold shadow-[0_0_30px_rgba(212,175,55,0.2)]">
                         <AvatarImage src={barber?.avatar_url} />
-                        <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="text-4xl font-black bg-gold/10 text-gold">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-2 -right-2 bg-green-500 h-6 w-6 rounded-full border-4 border-[#0b0f17]"></div>
                     </div>
                     <div className="text-center">
                       <h3 className="text-2xl font-black text-white">{barber?.name}</h3>
-                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-[0.2em] mt-2">{barber?.category || "Profissional"}</p>
+                      <p className="text-sm text-gold font-black uppercase tracking-[0.2em] mt-2">{barber?.category || "Profissional"}</p>
                     </div>
                   </div>
                   
-                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/5">
+                  <div className="space-y-6 pt-6 border-t border-gold/5">
                     <div className="space-y-3">
-                      <p className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em]">Bio / Descrição</p>
-                      <p className="text-sm text-gray-300 leading-relaxed font-medium bg-[#05070d] p-5 rounded-2xl border border-[#D4AF37]/5">
+                      <p className="text-[10px] font-black uppercase text-gold tracking-[0.2em]">Bio / Descrição</p>
+                      <p className="text-sm text-gray-300 leading-relaxed font-medium bg-[#05070d] p-5 rounded-2xl border border-gold/5">
                         {barber?.bio || "Sem descrição informada."}
                       </p>
                     </div>
                     <div className="grid gap-4">
-                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-[#D4AF37]/5 font-bold">
-                        <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
-                          <Phone className="h-5 w-5 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-gold/5 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-gold/10 flex items-center justify-center">
+                          <Phone className="h-5 w-5 text-gold" />
                         </div>
                         <span>{barber?.phone || "Não informado"}</span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-[#D4AF37]/5 font-bold">
-                        <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
-                          <Mail className="h-5 w-5 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-gold/5 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-gold/10 flex items-center justify-center">
+                          <Mail className="h-5 w-5 text-gold" />
                         </div>
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
                     {barber?.specialties && barber.specialties.length > 0 && (
                       <div className="space-y-3 pt-2">
-                        <p className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em]">Especialidades</p>
+                        <p className="text-[10px] font-black uppercase text-gold tracking-[0.2em]">Especialidades</p>
                         <div className="flex flex-wrap gap-2">
                           {barber.specialties.map((spec: string, i: number) => (
-                            <Badge key={i} variant="outline" className="border-[#D4AF37]/20 text-[#D4AF37] bg-[#D4AF37]/5 font-black text-[9px] uppercase py-1.5 px-4 rounded-lg tracking-wider">
+                            <Badge key={i} variant="outline" className="border-gold/20 text-gold bg-gold/5 font-black text-[9px] uppercase py-1.5 px-4 rounded-lg tracking-wider">
                               {spec}
                             </Badge>
                           ))}
@@ -930,13 +930,13 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
+              <Card className="bg-[#0b0f17] border-gold/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-gold/10 p-6">
                   <CardTitle className="text-xl font-black text-white">Horários de Trabalho</CardTitle>
                   <Button 
                     size="sm" 
                     onClick={() => setShowEditSchedule(true)}
-                    className="bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-transparent hover:bg-gold/10 text-gold border border-gold/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <Clock className="h-4 w-4 mr-2" /> Ajustar
                   </Button>
@@ -950,10 +950,10 @@ function ProfessionalDashboard() {
                         return (
                           <div key={dayKey} className={cn(
                             "flex items-center justify-between p-4 rounded-xl border transition-all",
-                            config.enabled ? "bg-[#05070d] border-[#D4AF37]/20 shadow-sm" : "bg-[#0b0f17] border-transparent opacity-30"
+                            config.enabled ? "bg-[#05070d] border-gold/20 shadow-sm" : "bg-[#0b0f17] border-transparent opacity-30"
                           )}>
                             <span className="text-sm font-black text-white uppercase tracking-wider">{dayNames[dayKey]}</span>
-                            <div className="flex items-center gap-2 text-[10px] font-black bg-[#D4AF37] text-black px-4 py-1.5 rounded-lg uppercase tracking-widest">
+                            <div className="flex items-center gap-2 text-[10px] font-black bg-gold text-black px-4 py-1.5 rounded-lg uppercase tracking-widest">
                               {config.enabled ? `${config.start} - ${config.end}` : "Fechado"}
                             </div>
                           </div>
@@ -961,7 +961,7 @@ function ProfessionalDashboard() {
                       })
                     ) : (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <Clock className="h-12 w-12 text-[#D4AF37] opacity-20 mb-4" />
+                        <Clock className="h-12 w-12 text-gold opacity-20 mb-4" />
                         <p className="text-gray-500 font-medium">Nenhum horário cadastrado.</p>
                       </div>
                     )}

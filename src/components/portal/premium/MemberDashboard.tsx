@@ -150,7 +150,7 @@ export function MemberDashboard({
             onClick={onSubscribe}
             className={cn(
               "hidden sm:inline-flex items-center gap-2 h-9 px-4 rounded-full",
-              "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black text-xs font-black uppercase tracking-wider",
+              "bg-gradient-to-r from-gold to-[#F5D061] text-black text-xs font-black uppercase tracking-wider",
               "shadow-[0_6px_20px_rgba(212,175,55,0.35)] transition-all duration-300",
               "hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(212,175,55,0.5)]",
             )}
@@ -173,7 +173,7 @@ export function MemberDashboard({
               "group text-left relative overflow-hidden rounded-2xl border p-4 backdrop-blur",
               "bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-300",
               "border-white/10 hover:border-white/25 hover:-translate-y-0.5",
-              c.accent === "gold" && "hover:border-[#D4AF37]/50",
+              c.accent === "gold" && "hover:border-gold/50",
               c.accent === "emerald" && "hover:border-emerald-500/40",
             )}
           >
@@ -181,7 +181,7 @@ export function MemberDashboard({
               <div
                 className={cn(
                   "h-8 w-8 rounded-xl grid place-items-center",
-                  c.accent === "gold" && "bg-[#D4AF37]/15 text-[#D4AF37]",
+                  c.accent === "gold" && "bg-gold/15 text-gold",
                   c.accent === "emerald" && "bg-emerald-500/15 text-emerald-400",
                   c.accent === "white" && "bg-white/10 text-white/80",
                 )}
@@ -196,7 +196,7 @@ export function MemberDashboard({
               className={cn(
                 "mt-0.5 text-lg md:text-xl font-black truncate",
                 c.accent === "gold"
-                  ? "text-[#D4AF37]"
+                  ? "text-gold"
                   : c.accent === "emerald"
                   ? "text-emerald-400"
                   : "text-white",

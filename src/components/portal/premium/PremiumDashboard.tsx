@@ -140,7 +140,7 @@ export function PremiumDashboard({
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">
           Visão geral
         </p>
         <h2 className="text-lg md:text-xl font-black text-white mt-1">Sua Central Premium</h2>
@@ -160,7 +160,7 @@ export function PremiumDashboard({
               "bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-300",
               "border-white/10 hover:border-white/25",
               "hover:-translate-y-0.5",
-              c.accent === "gold" && "hover:border-[#D4AF37]/50 hover:shadow-[0_8px_28px_-12px_rgba(212,175,55,0.4)]",
+              c.accent === "gold" && "hover:border-gold/50 hover:shadow-[0_8px_28px_-12px_rgba(212,175,55,0.4)]",
               c.accent === "emerald" && "hover:border-emerald-500/40",
             )}
           >
@@ -168,7 +168,7 @@ export function PremiumDashboard({
               <div
                 className={cn(
                   "h-8 w-8 rounded-xl grid place-items-center",
-                  c.accent === "gold" && "bg-[#D4AF37]/15 text-[#D4AF37]",
+                  c.accent === "gold" && "bg-gold/15 text-gold",
                   c.accent === "emerald" && "bg-emerald-500/15 text-emerald-400",
                   c.accent === "white" && "bg-white/10 text-white/80",
                   c.accent === "muted" && "bg-white/5 text-gray-500",
@@ -184,7 +184,7 @@ export function PremiumDashboard({
               className={cn(
                 "mt-0.5 text-lg md:text-xl font-black truncate",
                 c.accent === "gold"
-                  ? "text-[#D4AF37]"
+                  ? "text-gold"
                   : c.accent === "emerald"
                   ? "text-emerald-400"
                   : c.accent === "muted"

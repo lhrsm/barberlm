@@ -161,18 +161,18 @@ export function SubscriberPanel({
         />
       )}
       {/* HEADER PREMIUM */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#1a1408] via-black to-black p-6 shadow-[0_8px_40px_rgba(212,175,55,0.18)]">
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl border border-gold/40 bg-gradient-to-br from-[#1a1408] via-black to-black p-6 shadow-[0_8px_40px_rgba(212,175,55,0.18)]">
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#8B6914] flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gold to-[#8B6914] flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.4)]">
               <Crown className="h-7 w-7 text-black" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[#D4AF37]">Área Premium</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Área Premium</p>
               <h1 className="text-2xl md:text-3xl font-black text-white mt-0.5">{client?.name}</h1>
               <p className="text-xs text-gray-400 mt-1">
-                Plano <span className="text-[#D4AF37] font-bold">{usage.plan_name}</span>
+                Plano <span className="text-gold font-bold">{usage.plan_name}</span>
               </p>
             </div>
           </div>
@@ -181,8 +181,8 @@ export function SubscriberPanel({
               <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Adesão</p>
               <p className="text-white font-bold mt-0.5">{format(startedAt, "dd/MM/yyyy", { locale: ptBR })}</p>
             </div>
-            <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 px-3 py-2">
-              <p className="text-[9px] uppercase tracking-widest text-[#D4AF37]/80 font-bold">Próx. Renovação</p>
+            <div className="rounded-xl border border-gold/30 bg-gold/5 px-3 py-2">
+              <p className="text-[9px] uppercase tracking-widest text-gold/80 font-bold">Próx. Renovação</p>
               <p className="text-white font-bold mt-0.5">
                 {renewalAt ? format(renewalAt, "dd/MM/yyyy", { locale: ptBR }) : "—"}
               </p>
@@ -214,7 +214,7 @@ export function SubscriberPanel({
             <div className="flex gap-2 shrink-0">
               <Button
                 onClick={() => setChangePlanOpen(true)}
-                className="h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all"
+                className="h-10 rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-black gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all"
               >
                 <Crown className="h-3.5 w-3.5" /> Mudar de Plano
               </Button>
@@ -235,11 +235,11 @@ export function SubscriberPanel({
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* CARD PRINCIPAL DO PLANO */}
-        <Card className="bg-gradient-to-br from-[#D4AF37]/10 via-black/60 to-black border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(212,175,55,0.18)] lg:col-span-2">
+        <Card className="bg-gradient-to-br from-gold/10 via-black/60 to-black border-gold/40 shadow-[0_8px_30px_rgba(212,175,55,0.18)] lg:col-span-2">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <CardDescription className="uppercase text-[10px] font-black tracking-[0.3em] text-[#D4AF37]">
+                <CardDescription className="uppercase text-[10px] font-black tracking-[0.3em] text-gold">
                   Plano Ativo
                 </CardDescription>
                 <CardTitle className="text-2xl font-black text-white mt-1">{usage.plan_name}</CardTitle>
@@ -252,7 +252,7 @@ export function SubscriberPanel({
               <Badge
                 className={cn(
                   "font-black uppercase text-[10px]",
-                  isPaused ? "bg-blue-400 text-black" : "bg-[#D4AF37] text-black",
+                  isPaused ? "bg-blue-400 text-black" : "bg-gold text-black",
                 )}
               >
                 {isPaused ? "Pausada" : "Ativa"}
@@ -272,7 +272,7 @@ export function SubscriberPanel({
               </div>
               <div className="rounded-xl border border-white/10 bg-black/40 p-3">
                 <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Restantes</p>
-                <p className="text-2xl font-black text-[#D4AF37] mt-1">
+                <p className="text-2xl font-black text-gold mt-1">
                   {usage.has_limits ? usage.total_uses_remaining : "∞"}
                 </p>
               </div>
@@ -299,13 +299,13 @@ export function SubscriberPanel({
               <div>
                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
                   <span>Progresso do ciclo</span>
-                  <span className="text-[#D4AF37]">
+                  <span className="text-gold">
                     {usage.total_uses_consumed}/{usage.total_uses_allowed}
                   </span>
                 </div>
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F5D061] transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-gold to-[#F5D061] transition-all duration-700"
                     style={{ width: `${usagePct}%` }}
                   />
                 </div>
@@ -325,13 +325,13 @@ export function SubscriberPanel({
                 <Button
                   onClick={() => setDetailsOpen(true)}
                   variant="outline"
-                  className="h-9 px-4 rounded-xl bg-transparent border border-[#D4AF37]/50 text-[#D4AF37] font-bold gap-2 hover:bg-[#D4AF37] hover:text-black hover:-translate-y-0.5 transition-all duration-250"
+                  className="h-9 px-4 rounded-xl bg-transparent border border-gold/50 text-gold font-bold gap-2 hover:bg-gold hover:text-black hover:-translate-y-0.5 transition-all duration-250"
                 >
                   <Info className="h-3.5 w-3.5" /> Detalhes do Plano
                 </Button>
                 <Button
                   onClick={() => setChangePlanOpen(true)}
-                  className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all duration-250"
+                  className="h-9 px-4 rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-black gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all duration-250"
                 >
                   <Crown className="h-3.5 w-3.5" /> Mudar de Plano
                 </Button>
@@ -344,17 +344,17 @@ export function SubscriberPanel({
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-base flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-[#D4AF37]" /> Próximo Atendimento
+              <CalendarClock className="h-4 w-4 text-gold" /> Próximo Atendimento
             </CardTitle>
           </CardHeader>
           <CardContent>
             {nextApp ? (
               <div className="space-y-3">
-                <div className="rounded-xl border border-[#D4AF37]/20 bg-black/40 p-4 space-y-2">
+                <div className="rounded-xl border border-gold/20 bg-black/40 p-4 space-y-2">
                   <p className="text-xl font-black text-white">
                     {format(parseISO(nextApp.start_time), "dd 'de' MMMM", { locale: ptBR })}
                   </p>
-                  <p className="text-sm text-[#D4AF37] font-bold">
+                  <p className="text-sm text-gold font-bold">
                     {format(parseISO(nextApp.start_time), "HH:mm", { locale: ptBR })} — {nextApp.services?.name}
                   </p>
                   <p className="text-xs text-gray-400">Profissional: {nextApp.barbers?.name}</p>
@@ -362,7 +362,7 @@ export function SubscriberPanel({
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     onClick={() => onReschedule(nextApp)}
-                    className="flex-1 h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
+                    className="flex-1 h-10 rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-bold gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
                   >
                     <Edit2 className="h-4 w-4" /> Reagendar
                   </Button>
@@ -377,8 +377,8 @@ export function SubscriberPanel({
               </div>
             ) : (
               <div className="text-center py-6 space-y-3">
-                <div className="mx-auto h-12 w-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
-                  <CalendarClock className="h-6 w-6 text-[#D4AF37]" />
+                <div className="mx-auto h-12 w-12 rounded-full bg-gold/10 flex items-center justify-center">
+                  <CalendarClock className="h-6 w-6 text-gold" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-white">Nenhum próximo atendimento</p>
@@ -387,7 +387,7 @@ export function SubscriberPanel({
                 {onNewAppointment && (
                   <Button
                     onClick={onNewAppointment}
-                    className="h-10 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
+                    className="h-10 rounded-xl bg-gradient-to-r from-gold to-[#F5D061] text-black font-bold gap-2 shadow-sm hover:shadow-[0_6px_18px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-200"
                   >
                     <Plus className="h-4 w-4" /> Novo Agendamento
                   </Button>
@@ -401,7 +401,7 @@ export function SubscriberPanel({
         <Card className="bg-white/5 border-white/10">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#D4AF37]" /> Benefícios do Plano
+              <Sparkles className="h-4 w-4 text-gold" /> Benefícios do Plano
             </CardTitle>
             {usage.has_limits && (
               <CardDescription className="text-gray-400 text-xs">
@@ -426,11 +426,11 @@ export function SubscriberPanel({
                   <span className="text-xs text-gray-400 font-bold">/{usage.haircut_allowed || "∞"}</span>
                 </p>
               </div>
-              <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-3 text-center">
-                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37]/80 font-bold">Total</p>
-                <p className="text-lg font-black text-[#D4AF37] mt-1">
+              <div className="rounded-lg border border-gold/30 bg-gold/5 p-3 text-center">
+                <p className="text-[9px] uppercase tracking-widest text-gold/80 font-bold">Total</p>
+                <p className="text-lg font-black text-gold mt-1">
                   {usage.total_uses_consumed}
-                  <span className="text-xs text-[#D4AF37]/70 font-bold">/{usage.total_uses_allowed || "∞"}</span>
+                  <span className="text-xs text-gold/70 font-bold">/{usage.total_uses_allowed || "∞"}</span>
                 </p>
               </div>
             </div>
@@ -445,7 +445,7 @@ export function SubscriberPanel({
                       key={idx}
                       className="flex items-center gap-2 text-sm text-white/90 bg-black/30 border border-white/10 rounded-lg px-3 py-2"
                     >
-                      <Check className="h-3.5 w-3.5 text-[#D4AF37] shrink-0" />
+                      <Check className="h-3.5 w-3.5 text-gold shrink-0" />
                       <span>{name}</span>
                     </li>
                   ))}
@@ -462,7 +462,7 @@ export function SubscriberPanel({
 
       {/* CARTÃO DIGITAL PREMIUM */}
       {mySubscription.card_token && (
-        <Card className="bg-gradient-to-br from-black via-[#1a1408] to-black border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(212,175,55,0.18)]">
+        <Card className="bg-gradient-to-br from-black via-[#1a1408] to-black border-gold/40 shadow-[0_8px_30px_rgba(212,175,55,0.18)]">
           <CardContent className="p-6 flex flex-col md:flex-row md:items-center gap-6">
             <div className="bg-white p-3 rounded-xl shrink-0 mx-auto md:mx-0">
               <QRCodeSVG
@@ -471,7 +471,7 @@ export function SubscriberPanel({
               />
             </div>
             <div className="flex-1 text-center md:text-left">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-[#D4AF37] font-black">Cartão Digital Premium</p>
+              <p className="text-[10px] uppercase tracking-[0.35em] text-gold font-black">Cartão Digital Premium</p>
               <h3 className="text-xl font-black text-white mt-1">{client?.name}</h3>
               <p className="text-xs text-gray-400">
                 Assinante #{String(mySubscription.id).slice(0, 8).toUpperCase()}
@@ -480,7 +480,7 @@ export function SubscriberPanel({
                 <Button
                   size="sm"
                   onClick={onOpenCard}
-                  className="bg-[#D4AF37] hover:bg-[#F5D061] text-black font-bold gap-2"
+                  className="bg-gold hover:bg-[#F5D061] text-black font-bold gap-2"
                 >
                   <QrCode className="h-4 w-4" /> Ver Cartão
                 </Button>
@@ -488,7 +488,7 @@ export function SubscriberPanel({
                   size="sm"
                   variant="outline"
                   onClick={shareCard}
-                  className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 gap-2"
+                  className="border-gold/40 text-gold hover:bg-gold/10 gap-2"
                 >
                   <Share2 className="h-4 w-4" /> Compartilhar
                 </Button>
@@ -502,7 +502,7 @@ export function SubscriberPanel({
       <Card className="bg-white/5 border-white/10">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-base flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-[#D4AF37]" /> Clube Premium
+            <Trophy className="h-4 w-4 text-gold" /> Clube Premium
           </CardTitle>
           <CardDescription className="text-gray-400 text-xs">Recompensas por tempo de assinatura</CardDescription>
         </CardHeader>
@@ -510,7 +510,7 @@ export function SubscriberPanel({
           <div className="relative">
             <div className="absolute left-0 right-0 top-5 h-0.5 bg-white/10" />
             <div
-              className="absolute left-0 top-5 h-0.5 bg-gradient-to-r from-[#D4AF37] to-[#F5D061] transition-all duration-700"
+              className="absolute left-0 top-5 h-0.5 bg-gradient-to-r from-gold to-[#F5D061] transition-all duration-700"
               style={{ width: `${Math.min(100, (monthsVip / 24) * 100)}%` }}
             />
             <div className="relative grid grid-cols-4 gap-2">
@@ -523,13 +523,13 @@ export function SubscriberPanel({
                       className={cn(
                         "h-10 w-10 rounded-full flex items-center justify-center border-2 z-10 transition-all",
                         reached
-                          ? "bg-gradient-to-br from-[#D4AF37] to-[#8B6914] border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.5)]"
+                          ? "bg-gradient-to-br from-gold to-[#8B6914] border-gold shadow-[0_0_20px_rgba(212,175,55,0.5)]"
                           : "bg-black border-white/20",
                       )}
                     >
                       <Star className={cn("h-4 w-4", reached ? "text-black" : "text-gray-600")} />
                     </div>
-                    <p className={cn("text-xs font-black mt-2", reached ? "text-[#D4AF37]" : "text-gray-500")}>
+                    <p className={cn("text-xs font-black mt-2", reached ? "text-gold" : "text-gray-500")}>
                       {m}m
                     </p>
                     <p className="text-[9px] text-gray-500 mt-0.5 line-clamp-2">
@@ -547,7 +547,7 @@ export function SubscriberPanel({
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {subRewardsHistory.slice(0, 8).map((h: any) => (
-                  <Badge key={h.id} variant="outline" className="bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40 text-[10px]">
+                  <Badge key={h.id} variant="outline" className="bg-gold/10 text-gold border-gold/40 text-[10px]">
                     {h.notes || "Recompensa"}
                   </Badge>
                 ))}
@@ -598,7 +598,7 @@ export function SubscriberPanel({
       <Card className="bg-white/5 border-white/10">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-base flex items-center gap-2">
-            <History className="h-4 w-4 text-[#D4AF37]" /> Histórico de Utilização
+            <History className="h-4 w-4 text-gold" /> Histórico de Utilização
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -612,8 +612,8 @@ export function SubscriberPanel({
                   className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/10"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
-                      <Scissors className="h-4 w-4 text-[#D4AF37]" />
+                    <div className="h-9 w-9 rounded-lg bg-gold/10 flex items-center justify-center">
+                      <Scissors className="h-4 w-4 text-gold" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-white">{log.service_name}</p>
@@ -623,12 +623,12 @@ export function SubscriberPanel({
                           ? format(parseISO(log.used_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
                           : "—"}
                         {log.category === "both" && (
-                          <span className="ml-1 text-[#D4AF37]">• 1 corte + 1 barba</span>
+                          <span className="ml-1 text-gold">• 1 corte + 1 barba</span>
                         )}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-[10px] text-[#D4AF37] border-[#D4AF37]/30">
+                  <Badge variant="outline" className="text-[10px] text-gold border-gold/30">
                     {log.total_consumed} util.
                   </Badge>
                 </li>

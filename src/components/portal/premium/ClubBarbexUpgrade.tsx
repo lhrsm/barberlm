@@ -46,20 +46,20 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#12100A] via-[#0A0A0A] to-black p-6 md:p-10 shadow-[0_30px_80px_-20px_rgba(212,175,55,0.45)]"
+        className="relative overflow-hidden rounded-3xl border border-gold/40 bg-gradient-to-br from-[#12100A] via-[#0A0A0A] to-black p-6 md:p-10 shadow-[0_30px_80px_-20px_rgba(212,175,55,0.45)]"
       >
-        <div className="pointer-events-none absolute -top-32 -right-32 h-80 w-80 rounded-full bg-[#D4AF37]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 -right-32 h-80 w-80 rounded-full bg-gold/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-[#F59E0B]/20 blur-3xl" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle_at_1px_1px,#D4AF37_1px,transparent_0)] [background-size:24px_24px]" />
 
         <div className="relative grid lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/30 mb-4">
-              <Crown className="h-3.5 w-3.5 text-[#D4AF37]" />
-              <span className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Exclusivo Assinantes</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/15 border border-gold/30 mb-4">
+              <Crown className="h-3.5 w-3.5 text-gold" />
+              <span className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Exclusivo Assinantes</span>
             </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[1.05]">
-              Clube Barbex <span className="bg-gradient-to-r from-[#D4AF37] to-[#F5D061] bg-clip-text text-transparent">Premium</span>
+              Clube Barbex <span className="bg-gradient-to-r from-gold to-[#F5D061] bg-clip-text text-transparent">Premium</span>
             </h2>
             <p className="text-sm md:text-base text-gray-300 mt-3 max-w-lg leading-relaxed">
               Economize todos os meses e desbloqueie benefícios exclusivos utilizando um dos nossos planos.
@@ -74,8 +74,8 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
                   transition={{ delay: 0.1 + i * 0.04 }}
                   className="flex items-center gap-2.5 text-sm text-gray-200"
                 >
-                  <span className="h-5 w-5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 grid place-items-center shrink-0">
-                    <Check className="h-3 w-3 text-[#D4AF37]" strokeWidth={3} />
+                  <span className="h-5 w-5 rounded-full bg-gold/20 border border-gold/40 grid place-items-center shrink-0">
+                    <Check className="h-3 w-3 text-gold" strokeWidth={3} />
                   </span>
                   {b}
                 </motion.li>
@@ -85,14 +85,14 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={onSubscribe}
-                className="group relative inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F5D061] to-[#D4AF37] text-black font-black uppercase tracking-widest text-xs shadow-[0_10px_30px_rgba(212,175,55,0.5)] hover:shadow-[0_15px_45px_rgba(212,175,55,0.7)] hover:-translate-y-0.5 transition-all"
+                className="group relative inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-gradient-to-r from-gold via-[#F5D061] to-gold text-black font-black uppercase tracking-widest text-xs shadow-[0_10px_30px_rgba(212,175,55,0.5)] hover:shadow-[0_15px_45px_rgba(212,175,55,0.7)] hover:-translate-y-0.5 transition-all"
               >
                 <Sparkles className="h-4 w-4" />
                 Assinar Agora
               </button>
               <button
                 onClick={() => setOpenCompare(true)}
-                className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-white/15 bg-white/5 text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:border-[#D4AF37]/40 transition-all"
+                className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-white/15 bg-white/5 text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:border-gold/40 transition-all"
               >
                 Comparar Planos
               </button>
@@ -100,11 +100,11 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
           </div>
 
           <div className="hidden lg:flex items-center justify-center relative">
-            <div className="relative w-64 h-80 rounded-3xl bg-gradient-to-br from-[#1A1A1A] to-black border border-[#D4AF37]/30 shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-6 flex flex-col justify-between overflow-hidden">
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#D4AF37]/10 via-transparent to-transparent" />
+            <div className="relative w-64 h-80 rounded-3xl bg-gradient-to-br from-[#1A1A1A] to-black border border-gold/30 shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-6 flex flex-col justify-between overflow-hidden">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-transparent" />
               <div className="relative">
                 <div className="flex items-center justify-between">
-                  <Crown className="h-8 w-8 text-[#D4AF37]" />
+                  <Crown className="h-8 w-8 text-gold" />
                   <span className="text-[9px] uppercase tracking-widest text-gray-400">Membro Premium</span>
                 </div>
                 <p className="mt-4 text-xs text-gray-400">Cartão Digital</p>
@@ -112,9 +112,9 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
               </div>
               <div className="relative">
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest">Você</p>
-                <p className="text-sm font-bold text-[#D4AF37]">Ainda não é membro</p>
+                <p className="text-sm font-bold text-gold">Ainda não é membro</p>
                 <div className="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
-                  <div className="h-full w-2/3 bg-gradient-to-r from-[#D4AF37] to-[#F5D061]" />
+                  <div className="h-full w-2/3 bg-gradient-to-r from-gold to-[#F5D061]" />
                 </div>
               </div>
             </div>
@@ -123,10 +123,10 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
       </motion.div>
 
       <Dialog open={openCompare} onOpenChange={setOpenCompare}>
-        <DialogContent className="max-w-5xl bg-[#0A0A0A] border border-[#D4AF37]/30 text-white p-0 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl bg-[#0A0A0A] border border-gold/30 text-white p-0 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="p-6 border-b border-white/10 sticky top-0 bg-[#0A0A0A]/95 backdrop-blur z-10">
             <DialogTitle className="text-2xl font-black flex items-center gap-2">
-              <Crown className="h-6 w-6 text-[#D4AF37]" /> Compare os Planos
+              <Crown className="h-6 w-6 text-gold" /> Compare os Planos
             </DialogTitle>
             <p className="text-sm text-gray-400 mt-1">Escolha o plano ideal e comece a economizar hoje.</p>
           </DialogHeader>
@@ -160,12 +160,12 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
                       className={cn(
                         "relative rounded-2xl border p-5 flex flex-col",
                         highlight
-                          ? "border-[#D4AF37]/60 bg-gradient-to-br from-[#D4AF37]/10 to-transparent shadow-[0_15px_45px_-20px_rgba(212,175,55,0.5)]"
+                          ? "border-gold/60 bg-gradient-to-br from-gold/10 to-transparent shadow-[0_15px_45px_-20px_rgba(212,175,55,0.5)]"
                           : "border-white/10 bg-white/[0.03]",
                       )}
                     >
                       {highlight && (
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-gold to-[#F5D061] text-black text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
                           <Star className="h-3 w-3" fill="currentColor" /> Mais Popular
                         </span>
                       )}
@@ -174,7 +174,7 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
                         <p className="text-xs text-gray-400 mt-1 line-clamp-2">{p.description}</p>
                       )}
                       <div className="mt-4 flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-[#D4AF37]">
+                        <span className="text-3xl font-black text-gold">
                           R$ {Number(p.monthly_price || 0).toFixed(2)}
                         </span>
                         <span className="text-xs text-gray-500">/mês</span>
@@ -187,7 +187,7 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
                       <ul className="mt-4 space-y-2 flex-1">
                         {(benefits.length ? benefits : ["Atendimento prioritário", "Cashback exclusivo", "Cartão digital premium"]).slice(0, 6).map((b: string) => (
                           <li key={b} className="flex items-start gap-2 text-xs text-gray-300">
-                            <Check className="h-3.5 w-3.5 text-[#D4AF37] shrink-0 mt-0.5" strokeWidth={3} />
+                            <Check className="h-3.5 w-3.5 text-gold shrink-0 mt-0.5" strokeWidth={3} />
                             <span>{b}</span>
                           </li>
                         ))}
@@ -200,7 +200,7 @@ export function ClubBarbexUpgrade({ shopId, onSubscribe }: Props) {
                         className={cn(
                           "mt-5 h-11 rounded-xl font-black uppercase tracking-widest text-xs transition-all",
                           highlight
-                            ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black shadow-[0_8px_24px_rgba(212,175,55,0.4)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.6)]"
+                            ? "bg-gradient-to-r from-gold to-[#F5D061] text-black shadow-[0_8px_24px_rgba(212,175,55,0.4)] hover:shadow-[0_12px_32px_rgba(212,175,55,0.6)]"
                             : "bg-white/10 text-white hover:bg-white/15 border border-white/10",
                         )}
                       >
