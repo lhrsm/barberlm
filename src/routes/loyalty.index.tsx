@@ -304,13 +304,13 @@ function LoyaltyDashboardPage() {
         )}
 
         {/* Aviso: separação Fidelidade Tradicional x Premium */}
-        <Card className="bg-gradient-to-r from-[#D4AF37]/10 via-amber-500/5 to-transparent border-[#D4AF37]/30 text-white">
+        <Card className="bg-gradient-to-r from-gold/10 via-amber-500/5 to-transparent border-gold/30 text-white">
           <CardContent className="p-5 flex items-start gap-4">
-            <div className="h-10 w-10 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 grid place-items-center shrink-0">
-              <Trophy className="h-5 w-5 text-[#D4AF37]" />
+            <div className="h-10 w-10 rounded-xl bg-gold/15 border border-gold/30 grid place-items-center shrink-0">
+              <Trophy className="h-5 w-5 text-gold" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black uppercase tracking-wider text-[#D4AF37]">
+              <p className="text-sm font-black uppercase tracking-wider text-gold">
                 Fidelidade Premium é separada
               </p>
               <p className="text-xs text-zinc-300 mt-1 leading-relaxed">
@@ -321,11 +321,11 @@ function LoyaltyDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0b0f17] border border-[#D4AF37]/30 text-white shadow-[0_12px_40px_rgba(212,175,55,0.06)]">
+        <Card className="bg-[#0b0f17] border border-gold/30 text-white shadow-[0_12px_40px_rgba(212,175,55,0.06)]">
           <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <CardTitle className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2">
-                <Crown className="h-5 w-5 text-[#D4AF37]" /> Fidelidade Premium dos Assinantes
+                <Crown className="h-5 w-5 text-gold" /> Fidelidade Premium dos Assinantes
               </CardTitle>
               <CardDescription className="text-slate-400 mt-1">
                 Recompensas por tempo de assinatura, separadas da fidelidade tradicional por atendimentos.
@@ -700,8 +700,8 @@ function LoyaltyNavButton({
   const base =
     "group relative overflow-hidden shrink-0 inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-300 hover:-translate-y-0.5 cursor-pointer";
   const cls = active
-    ? "bg-gradient-to-r from-[#D4AF37] via-[#F2D57E] to-[#D4AF37] text-black border border-[#D4AF37] shadow-[0_4px_18px_rgba(212,175,55,0.40)] hover:shadow-[0_8px_28px_rgba(212,175,55,0.60)]"
-    : "bg-[#0b0f17] text-white border border-[#D4AF37]/30 [&_svg]:text-[#D4AF37] hover:border-[#D4AF37]/70 hover:bg-[#D4AF37]/10 hover:shadow-[0_0_22px_rgba(212,175,55,0.28)]";
+    ? "bg-gradient-to-r from-gold via-[#F2D57E] to-gold text-black border border-gold shadow-[0_4px_18px_rgba(212,175,55,0.40)] hover:shadow-[0_8px_28px_rgba(212,175,55,0.60)]"
+    : "bg-[#0b0f17] text-white border border-gold/30 [&_svg]:text-gold hover:border-gold/70 hover:bg-gold/10 hover:shadow-[0_0_22px_rgba(212,175,55,0.28)]";
   return (
     <Link
       to={to as any}

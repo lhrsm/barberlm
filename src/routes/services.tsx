@@ -462,7 +462,7 @@ function ServicesComponent() {
 
                 <div className="flex items-center gap-2 pt-4 border-t border-white/5">
                   <Button
-                    className="flex-1 h-12 relative overflow-hidden group/prof rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black uppercase tracking-wider text-sm border border-[#D4AF37] shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300"
+                    className="flex-1 h-12 relative overflow-hidden group/prof rounded-xl bg-gradient-to-r from-gold to-[#F0D67B] text-black font-black uppercase tracking-wider text-sm border border-gold shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300"
                     onClick={() => {
                       toast.info(`Profissionais: ${service.barber_services?.map((bs: any) => bs.barbers?.name).join(', ') || 'Nenhum'}`);
                     }}

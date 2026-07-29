@@ -57,7 +57,7 @@ export function NovaTransacaoDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-6 rounded-[14px] font-bold border-0 text-black bg-gradient-to-b from-[#F5D062] to-[#C9971A] shadow-[0_10px_26px_-10px_rgba(212,175,55,0.75)] transition-all duration-200 hover:bg-gradient-to-b hover:from-[#FFE082] hover:to-[#D4AF37] hover:shadow-[0_16px_36px_-12px_rgba(212,175,55,0.9)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100">
+        <Button className="gap-2 whitespace-nowrap w-full md:w-auto h-11 px-6 rounded-[14px] font-bold border-0 text-black bg-gradient-to-b from-[#F5D062] to-[#C9971A] shadow-[0_10px_26px_-10px_rgba(212,175,55,0.75)] transition-all duration-200 hover:bg-gradient-to-b hover:from-[#FFE082] hover:to-gold hover:shadow-[0_16px_36px_-12px_rgba(212,175,55,0.9)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-100">
           <Plus size={18} strokeWidth={3} /> Nova Transação
         </Button>
       </DialogTrigger>

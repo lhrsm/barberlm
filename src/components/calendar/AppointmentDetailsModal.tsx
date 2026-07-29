@@ -282,7 +282,7 @@ export function AppointmentDetailsModal({
           const isSubCovered = appointment.payment_method === 'subscription' || appointment.payment_status === 'covered_by_subscription';
           if (isSubCovered) {
             return (
-              <Badge className="w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]">
+              <Badge className="w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg bg-gold/10 border-gold/40 text-gold">
                 <DollarSign size={12} /> Incluso no Plano
               </Badge>
             );
@@ -314,8 +314,8 @@ export function AppointmentDetailsModal({
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px] flex items-center justify-center min-h-[400px] bg-[#0b0f17] border-[#D4AF37]/20">
-          <RefreshCcw className="animate-spin text-[#D4AF37]" size={32} />
+        <DialogContent className="sm:max-w-[500px] flex items-center justify-center min-h-[400px] bg-[#0b0f17] border-gold/20">
+          <RefreshCcw className="animate-spin text-gold" size={32} />
         </DialogContent>
       </Dialog>
     );
@@ -330,14 +330,14 @@ export function AppointmentDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden bg-[#0b0f17] border border-[#D4AF37]/20 rounded-3xl shadow-2xl text-white">
-        <DialogHeader className="p-8 pb-6 border-b border-[#D4AF37]/10">
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden bg-[#0b0f17] border border-gold/20 rounded-3xl shadow-2xl text-white">
+        <DialogHeader className="p-8 pb-6 border-b border-gold/10">
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-5">
-                <Avatar className="h-16 w-16 rounded-2xl border-2 border-[#D4AF37]/20 shadow-md">
+                <Avatar className="h-16 w-16 rounded-2xl border-2 border-gold/20 shadow-md">
                   <AvatarImage src={appointment.customers?.avatar_url} alt={appointment.customers?.name} />
-                  <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-black text-xl rounded-2xl">
+                  <AvatarFallback className="bg-gold/5 text-gold font-black text-xl rounded-2xl">
                     {appointment.customers?.name?.[0] || <User />}
                   </AvatarFallback>
                 </Avatar>
@@ -351,7 +351,7 @@ export function AppointmentDetailsModal({
                       const isSubCovered = appointment.payment_method === 'subscription' || appointment.payment_status === 'covered_by_subscription';
                       if (isSubCovered) {
                         return (
-                          <Badge className="w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]">
+                          <Badge className="w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg bg-gold/10 border-gold/40 text-gold">
                             <DollarSign size={12} /> Incluso no Plano
                           </Badge>
                         );
@@ -366,7 +366,7 @@ export function AppointmentDetailsModal({
                         </Badge>
                       );
                     })()}
-                    <span className="text-[10px] w-fit font-black text-gray-500 uppercase tracking-widest bg-[#05070d] px-2 py-0.5 rounded border border-[#D4AF37]/10">
+                    <span className="text-[10px] w-fit font-black text-gray-500 uppercase tracking-widest bg-[#05070d] px-2 py-0.5 rounded border border-gold/10">
                       ID: {appointment.id.slice(0, 8)}
                     </span>
                   </div>
@@ -383,14 +383,14 @@ export function AppointmentDetailsModal({
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                   <Phone size={12} /> Contato
                 </p>
                 <p className="text-sm font-bold text-white">{appointment.customers?.phone || "Não informado"}</p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                   <Scissors size={12} /> Serviço
                 </p>
                 <p className="text-sm font-bold text-white">{appointment.services?.name}</p>
@@ -398,7 +398,7 @@ export function AppointmentDetailsModal({
                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase">
                      <Timer size={10} /> {appointment.services?.duration_minutes || appointment.duration_minutes || 30} min
                    </span>
-                   <span className="flex items-center gap-1.5 text-[10px] font-black text-[#D4AF37] uppercase">
+                   <span className="flex items-center gap-1.5 text-[10px] font-black text-gold uppercase">
                      R$ {(appointment.services?.price || appointment.total_price || 0).toFixed(2)}
                    </span>
                 </div>
@@ -407,7 +407,7 @@ export function AppointmentDetailsModal({
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                   <Calendar size={12} /> Agendado para
                 </p>
                 <p className="text-sm font-bold text-white">
@@ -419,7 +419,7 @@ export function AppointmentDetailsModal({
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                   <User size={12} /> Profissional
                 </p>
                 <div className="flex items-center gap-2">
@@ -431,7 +431,7 @@ export function AppointmentDetailsModal({
 
           <div className="grid grid-cols-2 gap-8 pt-2">
              <div className="space-y-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                   <CreditCard size={12} /> Pagamento
                 </p>
                 <div className="space-y-1">
@@ -452,10 +452,10 @@ export function AppointmentDetailsModal({
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                   <DollarSign size={12} /> Valor Total
                 </p>
-                <p className="text-2xl font-black text-[#D4AF37]">R$ {(appointment.total_price || 0).toFixed(2)}</p>
+                <p className="text-2xl font-black text-gold">R$ {(appointment.total_price || 0).toFixed(2)}</p>
                 {appointment.cashback_earned > 0 && (
                   <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">
                     + R$ {Number(appointment.cashback_earned).toFixed(2)} Cashback Gerado
@@ -465,11 +465,11 @@ export function AppointmentDetailsModal({
           </div>
 
           {appointment.notes && (
-            <div className="space-y-3 pt-6 border-t border-[#D4AF37]/10">
-              <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="space-y-3 pt-6 border-t border-gold/10">
+              <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] flex items-center gap-2">
                 <MessageSquare size={14} /> Observações
               </p>
-              <div className="p-4 rounded-2xl bg-[#05070d] border border-[#D4AF37]/5 text-sm text-gray-300 font-medium leading-relaxed italic">
+              <div className="p-4 rounded-2xl bg-[#05070d] border border-gold/5 text-sm text-gray-300 font-medium leading-relaxed italic">
                 "{appointment.notes}"
               </div>
             </div>
@@ -504,7 +504,7 @@ export function AppointmentDetailsModal({
           )}
         </div>
 
-        <div className="p-8 pt-4 border-t border-[#D4AF37]/10 flex flex-wrap gap-3 items-center justify-end bg-[#05070d]/50">
+        <div className="p-8 pt-4 border-t border-gold/10 flex flex-wrap gap-3 items-center justify-end bg-[#05070d]/50">
           {(mode === 'admin' || mode === 'admin_read_only') && (
             <div className="w-full mb-4 p-4 rounded-2xl bg-zinc-900/50 border border-white/5 space-y-3">
               <div className="flex items-center gap-2 mb-2">
@@ -545,9 +545,9 @@ export function AppointmentDetailsModal({
           )}
           {/* Diagnostic Modal */}
           <Dialog open={showDebug} onOpenChange={setShowDebug}>
-            <DialogContent className="bg-[#0b0f17] border-[#D4AF37]/20 text-white rounded-[2rem] sm:max-w-md p-8">
+            <DialogContent className="bg-[#0b0f17] border-gold/20 text-white rounded-[2rem] sm:max-w-md p-8">
               <DialogHeader className="mb-4">
-                <DialogTitle className="text-xl font-black uppercase italic text-[#D4AF37]">Diagnóstico de Cancelamento</DialogTitle>
+                <DialogTitle className="text-xl font-black uppercase italic text-gold">Diagnóstico de Cancelamento</DialogTitle>
                 <DialogDescription className="text-gray-400 text-xs">
                   Evidência técnica da lógica financeira (Temporário)
                 </DialogDescription>
@@ -574,7 +574,7 @@ export function AppointmentDetailsModal({
               </div>
 
                 <DialogFooter className="flex flex-col gap-2 mt-6">
-                  <Button onClick={() => { setCancellationStep('financial_decision'); setShowDebug(false); }} className="w-full bg-[#D4AF37] text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
+                  <Button onClick={() => { setCancellationStep('financial_decision'); setShowDebug(false); }} className="w-full bg-gold text-black font-black uppercase text-xs">Sim, escolher estorno/crédito</Button>
                   <Button onClick={() => setShowDebug(false)} variant="ghost" className="w-full text-gray-500 uppercase text-[10px]">Voltar</Button>
                 </DialogFooter>
             </DialogContent>
@@ -601,7 +601,7 @@ export function AppointmentDetailsModal({
 
           {/* Simple Confirmation Dialog */}
           <Dialog open={cancellationStep === 'simple_confirmation'} onOpenChange={(open) => !open && setCancellationStep('none')}>
-            <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
+            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
               <DialogHeader className="text-center">
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <XCircle className="text-red-500 w-8 h-8" />
@@ -632,10 +632,10 @@ export function AppointmentDetailsModal({
 
           {/* Financial Decision Modal */}
           <Dialog open={cancellationStep === 'financial_decision'} onOpenChange={(open) => !open && setCancellationStep('none')}>
-            <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
+            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
               <DialogHeader className="text-center">
-                <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <DollarSign className="text-[#D4AF37] w-8 h-8" />
+                <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <DollarSign className="text-gold w-8 h-8" />
                 </div>
                 <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">
                   {financialStatus?.has_paid_pix && (financialStatus?.has_used_credits || financialStatus?.has_used_cashback)
@@ -667,7 +667,7 @@ export function AppointmentDetailsModal({
 
               <div className="grid gap-3 mt-6">
                 <Button 
-                  className="w-full h-14 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
+                  className="w-full h-14 bg-gold hover:bg-gold/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
                   onClick={handleConfirmCreditCancel}
                   disabled={actionLoading}
                 >
@@ -679,7 +679,7 @@ export function AppointmentDetailsModal({
                 {financialStatus?.has_paid_pix && (
                   <Button 
                     variant="outline"
-                    className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+                    className="w-full h-14 border-gold/20 hover:bg-gold/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
                     onClick={() => setCancellationStep('pix_refund_form')}
                     disabled={actionLoading}
                   >
@@ -701,10 +701,10 @@ export function AppointmentDetailsModal({
 
           {/* Pix Refund Form Dialog */}
           <Dialog open={cancellationStep === 'pix_refund_form'} onOpenChange={(open) => !open && setCancellationStep('financial_decision')}>
-            <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/20 text-white rounded-[2rem] sm:max-w-md p-8">
+            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] sm:max-w-md p-8">
               <DialogHeader className="text-center">
-                <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <DollarSign className="text-[#D4AF37] w-8 h-8" />
+                <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <DollarSign className="text-gold w-8 h-8" />
                 </div>
                 <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Dados para Estorno Pix</DialogTitle>
                 <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
@@ -717,7 +717,7 @@ export function AppointmentDetailsModal({
                   <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nome do Titular</Label>
                   <Input 
                     placeholder="Nome completo"
-                    className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-[#D4AF37] outline-none"
+                    className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-gold outline-none"
                     value={refundData.holderName}
                     onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
                   />
@@ -741,7 +741,7 @@ export function AppointmentDetailsModal({
                     <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Chave Pix</Label>
                     <Input 
                       placeholder="Chave Pix"
-                      className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-[#D4AF37] outline-none"
+                      className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-gold outline-none"
                       value={refundData.pixKey}
                       onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
                     />
@@ -750,7 +750,7 @@ export function AppointmentDetailsModal({
                 <Button 
                   onClick={handleConfirmRefundCancel}
                   disabled={actionLoading || !refundData.pixKey || !refundData.holderName}
-                  className="w-full h-14 bg-[#D4AF37] text-black font-black uppercase italic tracking-tighter rounded-2xl shadow-lg mt-2"
+                  className="w-full h-14 bg-gold text-black font-black uppercase italic tracking-tighter rounded-2xl shadow-lg mt-2"
                 >
                   {actionLoading ? "Processando..." : "Confirmar Solicitação"}
                 </Button>
@@ -783,7 +783,7 @@ export function AppointmentDetailsModal({
 
           {mode === 'admin' && showConfirm && (
             <Button 
-              className="rounded-xl bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all active:scale-95"
+              className="rounded-xl bg-gold hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all active:scale-95"
               onClick={() => updateStatus('confirmed')}
               disabled={actionLoading}
             >
@@ -794,7 +794,7 @@ export function AppointmentDetailsModal({
           {mode === 'admin' && ['confirmed', 'scheduled', 'in_progress', 'awaiting_payment'].includes(appointment.status) && (
             <Button
               variant="outline"
-              className="rounded-xl bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
+              className="rounded-xl bg-transparent hover:bg-gold/10 text-gold border border-gold/50 font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
               onClick={() => setComandaOpen(true)}
               disabled={actionLoading}
             >
@@ -814,7 +814,7 @@ export function AppointmentDetailsModal({
 
           {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (
             <Button
-              className="rounded-xl bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37] font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
+              className="rounded-xl bg-transparent hover:bg-gold/10 text-gold border border-gold font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
               onClick={() => setSplitOpen(true)}
               disabled={actionLoading}
             >

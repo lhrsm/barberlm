@@ -177,7 +177,7 @@ export function AdminEngagementTab() {
   const kpis = [
     { label: "Ativos hoje", value: data.dau, icon: Activity, color: "text-emerald-400", desc: "barbearias com movimento" },
     { label: "Ativos 7 dias", value: data.wau, icon: Users, color: "text-blue-400", desc: `de ${data.totalShops} contas` },
-    { label: "Stickiness", value: `${data.stickiness}%`, icon: Zap, color: "text-[#D4AF37]", desc: "DAU / MAU" },
+    { label: "Stickiness", value: `${data.stickiness}%`, icon: Zap, color: "text-gold", desc: "DAU / MAU" },
     { label: "Retenção 30d", value: `${data.retention}%`, icon: Repeat, color: "text-purple-400", desc: "contas maduras ativas" },
   ];
 
@@ -250,11 +250,11 @@ export function AdminEngagementTab() {
               <div key={m.key} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-bold text-white uppercase tracking-tight">{m.label}</span>
-                  <span className="text-xs font-black text-[#D4AF37]">{m.pct}%</span>
+                  <span className="text-xs font-black text-gold">{m.pct}%</span>
                 </div>
                 <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-amber-300 transition-all duration-1000"
+                    className="h-full rounded-full bg-gradient-to-r from-gold to-amber-300 transition-all duration-1000"
                     style={{ width: `${Math.min(m.pct, 100)}%` }}
                   />
                 </div>
@@ -268,7 +268,7 @@ export function AdminEngagementTab() {
         <Card className="lg:col-span-3 glass border-white/5 rounded-[2.5rem] overflow-hidden shadow-none">
           <CardHeader className="bg-white/5 px-8 py-6">
             <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <Crown className="w-5 h-5 text-[#D4AF37]" /> Barbearias mais engajadas
+              <Crown className="w-5 h-5 text-gold" /> Barbearias mais engajadas
             </CardTitle>
             <CardDescription className="text-gray-500 font-medium">
               Ranking por agendamentos nos últimos 30 dias.
@@ -281,9 +281,9 @@ export function AdminEngagementTab() {
             {data.ranking.map((r, i) => (
               <div
                 key={r.tenantId}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-[#D4AF37]/30 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-gold/30 transition-colors"
               >
-                <span className="w-7 h-7 rounded-lg bg-[#D4AF37]/15 text-[#D4AF37] text-xs font-black flex items-center justify-center">
+                <span className="w-7 h-7 rounded-lg bg-gold/15 text-gold text-xs font-black flex items-center justify-center">
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -350,7 +350,7 @@ export function AdminEngagementTab() {
         </Card>
         <Card className="glass border-white/5 rounded-3xl shadow-none">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-[#D4AF37]/10 text-[#D4AF37]">
+            <div className="p-3 rounded-2xl bg-gold/10 text-gold">
               <Activity className="w-5 h-5" />
             </div>
             <div>

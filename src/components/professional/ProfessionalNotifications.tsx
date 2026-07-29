@@ -82,9 +82,9 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'appointment': return <Calendar className="h-4 w-4 text-[#D4AF37]" />;
+      case 'appointment': return <Calendar className="h-4 w-4 text-gold" />;
       case 'success': return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      default: return <Info className="h-4 w-4 text-[#D4AF37]/50" />;
+      default: return <Info className="h-4 w-4 text-gold/50" />;
     }
   };
 
@@ -94,7 +94,7 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
         <Button
           variant="outline"
           size="icon"
-          className="relative h-10 w-10 rounded-full bg-transparent border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
+          className="relative h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -104,15 +104,15 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 bg-[#0b0f17] border-[#D4AF37]/20 rounded-2xl shadow-2xl overflow-hidden text-white" align="end">
-        <div className="flex items-center justify-between p-4 border-b border-[#D4AF37]/10 bg-[#0b0f17]">
-          <h4 className="font-black text-xs uppercase tracking-widest text-[#D4AF37]">Notificações</h4>
+      <PopoverContent className="w-80 p-0 bg-[#0b0f17] border-gold/20 rounded-2xl shadow-2xl overflow-hidden text-white" align="end">
+        <div className="flex items-center justify-between p-4 border-b border-gold/10 bg-[#0b0f17]">
+          <h4 className="font-black text-xs uppercase tracking-widest text-gold">Notificações</h4>
           {unreadCount > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); markAsRead(); }} 
-              className="text-[10px] h-7 font-black text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase tracking-tighter"
+              className="text-[10px] h-7 font-black text-gold hover:bg-gold/10 uppercase tracking-tighter"
             >
               Marcar lidas
             </Button>
@@ -130,7 +130,7 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
                 key={n.id} 
                 className={cn(
                   "p-4 border-b border-white/5 last:border-0 transition-colors cursor-pointer relative group",
-                  (!n.is_read && !n.read) ? "bg-[#D4AF37]/5" : "hover:bg-white/5"
+                  (!n.is_read && !n.read) ? "bg-gold/5" : "hover:bg-white/5"
                 )}
                 onClick={() => markAsRead(n.id)}
               >
@@ -142,13 +142,13 @@ export function ProfessionalNotifications({ barberId }: { barberId: string }) {
                       (!n.is_read && !n.read) ? "text-white font-black" : "text-gray-400 font-bold"
                     )}>{n.title}</p>
                     <p className="text-xs text-gray-500 leading-tight line-clamp-2 font-medium">{n.message}</p>
-                    <p className="text-[9px] text-[#D4AF37]/70 font-black uppercase tracking-widest pt-1 flex items-center gap-2">
+                    <p className="text-[9px] text-gold/70 font-black uppercase tracking-widest pt-1 flex items-center gap-2">
                       <Check className="h-2 w-2" />
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                     </p>
                   </div>
                   {(!n.is_read && !n.read) && (
-                    <div className="h-2 w-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)] mt-2" />
+                    <div className="h-2 w-2 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,0.6)] mt-2" />
                   )}
                 </div>
               </div>

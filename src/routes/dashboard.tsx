@@ -714,7 +714,7 @@ function DashboardComponent() {
                 </Button>
                 <Button
                   size="sm"
-                  className="group relative flex-1 sm:flex-none gap-2 overflow-hidden border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] font-bold text-black shadow-[0_8px_24px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+                  className="group relative flex-1 sm:flex-none gap-2 overflow-hidden border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold font-bold text-black shadow-[0_8px_24px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
                   asChild
                 >
                   <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
@@ -1720,7 +1720,7 @@ function DashboardComponent() {
               <Button
                 size="sm"
                 onClick={() => setIsWalkinOpen(true)}
-                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
               >
                 <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 <UserPlus size={14} className="relative" />
@@ -1729,7 +1729,7 @@ function DashboardComponent() {
               <Button
                 size="sm"
                 onClick={() => navigate({ to: "/customers" })}
-                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
               >
                 <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 <Users size={14} className="relative" />
@@ -1738,7 +1738,7 @@ function DashboardComponent() {
               <Button
                 size="sm"
                 onClick={() => navigate({ to: "/barbers" })}
-                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37] via-[#F0D67B] to-[#D4AF37] px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
+                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
               >
                 <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 <Target size={14} className="relative" />

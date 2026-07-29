@@ -130,9 +130,9 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0b0f17] border-[#D4AF37]/20 text-white rounded-[2rem] sm:max-w-2xl p-0 overflow-hidden">
-        <DialogHeader className="p-8 pb-4 border-b border-[#D4AF37]/10">
-          <DialogTitle className="text-xl font-black uppercase italic text-[#D4AF37] flex items-center gap-3">
+      <DialogContent className="bg-[#0b0f17] border-gold/20 text-white rounded-[2rem] sm:max-w-2xl p-0 overflow-hidden">
+        <DialogHeader className="p-8 pb-4 border-b border-gold/10">
+          <DialogTitle className="text-xl font-black uppercase italic text-gold flex items-center gap-3">
             <ShoppingBag className="h-5 w-5" /> Comanda Digital
           </DialogTitle>
           <DialogDescription className="text-gray-400 text-xs">
@@ -151,7 +151,7 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
               className="mb-3 bg-black/30 border-white/10 text-white placeholder:text-gray-600"
             />
             {loading ? (
-              <div className="flex justify-center py-8"><Loader2 className="animate-spin text-[#D4AF37]" /></div>
+              <div className="flex justify-center py-8"><Loader2 className="animate-spin text-gold" /></div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-xs">
                 <Package className="mx-auto mb-2 opacity-50" />
@@ -163,11 +163,11 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
                   const qty = quantities[p.id] || 1;
                   const noStock = p.stock_quantity <= 0;
                   return (
-                    <div key={p.id} className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-[#D4AF37]/30 transition-all">
+                    <div key={p.id} className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-gold/30 transition-all">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold text-white truncate">{p.name}</p>
-                          <p className="text-xs text-[#D4AF37] font-black">R$ {Number(p.price).toFixed(2)}</p>
+                          <p className="text-xs text-gold font-black">R$ {Number(p.price).toFixed(2)}</p>
                         </div>
                         <Badge variant="outline" className={`text-[9px] ${noStock ? "text-red-400 border-red-500/30" : "text-emerald-400 border-emerald-500/30"}`}>
                           {p.stock_quantity} em estoque
@@ -189,7 +189,7 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
                         </div>
                         <Button
                           size="sm"
-                          className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest rounded-lg"
+                          className="flex-1 h-9 bg-gold hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest rounded-lg"
                           onClick={() => addProduct(p)}
                           disabled={busyId === p.id || noStock}
                         >
@@ -223,7 +223,7 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
                       <span className="text-[10px] text-gray-500 uppercase font-bold">Subtotal</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[#D4AF37] font-black text-sm">R$ {Number(s.total_amount).toFixed(2)}</span>
+                        <span className="text-gold font-black text-sm">R$ {Number(s.total_amount).toFixed(2)}</span>
                         <button
                           className="text-red-400/70 hover:text-red-400 disabled:opacity-30"
                           onClick={() => removeSale(s.id)}
@@ -239,9 +239,9 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
               </div>
             )}
 
-            <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30">
+            <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-gold/10 to-transparent border border-gold/30">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">Total da Comanda</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">Total da Comanda</span>
                 <span className="text-2xl font-black text-white">R$ {comandaTotal.toFixed(2)}</span>
               </div>
               <p className="text-[9px] text-gray-500 mt-2">Valor já somado ao total do atendimento.</p>
@@ -249,10 +249,10 @@ export function ComandaModal({ appointmentId, tenantId, open, onOpenChange, onCh
           </div>
         </div>
 
-        <DialogFooter className="p-6 border-t border-[#D4AF37]/10 bg-[#05070d]/50">
+        <DialogFooter className="p-6 border-t border-gold/10 bg-[#05070d]/50">
           <Button
             onClick={() => onOpenChange(false)}
-            className="rounded-xl bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-11"
+            className="rounded-xl bg-gold hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-11"
           >
             Fechar Comanda
           </Button>

@@ -84,7 +84,7 @@ function getCustomerTier(c: any, isSubscriber: boolean): Tier {
 const TIER_META: Record<Tier, { label: string; color: string; ring: string; icon: any }> = {
   bronze: { label: "Bronze", color: "text-amber-700", ring: "border-amber-800/40 bg-amber-900/10 hover:bg-amber-900/20 hover:border-amber-800/60", icon: Medal },
   prata: { label: "Prata", color: "text-slate-300", ring: "border-slate-500/40 bg-slate-500/10 hover:bg-slate-500/20 hover:border-slate-500/60", icon: Medal },
-  ouro: { label: "Ouro", color: "text-[#D4AF37]", ring: "border-[#D4AF37]/40 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 hover:border-[#D4AF37]/60", icon: Award },
+  ouro: { label: "Ouro", color: "text-gold", ring: "border-gold/40 bg-gold/10 hover:bg-gold/20 hover:border-gold/60", icon: Award },
   diamante: { label: "Diamante", color: "text-cyan-300", ring: "border-cyan-400/40 bg-cyan-400/10", icon: Gem },
 };
 
@@ -365,13 +365,13 @@ function CustomersComponent() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
-              <Users className="text-[#D4AF37]" size={28} /> CRM de Clientes
+              <Users className="text-gold" size={28} /> CRM de Clientes
             </h2>
             <p className="text-slate-400 text-sm mt-1">Gerencie seus clientes, assinantes e todo o histórico premium.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-[#D4AF37] to-[#F5C842] hover:brightness-110 text-black font-bold gap-2 shadow-lg shadow-[#D4AF37]/20 rounded-xl w-full md:w-auto">
+              <Button className="bg-gradient-to-r from-gold to-[#F5C842] hover:brightness-110 text-black font-bold gap-2 shadow-lg shadow-[#D4AF37]/20 rounded-xl w-full md:w-auto">
                 <UserPlus size={18} /> Novo Cliente
               </Button>
             </DialogTrigger>
@@ -385,7 +385,7 @@ function CustomersComponent() {
                 <FormField label="Email (Opcional)" type="email" value={newCustomer.email} onChange={(v) => setNewCustomer({ ...newCustomer, email: v })} />
                 <FormField label="Data de Nascimento" type="date" value={newCustomer.birth_date} onChange={(v) => setNewCustomer({ ...newCustomer, birth_date: v })} />
                 <FormField label="Notas / Preferências" value={newCustomer.notes} onChange={(v) => setNewCustomer({ ...newCustomer, notes: v })} />
-                <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Salvar Cliente</Button>
+                <Button type="submit" className="w-full bg-gold text-black font-bold hover:bg-[#C5A028]">Salvar Cliente</Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -394,13 +394,13 @@ function CustomersComponent() {
         {/* Dashboard cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <MetricCard icon={Users} label="Total de Clientes" value={metrics.total} accent="text-white" />
-          <MetricCard icon={Crown} label="Assinantes Ativos" value={metrics.subCount} accent="text-[#D4AF37]" glow />
+          <MetricCard icon={Crown} label="Assinantes Ativos" value={metrics.subCount} accent="text-gold" glow />
           <MetricCard icon={UserIcon} label="Clientes Comuns" value={metrics.common} accent="text-slate-200" />
           <MetricCard icon={Gem} label="Clientes VIP" value={metrics.vip} accent="text-cyan-300" />
-          <MetricCard icon={Wallet} label="Com Cashback" value={metrics.withCashback} accent="text-[#D4AF37]" />
+          <MetricCard icon={Wallet} label="Com Cashback" value={metrics.withCashback} accent="text-gold" />
           <MetricCard icon={CreditCard} label="Com Créditos" value={metrics.withCredits} accent="text-emerald-400" />
           <MetricCard icon={TrendingUp} label="Ticket Médio" value={formatBRL(metrics.avgTicket)} accent="text-emerald-400" />
-          <MetricCard icon={DollarSign} label="Faturamento" value={formatBRL(metrics.totalRevenue)} accent="text-[#D4AF37]" />
+          <MetricCard icon={DollarSign} label="Faturamento" value={formatBRL(metrics.totalRevenue)} accent="text-gold" />
           <MetricCard icon={AlertCircle} label="Inativos (60+d)" value={metrics.inactive} accent="text-red-400" />
           <MetricCard icon={Sparkles} label="Novos no Mês" value={metrics.newMonth} accent="text-emerald-400" />
         </div>
@@ -411,7 +411,7 @@ function CustomersComponent() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <Input
               placeholder="Buscar por nome, telefone, e-mail ou plano..."
-              className="pl-10 bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#D4AF37] h-11 rounded-xl"
+              className="pl-10 bg-[#0b0f17] border-[#1f2937] text-white focus:border-gold h-11 rounded-xl"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -436,8 +436,8 @@ function CustomersComponent() {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all",
                   filter === f.k
-                    ? "bg-[#D4AF37] text-black border-[#D4AF37] shadow shadow-[#D4AF37]/30"
-                    : "bg-[#0b0f17] text-slate-300 border-[#1f2937] hover:border-[#D4AF37]/40",
+                    ? "bg-gold text-black border-gold shadow shadow-[#D4AF37]/30"
+                    : "bg-[#0b0f17] text-slate-300 border-[#1f2937] hover:border-gold/40",
                 )}
               >
                 {f.label}
@@ -494,7 +494,7 @@ function CustomersComponent() {
               <FormField label="Email (Opcional)" type="email" value={editingCustomer.email} onChange={(v) => setEditingCustomer({ ...editingCustomer, email: v })} />
               <FormField label="Data de Nascimento" type="date" value={editingCustomer.birth_date} onChange={(v) => setEditingCustomer({ ...editingCustomer, birth_date: v })} />
               <FormField label="Notas / Preferências" value={editingCustomer.notes} onChange={(v) => setEditingCustomer({ ...editingCustomer, notes: v })} />
-              <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Atualizar Cliente</Button>
+              <Button type="submit" className="w-full bg-gold text-black font-bold hover:bg-[#C5A028]">Atualizar Cliente</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -558,8 +558,8 @@ function MetricCard({ icon: Icon, label, value, accent, glow }: any) {
   return (
     <Card
       className={cn(
-        "bg-[#0b0f17] border border-[#1f2937] shadow-none rounded-xl transition-all hover:border-[#D4AF37]/30",
-        glow && "border-[#D4AF37]/30 shadow-[0_0_18px_-6px_rgba(212,175,55,0.35)]",
+        "bg-[#0b0f17] border border-[#1f2937] shadow-none rounded-xl transition-all hover:border-gold/30",
+        glow && "border-gold/30 shadow-[0_0_18px_-6px_rgba(212,175,55,0.35)]",
       )}
     >
       <CardHeader className="pb-1.5 flex flex-row items-center justify-between space-y-0">
@@ -607,16 +607,16 @@ function CustomerCard({
       className={cn(
         "relative rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5 group",
         isSub
-          ? "bg-gradient-to-br from-[#0b0f17] via-[#0f1420] to-[#1a1408] border-[#D4AF37]/50 shadow-[0_0_24px_-8px_rgba(212,175,55,0.4)] hover:shadow-[0_0_32px_-6px_rgba(212,175,55,0.55)]"
+          ? "bg-gradient-to-br from-[#0b0f17] via-[#0f1420] to-[#1a1408] border-gold/50 shadow-[0_0_24px_-8px_rgba(212,175,55,0.4)] hover:shadow-[0_0_32px_-6px_rgba(212,175,55,0.55)]"
           : "bg-[#0b0f17] border-[#1f2937] hover:border-slate-600",
       )}
     >
       {/* Gold top bar for subscribers */}
-      {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#F5C842] to-[#D4AF37]" />}
+      {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gold via-[#F5C842] to-gold" />}
 
       {/* Premium seal */}
       {isSub && (
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-gradient-to-r from-[#D4AF37] to-[#F5C842] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow">
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-gradient-to-r from-gold to-[#F5C842] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow">
           <Crown size={10} /> Premium
         </div>
       )}
@@ -631,7 +631,7 @@ function CustomerCard({
                 alt={customer.name}
                 className={cn(
                   "h-14 w-14 rounded-full object-cover border-2",
-                  isSub ? "border-[#D4AF37]" : "border-slate-700",
+                  isSub ? "border-gold" : "border-slate-700",
                 )}
               />
             ) : (
@@ -639,7 +639,7 @@ function CustomerCard({
                 className={cn(
                   "h-14 w-14 rounded-full flex items-center justify-center text-lg font-black border-2",
                   isSub
-                    ? "border-[#D4AF37] bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 text-[#D4AF37]"
+                    ? "border-gold bg-gradient-to-br from-gold/20 to-gold/5 text-gold"
                     : "border-slate-700 bg-slate-800 text-slate-300",
                 )}
               >
@@ -647,7 +647,7 @@ function CustomerCard({
               </div>
             )}
             {isSub && (
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#D4AF37] flex items-center justify-center border-2 border-[#0b0f17]">
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-gold flex items-center justify-center border-2 border-[#0b0f17]">
                 <Crown size={12} className="text-black" />
               </div>
             )}
@@ -659,7 +659,7 @@ function CustomerCard({
             </p>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               {isSub ? (
-                <Badge className="bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[9px] font-black uppercase tracking-wider transition-colors">
+                <Badge className="bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 hover:border-gold/60 text-[9px] font-black uppercase tracking-wider transition-colors">
                   <Crown size={9} className="mr-1" /> Assinante
                 </Badge>
               ) : (
@@ -677,8 +677,8 @@ function CustomerCard({
 
         {/* Plan info for subscribers */}
         {isSub && subscription?.subscription_plans && (
-          <div className="rounded-lg bg-[#D4AF37]/5 border border-[#D4AF37]/20 px-3 py-2">
-            <p className="text-[9px] uppercase text-[#D4AF37]/70 font-bold tracking-wider">Plano Atual</p>
+          <div className="rounded-lg bg-gold/5 border border-gold/20 px-3 py-2">
+            <p className="text-[9px] uppercase text-gold/70 font-bold tracking-wider">Plano Atual</p>
             <p className="text-sm font-black text-white">{subscription.subscription_plans.name}</p>
           </div>
         )}
@@ -687,7 +687,7 @@ function CustomerCard({
         <div className="grid grid-cols-2 gap-2">
           <MiniStat label="Atendimentos" value={customer.total_visits ?? 0} />
           <MiniStat label="Total gasto" value={formatBRL(customer.total_spent || customer.lifetime_value)} accent="text-emerald-400" />
-          <MiniStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-[#D4AF37]" />
+          <MiniStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-gold" />
           <MiniStat label="Créditos" value={formatBRL(customer.credits)} accent="text-emerald-400" />
         </div>
 
@@ -717,11 +717,11 @@ function CustomerCard({
 
         {/* CTA to convert */}
         {!isSub && (
-          <div className="rounded-lg bg-[#D4AF37]/5 border border-dashed border-[#D4AF37]/30 px-3 py-2 flex items-center justify-between gap-2">
+          <div className="rounded-lg bg-gold/5 border border-dashed border-gold/30 px-3 py-2 flex items-center justify-between gap-2">
             <p className="text-[10px] text-slate-300 leading-tight">Transforme em assinante e aumente a retenção.</p>
             <button
               onClick={() => openWhatsApp(customer.phone)}
-              className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-[#D4AF37] text-black hover:brightness-110 shrink-0"
+              className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-gold text-black hover:brightness-110 shrink-0"
             >
               Oferecer
             </button>
@@ -747,7 +747,7 @@ function CustomerCard({
           <button
             title="Ver Perfil"
             onClick={onView}
-            className="flex-1 h-9 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/20 flex items-center justify-center transition-all"
+            className="flex-1 h-9 rounded-lg bg-gold/10 border border-gold/40 text-gold hover:bg-gold/20 flex items-center justify-center transition-all"
           >
             <Eye size={14} />
           </button>
@@ -821,21 +821,21 @@ function CustomerProfileDialog({
             isSub && "bg-gradient-to-br from-[#1a1408] via-[#0b0f17] to-[#0b0f17]",
           )}
         >
-          {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#F5C842] to-[#D4AF37]" />}
+          {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gold via-[#F5C842] to-gold" />}
           <DialogHeader>
             <DialogTitle className="sr-only">Perfil de {customer.name}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col md:flex-row gap-5 items-start">
             <div className="relative">
               {customer.avatar_url ? (
-                <img src={customer.avatar_url} alt={customer.name} className={cn("h-20 w-20 rounded-full object-cover border-2", isSub ? "border-[#D4AF37]" : "border-slate-700")} />
+                <img src={customer.avatar_url} alt={customer.name} className={cn("h-20 w-20 rounded-full object-cover border-2", isSub ? "border-gold" : "border-slate-700")} />
               ) : (
-                <div className={cn("h-20 w-20 rounded-full flex items-center justify-center text-2xl font-black border-2", isSub ? "border-[#D4AF37] bg-gradient-to-br from-[#D4AF37]/25 to-[#D4AF37]/5 text-[#D4AF37]" : "border-slate-700 bg-slate-800 text-slate-300")}>
+                <div className={cn("h-20 w-20 rounded-full flex items-center justify-center text-2xl font-black border-2", isSub ? "border-gold bg-gradient-to-br from-gold/25 to-gold/5 text-gold" : "border-slate-700 bg-slate-800 text-slate-300")}>
                   {initials(customer.name)}
                 </div>
               )}
               {isSub && (
-                <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-[#D4AF37] flex items-center justify-center border-2 border-[#0b0f17]">
+                <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-gold flex items-center justify-center border-2 border-[#0b0f17]">
                   <Crown size={14} className="text-black" />
                 </div>
               )}
@@ -844,7 +844,7 @@ function CustomerProfileDialog({
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-2xl font-black text-white">{customer.name}</h3>
                 {isSub ? (
-                  <Badge className="bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[10px] font-black uppercase tracking-wider transition-colors">
+                  <Badge className="bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 hover:border-gold/60 text-[10px] font-black uppercase tracking-wider transition-colors">
                     <Crown size={10} className="mr-1" /> Premium
                   </Badge>
                 ) : (
@@ -861,7 +861,7 @@ function CustomerProfileDialog({
                 <span>Cliente desde {customer.created_at ? format(new Date(customer.created_at), "MM/yyyy") : "—"}</span>
               </div>
               {isSub && plan && (
-                <div className="mt-2 text-sm text-[#D4AF37] font-bold">Plano {plan.name}</div>
+                <div className="mt-2 text-sm text-gold font-bold">Plano {plan.name}</div>
               )}
             </div>
             <div className="flex gap-2">
@@ -883,7 +883,7 @@ function CustomerProfileDialog({
               <SummaryStat label="Valor gasto" value={formatBRL(totalSpent)} accent="text-emerald-400" />
               <SummaryStat label="Ticket médio" value={formatBRL(avgTicket)} accent="text-white" />
               <SummaryStat label="Produtos" value={formatBRL(productsSpent)} accent="text-white" />
-              <SummaryStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-[#D4AF37]" />
+              <SummaryStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-gold" />
               <SummaryStat label="Créditos" value={formatBRL(customer.credits)} accent="text-emerald-400" />
               <SummaryStat label="Fidelidade" value={`${customer.loyalty_points || 0}/${shopProfile?.free_service_threshold || 10}`} accent="text-white" />
               <SummaryStat label="Cashback usado" value={formatBRL(customer.cashback_used)} accent="text-slate-300" />
@@ -891,10 +891,10 @@ function CustomerProfileDialog({
 
             {/* Premium block */}
             {isSub ? (
-              <div className="rounded-2xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/10 via-[#D4AF37]/[0.03] to-transparent p-5 relative overflow-hidden">
-                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
+              <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-gold/10 via-gold/[0.03] to-transparent p-5 relative overflow-hidden">
+                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
                 <div className="flex items-center gap-2 mb-4">
-                  <Crown className="text-[#D4AF37]" size={18} />
+                  <Crown className="text-gold" size={18} />
                   <h4 className="font-black text-white uppercase text-sm tracking-wider">Assinatura Premium</h4>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -902,18 +902,18 @@ function CustomerProfileDialog({
                   <PremiumField label="Status" value="Ativa" accent="text-emerald-400" />
                   <PremiumField label="Adesão" value={subscription.started_at ? format(new Date(subscription.started_at), "dd/MM/yyyy") : "—"} />
                   <PremiumField label="Renovação" value={subscription.next_billing_at ? format(new Date(subscription.next_billing_at), "dd/MM/yyyy") : "—"} />
-                  <PremiumField label="Mensalidade" value={formatBRL(plan?.monthly_price)} accent="text-[#D4AF37]" />
+                  <PremiumField label="Mensalidade" value={formatBRL(plan?.monthly_price)} accent="text-gold" />
                   <PremiumField label="Consumidos" value={usesThis} />
-                  <PremiumField label="Restantes" value={maxUses !== null ? remaining : "Ilimitado"} accent="text-[#D4AF37]" />
+                  <PremiumField label="Restantes" value={maxUses !== null ? remaining : "Ilimitado"} accent="text-gold" />
                   <PremiumField label="Economia" value={formatBRL(monthlySavings)} accent="text-emerald-400" />
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-[#D4AF37]/40 bg-[#D4AF37]/[0.03] p-5 text-center">
-                <Crown className="mx-auto text-[#D4AF37] mb-2" size={26} />
+              <div className="rounded-2xl border border-dashed border-gold/40 bg-gold/[0.03] p-5 text-center">
+                <Crown className="mx-auto text-gold mb-2" size={26} />
                 <p className="text-white font-bold">Este cliente ainda não faz parte do Clube Barbex.</p>
                 <p className="text-slate-400 text-sm mt-1">Assinantes retornam mais e possuem maior fidelização.</p>
-                <Button onClick={() => openWhatsApp(customer.phone)} className="mt-3 bg-gradient-to-r from-[#D4AF37] to-[#F5C842] text-black font-bold hover:brightness-110">
+                <Button onClick={() => openWhatsApp(customer.phone)} className="mt-3 bg-gradient-to-r from-gold to-[#F5C842] text-black font-bold hover:brightness-110">
                   Oferecer Assinatura
                 </Button>
               </div>
@@ -922,16 +922,16 @@ function CustomerProfileDialog({
             {/* Tabs */}
             <Tabs defaultValue="appointments">
               <TabsList className="bg-[#111827] border border-[#1f2937] p-1 h-auto flex-wrap">
-                <TabsTrigger value="appointments" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black">
+                <TabsTrigger value="appointments" className="data-[state=active]:bg-gold data-[state=active]:text-black">
                   <HistoryIcon size={13} className="mr-1.5" /> Agendamentos
                 </TabsTrigger>
-                <TabsTrigger value="financial" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black">
+                <TabsTrigger value="financial" className="data-[state=active]:bg-gold data-[state=active]:text-black">
                   <DollarSign size={13} className="mr-1.5" /> Financeiro
                 </TabsTrigger>
-                <TabsTrigger value="products" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black">
+                <TabsTrigger value="products" className="data-[state=active]:bg-gold data-[state=active]:text-black">
                   <Package size={13} className="mr-1.5" /> Produtos
                 </TabsTrigger>
-                <TabsTrigger value="loyalty" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black">
+                <TabsTrigger value="loyalty" className="data-[state=active]:bg-gold data-[state=active]:text-black">
                   <Gift size={13} className="mr-1.5" /> Fidelidade
                 </TabsTrigger>
               </TabsList>
@@ -944,13 +944,13 @@ function CustomerProfileDialog({
                 ) : (
                   <div className="space-y-2">
                     {history.map((app: any) => (
-                      <div key={app.id} className="flex items-center justify-between p-3 bg-[#111827] border border-[#1f2937] rounded-xl hover:border-[#D4AF37]/30 transition-all">
+                      <div key={app.id} className="flex items-center justify-between p-3 bg-[#111827] border border-[#1f2937] rounded-xl hover:border-gold/30 transition-all">
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-white">{app.services?.name}</p>
                           <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-slate-400">
                             <span className="flex items-center gap-1"><Clock size={11} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                             <span className="flex items-center gap-1"><UserIcon size={11} /> {app.barbers?.name}</span>
-                            {app.total_price != null && <span className="text-[#D4AF37] font-bold">{formatBRL(app.total_price)}</span>}
+                            {app.total_price != null && <span className="text-gold font-bold">{formatBRL(app.total_price)}</span>}
                             {app.payment_method && (
                               <Badge variant="outline" className="text-[9px] py-0 h-4 uppercase border-slate-700 text-slate-500 bg-[#0b0f17]">
                                 {app.payment_method === "pix" ? "PIX" : app.payment_method === "credits" ? "Créditos" : app.payment_method === "cashback" ? "Cashback" : "Balcão"}
@@ -979,7 +979,7 @@ function CustomerProfileDialog({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <SummaryStat label="Total gasto" value={formatBRL(totalSpent)} accent="text-emerald-400" />
                   <SummaryStat label="Ticket médio" value={formatBRL(avgTicket)} accent="text-white" />
-                  <SummaryStat label="Cashback recebido" value={formatBRL(Number(customer.cashback_balance) + Number(customer.cashback_used || 0))} accent="text-[#D4AF37]" />
+                  <SummaryStat label="Cashback recebido" value={formatBRL(Number(customer.cashback_balance) + Number(customer.cashback_used || 0))} accent="text-gold" />
                   <SummaryStat label="Cashback utilizado" value={formatBRL(customer.cashback_used)} accent="text-slate-300" />
                   <SummaryStat label="Créditos recebidos" value={formatBRL(Number(customer.credits) + Number(customer.credits_used || 0))} accent="text-emerald-400" />
                   <SummaryStat label="Créditos utilizados" value={formatBRL(customer.credits_used)} accent="text-slate-300" />
@@ -997,7 +997,7 @@ function CustomerProfileDialog({
                           <p className="font-bold text-white text-sm">{Array.isArray(p.items) ? `${p.items.length} item(s)` : "Compra"}</p>
                           <p className="text-[11px] text-slate-400">{format(new Date(p.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                         </div>
-                        <p className="text-[#D4AF37] font-black">{formatBRL(p.total_amount)}</p>
+                        <p className="text-gold font-black">{formatBRL(p.total_amount)}</p>
                       </div>
                     ))}
                   </div>
@@ -1008,13 +1008,13 @@ function CustomerProfileDialog({
                 <div className="rounded-xl p-4 bg-[#111827] border border-[#1f2937]">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-white font-bold text-sm">Programa Tradicional</span>
-                    <span className="text-[#D4AF37] font-black">
+                    <span className="text-gold font-black">
                       {customer.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
                     </span>
                   </div>
                   <div className="h-2 bg-[#1f2937] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-[#D4AF37] to-orange-500 transition-all"
+                      className="h-full bg-gradient-to-r from-gold to-orange-500 transition-all"
                       style={{
                         width: `${Math.min(((customer.loyalty_points || 0) / (shopProfile?.free_service_threshold || 10)) * 100, 100)}%`,
                       }}
@@ -1025,13 +1025,13 @@ function CustomerProfileDialog({
                   </p>
                 </div>
                 {isSub ? (
-                  <div className="rounded-xl p-4 border border-[#D4AF37]/30 bg-[#D4AF37]/5">
+                  <div className="rounded-xl p-4 border border-gold/30 bg-gold/5">
                     <div className="flex items-center gap-2 mb-1">
-                      <Crown size={14} className="text-[#D4AF37]" />
+                      <Crown size={14} className="text-gold" />
                       <span className="text-white font-bold text-sm">Fidelidade Premium</span>
                     </div>
                     <p className="text-slate-300 text-xs">
-                      Assinante ativo do plano <span className="text-[#D4AF37] font-bold">{plan?.name}</span> — acumulando benefícios premium.
+                      Assinante ativo do plano <span className="text-gold font-bold">{plan?.name}</span> — acumulando benefícios premium.
                     </p>
                   </div>
                 ) : (
@@ -1066,7 +1066,7 @@ function SummaryStat({ label, value, accent = "text-white" }: any) {
 function PremiumField({ label, value, accent = "text-white" }: any) {
   return (
     <div>
-      <p className="text-[9px] uppercase text-[#D4AF37]/70 font-bold tracking-wider">{label}</p>
+      <p className="text-[9px] uppercase text-gold/70 font-bold tracking-wider">{label}</p>
       <p className={cn("font-black mt-0.5", accent)}>{value}</p>
     </div>
   );

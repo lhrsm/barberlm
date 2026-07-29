@@ -22,15 +22,15 @@ export function BenefitCard({ ctx }: Props) {
 
   return (
     <>
-      <div className="rounded-2xl border border-[#D4AF37]/40 bg-[#0b0f17] p-5 md:p-6 shadow-[0_8px_28px_rgba(212,175,55,0.12)]">
+      <div className="rounded-2xl border border-gold/40 bg-[#0b0f17] p-5 md:p-6 shadow-[0_8px_28px_rgba(212,175,55,0.12)]">
         {/* Cabeçalho */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-5 mb-5 border-b border-zinc-800/80">
           <div className="flex items-start gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 grid place-items-center shrink-0">
-              <Ticket className="h-5 w-5 text-[#D4AF37]" />
+            <div className="h-11 w-11 rounded-xl bg-gold/10 border border-gold/30 grid place-items-center shrink-0">
+              <Ticket className="h-5 w-5 text-gold" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">
+              <div className="text-[10px] font-black uppercase tracking-widest text-gold">
                 Benefício administrativo
               </div>
               <h2 className="text-xl font-black text-white leading-tight">
@@ -87,7 +87,7 @@ export function BenefitCard({ ctx }: Props) {
           <Button
             size="sm"
             onClick={() => setOpen(true)}
-            className="bg-[#0b0f17] border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] font-bold text-xs h-9 rounded-lg px-4"
+            className="bg-[#0b0f17] border border-gold/40 text-gold hover:bg-gold/10 hover:text-gold font-bold text-xs h-9 rounded-lg px-4"
           >
             Visualizar detalhes do benefício
           </Button>
@@ -112,7 +112,7 @@ function Row({
 }) {
   const color =
     highlight === "gold"
-      ? "text-[#D4AF37]"
+      ? "text-gold"
       : highlight === "emerald"
         ? "text-emerald-400"
         : "text-white";
@@ -147,7 +147,7 @@ function Badge({
   label: string;
 }) {
   const map = {
-    gold: "bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]",
+    gold: "bg-gold/10 border-gold/40 text-gold",
     violet: "bg-violet-500/10 border-violet-500/30 text-violet-300",
     emerald: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
   } as const;

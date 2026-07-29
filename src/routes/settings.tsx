@@ -656,7 +656,7 @@ function SettingsComponent() {
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="group relative overflow-hidden gap-2 h-10 px-5 rounded-[10px] bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black font-black uppercase text-xs tracking-wider shadow-[0_4px_16px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_22px_rgba(212,175,55,0.45)] transition-all disabled:opacity-60"
+                    className="group relative overflow-hidden gap-2 h-10 px-5 rounded-[10px] bg-gradient-to-r from-gold via-[#F5D877] to-gold text-black font-black uppercase text-xs tracking-wider shadow-[0_4px_16px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_22px_rgba(212,175,55,0.45)] transition-all disabled:opacity-60"
                   >
                     <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                     <RefreshCw className={`relative h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
@@ -1284,7 +1284,7 @@ function SettingsComponent() {
                     <Button 
                       type="button" 
                       size="sm"
-                      className="group relative overflow-hidden bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black rounded-lg font-black uppercase text-[11px] tracking-wide h-8 px-3 shadow-[0_2px_10px_rgba(212,175,55,0.25)] hover:shadow-[0_4px_14px_rgba(212,175,55,0.4)] transition-all"
+                      className="group relative overflow-hidden bg-gradient-to-r from-gold via-[#F5D877] to-gold text-black rounded-lg font-black uppercase text-[11px] tracking-wide h-8 px-3 shadow-[0_2px_10px_rgba(212,175,55,0.25)] hover:shadow-[0_4px_14px_rgba(212,175,55,0.4)] transition-all"
                     >
                       <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                       <span className="relative">Testar Conexão</span>
@@ -1293,7 +1293,7 @@ function SettingsComponent() {
                       type="button" 
                       variant="outline" 
                       size="sm"
-                      className="border-[#D4AF37]/40 text-[#D4AF37] bg-[#D4AF37]/5 hover:bg-[#D4AF37]/15 hover:text-[#F5D877] hover:border-[#D4AF37]/70 rounded-lg font-bold uppercase text-[11px] tracking-wide h-8 px-3 transition-all"
+                      className="border-gold/40 text-gold bg-gold/5 hover:bg-gold/15 hover:text-[#F5D877] hover:border-gold/70 rounded-lg font-bold uppercase text-[11px] tracking-wide h-8 px-3 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
@@ -1538,17 +1538,17 @@ function SettingsComponent() {
               </Card>
 
               {/* CARD 3 — FIDELIDADE PREMIUM POR TEMPO */}
-              <Card className="bg-gradient-to-br from-[#0b0f17] to-[#0a0a1a] border border-[#D4AF37]/30 text-white rounded-[20px] shadow-xl overflow-hidden">
-                <CardHeader className="border-b border-[#D4AF37]/15 bg-[#0b0f17]/50 p-6">
+              <Card className="bg-gradient-to-br from-[#0b0f17] to-[#0a0a1a] border border-gold/30 text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-gold/15 bg-[#0b0f17]/50 p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-transparent border border-[#D4AF37]/40 grid place-items-center shrink-0">
-                        <Trophy className="text-[#D4AF37] h-5 w-5" />
+                      <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/40 grid place-items-center shrink-0">
+                        <Trophy className="text-gold h-5 w-5" />
                       </div>
                       <div className="min-w-0">
                         <CardTitle className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2 flex-wrap">
                           Fidelidade Premium
-                          <Badge variant="outline" className={formData.loyalty_premium_enabled ? "border-[#D4AF37]/40 text-[#D4AF37]" : "border-slate-600/40 text-slate-500"}>
+                          <Badge variant="outline" className={formData.loyalty_premium_enabled ? "border-gold/40 text-gold" : "border-slate-600/40 text-slate-500"}>
                             {formData.loyalty_premium_enabled ? "Ativo" : "Inativo"}
                           </Badge>
                         </CardTitle>
@@ -1560,14 +1560,14 @@ function SettingsComponent() {
                     <Switch
                       checked={formData.loyalty_premium_enabled}
                       onCheckedChange={(checked) => setFormData({ ...formData, loyalty_premium_enabled: checked })}
-                      className="data-[state=checked]:bg-[#D4AF37]"
+                      className="data-[state=checked]:bg-gold"
                     />
                   </div>
                 </CardHeader>
                 {formData.loyalty_premium_enabled && (
                 <CardContent className="p-6 space-y-4">
                   <div className="bg-[#05070d] border border-[#1f2937] rounded-2xl p-5 space-y-3">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">O que está incluído</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-gold">O que está incluído</p>
                     <ul className="text-[11px] text-slate-300 space-y-1.5 leading-relaxed">
                       <li>• Biblioteca com 20 templates prontos (Clube dos 10, Cashback Progressivo, VIP, Aniversariante e mais).</li>
                       <li>• Campanhas personalizadas com regras, recompensas e mensagens automáticas.</li>
@@ -1576,12 +1576,12 @@ function SettingsComponent() {
                     </ul>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button asChild size="sm" className="h-9 px-4 text-[11px] bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase tracking-wider rounded-lg">
+                    <Button asChild size="sm" className="h-9 px-4 text-[11px] bg-gold hover:bg-gold/90 text-black font-black uppercase tracking-wider rounded-lg">
                       <Link to="/loyalty/templates">
                         <Trophy className="h-3.5 w-3.5 mr-1.5" /> Gerenciar Fidelidade
                       </Link>
                     </Button>
-                    <Button asChild size="sm" className="group relative overflow-hidden h-9 px-4 text-[11px] rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F5D877] to-[#D4AF37] text-black font-black uppercase tracking-wider shadow-[0_4px_14px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_20px_rgba(212,175,55,0.45)] transition-all">
+                    <Button asChild size="sm" className="group relative overflow-hidden h-9 px-4 text-[11px] rounded-lg bg-gradient-to-r from-gold via-[#F5D877] to-gold text-black font-black uppercase tracking-wider shadow-[0_4px_14px_rgba(212,175,55,0.28)] hover:shadow-[0_6px_20px_rgba(212,175,55,0.45)] transition-all">
                       <Link to="/loyalty">
                         <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                         <span className="relative">Recompensas de Assinantes</span>

@@ -120,7 +120,7 @@ export function YourAddons() {
         <Link to="/subscription/addons">
           <Button
             size="sm"
-            className="group relative h-8 overflow-hidden px-3 text-[11px] font-bold text-black bg-gradient-to-r from-[#D4AF37] via-[#F0D060] to-[#D4AF37] hover:from-[#E5C158] hover:to-[#E5C158] border border-[#D4AF37]/50 shadow-[0_0_16px_rgba(212,175,55,0.25)] transition-all"
+            className="group relative h-8 overflow-hidden px-3 text-[11px] font-bold text-black bg-gradient-to-r from-gold via-[#F0D060] to-gold hover:from-[#E5C158] hover:to-[#E5C158] border border-gold/50 shadow-[0_0_16px_rgba(212,175,55,0.25)] transition-all"
           >
             <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             <span className="relative flex items-center">

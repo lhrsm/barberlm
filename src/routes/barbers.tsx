@@ -577,7 +577,7 @@ function BarbersComponent() {
                 <UserPlus size={20} /> Novo Barbeiro
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px] border border-[#D4AF37]/30 shadow-[0_0_30px_rgba(212,175,55,0.15)]">
+            <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px] border border-gold/30 shadow-[0_0_30px_rgba(212,175,55,0.15)]">
               {canAddBarber ? (
                 <>
                   <DialogHeader>
@@ -793,7 +793,7 @@ function BarbersComponent() {
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full bg-[#D4AF37] text-black hover:bg-[#B8962E] hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Barbeiro</Button>
+                    <Button type="submit" className="w-full bg-gold text-black hover:bg-[#B8962E] hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Barbeiro</Button>
                   </form>
                 </>
               ) : (
@@ -974,7 +974,7 @@ function BarbersComponent() {
                   )}
                   <div className="w-full">
                     <Button
-                      className="w-full h-12 relative overflow-hidden group/perf rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F0D67B] text-black font-black uppercase tracking-wider text-sm border border-[#D4AF37] shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300"
+                      className="w-full h-12 relative overflow-hidden group/perf rounded-xl bg-gradient-to-r from-gold to-[#F0D67B] text-black font-black uppercase tracking-wider text-sm border border-gold shadow-[0_6px_20px_-6px_rgba(212,175,55,0.7)] hover:shadow-[0_10px_28px_-8px_rgba(212,175,55,0.95)] transition-all duration-300"
                       onClick={() => setPerformanceBarber(barber)}
                     >
                       <span className="absolute inset-0 -translate-x-full group-hover/perf:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
@@ -1056,7 +1056,7 @@ function BarbersComponent() {
           )}
         </div>
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px] border border-[#D4AF37]/30 shadow-[0_0_30px_rgba(212,175,55,0.15)]">
+          <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px] border border-gold/30 shadow-[0_0_30px_rgba(212,175,55,0.15)]">
             <DialogHeader>
               <DialogTitle>Editar Profissional</DialogTitle>
             </DialogHeader>
@@ -1176,8 +1176,8 @@ function BarbersComponent() {
                   />
                 </div>
 
-                <div className="space-y-2 rounded-xl border border-[#D4AF37]/30 p-3 bg-[#D4AF37]/5">
-                  <Label className="text-[#D4AF37] font-black uppercase tracking-widest text-[10px]">
+                <div className="space-y-2 rounded-xl border border-gold/30 p-3 bg-gold/5">
+                  <Label className="text-gold font-black uppercase tracking-widest text-[10px]">
                     PIX para Gorjetas Digitais
                   </Label>
                   <p className="text-xs text-muted-foreground">
@@ -1206,7 +1206,7 @@ function BarbersComponent() {
                           type="checkbox"
                           checked={editingBarber.accepts_tips ?? true}
                           onChange={(e) => setEditingBarber({ ...editingBarber, accepts_tips: e.target.checked })}
-                          className="h-4 w-4 accent-[#D4AF37]"
+                          className="h-4 w-4 accent-gold"
                         />
                         Aceita gorjetas digitais
                       </label>
@@ -1220,7 +1220,7 @@ function BarbersComponent() {
                   <div className="space-y-2 pt-1">
                     <Label htmlFor="edit_pix_qr" className="text-xs">QR Code do PIX (imagem)</Label>
                     <div className="flex items-center gap-3">
-                      <div className="h-20 w-20 shrink-0 rounded-lg border border-[#D4AF37]/30 bg-black/20 overflow-hidden flex items-center justify-center">
+                      <div className="h-20 w-20 shrink-0 rounded-lg border border-gold/30 bg-black/20 overflow-hidden flex items-center justify-center">
                         {editingBarber.pix_qr_code_url ? (
                           <img src={editingBarber.pix_qr_code_url} alt="QR Code PIX do profissional" className="h-full w-full object-contain" />
                         ) : (
@@ -1352,7 +1352,7 @@ function BarbersComponent() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full bg-[#D4AF37] text-black hover:bg-[#B8962E] hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Alterações</Button>
+                <Button type="submit" className="w-full bg-gold text-black hover:bg-[#B8962E] hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Alterações</Button>
               </form>
             )}
           </DialogContent>

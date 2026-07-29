@@ -58,7 +58,7 @@ function ValidatePage() {
     return (
       <div className="min-h-screen bg-[#05070d] grid place-items-center text-white">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-[#D4AF37]" />
+          <Loader2 className="h-10 w-10 animate-spin text-gold" />
           <p className="text-sm text-zinc-400">Validando cartão...</p>
         </div>
       </div>
@@ -110,7 +110,7 @@ function ValidatePage() {
         {customer && (
           <div className="rounded-2xl border border-zinc-800 bg-[#0b0f17] p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden">
+              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gold to-[#8a6d12] grid place-items-center text-black font-black text-xl overflow-hidden">
                 {customer.avatar_url ? (
                   <img src={customer.avatar_url} alt={customer.name} className="h-full w-full object-cover" />
                 ) : (
@@ -126,10 +126,10 @@ function ValidatePage() {
             </div>
 
             {plan && (
-              <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 space-y-2">
+              <div className="rounded-xl border border-gold/30 bg-gold/5 p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Crown className="h-4 w-4 text-[#D4AF37]" />
-                  <p className="font-bold text-[#D4AF37]">{plan.name}</p>
+                  <Crown className="h-4 w-4 text-gold" />
+                  <p className="font-bold text-gold">{plan.name}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>

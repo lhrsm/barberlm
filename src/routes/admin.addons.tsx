@@ -229,9 +229,9 @@ function AdminAddonsPage() {
                           variant="outline"
                           disabled={creatingStripeId === a.id}
                           onClick={() => createStripeMut.mutate({ addonId: a.id, environment: getStripeEnvironment() })}
-                          className="relative overflow-hidden h-7 text-[10px] border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 hover:text-[#FFD700] hover:border-[#D4AF37]/60 hover:shadow-[0_0_16px_rgba(212,175,55,0.25)] transition-all duration-300 group"
+                          className="relative overflow-hidden h-7 text-[10px] border-gold/40 bg-gold/10 text-gold hover:bg-gold/20 hover:text-[#FFD700] hover:border-gold/60 hover:shadow-[0_0_16px_rgba(212,175,55,0.25)] transition-all duration-300 group"
                         >
-                          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent transition-transform duration-700 ease-in-out" />
+                          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-gold/20 to-transparent transition-transform duration-700 ease-in-out" />
                           {creatingStripeId === a.id
                             ? <Loader2 className="w-3 h-3 animate-spin relative z-10" />
                             : <><Zap className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300 relative z-10" /> <span className="relative z-10">Criar no Stripe</span></>}

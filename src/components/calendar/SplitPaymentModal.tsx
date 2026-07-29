@@ -115,9 +115,9 @@ export function SplitPaymentModal({ appointment, open, onOpenChange, onSuccess }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg bg-zinc-950 border border-[#D4AF37]/40 text-white">
+      <DialogContent className="max-w-lg bg-zinc-950 border border-gold/40 text-white">
         <DialogHeader>
-          <DialogTitle className="text-[#D4AF37] flex items-center gap-2 font-black uppercase tracking-widest text-sm">
+          <DialogTitle className="text-gold flex items-center gap-2 font-black uppercase tracking-widest text-sm">
             <Sparkles className="h-4 w-4" /> Fechar Pagamento
           </DialogTitle>
           <DialogDescription className="text-white/60">
@@ -149,7 +149,7 @@ export function SplitPaymentModal({ appointment, open, onOpenChange, onSuccess }
               <Label className="text-[10px] uppercase tracking-widest text-white/60">Gorjeta</Label>
               <Input type="number" step="0.01" min={0} value={tip}
                 onChange={(e) => { setTip(Number(e.target.value)); setTipPreset("custom"); }}
-                className="bg-black border-[#D4AF37]/40" />
+                className="bg-black border-gold/40" />
             </div>
           </div>
 
@@ -157,7 +157,7 @@ export function SplitPaymentModal({ appointment, open, onOpenChange, onSuccess }
             {[0, 10, 15, 20].map((p) => (
               <Button key={p} type="button" size="sm" variant="outline"
                 onClick={() => applyTipPreset(p)}
-                className={`h-8 rounded-lg border-white/10 bg-black text-xs ${tipPreset === p ? "border-[#D4AF37] text-[#D4AF37]" : "text-white/70"}`}>
+                className={`h-8 rounded-lg border-white/10 bg-black text-xs ${tipPreset === p ? "border-gold text-gold" : "text-white/70"}`}>
                 {p === 0 ? "Sem gorjeta" : `${p}%`}
               </Button>
             ))}
@@ -173,7 +173,7 @@ export function SplitPaymentModal({ appointment, open, onOpenChange, onSuccess }
             <div className="flex items-center justify-between text-xs text-white/60">
               <span>Desconto</span><span>- {money(discount)}</span>
             </div>
-            <div className="flex items-center justify-between text-base font-black text-[#D4AF37]">
+            <div className="flex items-center justify-between text-base font-black text-gold">
               <span>Total</span><span>{money(total)}</span>
             </div>
           </div>
@@ -183,14 +183,14 @@ export function SplitPaymentModal({ appointment, open, onOpenChange, onSuccess }
             {METHODS.map(({ key, label, icon: Icon }) => (
               <div key={key} className="flex items-center gap-2">
                 <div className="flex items-center gap-2 w-32 text-white/80 text-sm">
-                  <Icon className="h-4 w-4 text-[#D4AF37]" /> {label}
+                  <Icon className="h-4 w-4 text-gold" /> {label}
                 </div>
                 <Input type="number" step="0.01" min={0} value={breakdown[key]}
                   onChange={(e) => setBreakdown((b) => ({ ...b, [key]: Number(e.target.value) }))}
                   className="bg-black border-white/10 flex-1" />
                 <Button type="button" size="sm" variant="ghost"
                   onClick={() => autoFill(key)}
-                  className="h-8 text-[10px] uppercase tracking-widest text-[#D4AF37] hover:bg-[#D4AF37]/10">
+                  className="h-8 text-[10px] uppercase tracking-widest text-gold hover:bg-gold/10">
                   Resto
                 </Button>
               </div>
@@ -209,7 +209,7 @@ export function SplitPaymentModal({ appointment, open, onOpenChange, onSuccess }
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}
             className="rounded-xl border-white/10 bg-black text-white/70">Cancelar</Button>
           <Button onClick={submit} disabled={loading || !balanced}
-            className="rounded-xl bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest">
+            className="rounded-xl bg-gold hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest">
             Confirmar pagamento
           </Button>
         </DialogFooter>

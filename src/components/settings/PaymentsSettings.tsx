@@ -798,8 +798,8 @@ export function PaymentsSettings() {
                         ? "border-emerald-500/60 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10"
                         : isError
                           ? "border-red-500/60 bg-red-500/5 text-red-400 hover:bg-red-500/10"
-                          : "border-[#D4AF37] bg-transparent text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]",
-                      testDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:text-[#D4AF37] hover:shadow-none",
+                          : "border-gold bg-transparent text-gold hover:bg-gold hover:text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]",
+                      testDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:text-gold hover:shadow-none",
                     )}
                   >
                     {testing ? (
@@ -822,7 +822,7 @@ export function PaymentsSettings() {
                     className={cn(
                       "w-full sm:w-[170px] rounded-[12px] border border-[#2A2F3A] bg-[#111827] text-white font-semibold text-sm",
                       "inline-flex items-center justify-center gap-2 transition-all duration-200",
-                      "hover:bg-[#1B2330] hover:border-[#D4AF37] hover:text-[#D4AF37]",
+                      "hover:bg-[#1B2330] hover:border-gold hover:text-gold",
                       saving && "opacity-40 cursor-not-allowed",
                     )}
                   >
@@ -838,7 +838,7 @@ export function PaymentsSettings() {
                     className={cn(
                       "w-full sm:w-[240px] rounded-[12px] font-bold text-sm text-black",
                       "inline-flex items-center justify-center gap-2 transition-all duration-200",
-                      "bg-gradient-to-r from-[#D4AF37] to-[#F59E0B]",
+                      "bg-gradient-to-r from-gold to-[#F59E0B]",
                       "hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(212,175,55,0.35)]",
                       "active:scale-[0.99]",
                       saving && "opacity-80 cursor-wait hover:scale-100 hover:shadow-none",

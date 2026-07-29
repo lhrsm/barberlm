@@ -37,7 +37,7 @@ export function PushOptInCard({ customerPhone, tenantId, audience = "customer", 
         disabled={loading || permission === "denied"}
         variant="outline"
         size="sm"
-        className="border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+        className="border-gold/40 text-gold hover:bg-gold/10"
       >
         {subscribed ? <BellOff className="h-4 w-4 mr-2" /> : <Bell className="h-4 w-4 mr-2" />}
         {subscribed ? "Desativar avisos" : "Ativar notificações"}
@@ -50,15 +50,15 @@ export function PushOptInCard({ customerPhone, tenantId, audience = "customer", 
 
   return (
     <div
-      className="animate-fade-in rounded-[18px] border border-[#D4AF37]/25 bg-gradient-to-br from-[#14181f] to-[#0a0d13] p-5 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.6)] transition-all hover:border-[#D4AF37]/40"
+      className="animate-fade-in rounded-[18px] border border-gold/25 bg-gradient-to-br from-[#14181f] to-[#0a0d13] p-5 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.6)] transition-all hover:border-gold/40"
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         {/* Icon */}
-        <div className="h-12 w-12 shrink-0 rounded-full bg-[#1a1f28] ring-1 ring-[#D4AF37]/20 flex items-center justify-center">
+        <div className="h-12 w-12 shrink-0 rounded-full bg-[#1a1f28] ring-1 ring-gold/20 flex items-center justify-center">
           {isGranted ? (
             <CheckCircle2 className="h-6 w-6 text-emerald-400" />
           ) : (
-            <Bell className="h-6 w-6 text-[#D4AF37]" />
+            <Bell className="h-6 w-6 text-gold" />
           )}
         </div>
 
@@ -96,7 +96,7 @@ export function PushOptInCard({ customerPhone, tenantId, audience = "customer", 
             <Button
               onClick={() => setShowHelp((v) => !v)}
               variant="outline"
-              className="w-full sm:w-auto sm:min-w-[170px] h-11 rounded-[12px] border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]"
+              className="w-full sm:w-auto sm:min-w-[170px] h-11 rounded-[12px] border-gold/40 text-gold hover:bg-gold/10 hover:text-gold"
             >
               Como liberar
             </Button>
@@ -104,7 +104,7 @@ export function PushOptInCard({ customerPhone, tenantId, audience = "customer", 
             <Button
               onClick={handle}
               disabled={loading}
-              className="group w-full sm:w-auto sm:min-w-[170px] sm:max-w-[220px] h-11 sm:h-11 px-[22px] rounded-[12px] font-semibold text-black bg-[#D4AF37] hover:bg-gradient-to-r hover:from-[#E9C766] hover:to-[#B8962E] shadow-[0_4px_14px_-4px_rgba(212,175,55,0.5)] hover:shadow-[0_6px_20px_-4px_rgba(212,175,55,0.7)] hover:-translate-y-[1px] transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0"
+              className="group w-full sm:w-auto sm:min-w-[170px] sm:max-w-[220px] h-11 sm:h-11 px-[22px] rounded-[12px] font-semibold text-black bg-gold hover:bg-gradient-to-r hover:from-[#E9C766] hover:to-[#B8962E] shadow-[0_4px_14px_-4px_rgba(212,175,55,0.5)] hover:shadow-[0_6px_20px_-4px_rgba(212,175,55,0.7)] hover:-translate-y-[1px] transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0"
             >
               {loading ? (
                 <>

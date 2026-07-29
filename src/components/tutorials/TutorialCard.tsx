@@ -46,7 +46,7 @@ export function TutorialCard({ tutorial, onClick }: TutorialCardProps) {
               <Icon className="h-5 w-5" />
             </div>
             {tutorial.is_featured && (
-              <Badge className="gap-1 rounded-full border border-[#D4AF37]/50 bg-gradient-to-r from-[#D4AF37] via-[#f5d97a] to-[#B8941F] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-[0_2px_10px_rgba(212,175,55,0.35)] transition-all group-hover:shadow-[0_4px_16px_rgba(212,175,55,0.55)]">
+              <Badge className="gap-1 rounded-full border border-gold/50 bg-gradient-to-r from-gold via-[#f5d97a] to-[#B8941F] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-[0_2px_10px_rgba(212,175,55,0.35)] transition-all group-hover:shadow-[0_4px_16px_rgba(212,175,55,0.55)]">
                 <Star size={10} className="fill-black text-black" /> Destaque
               </Badge>
             )}
