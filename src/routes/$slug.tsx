@@ -1288,7 +1288,7 @@ function ShopPageComponent() {
           .from("appointments")
           .insert([appointmentPayload])
           .select(
-            "id, user_id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, status, total_price, appointment_group_id, payment_method, payment_status",
+            "id, user_id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, status, total_price, appointment_group_id, payment_method, payment_status, subscription_id, subscription_plan_id, subscription_covered_amount, extra_amount, coupon_code, discount_amount, subtotal_amount, items",
           )
           .single();
       });
