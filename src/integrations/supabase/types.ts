@@ -8664,6 +8664,20 @@ export type Database = {
           total_price: number
         }[]
       }
+      get_appointment_for_rating: {
+        Args: { p_cancel_token: string }
+        Returns: {
+          already_rated: boolean
+          barber_id: string
+          customer_id: string
+          id: string
+          service_id: string
+          start_time: string
+          status: string
+          tenant_id: string
+          user_id: string
+        }[]
+      }
       get_appointment_group_by_token: {
         Args: { _token: string }
         Returns: Json
