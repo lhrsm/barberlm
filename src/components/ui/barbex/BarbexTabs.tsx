@@ -11,8 +11,8 @@ export const BarbexTabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex items-center gap-1 rounded-xl bg-[#0B1220] border border-white/[0.08] p-1",
-      className
+      "inline-flex items-center gap-1 rounded-xl border border-border bg-surface-sunken p-1",
+      className,
     )}
     {...props}
   />
@@ -27,11 +27,11 @@ export const BarbexTabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold uppercase tracking-wider transition-all duration-200",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/40",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/45",
       "disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:bg-[#F59E0B] data-[state=active]:text-white data-[state=active]:shadow-sm",
-      "data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-white",
-      className
+      "data-[state=active]:bg-gold data-[state=active]:text-gold-foreground data-[state=active]:shadow-gold",
+      "data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/50 data-[state=inactive]:hover:text-foreground",
+      className,
     )}
     {...props}
   />
