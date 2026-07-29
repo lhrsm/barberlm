@@ -112,7 +112,7 @@ serve(async (req) => {
     const pushUrl = Deno.env.get("APP_BASE_URL")
       ? `${Deno.env.get("APP_BASE_URL")}/api/public/send-push`
       : null;
-    const pushSecret = Deno.env.get("INTERNAL_PUSH_SECRET");
+    const pushSecret = Deno.env.get("PUSH_INTERNAL_SECRET");
 
     if (pushUrl && pushSecret) {
       for (const adminId of adminIds) {
@@ -124,14 +124,16 @@ serve(async (req) => {
             method: "POST",
             headers: {
               "content-type": "application/json",
-              "x-internal-secret": pushSecret,
             },
             body: JSON.stringify({
-              user_id: adminId,
-              title: `[Barbex Admin] ${title}`,
-              body: message?.slice(0, 140) ?? "",
-              url: action_url ?? "/admin/notifications",
-              tag: `admin:${event_key}`,
+              secret: pushSecret,
+              target: { user_id: adminId },
+              payload: {
+                title: `[Barbex Admin] ${title}`,
+                body: message?.slice(0, 140) ?? "",
+                url: action_url ?? "/admin/notifications",
+                tag: `admin:${event_key}`,
+              },
             }),
           });
           if (res.ok) channelsDelivered.push++;

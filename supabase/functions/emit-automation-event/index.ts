@@ -450,7 +450,7 @@ serve(async (req) => {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
-              secret: Deno.env.get("VAPID_PRIVATE_KEY"),
+              secret: Deno.env.get("PUSH_INTERNAL_SECRET"),
               target: { customer_phone: normalizedPush, audience: recipient === "customer" ? "customer" : "staff" },
               payload: pushPayload,
             }),
