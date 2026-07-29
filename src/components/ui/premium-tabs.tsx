@@ -39,7 +39,7 @@ export const PremiumTabsList = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2",
+      "premium-tabs-scroll overflow-x-auto bg-surface-sunken px-2 pt-2",
       className,
     )}
   >
@@ -53,10 +53,10 @@ export const PremiumTabsList = React.forwardRef<
             className={cn(
               "group relative inline-flex items-center gap-2 whitespace-nowrap px-5 py-3 text-[13px] font-semibold uppercase tracking-wider transition-all duration-300",
               "rounded-t-[22px]",
-              "text-white/70 hover:text-white",
-              "data-[state=active]:bg-white data-[state=active]:text-[#111111] data-[state=active]:font-bold",
+              "text-muted-foreground hover:text-foreground",
+              "data-[state=active]:bg-surface-raised data-[state=active]:text-gold data-[state=active]:font-bold",
               "data-[state=active]:shadow-[0_-2px_12px_rgba(0,0,0,.15)]",
-              "focus-visible:outline-none",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/45",
             )}
           >
             {Icon ? <Icon size={15} className="opacity-90" /> : null}
@@ -76,7 +76,7 @@ export const PremiumTabsBody = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-[24px] border border-[rgba(255,184,0,0.15)] bg-[#0A1020] overflow-hidden",
+      "overflow-hidden rounded-[24px] border border-gold/15 bg-surface",
       className,
     )}
     {...props}
