@@ -1283,7 +1283,14 @@ function ShopPageComponent() {
           }]
         };
 
-        return supabase.from("appointments").insert([appointmentPayload]).select().single();
+        // Colunas explícitas: o papel anônimo não lê mais os tokens de gestão.
+        return supabase
+          .from("appointments")
+          .insert([appointmentPayload])
+          .select(
+            "id, user_id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, status, total_price, appointment_group_id, payment_method, payment_status",
+          )
+          .single();
       });
 
 
