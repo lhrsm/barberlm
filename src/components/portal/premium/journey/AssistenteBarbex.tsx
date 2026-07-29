@@ -93,17 +93,17 @@ export function AssistenteBarbex({ appointments, customerData, mySubscription, s
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/25 bg-gradient-to-br from-[#D4AF37]/[0.06] via-white/[0.02] to-transparent p-6 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-3xl border border-gold/25 bg-gradient-to-br from-gold/[0.06] via-white/[0.02] to-transparent p-6 backdrop-blur-xl"
     >
-      <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#D4AF37]/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-gold/15 blur-3xl" />
       <div className="relative flex items-start gap-4">
-        <div className="h-11 w-11 shrink-0 rounded-2xl grid place-items-center bg-[#D4AF37]/15 border border-[#D4AF37]/40 shadow-[0_0_24px_rgba(212,175,55,0.35)]">
-          <Bot className="h-5 w-5 text-[#D4AF37]" />
+        <div className="h-11 w-11 shrink-0 rounded-2xl grid place-items-center bg-gold/15 border border-gold/40 shadow-[0_0_24px_rgba(212,175,55,0.35)]">
+          <Bot className="h-5 w-5 text-gold" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Assistente Barbex</p>
-            <Sparkles className="h-3 w-3 text-[#D4AF37]/70" />
+            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Assistente Barbex</p>
+            <Sparkles className="h-3 w-3 text-gold/70" />
           </div>
           <h3 className="text-lg md:text-xl font-black text-white mt-1">Insights personalizados</h3>
           <ul className="mt-3 space-y-2">
@@ -115,7 +115,7 @@ export function AssistenteBarbex({ appointments, customerData, mySubscription, s
                 transition={{ delay: i * 0.06 }}
                 className="flex gap-2 text-sm text-gray-200 leading-relaxed"
               >
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#D4AF37]" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
                 <span>{t}</span>
               </motion.li>
             ))}

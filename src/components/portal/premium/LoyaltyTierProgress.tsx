@@ -38,7 +38,7 @@ export function LoyaltyTierProgress({ appointments }: Props) {
       />
       <div className="relative flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">
             Programa de Fidelidade
           </p>
           <h2 className="text-xl md:text-2xl font-black text-white mt-1 flex items-center gap-2">
@@ -106,7 +106,7 @@ export function LoyaltyTierProgress({ appointments }: Props) {
         <p className="mt-4 text-sm text-gray-300 text-center">
           {nextTier ? (
             <>
-              Faltam <span className="font-black text-[#D4AF37]">{remaining}</span>{" "}
+              Faltam <span className="font-black text-gold">{remaining}</span>{" "}
               {remaining === 1 ? "visita" : "visitas"} para desbloquear{" "}
               <span className="font-black" style={{ color: nextTier.color }}>
                 {nextTier.name}

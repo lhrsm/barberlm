@@ -32,12 +32,12 @@ function StarRow({ value, onChange, label, disabled }: { value: number; onChange
             className={cn(
               "p-1 transition-transform",
               !disabled && "hover:scale-110",
-              n <= value ? "text-[#D4AF37]" : "text-gray-600",
+              n <= value ? "text-gold" : "text-gray-600",
               disabled && "cursor-default"
             )}
             aria-label={`${n} estrelas`}
           >
-            <Star className={cn("h-8 w-8", n <= value && "fill-[#D4AF37]")} />
+            <Star className={cn("h-8 w-8", n <= value && "fill-gold")} />
           </button>
         ))}
       </div>
@@ -150,9 +150,9 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0b0f17] border-[#D4AF37]/20 text-white max-w-lg">
+      <DialogContent className="bg-[#0b0f17] border-gold/20 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black text-[#D4AF37] uppercase tracking-wider flex items-center gap-2">
+          <DialogTitle className="text-xl font-black text-gold uppercase tracking-wider flex items-center gap-2">
             {isApproved && <CheckCircle2 className="h-5 w-5" />}
             {isApproved ? "Sua Avaliação" : existing ? "Editar Avaliação" : "Como foi sua experiência?"}
           </DialogTitle>
@@ -164,22 +164,22 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
         </DialogHeader>
 
         {/* Contexto do atendimento */}
-        <div className="rounded-xl border border-[#D4AF37]/15 bg-[#05070d] p-3 space-y-1.5 text-xs">
+        <div className="rounded-xl border border-gold/15 bg-[#05070d] p-3 space-y-1.5 text-xs">
           {svcName && (
             <div className="flex items-center gap-2 text-gray-300">
-              <Scissors className="h-3.5 w-3.5 text-[#D4AF37]/70" />
+              <Scissors className="h-3.5 w-3.5 text-gold/70" />
               <span className="font-semibold">{svcName}</span>
             </div>
           )}
           {barberName && (
             <div className="flex items-center gap-2 text-gray-300">
-              <UserIcon className="h-3.5 w-3.5 text-[#D4AF37]/70" />
+              <UserIcon className="h-3.5 w-3.5 text-gold/70" />
               <span className="font-semibold">{barberName}</span>
             </div>
           )}
           {dateStr && (
             <div className="flex items-center gap-2 text-gray-300">
-              <CalendarIcon className="h-3.5 w-3.5 text-[#D4AF37]/70" />
+              <CalendarIcon className="h-3.5 w-3.5 text-gold/70" />
               <span className="font-semibold">{dateStr}</span>
             </div>
           )}
@@ -198,18 +198,18 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
                 value={testimonial}
                 onChange={(e) => setTestimonial(e.target.value)}
                 placeholder="Conte sua experiência..."
-                className="bg-[#05070d] border-[#D4AF37]/20 text-white min-h-[100px]"
+                className="bg-[#05070d] border-gold/20 text-white min-h-[100px]"
                 maxLength={500}
                 readOnly={readOnly}
               />
             </div>
             {!readOnly && (
-              <label className="flex items-start gap-3 rounded-xl border border-[#D4AF37]/15 bg-[#05070d] p-3 cursor-pointer hover:border-[#D4AF37]/30 transition">
+              <label className="flex items-start gap-3 rounded-xl border border-gold/15 bg-[#05070d] p-3 cursor-pointer hover:border-gold/30 transition">
                 <input
                   type="checkbox"
                   checked={allowPublic}
                   onChange={(e) => setAllowPublic(e.target.checked)}
-                  className="mt-1 h-4 w-4 accent-[#D4AF37] cursor-pointer"
+                  className="mt-1 h-4 w-4 accent-gold cursor-pointer"
                 />
                 <span className="text-xs text-gray-300 leading-relaxed">
                   Autorizo a barbearia a exibir publicamente minha avaliação (nome, nota e depoimento) no site.
@@ -230,7 +230,7 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
             <Button
               onClick={handleSubmit}
               disabled={submitting || loadingExisting}
-              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black font-black"
+              className="bg-gold hover:bg-[#B8962E] text-black font-black"
             >
               <Send className="h-4 w-4 mr-2" />
               {submitting ? "Enviando..." : existing ? "Atualizar Avaliação" : "Enviar Avaliação"}

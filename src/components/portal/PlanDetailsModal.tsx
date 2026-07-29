@@ -38,7 +38,7 @@ export function PlanDetailsModal({
         <DialogPrimitive.Content
           className={cn(
             "fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-[640px] -translate-x-1/2 -translate-y-1/2",
-            "rounded-3xl bg-gradient-to-br from-[#0B0B0B] via-[#111] to-black border border-[#D4AF37]/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)]",
+            "rounded-3xl bg-gradient-to-br from-[#0B0B0B] via-[#111] to-black border border-gold/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)]",
             "max-h-[92vh] overflow-hidden flex flex-col",
             "duration-250 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           )}
@@ -46,7 +46,7 @@ export function PlanDetailsModal({
           {/* HEADER */}
           <div className="relative px-6 sm:px-8 pt-7 pb-5 border-b border-white/5">
             <div className="flex items-start gap-4 pr-14">
-              <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-gold to-[#B8860B] flex items-center justify-center shadow-lg">
                 <Crown className="h-6 w-6 text-black" />
               </div>
               <div>
@@ -63,10 +63,10 @@ export function PlanDetailsModal({
               aria-label="Fechar"
               className={cn(
                 "absolute right-5 top-5 h-10 w-10 rounded-full flex items-center justify-center",
-                "bg-[#1A1A1A] border border-[#D4AF37]/50 text-white",
+                "bg-[#1A1A1A] border border-gold/50 text-white",
                 "transition-all duration-250",
-                "hover:bg-[#D4AF37] hover:text-black hover:scale-110 hover:border-[#D4AF37]",
-                "focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50",
+                "hover:bg-gold hover:text-black hover:scale-110 hover:border-gold",
+                "focus:outline-none focus:ring-2 focus:ring-gold/50",
               )}
             >
               <X className="h-5 w-5" />
@@ -75,14 +75,14 @@ export function PlanDetailsModal({
 
           {/* BODY */}
           <div className="px-6 sm:px-8 py-6 overflow-y-auto space-y-6">
-            <div className="rounded-2xl bg-gradient-to-br from-[#D4AF37]/15 via-black/40 to-black border border-[#D4AF37]/30 p-5">
+            <div className="rounded-2xl bg-gradient-to-br from-gold/15 via-black/40 to-black border border-gold/30 p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">
                     Plano Atual
                   </p>
                   <h3 className="text-2xl font-black text-white mt-1">{plan?.name || usage.plan_name}</h3>
-                  <p className="text-3xl font-black text-[#D4AF37] mt-2">
+                  <p className="text-3xl font-black text-gold mt-2">
                     R$ {Number(plan?.monthly_price || 0).toFixed(2).replace(".", ",")}
                     <span className="text-sm text-gray-400 font-bold">/mês</span>
                   </p>
@@ -106,7 +106,7 @@ export function PlanDetailsModal({
 
             {usage.renewal_date && (
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                <Calendar className="h-4 w-4 text-[#D4AF37]" />
+                <Calendar className="h-4 w-4 text-gold" />
                 <div className="text-xs">
                   <span className="text-gray-400">Próxima renovação em </span>
                   <span className="text-white font-bold">
@@ -118,7 +118,7 @@ export function PlanDetailsModal({
 
             <div>
               <h4 className="text-sm font-black uppercase tracking-widest text-white mb-3 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#D4AF37]" /> Benefícios inclusos
+                <Sparkles className="h-4 w-4 text-gold" /> Benefícios inclusos
               </h4>
               <ul className="grid sm:grid-cols-2 gap-2">
                 {included.length === 0 ? (
@@ -126,8 +126,8 @@ export function PlanDetailsModal({
                 ) : (
                   included.map((b, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-200">
-                      <span className="mt-0.5 h-5 w-5 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/40 flex items-center justify-center shrink-0">
-                        <Check className="h-3 w-3 text-[#D4AF37]" />
+                      <span className="mt-0.5 h-5 w-5 rounded-full bg-gold/15 border border-gold/40 flex items-center justify-center shrink-0">
+                        <Check className="h-3 w-3 text-gold" />
                       </span>
                       <span>{b}</span>
                     </li>
@@ -139,13 +139,13 @@ export function PlanDetailsModal({
             {planServices?.length > 0 && (
               <div>
                 <h4 className="text-sm font-black uppercase tracking-widest text-white mb-3 flex items-center gap-2">
-                  <Scissors className="h-4 w-4 text-[#D4AF37]" /> Serviços inclusos
+                  <Scissors className="h-4 w-4 text-gold" /> Serviços inclusos
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {planServices.map((ps: any, i: number) => (
                     <span
                       key={i}
-                      className="text-xs px-3 py-1.5 rounded-full bg-black/40 border border-[#D4AF37]/25 text-gray-200"
+                      className="text-xs px-3 py-1.5 rounded-full bg-black/40 border border-gold/25 text-gray-200"
                     >
                       {ps?.services?.name || "Serviço"}
                     </span>
@@ -156,16 +156,16 @@ export function PlanDetailsModal({
           </div>
 
           {/* FOOTER — sticky */}
-          <div className="sticky bottom-0 px-6 sm:px-8 pt-5 pb-6 border-t border-[#D4AF37]/15 bg-gradient-to-b from-black/60 via-black/85 to-black flex flex-col gap-3 mt-auto">
+          <div className="sticky bottom-0 px-6 sm:px-8 pt-5 pb-6 border-t border-gold/15 bg-gradient-to-b from-black/60 via-black/85 to-black flex flex-col gap-3 mt-auto">
             <button
               type="button"
               onClick={onChangePlan}
               className={cn(
                 "w-full h-12 rounded-[14px] inline-flex items-center justify-center gap-2",
-                "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-bold text-[15px]",
+                "bg-gradient-to-r from-gold to-[#F5D061] text-black font-bold text-[15px]",
                 "shadow-[0_6px_20px_rgba(212,175,55,0.35)] transition-all duration-250 cursor-pointer",
                 "hover:from-[#E6C24C] hover:to-[#FFDD75] hover:shadow-[0_12px_32px_rgba(212,175,55,0.55)] hover:-translate-y-0.5",
-                "active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50",
+                "active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gold/50",
               )}
             >
               <Crown className="h-4 w-4" /> Mudar de Plano
@@ -175,10 +175,10 @@ export function PlanDetailsModal({
               onClick={() => onOpenChange(false)}
               className={cn(
                 "w-full h-12 rounded-[14px] inline-flex items-center justify-center gap-2",
-                "bg-transparent border border-[#D4AF37] text-white font-semibold text-[15px]",
+                "bg-transparent border border-gold text-white font-semibold text-[15px]",
                 "transition-all duration-250 cursor-pointer",
-                "hover:bg-[#D4AF37] hover:text-black hover:scale-[1.02] hover:shadow-[0_6px_20px_rgba(212,175,55,0.35)]",
-                "[&:hover_svg]:text-black active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50",
+                "hover:bg-gold hover:text-black hover:scale-[1.02] hover:shadow-[0_6px_20px_rgba(212,175,55,0.35)]",
+                "[&:hover_svg]:text-black active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gold/50",
               )}
             >
               <X className="h-4 w-4" /> Fechar

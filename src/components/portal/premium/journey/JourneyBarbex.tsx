@@ -34,10 +34,10 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 
 const TONE_STYLES: Record<string, { border: string; bg: string; icon: string; badge: string }> = {
   gold: {
-    border: "border-[#D4AF37]/25 hover:border-[#D4AF37]/60",
-    bg: "bg-[#D4AF37]/[0.04]",
-    icon: "bg-[#D4AF37]/15 text-[#D4AF37]",
-    badge: "bg-[#D4AF37]/15 text-[#D4AF37] border-[#D4AF37]/30",
+    border: "border-gold/25 hover:border-gold/60",
+    bg: "bg-gold/[0.04]",
+    icon: "bg-gold/15 text-gold",
+    badge: "bg-gold/15 text-gold border-gold/30",
   },
   emerald: {
     border: "border-emerald-500/20 hover:border-emerald-500/50",
@@ -214,7 +214,7 @@ export function JourneyBarbex({
     >
       {/* Header */}
       <div>
-        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37] flex items-center gap-2">
+        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold flex items-center gap-2">
           <Sparkles className="h-3 w-3" /> Central de Relacionamento
         </p>
         <h2 className="text-2xl md:text-3xl font-black text-white mt-1">Sua Jornada Barbex</h2>
@@ -306,7 +306,7 @@ export function JourneyBarbex({
             {nextTier ? (
               <>
                 Faltam{" "}
-                <span className="font-black text-[#D4AF37]">{nextTier.min - completedCount}</span>{" "}
+                <span className="font-black text-gold">{nextTier.min - completedCount}</span>{" "}
                 {nextTier.min - completedCount === 1 ? "atendimento" : "atendimentos"} para atingir o nível{" "}
                 <span className="font-black" style={{ color: nextTier.color }}>{nextTier.name}</span>.
               </>
@@ -321,7 +321,7 @@ export function JourneyBarbex({
       {recommendations.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-4 w-4 text-[#D4AF37]" />
+            <Zap className="h-4 w-4 text-gold" />
             <h3 className="text-sm uppercase tracking-widest font-black text-white">Recomendado para você</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -353,7 +353,7 @@ export function JourneyBarbex({
                   </div>
                   <p className="text-sm font-black text-white leading-snug">{rec.title}</p>
                   <p className="text-xs text-gray-400 mt-1 leading-relaxed">{rec.description}</p>
-                  <div className="mt-3 flex items-center gap-1 text-[11px] uppercase tracking-widest font-black text-[#D4AF37] group-hover:text-[#F5D061]">
+                  <div className="mt-3 flex items-center gap-1 text-[11px] uppercase tracking-widest font-black text-gold group-hover:text-[#F5D061]">
                     {rec.actionLabel} <ArrowRight className="h-3 w-3" />
                   </div>
                 </motion.button>
@@ -367,7 +367,7 @@ export function JourneyBarbex({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="h-4 w-4 text-[#D4AF37]" />
+            <Target className="h-4 w-4 text-gold" />
             <h3 className="text-sm uppercase tracking-widest font-black text-white">Seus objetivos</h3>
           </div>
           <div className="space-y-4">
@@ -375,14 +375,14 @@ export function JourneyBarbex({
               <div key={i}>
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-sm text-white font-semibold">{g.title}</p>
-                  <p className="text-xs text-[#D4AF37] font-black">{g.progress.toFixed(0)}%</p>
+                  <p className="text-xs text-gold font-black">{g.progress.toFixed(0)}%</p>
                 </div>
                 <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${g.progress}%` }}
                     transition={{ duration: 0.8, delay: i * 0.1 }}
-                    className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D061]"
+                    className="h-full rounded-full bg-gradient-to-r from-gold to-[#F5D061]"
                     style={{ boxShadow: "0 0 10px rgba(212,175,55,0.4)" }}
                   />
                 </div>
@@ -408,7 +408,7 @@ export function JourneyBarbex({
       {/* Spending chart */}
       <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-5">
-          <ChartBar className="h-4 w-4 text-[#D4AF37]" />
+          <ChartBar className="h-4 w-4 text-gold" />
           <h3 className="text-sm uppercase tracking-widest font-black text-white">Gastos nos últimos 12 meses</h3>
         </div>
         <div className="flex items-end gap-1.5 h-32">
@@ -419,7 +419,7 @@ export function JourneyBarbex({
                   initial={{ height: 0 }}
                   animate={{ height: `${(m.total / maxMonth) * 100}%` }}
                   transition={{ duration: 0.6, delay: i * 0.03 }}
-                  className="w-full rounded-t bg-gradient-to-t from-[#D4AF37]/40 to-[#F5D061]/80"
+                  className="w-full rounded-t bg-gradient-to-t from-gold/40 to-[#F5D061]/80"
                   style={{ boxShadow: m.total > 0 ? "0 0 8px rgba(212,175,55,0.3)" : "none" }}
                   title={`R$ ${m.total.toFixed(0)}`}
                 />
@@ -435,7 +435,7 @@ export function JourneyBarbex({
         {/* Favorite services */}
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-4 w-4 text-[#D4AF37]" />
+            <TrendingUp className="h-4 w-4 text-gold" />
             <h3 className="text-sm uppercase tracking-widest font-black text-white">Serviços favoritos</h3>
           </div>
           {favServices.length === 0 ? (
@@ -443,9 +443,9 @@ export function JourneyBarbex({
           ) : (
             <ul className="space-y-2">
               {favServices.map(([name, count], i) => (
-                <li key={name} className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 hover:border-[#D4AF37]/30 transition-colors">
+                <li key={name} className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 hover:border-gold/30 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="h-7 w-7 rounded-lg bg-[#D4AF37]/15 text-[#D4AF37] grid place-items-center text-xs font-black">
+                    <span className="h-7 w-7 rounded-lg bg-gold/15 text-gold grid place-items-center text-xs font-black">
                       #{i + 1}
                     </span>
                     <div className="min-w-0">
@@ -455,7 +455,7 @@ export function JourneyBarbex({
                   </div>
                   <button
                     onClick={() => dispatch("OPEN_BOOKING_MODAL")}
-                    className="text-[10px] uppercase tracking-widest font-black text-[#D4AF37] hover:text-[#F5D061]"
+                    className="text-[10px] uppercase tracking-widest font-black text-gold hover:text-[#F5D061]"
                   >
                     Agendar
                   </button>
@@ -468,7 +468,7 @@ export function JourneyBarbex({
         {/* Favorite barbers */}
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
           <div className="flex items-center gap-2 mb-4">
-            <Users className="h-4 w-4 text-[#D4AF37]" />
+            <Users className="h-4 w-4 text-gold" />
             <h3 className="text-sm uppercase tracking-widest font-black text-white">Barbeiros favoritos</h3>
           </div>
           {favBarbers.length === 0 ? (
@@ -476,9 +476,9 @@ export function JourneyBarbex({
           ) : (
             <ul className="space-y-2">
               {favBarbers.map(([name, count], i) => (
-                <li key={name} className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 hover:border-[#D4AF37]/30 transition-colors">
+                <li key={name} className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 hover:border-gold/30 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d1a] grid place-items-center text-black font-black text-sm">
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-gold to-[#8a6d1a] grid place-items-center text-black font-black text-sm">
                       {name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -488,7 +488,7 @@ export function JourneyBarbex({
                   </div>
                   <button
                     onClick={() => dispatch("OPEN_BOOKING_MODAL")}
-                    className="text-[10px] uppercase tracking-widest font-black text-[#D4AF37] hover:text-[#F5D061]"
+                    className="text-[10px] uppercase tracking-widest font-black text-gold hover:text-[#F5D061]"
                   >
                     Agendar
                   </button>
@@ -503,7 +503,7 @@ export function JourneyBarbex({
       {timeline.length > 0 && (
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
           <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-4 w-4 text-[#D4AF37]" />
+            <Clock className="h-4 w-4 text-gold" />
             <h3 className="text-sm uppercase tracking-widest font-black text-white">Sua linha do tempo</h3>
           </div>
           <ol className="relative border-l border-white/10 pl-6 space-y-4">

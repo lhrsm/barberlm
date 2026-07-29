@@ -65,7 +65,7 @@ export function EstatisticasPessoais({ appointments, sales, customerData }: Prop
       transition={{ duration: 0.4 }}
     >
       <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Sua rotina</p>
+        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Sua rotina</p>
         <h3 className="text-lg md:text-xl font-black text-white mt-1">Estatísticas pessoais</h3>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -78,14 +78,14 @@ export function EstatisticasPessoais({ appointments, sales, customerData }: Prop
             className={cn(
               "rounded-2xl border p-4 backdrop-blur transition-all",
               "bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-white/20",
-              s.accent === "gold" && "hover:border-[#D4AF37]/40",
+              s.accent === "gold" && "hover:border-gold/40",
               s.accent === "emerald" && "hover:border-emerald-500/40",
             )}
           >
             <div
               className={cn(
                 "h-8 w-8 rounded-xl grid place-items-center mb-3",
-                s.accent === "gold" && "bg-[#D4AF37]/15 text-[#D4AF37]",
+                s.accent === "gold" && "bg-gold/15 text-gold",
                 s.accent === "emerald" && "bg-emerald-500/15 text-emerald-400",
                 s.accent === "white" && "bg-white/10 text-white/80",
               )}
@@ -96,7 +96,7 @@ export function EstatisticasPessoais({ appointments, sales, customerData }: Prop
             <p
               className={cn(
                 "mt-0.5 text-base md:text-lg font-black truncate",
-                s.accent === "gold" ? "text-[#D4AF37]" : s.accent === "emerald" ? "text-emerald-400" : "text-white",
+                s.accent === "gold" ? "text-gold" : s.accent === "emerald" ? "text-emerald-400" : "text-white",
               )}
             >
               {s.value}

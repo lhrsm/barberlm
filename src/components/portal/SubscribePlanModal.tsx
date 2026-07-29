@@ -249,9 +249,9 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl bg-gradient-to-br from-zinc-950 to-black border-2 border-[#D4AF37]/30 text-white p-0 max-h-[92vh] overflow-y-auto">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[#D4AF37]/10">
-          <div className="flex items-center gap-2 text-[#D4AF37] text-xs font-black uppercase tracking-[0.3em] mb-2">
+      <DialogContent className="max-w-2xl bg-gradient-to-br from-zinc-950 to-black border-2 border-gold/30 text-white p-0 max-h-[92vh] overflow-y-auto">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gold/10">
+          <div className="flex items-center gap-2 text-gold text-xs font-black uppercase tracking-[0.3em] mb-2">
             <Crown size={14} /> Clube Premium
           </div>
           <DialogTitle className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white">
@@ -266,14 +266,14 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
           {step === "form" && (
             <>
               {/* Plan summary */}
-              <div className="rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 to-transparent p-5">
+              <div className="rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/10 to-transparent p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <h4 className="text-xl font-black uppercase tracking-tight text-white">{plan.name}</h4>
                     {plan.description && <p className="text-xs text-slate-400 mt-1">{plan.description}</p>}
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-3xl font-black text-[#D4AF37] leading-none">R$ {Number(plan.monthly_price || 0).toFixed(2)}</div>
+                    <div className="text-3xl font-black text-gold leading-none">R$ {Number(plan.monthly_price || 0).toFixed(2)}</div>
                     <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-1">/mês</div>
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
                   <div><span className="text-slate-500 block">Pagamento</span><span className="text-white font-bold capitalize">{gateway || "A combinar"}</span></div>
                 </div>
                 {planServices.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-[#D4AF37]/10">
+                  <div className="mt-4 pt-4 border-t border-gold/10">
                     <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Serviços inclusos</div>
                     <div className="flex flex-wrap gap-1.5">
                       {planServices.map((s: any) => (
@@ -330,11 +330,11 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
               <div className="space-y-2 pt-2 border-t border-white/5">
                 <label className="flex items-start gap-2 text-xs text-slate-300 cursor-pointer">
                   <Checkbox checked={acceptTerms} onCheckedChange={(v) => setAcceptTerms(!!v)} className="mt-0.5 border-white/30" />
-                  <span>Li e aceito os <a href="/terms" target="_blank" className="text-[#D4AF37] underline">Termos de Uso</a> *</span>
+                  <span>Li e aceito os <a href="/terms" target="_blank" className="text-gold underline">Termos de Uso</a> *</span>
                 </label>
                 <label className="flex items-start gap-2 text-xs text-slate-300 cursor-pointer">
                   <Checkbox checked={acceptPrivacy} onCheckedChange={(v) => setAcceptPrivacy(!!v)} className="mt-0.5 border-white/30" />
-                  <span>Li e aceito a <a href="/privacy" target="_blank" className="text-[#D4AF37] underline">Política de Privacidade</a> *</span>
+                  <span>Li e aceito a <a href="/privacy" target="_blank" className="text-gold underline">Política de Privacidade</a> *</span>
                 </label>
                 <label className="flex items-start gap-2 text-xs text-slate-300 cursor-pointer">
                   <Checkbox checked={acceptWhatsApp} onCheckedChange={(v) => setAcceptWhatsApp(!!v)} className="mt-0.5 border-white/30" />
@@ -348,7 +348,7 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
 
               <div className="flex flex-col-reverse md:flex-row items-stretch md:items-center justify-end gap-2 pt-2">
                 <Button variant="ghost" onClick={onClose} disabled={loading} className="text-slate-400 hover:text-white">Cancelar</Button>
-                <Button onClick={submit} disabled={loading} className="bg-[#D4AF37] text-black font-black uppercase tracking-wider hover:bg-[#D4AF37]/90 h-12 px-8">
+                <Button onClick={submit} disabled={loading} className="bg-gold text-black font-black uppercase tracking-wider hover:bg-gold/90 h-12 px-8">
                   {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> Processando...</> : <>Continuar para pagamento <ArrowRight size={16} className="ml-2" /></>}
                 </Button>
               </div>
@@ -362,7 +362,7 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
               </div>
               <p className="text-slate-300">Você já possui uma assinatura ativa nesta barbearia.</p>
               <div className="flex flex-col md:flex-row gap-2 justify-center">
-                <Button onClick={goToPortal} className="bg-[#D4AF37] text-black font-black uppercase tracking-wider hover:bg-[#D4AF37]/90">Ver meu plano</Button>
+                <Button onClick={goToPortal} className="bg-gold text-black font-black uppercase tracking-wider hover:bg-gold/90">Ver meu plano</Button>
                 <Button variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/5">Fechar</Button>
               </div>
             </div>
@@ -384,7 +384,7 @@ export function SubscribePlanModal({ open, onClose, plan, tenantId, slug, defaul
                 </p>
               </div>
               <div className="flex flex-col md:flex-row gap-2 justify-center">
-                <Button onClick={goToPortal} className="bg-[#D4AF37] text-black font-black uppercase tracking-wider hover:bg-[#D4AF37]/90">Ir para meu portal</Button>
+                <Button onClick={goToPortal} className="bg-gold text-black font-black uppercase tracking-wider hover:bg-gold/90">Ir para meu portal</Button>
                 <Button variant="outline" onClick={onClose} className="border-white/10 text-white hover:bg-white/5">Fechar</Button>
               </div>
             </div>

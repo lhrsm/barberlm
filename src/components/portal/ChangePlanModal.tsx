@@ -51,7 +51,7 @@ function badgeFor(plan: Plan, plans: Plan[]): { label: string; cls: string } | n
   if (plan.id === top.id) return { label: "Exclusivo", cls: "bg-purple-500 text-white" };
   if (sorted.length >= 3 && plan.id === sorted[sorted.length - 2]?.id)
     return { label: "Melhor Custo Benefício", cls: "bg-blue-500 text-white" };
-  if (plan.id === mid.id) return { label: "Mais Popular", cls: "bg-[#D4AF37] text-black" };
+  if (plan.id === mid.id) return { label: "Mais Popular", cls: "bg-gold text-black" };
   return null;
 }
 
@@ -126,7 +126,7 @@ export function ChangePlanModal({
           <DialogPrimitive.Content
             className={cn(
               "fixed left-1/2 top-1/2 z-50 w-[96vw] max-w-[1100px] -translate-x-1/2 -translate-y-1/2",
-              "rounded-3xl bg-gradient-to-br from-[#0B0B0B] via-[#0F0F0F] to-black border border-[#D4AF37]/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)]",
+              "rounded-3xl bg-gradient-to-br from-[#0B0B0B] via-[#0F0F0F] to-black border border-gold/30 shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)]",
               "max-h-[94vh] overflow-hidden flex flex-col",
               "duration-250 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
             )}
@@ -145,10 +145,10 @@ export function ChangePlanModal({
                 aria-label="Fechar"
                 className={cn(
                   "absolute right-5 top-5 h-10 w-10 rounded-full flex items-center justify-center",
-                  "bg-[#1A1A1A] border border-[#D4AF37]/50 text-white",
+                  "bg-[#1A1A1A] border border-gold/50 text-white",
                   "transition-all duration-250",
-                  "hover:bg-[#D4AF37] hover:text-black hover:scale-110 hover:border-[#D4AF37]",
-                  "focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50",
+                  "hover:bg-gold hover:text-black hover:scale-110 hover:border-gold",
+                  "focus:outline-none focus:ring-2 focus:ring-gold/50",
                 )}
               >
                 <X className="h-5 w-5" />
@@ -198,7 +198,7 @@ export function ChangePlanModal({
                           key={i}
                           className={cn(
                             "h-1.5 rounded-full transition-all",
-                            i === carouselIdx ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/20",
+                            i === carouselIdx ? "w-6 bg-gold" : "w-1.5 bg-white/20",
                           )}
                         />
                       ))}
@@ -208,7 +208,7 @@ export function ChangePlanModal({
                   {/* COMPARISON TABLE */}
                   <div>
                     <h3 className="text-base font-black uppercase tracking-widest text-white mb-3 flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-[#D4AF37]" /> Comparativo de planos
+                      <Sparkles className="h-4 w-4 text-gold" /> Comparativo de planos
                     </h3>
                     <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
                       <table className="w-full text-sm">
@@ -218,7 +218,7 @@ export function ChangePlanModal({
                               Benefício
                             </th>
                             {plans.map((p) => (
-                              <th key={p.id} className="p-3 text-center text-[11px] font-black uppercase tracking-wider text-[#D4AF37]">
+                              <th key={p.id} className="p-3 text-center text-[11px] font-black uppercase tracking-wider text-gold">
                                 {p.name.replace(/^Plano\s+/i, "")}
                               </th>
                             ))}
@@ -252,7 +252,7 @@ export function ChangePlanModal({
 
       {/* CONFIRMATION */}
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
-        <AlertDialogContent className="bg-[#0A0A0A] border-[#D4AF37]/30">
+        <AlertDialogContent className="bg-[#0A0A0A] border-gold/30">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white text-xl">
               {confirm?.type === "upgrade" ? "Confirmar upgrade" : "Confirmar downgrade"}
@@ -270,7 +270,7 @@ export function ChangePlanModal({
             <AlertDialogAction
               disabled={submitting}
               onClick={submitChange}
-              className="bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black font-black hover:opacity-90"
+              className="bg-gradient-to-r from-gold to-[#F5D061] text-black font-black hover:opacity-90"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar"}
             </AlertDialogAction>
@@ -304,7 +304,7 @@ function PlanCard({
         "transition-all duration-250",
         isCurrent
           ? "border-emerald-500/50 shadow-[0_0_30px_-10px_rgba(16,185,129,0.5)]"
-          : "border-white/10 hover:border-[#D4AF37]/60 hover:-translate-y-1 hover:shadow-[0_15px_40px_-15px_rgba(212,175,55,0.45)]",
+          : "border-white/10 hover:border-gold/60 hover:-translate-y-1 hover:shadow-[0_15px_40px_-15px_rgba(212,175,55,0.45)]",
       )}
     >
       {isCurrent ? (
@@ -318,11 +318,11 @@ function PlanCard({
       ) : null}
 
       <div className="text-center pb-4 border-b border-white/10">
-        <div className="mx-auto h-10 w-10 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/40 flex items-center justify-center mb-2">
-          <Crown className="h-5 w-5 text-[#D4AF37]" />
+        <div className="mx-auto h-10 w-10 rounded-full bg-gold/15 border border-gold/40 flex items-center justify-center mb-2">
+          <Crown className="h-5 w-5 text-gold" />
         </div>
         <h3 className="text-lg font-black text-white">{plan.name}</h3>
-        <p className="text-3xl font-black text-[#D4AF37] mt-2">
+        <p className="text-3xl font-black text-gold mt-2">
           R$ {Number(plan.monthly_price || 0).toFixed(2).replace(".", ",")}
         </p>
         <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">/ mês</p>
@@ -340,7 +340,7 @@ function PlanCard({
       <ul className="space-y-1.5 text-xs flex-1">
         {included.slice(0, 7).map((b, i) => (
           <li key={i} className="flex items-start gap-2 text-gray-200">
-            <Check className="h-3.5 w-3.5 text-[#D4AF37] mt-0.5 shrink-0" />
+            <Check className="h-3.5 w-3.5 text-gold mt-0.5 shrink-0" />
             <span>{b}</span>
           </li>
         ))}
@@ -353,7 +353,7 @@ function PlanCard({
           "mt-5 h-10 rounded-xl font-black transition-all duration-250",
           isCurrent
             ? "bg-white/5 text-gray-500 cursor-not-allowed hover:bg-white/5"
-            : "bg-gradient-to-r from-[#D4AF37] to-[#F5D061] text-black hover:shadow-[0_8px_24px_rgba(212,175,55,0.45)] hover:-translate-y-0.5",
+            : "bg-gradient-to-r from-gold to-[#F5D061] text-black hover:shadow-[0_8px_24px_rgba(212,175,55,0.45)] hover:-translate-y-0.5",
         )}
       >
         {isCurrent ? "Plano Atual" : "Escolher Plano"}

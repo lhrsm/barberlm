@@ -43,7 +43,7 @@ export function QuickActions({ hasCashback, hasCredits, isSubscriber, subscripti
       className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl"
     >
       <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Ação rápida</p>
+        <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Ação rápida</p>
         <h3 className="text-lg md:text-xl font-black text-white mt-1">O que deseja fazer hoje?</h3>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -58,7 +58,7 @@ export function QuickActions({ hasCashback, hasCredits, isSubscriber, subscripti
             className={cn(
               "group flex items-center gap-3 rounded-2xl border p-3.5 text-left backdrop-blur transition-all",
               "bg-white/[0.02] border-white/10 hover:-translate-y-0.5",
-              a.accent === "gold" && "hover:border-[#D4AF37]/50 hover:shadow-[0_8px_28px_-12px_rgba(212,175,55,0.4)]",
+              a.accent === "gold" && "hover:border-gold/50 hover:shadow-[0_8px_28px_-12px_rgba(212,175,55,0.4)]",
               a.accent === "emerald" && "hover:border-emerald-500/40",
               a.accent === "white" && "hover:border-white/25",
             )}
@@ -66,7 +66,7 @@ export function QuickActions({ hasCashback, hasCredits, isSubscriber, subscripti
             <div
               className={cn(
                 "h-10 w-10 shrink-0 rounded-xl grid place-items-center",
-                a.accent === "gold" && "bg-[#D4AF37]/15 text-[#D4AF37]",
+                a.accent === "gold" && "bg-gold/15 text-gold",
                 a.accent === "emerald" && "bg-emerald-500/15 text-emerald-400",
                 a.accent === "white" && "bg-white/10 text-white/80",
               )}

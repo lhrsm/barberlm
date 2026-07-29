@@ -42,28 +42,28 @@ export function ProfissionalFavorito({ appointments, barbers }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/25 bg-gradient-to-br from-white/[0.04] to-transparent p-6 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-3xl border border-gold/25 bg-gradient-to-br from-white/[0.04] to-transparent p-6 backdrop-blur-xl"
     >
-      <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#D4AF37]/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-gold/15 blur-3xl" />
       <div className="relative flex flex-wrap items-center gap-5">
         <div className="relative">
           {avatar ? (
-            <img src={avatar} alt={fav.name} className="h-20 w-20 rounded-2xl object-cover border-2 border-[#D4AF37]/60" />
+            <img src={avatar} alt={fav.name} className="h-20 w-20 rounded-2xl object-cover border-2 border-gold/60" />
           ) : (
-            <div className="h-20 w-20 rounded-2xl grid place-items-center border-2 border-[#D4AF37]/60 bg-white/5 text-[#D4AF37]">
+            <div className="h-20 w-20 rounded-2xl grid place-items-center border-2 border-gold/60 bg-white/5 text-gold">
               <UserIcon className="h-9 w-9" />
             </div>
           )}
-          <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#F5D061] grid place-items-center ring-2 ring-black">
+          <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-gradient-to-br from-gold to-[#F5D061] grid place-items-center ring-2 ring-black">
             <Star className="h-3.5 w-3.5 text-black" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D4AF37]">Profissional favorito</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-gold">Profissional favorito</p>
           <h3 className="text-xl md:text-2xl font-black text-white mt-1 truncate">{fav.name}</h3>
           <p className="text-xs text-gray-400 mt-0.5">{specialty}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37]">
+            <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-gold/40 bg-gold/10 text-gold">
               {fav.n} atendimentos
             </span>
             <span className="text-[11px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-gray-300">
@@ -76,7 +76,7 @@ export function ProfissionalFavorito({ appointments, barbers }: Props) {
           onClick={dispatch}
           className={cn(
             "inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-black uppercase tracking-widest",
-            "bg-[#D4AF37] text-black hover:brightness-110 transition-all",
+            "bg-gold text-black hover:brightness-110 transition-all",
             "shadow-[0_10px_30px_-10px_rgba(212,175,55,0.6)]",
           )}
         >
