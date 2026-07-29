@@ -1900,7 +1900,7 @@ function ShopPageComponent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
       </div>
     );
   }
@@ -1920,7 +1920,7 @@ function ShopPageComponent() {
 
   return (
     <div 
-      className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
+      className="min-h-screen bg-black text-white selection:bg-gold/30 overflow-x-hidden" 
       style={{ 
         backgroundColor: "black",
         fontFamily: shop?.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
@@ -1959,7 +1959,7 @@ function ShopPageComponent() {
             <motion.div 
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="h-12 w-12 border-t-2 border-r-2 border-[#D4AF37] rounded-full"
+              className="h-12 w-12 border-t-2 border-r-2 border-gold rounded-full"
               style={{ borderTopColor: "#D4AF37", borderRightColor: "#D4AF37" }}
             />
           </motion.div>
@@ -1995,8 +1995,8 @@ function ShopPageComponent() {
                 <a href="#inicio" className="flex items-center shrink-0 group" aria-label={shop.business_name}>
                   <div
                     className={cn(
-                      "relative rounded-full bg-[#0B1324] border-2 border-[#D4AF37]/60 overflow-hidden transition-all duration-500",
-                      "shadow-[0_0_24px_rgba(212,175,55,0.25)] group-hover:shadow-[0_0_32px_rgba(212,175,55,0.45)] group-hover:border-[#D4AF37]",
+                      "relative rounded-full bg-[#0B1324] border-2 border-gold/60 overflow-hidden transition-all duration-500",
+                      "shadow-[0_0_24px_rgba(212,175,55,0.25)] group-hover:shadow-[0_0_32px_rgba(212,175,55,0.45)] group-hover:border-gold",
                       scrolled ? "h-[60px] w-[60px] md:h-16 md:w-16" : "h-[60px] w-[60px] md:h-[72px] md:w-[72px]"
                     )}
                   >
@@ -2008,7 +2008,7 @@ function ShopPageComponent() {
                       />
                     ) : (
                       <div className="h-full w-full grid place-items-center">
-                        <Scissors className={cn("text-[#D4AF37] transition-all", scrolled ? "h-6 w-6" : "h-7 w-7")} />
+                        <Scissors className={cn("text-gold transition-all", scrolled ? "h-6 w-6" : "h-7 w-7")} />
                       </div>
                     )}
                   </div>
@@ -2028,17 +2028,17 @@ function ShopPageComponent() {
                     <a
                       key={it.href}
                       href={it.href}
-                      className="relative py-1 transition-colors hover:text-[#D4AF37] after:absolute after:left-1/2 after:-bottom-1 after:h-px after:w-0 after:-translate-x-1/2 after:bg-[#D4AF37] after:transition-all hover:after:w-full"
+                      className="relative py-1 transition-colors hover:text-gold after:absolute after:left-1/2 after:-bottom-1 after:h-px after:w-0 after:-translate-x-1/2 after:bg-gold after:transition-all hover:after:w-full"
                     >
                       {it.label}
                     </a>
                   ))}
                   {(cashbackEnabled || couponsEnabled) && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="relative py-1 inline-flex items-center gap-1 transition-colors hover:text-[#D4AF37] outline-none">
+                      <DropdownMenuTrigger className="relative py-1 inline-flex items-center gap-1 transition-colors hover:text-gold outline-none">
                         Mais <ChevronDown className="h-3 w-3" />
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-[#05070d] border-[#D4AF37]/20 text-white min-w-[180px]">
+                      <DropdownMenuContent className="bg-[#05070d] border-gold/20 text-white min-w-[180px]">
                         {cashbackEnabled && shop?.cashback_enabled && (
                           <DropdownMenuItem asChild>
                             <a href="#cashback" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Cashback</a>
@@ -2077,19 +2077,19 @@ function ShopPageComponent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden h-11 w-11 rounded-full bg-[#0B1324] border border-[#D4AF37]/30 text-white hover:bg-[#0B1324] hover:border-[#D4AF37]/70 hover:text-[#D4AF37]"
+                        className="md:hidden h-11 w-11 rounded-full bg-[#0B1324] border border-gold/30 text-white hover:bg-[#0B1324] hover:border-gold/70 hover:text-gold"
                         aria-label="Abrir menu"
                       >
                         <Menu className="h-5 w-5" />
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="bg-[#05070d] border-l border-[#D4AF37]/15 text-white w-[280px] p-0">
+                    <SheetContent side="right" className="bg-[#05070d] border-l border-gold/15 text-white w-[280px] p-0">
                       <div className="flex items-center gap-3 p-6 border-b border-white/10">
-                        <div className="h-12 w-12 rounded-full overflow-hidden bg-[#0B1324] border-2 border-[#D4AF37]/60 shadow-[0_0_18px_rgba(212,175,55,0.3)]">
+                        <div className="h-12 w-12 rounded-full overflow-hidden bg-[#0B1324] border-2 border-gold/60 shadow-[0_0_18px_rgba(212,175,55,0.3)]">
                           {shop.barbershop_logo_url ? (
                             <img src={shop.barbershop_logo_url} alt="" className="h-full w-full object-cover" />
                           ) : (
-                            <div className="h-full w-full grid place-items-center"><Scissors className="h-5 w-5 text-[#D4AF37]" /></div>
+                            <div className="h-full w-full grid place-items-center"><Scissors className="h-5 w-5 text-gold" /></div>
                           )}
                         </div>
                         <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Menu</span>
@@ -2110,7 +2110,7 @@ function ShopPageComponent() {
                           <a
                             key={it.href}
                             href={it.href}
-                            className="px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-[0.15em] text-white/80 hover:bg-white/5 hover:text-[#D4AF37] transition-colors"
+                            className="px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-[0.15em] text-white/80 hover:bg-white/5 hover:text-gold transition-colors"
                           >
                             {it.label}
                           </a>
@@ -2152,10 +2152,10 @@ function ShopPageComponent() {
                 <img
                   src={shop.barbershop_logo_url}
                   alt={shop.business_name}
-                  className="h-20 w-20 md:h-24 md:w-24 rounded-2xl object-contain bg-black/40 backdrop-blur-md border border-[#D4AF37]/30 p-2 shadow-2xl"
+                  className="h-20 w-20 md:h-24 md:w-24 rounded-2xl object-contain bg-black/40 backdrop-blur-md border border-gold/30 p-2 shadow-2xl"
                 />
               )}
-              <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs md:text-sm">
+              <span className="text-gold font-black uppercase tracking-[0.3em] text-xs md:text-sm">
                 Bem-vindo à
               </span>
               <h2 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase italic leading-none">
@@ -2168,7 +2168,7 @@ function ShopPageComponent() {
               </p>
               {shop?.address && (
                 <p className="text-xs md:text-sm text-slate-400 font-medium flex items-center gap-2">
-                  <MapPin size={14} className="text-[#D4AF37]" /> {shop.address}
+                  <MapPin size={14} className="text-gold" /> {shop.address}
                 </p>
               )}
             </motion.div>
@@ -2232,7 +2232,7 @@ function ShopPageComponent() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
               <div className="space-y-4">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Experiência Premium</span>
+                <span className="text-gold font-black uppercase tracking-[0.2em] text-sm">Experiência Premium</span>
                 <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Nossos Serviços</h3>
               </div>
               <p className="text-slate-400 max-w-md text-lg">
@@ -2250,16 +2250,16 @@ function ShopPageComponent() {
                   viewport={{ once: true }}
                 >
                   <Card
-                    className="group relative overflow-hidden rounded-[2rem] h-full border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black hover:border-[#D4AF37]/50 hover:-translate-y-1 transition-all duration-500 shadow-2xl hover:shadow-[#D4AF37]/10 cursor-pointer"
+                    className="group relative overflow-hidden rounded-[2rem] h-full border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black hover:border-gold/50 hover:-translate-y-1 transition-all duration-500 shadow-2xl hover:shadow-[#D4AF37]/10 cursor-pointer"
                     onClick={() => handleSelectService(service)}
                   >
-                    <div className="absolute -top-20 -right-20 w-48 h-48 bg-[#D4AF37]/10 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute -top-20 -right-20 w-48 h-48 bg-gold/10 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                     <div className="relative p-7 flex flex-col h-full gap-6">
                       <div className="flex items-start justify-between gap-4">
-                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-[-6deg] transition-all duration-500">
-                          <Scissors className="h-6 w-6 text-[#D4AF37]" />
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-[-6deg] transition-all duration-500">
+                          <Scissors className="h-6 w-6 text-gold" />
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold mb-1">A partir de</p>
@@ -2270,7 +2270,7 @@ function ShopPageComponent() {
                       </div>
 
                       <div className="space-y-2 flex-1">
-                        <h4 className="text-2xl font-black uppercase tracking-tight text-white group-hover:text-[#D4AF37] transition-colors duration-500">
+                        <h4 className="text-2xl font-black uppercase tracking-tight text-white group-hover:text-gold transition-colors duration-500">
                           {service.name}
                         </h4>
                         <p className="text-white/50 text-sm line-clamp-2 leading-relaxed">
@@ -2280,12 +2280,12 @@ function ShopPageComponent() {
 
                       <div className="flex items-center justify-between pt-4 border-t border-white/10">
                         <div className="flex items-center gap-2 text-white/60">
-                          <Clock className="h-4 w-4 text-[#D4AF37]" />
+                          <Clock className="h-4 w-4 text-gold" />
                           <span className="text-xs font-bold uppercase tracking-widest">{service.duration_minutes} min</span>
                         </div>
                         <Button
                           size="sm"
-                          className="h-10 px-5 rounded-full font-bold text-xs uppercase tracking-wider bg-[#D4AF37] text-black hover:bg-white transition-all group-hover:scale-105 shadow-lg"
+                          className="h-10 px-5 rounded-full font-bold text-xs uppercase tracking-wider bg-gold text-black hover:bg-white transition-all group-hover:scale-105 shadow-lg"
                           onClick={(e) => { e.stopPropagation(); handleSelectService(service); }}
                         >
                           Agendar <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
@@ -2309,7 +2309,7 @@ function ShopPageComponent() {
               <motion.span 
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs" 
+                className="text-gold font-black uppercase tracking-[0.3em] text-xs" 
 
               >
                 Marketplace Elite
@@ -2485,7 +2485,7 @@ function ShopPageComponent() {
         <section id="profissionais" className="py-24 bg-black">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center space-y-4 mb-20">
-              <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Elite Team</span>
+              <span className="text-gold font-black uppercase tracking-[0.2em] text-sm">Elite Team</span>
               <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Especialistas</h3>
             </div>
 
@@ -2515,7 +2515,7 @@ function ShopPageComponent() {
                     
                     <div className="absolute bottom-8 left-8 right-8 space-y-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                        <span className="bg-gold text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
                           {idx === 0 ? "Top Avaliado" : "Especialista"}
                         </span>
                       </div>
@@ -2538,7 +2538,7 @@ function ShopPageComponent() {
           <section id="galeria" className="py-24 bg-[#050505]">
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center space-y-4 mb-16">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Ambiente & Trabalhos</span>
+                <span className="text-gold font-black uppercase tracking-[0.2em] text-sm">Ambiente & Trabalhos</span>
                 <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Galeria</h3>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
@@ -2552,7 +2552,7 @@ function ShopPageComponent() {
                     transition={{ delay: (idx % 6) * 0.05 }}
                     viewport={{ once: true }}
                     className={cn(
-                      "group relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#D4AF37]/15 bg-[#0a0a0a] shadow-2xl hover:border-[#D4AF37]/60 transition-all cursor-zoom-in",
+                      "group relative overflow-hidden rounded-2xl md:rounded-3xl border border-gold/15 bg-[#0a0a0a] shadow-2xl hover:border-gold/60 transition-all cursor-zoom-in",
                       idx % 7 === 0 ? "col-span-2 aspect-[2/1]" : "aspect-square"
                     )}
                   >
@@ -2643,7 +2643,7 @@ function ShopPageComponent() {
           <section id="depoimentos" className="py-24 bg-[#080808]">
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center space-y-4 mb-16">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">O que dizem</span>
+                <span className="text-gold font-black uppercase tracking-[0.2em] text-sm">O que dizem</span>
                 <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Depoimentos</h3>
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -2655,10 +2655,10 @@ function ShopPageComponent() {
                   const avatarUrl = t.customers?.avatar_url || t.customers?.photo_url || null;
                   const initial = (custName.trim()[0] || "C").toUpperCase();
                   return (
-                    <div key={t.id} className="rounded-2xl p-6 border border-[#D4AF37]/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-[#D4AF37]/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                    <div key={t.id} className="rounded-2xl p-6 border border-gold/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-gold/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
                       <div className="flex items-center gap-1 mb-3">
                         {[1,2,3,4,5].map(n => (
-                          <Star key={n} size={14} className={cn(n <= avg ? "text-[#D4AF37] fill-[#D4AF37]" : "text-gray-700")} />
+                          <Star key={n} size={14} className={cn(n <= avg ? "text-gold fill-gold" : "text-gray-700")} />
                         ))}
                       </div>
                       <p className="text-white/90 italic mb-6 text-sm leading-relaxed">"{t.testimonial_text}"</p>
@@ -2674,12 +2674,12 @@ function ShopPageComponent() {
                               img.style.display = "none";
                               if (fallback) fallback.style.display = "flex";
                             }}
-                            className="w-11 h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-[#D4AF37] shadow-md shadow-black/40 hover:scale-105 transition-transform duration-200 flex-shrink-0"
+                            className="w-11 h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-gold shadow-md shadow-black/40 hover:scale-105 transition-transform duration-200 flex-shrink-0"
                           />
                         ) : null}
                         <div
                           style={{ display: avatarUrl ? "none" : "flex" }}
-                          className="w-11 h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full items-center justify-center bg-[#D4AF37] text-black font-black text-lg border-2 border-[#D4AF37] shadow-md shadow-black/40 hover:scale-105 transition-transform duration-200 flex-shrink-0"
+                          className="w-11 h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full items-center justify-center bg-gold text-black font-black text-lg border-2 border-gold shadow-md shadow-black/40 hover:scale-105 transition-transform duration-200 flex-shrink-0"
                           aria-label={custName}
                         >
                           {initial}
@@ -2687,12 +2687,12 @@ function ShopPageComponent() {
                         <div className="flex flex-col min-w-0">
                           <span className="font-bold text-white text-sm truncate">{custName}</span>
                           {svcName && <span className="text-white/60 text-xs truncate">{svcName}</span>}
-                          {t.barbers?.name && <span className="text-[#D4AF37]/80 text-xs truncate">com {t.barbers.name}</span>}
+                          {t.barbers?.name && <span className="text-gold/80 text-xs truncate">com {t.barbers.name}</span>}
                         </div>
                       </div>
                       {t.reply && (
-                        <div className="mt-4 pt-4 border-t border-[#D4AF37]/15">
-                          <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-black mb-1.5">Resposta da barbearia</p>
+                        <div className="mt-4 pt-4 border-t border-gold/15">
+                          <p className="text-[10px] uppercase tracking-widest text-gold font-black mb-1.5">Resposta da barbearia</p>
                           <p className="text-xs text-white/70 leading-relaxed">{t.reply}</p>
                         </div>
                       )}
@@ -2707,10 +2707,10 @@ function ShopPageComponent() {
         {/* Clube Premium / Assinaturas */}
         {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
           <section id="clube" className="py-24 bg-[#050505] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent pointer-events-none" />
             <div className="max-w-6xl mx-auto px-4 relative">
               <div className="text-center space-y-4 mb-16">
-                <div className="inline-flex items-center gap-2 text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">
+                <div className="inline-flex items-center gap-2 text-gold font-black uppercase tracking-[0.3em] text-xs">
                   <Crown size={14} /> Exclusivo para Membros
                 </div>
                 <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Clube Premium</h3>
@@ -2728,7 +2728,7 @@ function ShopPageComponent() {
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.1 }}
                       viewport={{ once: true }}
-                      className="group relative rounded-[2rem] p-8 border border-[#D4AF37]/20 bg-gradient-to-br from-zinc-950 to-black hover:border-[#D4AF37]/60 transition-all flex flex-col"
+                      className="group relative rounded-[2rem] p-8 border border-gold/20 bg-gradient-to-br from-zinc-950 to-black hover:border-gold/60 transition-all flex flex-col"
                     >
                       <div className="space-y-2 mb-6">
                         <h4 className="text-2xl font-black uppercase tracking-tight text-white">{plan.name}</h4>
@@ -2744,7 +2744,7 @@ function ShopPageComponent() {
                         <span className="text-sm md:text-base text-slate-500 font-bold" style={{ fontSize: 'clamp(14px, 3vw, 18px)' }}>/mês</span>
                       </div>
                       {plan.max_uses_per_month != null && (
-                        <p className="text-xs uppercase tracking-widest font-bold text-[#D4AF37] mb-4">
+                        <p className="text-xs uppercase tracking-widest font-bold text-gold mb-4">
                           Até {plan.max_uses_per_month} usos/mês
                         </p>
                       )}
@@ -2752,14 +2752,14 @@ function ShopPageComponent() {
                         <ul className="space-y-2 mb-8 flex-1">
                           {benefits.slice(0, 5).map((b: any, i: number) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                              <CheckCircle2 size={16} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                              <CheckCircle2 size={16} className="text-gold shrink-0 mt-0.5" />
                               <span>{typeof b === 'string' ? b : (b.name || b.description || JSON.stringify(b))}</span>
                             </li>
                           ))}
                         </ul>
                       )}
                       <Button
-                        className="w-full h-12 rounded-xl bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
+                        className="w-full h-12 rounded-xl bg-gold text-black font-black uppercase tracking-tighter hover:bg-gold/90"
                         onClick={() => setSubscribeModal({ open: true, plan })}
                       >
                         Assinar agora
@@ -2777,7 +2777,7 @@ function ShopPageComponent() {
           <section id="promocoes" className="py-20 bg-black">
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center space-y-3 mb-12">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Campanhas</span>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-xs">Campanhas</span>
                 <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Ofertas Especiais Disponíveis</h3>
                 <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
                   Aproveite condições exclusivas. Use o seu cupom no momento do agendamento.
@@ -2833,15 +2833,15 @@ function ShopPageComponent() {
           <section id="fidelidade" className="py-24 bg-[#050505]">
             <div className="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Recompensas</span>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-xs">Recompensas</span>
                 <h3 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Programa de Fidelidade</h3>
                 <p className="text-slate-400 text-lg leading-relaxed">
                   A cada atendimento concluído você acumula pontos para ganhar recompensas exclusivas.
                 </p>
                 {publicLoyaltySettings?.appointments_required && (
-                  <div className="rounded-2xl border border-[#D4AF37]/20 bg-black/60 p-6">
+                  <div className="rounded-2xl border border-gold/20 bg-black/60 p-6">
                     <p className="text-sm text-slate-300">
-                      Complete <span className="text-[#D4AF37] font-black">{publicLoyaltySettings.appointments_required}</span> atendimentos
+                      Complete <span className="text-gold font-black">{publicLoyaltySettings.appointments_required}</span> atendimentos
                       {publicLoyaltySettings.benefit_description ? (
                         <> e ganhe <span className="text-white font-bold">{publicLoyaltySettings.benefit_description}</span>.</>
                       ) : (' e ganhe um serviço especial.')}
@@ -2849,20 +2849,20 @@ function ShopPageComponent() {
                   </div>
                 )}
                 <Button
-                  className="h-12 px-8 rounded-full bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:bg-[#D4AF37]/90"
+                  className="h-12 px-8 rounded-full bg-gold text-black font-black uppercase tracking-tighter hover:bg-gold/90"
                   onClick={handleBookingAction}
                 >
                   Começar a acumular
                 </Button>
               </div>
-              <div className="relative rounded-[28px] overflow-hidden border border-[#D4AF37]/30 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[240px] md:min-h-[360px]">
+              <div className="relative rounded-[28px] overflow-hidden border border-gold/30 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[240px] md:min-h-[360px]">
                 <img
                   src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=1600&auto=format&fit=crop"
                   alt="Cliente sendo atendido em barbearia premium"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/20" />
-                <div className="absolute top-4 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-[0.18em] shadow-lg">
+                <div className="absolute top-4 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-black text-[10px] font-black uppercase tracking-[0.18em] shadow-lg">
                   <span className="h-1.5 w-1.5 rounded-full bg-black animate-pulse" />
                   Programa Ativo
                 </div>
@@ -2906,7 +2906,7 @@ function ShopPageComponent() {
         <section id="como-funciona" className="py-24 bg-[#050505]">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center space-y-3 mb-16">
-              <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Simples e rápido</span>
+              <span className="text-gold font-black uppercase tracking-[0.3em] text-xs">Simples e rápido</span>
               <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Como funciona</h3>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
@@ -2917,8 +2917,8 @@ function ShopPageComponent() {
                 { n: '04', t: 'Confirme', d: 'Confirme seu agendamento em segundos.' },
                 { n: '05', t: 'Acompanhe', d: 'Gerencie tudo pelo portal do cliente.' },
               ].map((s) => (
-                <div key={s.n} className="rounded-2xl border border-white/5 bg-black p-6 space-y-3 hover:border-[#D4AF37]/40 transition-all">
-                  <p className="text-[#D4AF37] font-black text-3xl tracking-tighter">{s.n}</p>
+                <div key={s.n} className="rounded-2xl border border-white/5 bg-black p-6 space-y-3 hover:border-gold/40 transition-all">
+                  <p className="text-gold font-black text-3xl tracking-tighter">{s.n}</p>
                   <h4 className="text-lg font-black uppercase tracking-tight text-white">{s.t}</h4>
                   <p className="text-sm text-slate-400 leading-relaxed">{s.d}</p>
                 </div>
@@ -2956,7 +2956,7 @@ function ShopPageComponent() {
 
               {/* Content */}
               <div className="p-8 sm:p-10 md:p-14 flex flex-col justify-center space-y-6 md:order-1">
-                <span className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs">Sua vez</span>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-xs">Sua vez</span>
                 <h3 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white leading-[1.02]">
                   Pronto para elevar seu visual?
                 </h3>
@@ -3016,8 +3016,8 @@ function ShopPageComponent() {
                       {shop.barbershop_logo_url ? (
                         <img src={shop.barbershop_logo_url} alt={shop.business_name} className="h-12 w-12 object-contain rounded-xl bg-white/5 p-1" />
                       ) : (
-                        <div className="h-12 w-12 rounded-xl bg-[#D4AF37]/15 flex items-center justify-center">
-                          <Scissors className="h-6 w-6 text-[#D4AF37]" />
+                        <div className="h-12 w-12 rounded-xl bg-gold/15 flex items-center justify-center">
+                          <Scissors className="h-6 w-6 text-gold" />
                         </div>
                       )}
                       <h4 className="font-bold text-xl tracking-tight text-white truncate">{shop.business_name}</h4>
@@ -3045,11 +3045,11 @@ function ShopPageComponent() {
 
                   {/* Col 2: location + map */}
                   <div className="space-y-4">
-                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Localização</h5>
+                    <h5 className="font-black uppercase tracking-widest text-xs text-gold">Localização</h5>
                     {hasAddress ? (
                       <>
                         <div className="flex items-start gap-3">
-                          <MapPin size={18} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                          <MapPin size={18} className="text-gold shrink-0 mt-0.5" />
                           <p className="text-slate-300 text-sm leading-relaxed">{shop.address}</p>
                         </div>
                         <div
@@ -3069,14 +3069,14 @@ function ShopPageComponent() {
                           href={mapsLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-[#F5C542] transition-colors"
+                          className="inline-flex items-center gap-2 text-xs font-bold text-gold hover:text-[#F5C542] transition-colors"
                         >
                           <ExternalLink size={14} /> Abrir no Google Maps
                         </a>
                       </>
                     ) : (
                       <div className="rounded-[20px] border border-dashed border-[#F5C542]/20 bg-white/[0.02] p-6 text-center">
-                        <MapPin size={20} className="text-[#D4AF37]/60 mx-auto mb-2" />
+                        <MapPin size={20} className="text-gold/60 mx-auto mb-2" />
                         <p className="text-sm font-bold text-white">Localização não informada</p>
                         <p className="text-xs text-slate-500 mt-1">Esta barbearia ainda não cadastrou o endereço.</p>
                       </div>
@@ -3085,7 +3085,7 @@ function ShopPageComponent() {
 
                   {/* Col 3: quick links */}
                   <div className="space-y-4">
-                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Links Rápidos</h5>
+                    <h5 className="font-black uppercase tracking-widest text-xs text-gold">Links Rápidos</h5>
                     <nav className="flex flex-col gap-2.5 text-sm font-medium text-slate-400">
                       <a href="#inicio" className="hover:text-white transition-colors">Início</a>
                       <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
@@ -3104,14 +3104,14 @@ function ShopPageComponent() {
 
                   {/* Col 4: hours */}
                   <div className="space-y-4">
-                    <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37] flex items-center gap-2">
-                      <Clock size={14} className="text-[#D4AF37]" />
+                    <h5 className="font-black uppercase tracking-widest text-xs text-gold flex items-center gap-2">
+                      <Clock size={14} className="text-gold" />
                       Funcionamento
                     </h5>
                     <div className="space-y-2 text-sm text-slate-400 font-medium">
-                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/[0.04] transition-all">
+                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-gold/30 hover:bg-gold/[0.04] transition-all">
                         <span className="flex items-center gap-2">
-                          <CalendarDays size={14} className="text-[#D4AF37]/70 group-hover:text-[#D4AF37] transition-colors" />
+                          <CalendarDays size={14} className="text-gold/70 group-hover:text-gold transition-colors" />
                           Seg - Sex
                         </span>
                         <span className="text-white font-semibold flex items-center gap-1.5">
@@ -3119,9 +3119,9 @@ function ShopPageComponent() {
                           09:00 - 20:00
                         </span>
                       </div>
-                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/[0.04] transition-all">
+                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-gold/30 hover:bg-gold/[0.04] transition-all">
                         <span className="flex items-center gap-2">
-                          <CalendarDays size={14} className="text-[#D4AF37]/70 group-hover:text-[#D4AF37] transition-colors" />
+                          <CalendarDays size={14} className="text-gold/70 group-hover:text-gold transition-colors" />
                           Sábado
                         </span>
                         <span className="text-white font-semibold flex items-center gap-1.5">
@@ -3145,7 +3145,7 @@ function ShopPageComponent() {
 
                 <div className="pt-8 border-t border-[#F5C542]/10 flex flex-col md:flex-row justify-between items-center gap-3 text-center md:text-left">
                   <p className="text-xs text-slate-500">© 2026 {shop?.business_name}. Todos os direitos reservados.</p>
-                  <p className="text-xs text-slate-600">Powered by <span className="text-[#D4AF37] font-bold">Barbex</span></p>
+                  <p className="text-xs text-slate-600">Powered by <span className="text-gold font-bold">Barbex</span></p>
                 </div>
               </div>
             </footer>
@@ -3169,7 +3169,7 @@ function ShopPageComponent() {
             <ArrowLeft size={24} />
           </Button>
           <div className="space-y-1">
-            <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-xs">Nossa Equipe</span>
+            <span className="text-gold font-black uppercase tracking-[0.2em] text-xs">Nossa Equipe</span>
             <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Profissionais</h3>
           </div>
         </div>
@@ -3199,7 +3199,7 @@ function ShopPageComponent() {
                 
                 <div className="absolute bottom-8 left-8 right-8 space-y-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                    <span className="bg-gold text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
                       {idx === 0 ? "Top Avaliado" : "Especialista"}
                     </span>
                   </div>
@@ -3236,7 +3236,7 @@ function ShopPageComponent() {
         }
       }}>
 
-        <DialogContent className={cn("p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl [&>button.absolute]:right-4 [&>button.absolute]:top-4 [&>button.absolute]:h-10 [&>button.absolute]:w-10 [&>button.absolute]:rounded-full [&>button.absolute]:bg-black/80 [&>button.absolute]:backdrop-blur [&>button.absolute]:text-white [&>button.absolute]:opacity-100 [&>button.absolute]:flex [&>button.absolute]:items-center [&>button.absolute]:justify-center [&>button.absolute]:shadow-xl [&>button.absolute]:hover:bg-red-600 [&>button.absolute]:hover:text-white [&>button.absolute]:transition-colors [&>button.absolute>svg]:h-5 [&>button.absolute>svg]:w-5 [&>button.absolute]:z-50", bookingStep === 1 ? "sm:max-w-[920px]" : "sm:max-w-[480px]", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
+        <DialogContent className={cn("p-0 overflow-hidden bg-white border-2 border-gold h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl [&>button.absolute]:right-4 [&>button.absolute]:top-4 [&>button.absolute]:h-10 [&>button.absolute]:w-10 [&>button.absolute]:rounded-full [&>button.absolute]:bg-black/80 [&>button.absolute]:backdrop-blur [&>button.absolute]:text-white [&>button.absolute]:opacity-100 [&>button.absolute]:flex [&>button.absolute]:items-center [&>button.absolute]:justify-center [&>button.absolute]:shadow-xl [&>button.absolute]:hover:bg-red-600 [&>button.absolute]:hover:text-white [&>button.absolute]:transition-colors [&>button.absolute>svg]:h-5 [&>button.absolute>svg]:w-5 [&>button.absolute]:z-50", bookingStep === 1 ? "sm:max-w-[920px]" : "sm:max-w-[480px]", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className={cn("flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent", bookingStep === 1 ? "p-0" : "p-6 sm:p-8")}>
           {!isEmbedded && bookingStep > 1 && (
             <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
@@ -3283,9 +3283,9 @@ function ShopPageComponent() {
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
-                  <div className="absolute inset-0 ring-1 ring-inset ring-[#D4AF37]/30 md:rounded-l-[2.25rem] pointer-events-none" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-gold/30 md:rounded-l-[2.25rem] pointer-events-none" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4AF37]/95 text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/95 text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
                       <CalendarDays size={12} /> Agendamento
                     </span>
                     <h3 className="mt-3 text-white text-2xl md:text-3xl font-black tracking-tight leading-tight drop-shadow-lg">
@@ -3315,7 +3315,7 @@ function ShopPageComponent() {
                     <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-4 transition-all duration-300">
                       <div className="flex justify-between items-center mb-2.5">
                         <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1 flex items-center gap-1.5">
-                          <MessageSquare size={12} className="text-[#D4AF37]" /> Seu WhatsApp
+                          <MessageSquare size={12} className="text-gold" /> Seu WhatsApp
                         </Label>
                         {(submitting || isSearchingCustomer) && (
                           <span className="text-[10px] font-bold uppercase tracking-widest text-sky-600 animate-pulse">
@@ -3370,7 +3370,7 @@ function ShopPageComponent() {
                                   placeholder="Digite seu nome completo"
                                   value={customerName}
                                   onChange={(e) => setCustomerName(e.target.value)}
-                                  className="bg-white text-black border border-zinc-200 placeholder:text-zinc-400 rounded-xl h-12 text-base font-medium focus-visible:ring-[#D4AF37]/50"
+                                  className="bg-white text-black border border-zinc-200 placeholder:text-zinc-400 rounded-xl h-12 text-base font-medium focus-visible:ring-gold/50"
                                 />
                               </div>
                             )}
@@ -3402,7 +3402,7 @@ function ShopPageComponent() {
                         ...(shop.subscriptions_enabled ? ["Benefícios para assinantes"] : []),
                       ].map((b) => (
                         <li key={b} className="flex items-center gap-2 text-[12.5px] text-zinc-700 font-medium">
-                          <span className="h-5 w-5 rounded-full bg-[#D4AF37]/15 text-[#B8860B] flex items-center justify-center shrink-0">
+                          <span className="h-5 w-5 rounded-full bg-gold/15 text-[#B8860B] flex items-center justify-center shrink-0">
                             <CheckCircle2 size={13} />
                           </span>
                           {b}
@@ -3486,13 +3486,13 @@ function ShopPageComponent() {
                   className="space-y-5"
                 >
                   {/* Subscription summary - Premium dark */}
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-[#D4AF37]/60 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-5 shadow-[0_12px_40px_rgba(212,175,55,0.25)]">
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-gold/60 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-5 shadow-[0_12px_40px_rgba(212,175,55,0.25)]">
                     <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
                       style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
                     <div className="relative flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <Crown className="text-[#D4AF37]" size={18} />
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]">Assinante Premium</span>
+                        <Crown className="text-gold" size={18} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gold">Assinante Premium</span>
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-black">
                         {activeSubscription.status === "active" ? "ATIVO" : activeSubscription.status?.toUpperCase()}
@@ -3504,13 +3504,13 @@ function ShopPageComponent() {
                         {benefitBalances.map((b: any) => {
                           const pct = b.monthly_limit > 0 ? Math.min(100, (b.used / b.monthly_limit) * 100) : 0;
                           return (
-                            <div key={b.benefit_key} className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                            <div key={b.benefit_key} className="bg-black/40 border border-gold/20 rounded-lg p-2">
                               <div className="flex items-center justify-between mb-1">
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300">{b.benefit_name}</p>
-                                <p className="text-[11px] font-black text-[#D4AF37]">{b.used}/{b.monthly_limit}</p>
+                                <p className="text-[11px] font-black text-gold">{b.used}/{b.monthly_limit}</p>
                               </div>
                               <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F]" style={{ width: `${pct}%` }} />
+                                <div className="h-full bg-gradient-to-r from-gold to-[#B8941F]" style={{ width: `${pct}%` }} />
                               </div>
                             </div>
                           );
@@ -3529,7 +3529,7 @@ function ShopPageComponent() {
                     ) : (
                       <div className="relative space-y-2 mt-4">
                         <div className="grid grid-cols-3 gap-2">
-                          <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                          <div className="bg-black/40 border border-gold/20 rounded-lg p-2">
                             <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Utilizados</p>
                             <p className="text-lg font-black text-white mt-0.5">{used}{max ? `/${max}` : ""}</p>
                           </div>
@@ -3537,7 +3537,7 @@ function ShopPageComponent() {
                             <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Restantes</p>
                             <p className="text-lg font-black text-emerald-400 mt-0.5">{remaining ?? "∞"}</p>
                           </div>
-                          <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                          <div className="bg-black/40 border border-gold/20 rounded-lg p-2">
                             <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Renovação</p>
                             <p className="text-[11px] font-black text-white mt-0.5">
                               {activeSubscription.next_billing_at
@@ -3550,11 +3550,11 @@ function ShopPageComponent() {
                         </div>
                         {(subUsage.haircut_allowed > 0 || subUsage.beard_allowed > 0) && (
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                            <div className="bg-black/40 border border-gold/20 rounded-lg p-2">
                               <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Cortes</p>
                               <p className="text-sm font-black text-white mt-0.5">{subUsage.haircut_used}/{subUsage.haircut_allowed}</p>
                             </div>
-                            <div className="bg-black/40 border border-[#D4AF37]/20 rounded-lg p-2">
+                            <div className="bg-black/40 border border-gold/20 rounded-lg p-2">
                               <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Barbas</p>
                               <p className="text-sm font-black text-white mt-0.5">{subUsage.beard_used}/{subUsage.beard_allowed}</p>
                             </div>
@@ -3577,7 +3577,7 @@ function ShopPageComponent() {
                   </div>
 
 
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Como deseja agendar?</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-gold">Como deseja agendar?</h5>
 
                   <div className="grid gap-3">
                     <button
@@ -3598,12 +3598,12 @@ function ShopPageComponent() {
                           ? "border-zinc-300 bg-zinc-100 opacity-60 cursor-not-allowed"
                           : (available !== null && available === 0)
                             ? "border-amber-400/70 bg-gradient-to-br from-amber-50 via-white to-amber-50 hover:border-amber-500 hover:shadow-lg cursor-pointer"
-                            : "border-[#D4AF37]/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-[#D4AF37] hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
+                            : "border-gold/60 bg-gradient-to-br from-[#fff9e6] via-white to-[#fff9e6] hover:border-gold hover:shadow-[0_12px_40px_rgba(212,175,55,0.3)] hover:scale-[1.01] cursor-pointer"
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center text-black shrink-0">
+                          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-gold to-[#8a6d12] grid place-items-center text-black shrink-0">
                             <Crown size={22} />
                           </div>
                           <div>
@@ -3617,7 +3617,7 @@ function ShopPageComponent() {
                             </p>
                           </div>
                         </div>
-                        <ChevronRight size={20} className="text-[#D4AF37] shrink-0" />
+                        <ChevronRight size={20} className="text-gold shrink-0" />
                       </div>
                     </button>
 
@@ -3655,9 +3655,9 @@ function ShopPageComponent() {
                   const max = subUsage.total_uses_allowed || (activeSubscription.plan?.max_uses_per_month ?? null);
                   const remaining = max ? Math.max(0, max - subUsage.total_uses_consumed - subUsage.total_uses_reserved) : null;
                   return (
-                    <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#1a1408] to-[#0a0a0a] p-3 text-white shadow-[0_8px_24px_rgba(212,175,55,0.2)]">
+                    <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-gold/60 bg-gradient-to-r from-[#1a1408] to-[#0a0a0a] p-3 text-white shadow-[0_8px_24px_rgba(212,175,55,0.2)]">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Crown size={16} className="text-[#D4AF37] shrink-0" />
+                        <Crown size={16} className="text-gold shrink-0" />
                         <p className="text-[11px] font-black uppercase tracking-widest truncate">
                           Modo Benefício • {remaining ?? "∞"} restante(s)
                         </p>
@@ -3665,7 +3665,7 @@ function ShopPageComponent() {
                       <button
                         type="button"
                         onClick={() => setBookingMode(null)}
-                        className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] hover:text-white transition-colors shrink-0"
+                        className="text-[10px] font-bold uppercase tracking-widest text-gold hover:text-white transition-colors shrink-0"
                       >
                         Trocar
                       </button>
@@ -3690,7 +3690,7 @@ function ShopPageComponent() {
                 )}
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-gold">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {(bookingMode === 'benefit'
                       ? services.filter((s) => subPlanServices.some((ps: any) => ps.service_id === s.id))
@@ -3709,7 +3709,7 @@ function ShopPageComponent() {
                         className={cn(
                           "bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-4 transition-all duration-300 hover:shadow-lg hover:border-zinc-300 cursor-pointer flex justify-between items-center group relative overflow-hidden",
                           selectedService?.id === s.id ? "border-sky-600 ring-2 ring-sky-600/20" : "",
-                          isCovered ? "border-[#D4AF37]/60 ring-1 ring-[#D4AF37]/30" : ""
+                          isCovered ? "border-gold/60 ring-1 ring-gold/30" : ""
                         )}
                         onClick={() => {
                           if (!isEmbedded && (!customerName || customerName.length < 3)) {
@@ -3736,12 +3736,12 @@ function ShopPageComponent() {
                              <Clock size={12} className={selectedService?.id === s.id ? "text-sky-600" : "text-gray-400"} />
                              <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-sky-600" : "text-gray-400")}>{s.duration_minutes} min</p>
                              {isCovered && (
-                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-black text-[9px] font-black uppercase tracking-wider shadow-sm">
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-gold to-[#B8941F] text-black text-[9px] font-black uppercase tracking-wider shadow-sm">
                                  ✦ Incluso no Plano
                                </span>
                              )}
                              {isPartial && (
-                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#8A6D1F] text-[9px] font-black uppercase tracking-wider">
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/15 text-[#8A6D1F] text-[9px] font-black uppercase tracking-wider">
                                  Parcial pelo Plano
                                </span>
                              )}
@@ -3754,7 +3754,7 @@ function ShopPageComponent() {
                                 </p>
                               ))}
                               {totalConsume > 1 && (
-                                <p className="text-[10px] font-black uppercase tracking-wider text-[#D4AF37]">Total: {totalConsume} utilizações</p>
+                                <p className="text-[10px] font-black uppercase tracking-wider text-gold">Total: {totalConsume} utilizações</p>
                               )}
                             </div>
                           )}
@@ -4813,10 +4813,10 @@ function ShopPageComponent() {
 
       {/* Cart Summary Modal — grafite premium */}
       <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
-        <DialogContent className="sm:max-w-[520px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
+        <DialogContent className="sm:max-w-[520px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-gold/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
-              <ShoppingBag size={20} className="text-[#D4AF37]" />
+              <ShoppingBag size={20} className="text-gold" />
               Seu Carrinho
             </DialogTitle>
           </DialogHeader>
@@ -4839,7 +4839,7 @@ function ShopPageComponent() {
                               type="button"
                               onClick={() => updateQuantity(p.id, -1)}
                               disabled={qty <= 1}
-                              className="w-9 h-9 flex items-center justify-center text-white/80 hover:bg-[#D4AF37]/15 hover:text-[#D4AF37] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              className="w-9 h-9 flex items-center justify-center text-white/80 hover:bg-gold/15 hover:text-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                               aria-label="Diminuir"
                             >
                               <Minus size={14} strokeWidth={2.5} />
@@ -4849,7 +4849,7 @@ function ShopPageComponent() {
                               type="button"
                               onClick={() => updateQuantity(p.id, 1)}
                               disabled={qty >= maxStock}
-                              className="w-9 h-9 flex items-center justify-center text-white/80 hover:bg-[#D4AF37]/15 hover:text-[#D4AF37] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              className="w-9 h-9 flex items-center justify-center text-white/80 hover:bg-gold/15 hover:text-gold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                               aria-label="Aumentar"
                             >
                               <Plus size={14} strokeWidth={2.5} />
@@ -4907,7 +4907,7 @@ function ShopPageComponent() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-[14px] bg-transparent border border-[#D4AF37]/60 text-[#D4AF37] font-bold hover:bg-[#D4AF37]/15 hover:text-[#F5D061] hover:border-[#D4AF37]"
+              className="w-full h-12 rounded-[14px] bg-transparent border border-gold/60 text-gold font-bold hover:bg-gold/15 hover:text-[#F5D061] hover:border-gold"
               onClick={() => setIsCartOpen(false)}
             >
               <ArrowLeft size={16} className="mr-2" /> Continuar Comprando
@@ -4963,24 +4963,24 @@ function ShopPageComponent() {
 
       {/* PIX Payment Modal — grafite premium */}
       <Dialog open={isPixVisible} onOpenChange={setIsPixVisible}>
-        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-gold/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
-              <QrCode size={20} className="text-[#D4AF37]" />
+              <QrCode size={20} className="text-gold" />
               Pagamento via PIX
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-5 text-center">
             <div className="space-y-1">
               <p className="text-[11px] uppercase tracking-widest text-white/50 font-bold">Total a pagar</p>
-              <p className="text-4xl font-black text-[#D4AF37] tabular-nums">
+              <p className="text-4xl font-black text-gold tabular-nums">
                 R$ {calculateTotalBeforeCashback().toFixed(2)}
               </p>
             </div>
 
             {shop.pix_qr_code_url && (
               <div className="flex justify-center">
-                <div className="p-3 border-2 border-[#D4AF37]/40 rounded-2xl bg-white">
+                <div className="p-3 border-2 border-gold/40 rounded-2xl bg-white">
                   <img src={shop.pix_qr_code_url} alt="PIX QR Code" className="h-44 w-44 object-contain" />
                 </div>
               </div>
@@ -5000,7 +5000,7 @@ function ShopPageComponent() {
                     navigator.clipboard.writeText(shop.pix_key);
                     toast.success("Chave PIX copiada!");
                   }}
-                  className="inline-flex items-center gap-2 px-4 h-9 rounded-lg bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-black uppercase tracking-widest hover:bg-[#D4AF37]/25 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 h-9 rounded-lg bg-gold/15 border border-gold/40 text-gold text-xs font-black uppercase tracking-widest hover:bg-gold/25 transition-colors"
                 >
                   <CheckCircle2 size={14} /> Copiar Chave PIX
                 </button>
@@ -5008,7 +5008,7 @@ function ShopPageComponent() {
             </div>
 
             <p className="text-[11px] text-white/40">
-              Após realizar o pagamento, clique em <span className="text-[#D4AF37] font-bold">Confirmar Pagamento</span>.
+              Após realizar o pagamento, clique em <span className="text-gold font-bold">Confirmar Pagamento</span>.
             </p>
           </div>
           <DialogFooter className="flex flex-col sm:flex-col gap-2 sm:gap-2">
@@ -5104,7 +5104,7 @@ function ShopPageComponent() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-[14px] bg-transparent border border-[#D4AF37]/60 text-[#D4AF37] font-bold hover:bg-[#D4AF37]/15 hover:text-[#F5D061] hover:border-[#D4AF37]"
+              className="w-full h-12 rounded-[14px] bg-transparent border border-gold/60 text-gold font-bold hover:bg-gold/15 hover:text-[#F5D061] hover:border-gold"
               onClick={() => {
                 setIsPixVisible(false);
                 setIsBookingOpen(true);
@@ -5126,10 +5126,10 @@ function ShopPageComponent() {
 
       {/* Identify Customer Modal — compra avulsa (WhatsApp-first) */}
       <Dialog open={isIdentifyOpen} onOpenChange={setIsIdentifyOpen}>
-        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] max-h-[calc(100dvh-24px)] overflow-y-auto bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] max-h-[calc(100dvh-24px)] overflow-y-auto bg-[#0a0a0a] border border-gold/30 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.18)] text-white p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
-              <UserIcon size={20} className="text-[#D4AF37]" />
+              <UserIcon size={20} className="text-gold" />
               Identifique-se para continuar
             </DialogTitle>
           </DialogHeader>
@@ -5155,19 +5155,19 @@ function ShopPageComponent() {
               />
               {identifyLookupLoading && (
                 <p className="text-[11px] text-white/50 flex items-center gap-2">
-                  <Loader2 size={12} className="animate-spin text-[#D4AF37]" /> Localizando seu cadastro...
+                  <Loader2 size={12} className="animate-spin text-gold" /> Localizando seu cadastro...
                 </p>
               )}
             </div>
 
             {/* Step: found customer */}
             {identifyStep === 'found' && identifyFound && (
-              <div className="rounded-2xl border border-[#D4AF37]/40 bg-[#D4AF37]/[0.06] p-4 space-y-3">
+              <div className="rounded-2xl border border-gold/40 bg-gold/[0.06] p-4 space-y-3">
                 <div className="flex items-center gap-3">
                   {identifyFound.avatar_url ? (
-                    <img src={identifyFound.avatar_url} alt={identifyFound.name} className="w-12 h-12 rounded-full object-cover border border-[#D4AF37]/40" />
+                    <img src={identifyFound.avatar_url} alt={identifyFound.name} className="w-12 h-12 rounded-full object-cover border border-gold/40" />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] font-black">
+                    <div className="w-12 h-12 rounded-full bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-black">
                       {identifyFound.name?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                   )}
@@ -5217,16 +5217,16 @@ function ShopPageComponent() {
                     type="checkbox"
                     checked={identifyForm.acceptTerms}
                     onChange={(e) => setIdentifyForm(f => ({ ...f, acceptTerms: e.target.checked }))}
-                    className="mt-0.5 accent-[#D4AF37]"
+                    className="mt-0.5 accent-gold"
                   />
-                  <span>Li e aceito os <a href="/terms" target="_blank" className="text-[#D4AF37] underline">Termos de Uso</a> e a <a href="/privacy" target="_blank" className="text-[#D4AF37] underline">Política de Privacidade</a>.</span>
+                  <span>Li e aceito os <a href="/terms" target="_blank" className="text-gold underline">Termos de Uso</a> e a <a href="/privacy" target="_blank" className="text-gold underline">Política de Privacidade</a>.</span>
                 </label>
                 <label className="flex items-start gap-2 text-xs text-white/60 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={identifyForm.allowMarketing}
                     onChange={(e) => setIdentifyForm(f => ({ ...f, allowMarketing: e.target.checked }))}
-                    className="mt-0.5 accent-[#D4AF37]"
+                    className="mt-0.5 accent-gold"
                   />
                   <span>Aceito receber promoções e novidades desta barbearia.</span>
                 </label>
@@ -5327,7 +5327,7 @@ function ShopPageComponent() {
 
       {/* Purchase Success Modal */}
       <Dialog open={!!purchaseSuccess} onOpenChange={(o) => { if (!o) { setPurchaseSuccess(null); setSelectedProducts([]); } }}>
-        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-[#D4AF37]/40 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.25)] text-white p-6">
+        <DialogContent className="sm:max-w-[460px] w-[calc(100%-24px)] bg-[#0a0a0a] border border-gold/40 rounded-[18px] shadow-[0_30px_80px_rgba(212,175,55,0.25)] text-white p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <CheckCircle2 size={22} className="text-emerald-400" />
@@ -5339,7 +5339,7 @@ function ShopPageComponent() {
               <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-3">
                 <div className="flex justify-between text-xs text-white/50 uppercase tracking-widest font-bold">
                   <span>Pedido</span>
-                  <span className="text-[#D4AF37]">#{purchaseSuccess.saleId.slice(0, 8).toUpperCase()}</span>
+                  <span className="text-gold">#{purchaseSuccess.saleId.slice(0, 8).toUpperCase()}</span>
                 </div>
                 <div className="space-y-1.5">
                   {purchaseSuccess.items.map((it, i) => (
@@ -5351,7 +5351,7 @@ function ShopPageComponent() {
                 </div>
                 <div className="border-t border-white/10 pt-2 flex justify-between text-sm font-black">
                   <span className="text-white/80">Total ({purchaseSuccess.method})</span>
-                  <span className="text-[#D4AF37] tabular-nums">R$ {purchaseSuccess.total.toFixed(2)}</span>
+                  <span className="text-gold tabular-nums">R$ {purchaseSuccess.total.toFixed(2)}</span>
                 </div>
               </div>
               <p className="text-[11px] text-white/50 text-center">
@@ -5369,7 +5369,7 @@ function ShopPageComponent() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-[14px] bg-transparent border border-[#D4AF37]/60 text-[#D4AF37] font-bold hover:bg-[#D4AF37]/15 hover:text-[#F5D061] hover:border-[#D4AF37]"
+              className="w-full h-12 rounded-[14px] bg-transparent border border-gold/60 text-gold font-bold hover:bg-gold/15 hover:text-[#F5D061] hover:border-gold"
               onClick={() => { setPurchaseSuccess(null); setSelectedProducts([]); setIsBookingOpen(true); setBookingStep(2); }}
             >
               <Calendar size={16} className="mr-2" /> Agendar Serviço
@@ -5509,7 +5509,7 @@ function ShopPageComponent() {
         <DialogContent className="max-w-md bg-transparent border-none p-0 shadow-none">
           <DialogTitle className="sr-only">Agendamento Premium Confirmado</DialogTitle>
           {premiumSuccess && (
-            <div className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_30px_80px_rgba(212,175,55,0.45)]">
+            <div className="relative rounded-3xl overflow-hidden border-2 border-gold/70 bg-gradient-to-br from-[#0a0a0a] via-[#1a1408] to-[#0a0a0a] p-6 shadow-[0_30px_80px_rgba(212,175,55,0.45)]">
               <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
                 style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #D4AF37 1px, transparent 1px), radial-gradient(circle at 80% 80%, #D4AF37 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
@@ -5518,27 +5518,27 @@ function ShopPageComponent() {
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                  className="h-20 w-20 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8a6d12] grid place-items-center mb-3 shadow-[0_10px_30px_rgba(212,175,55,0.5)]"
+                  className="h-20 w-20 rounded-full bg-gradient-to-br from-gold to-[#8a6d12] grid place-items-center mb-3 shadow-[0_10px_30px_rgba(212,175,55,0.5)]"
                 >
                   <CheckCircle2 size={44} className="text-black" />
                 </motion.div>
 
-                <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/90 font-black">Agendamento Premium</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-gold/90 font-black">Agendamento Premium</p>
                 <h3 className="text-2xl font-black uppercase tracking-tight text-white mt-1">Confirmado ✦</h3>
                 <p className="text-[11px] text-gray-400 mt-1">Benefício do plano reservado com sucesso</p>
               </div>
 
               <div className="relative mt-5 space-y-2.5">
-                <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-[#D4AF37]/20 p-3">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-gold/20 p-3">
                   <div className="flex items-center gap-2 min-w-0">
-                    <Crown size={14} className="text-[#D4AF37] shrink-0" />
+                    <Crown size={14} className="text-gold shrink-0" />
                     <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Plano</span>
                   </div>
                   <span className="text-sm font-black text-white truncate">{premiumSuccess.plan}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-white/5 p-3">
                   <div className="flex items-center gap-2 min-w-0">
-                    <Scissors size={14} className="text-[#D4AF37] shrink-0" />
+                    <Scissors size={14} className="text-gold shrink-0" />
                     <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Serviço</span>
                   </div>
                   <span className="text-sm font-black text-white truncate">{premiumSuccess.service}</span>
@@ -5558,7 +5558,7 @@ function ShopPageComponent() {
                 {premiumSuccess.barber && (
                   <div className="flex items-center justify-between gap-3 rounded-xl bg-black/40 border border-white/5 p-3">
                     <div className="flex items-center gap-2 min-w-0">
-                      <UserIcon size={14} className="text-[#D4AF37] shrink-0" />
+                      <UserIcon size={14} className="text-gold shrink-0" />
                       <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Profissional</span>
                     </div>
                     <span className="text-sm font-black text-white truncate">{premiumSuccess.barber}</span>
@@ -5581,7 +5581,7 @@ function ShopPageComponent() {
               </div>
 
               <Button
-                className="relative w-full h-12 mt-5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-black font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg"
+                className="relative w-full h-12 mt-5 rounded-xl bg-gradient-to-r from-gold to-[#B8941F] text-black font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg"
                 onClick={() => { setPremiumSuccess(null); navigate({ to: `/${slug}/portal` as any, replace: true }); }}
               >
                 Ir para o portal
