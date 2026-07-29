@@ -47,6 +47,24 @@ import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
+  head: () => ({
+    meta: [
+      { title: "Gerenciar agendamento | Barbex" },
+      {
+        name: "description",
+        content:
+          "Confirme, reagende ou cancele o seu horário na barbearia em poucos toques.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Gerenciar agendamento | Barbex" },
+      {
+        property: "og:description",
+        content: "Confirme, reagende ou cancele o seu horário na barbearia.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function AppointmentManagementPage() {

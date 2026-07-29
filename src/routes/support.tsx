@@ -19,6 +19,24 @@ import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/support")({
   component: withModule("support", "Suporte", SupportPage),
+  head: () => ({
+    meta: [
+      { title: "Suporte | Barbex" },
+      {
+        name: "description",
+        content:
+          "Abra chamados, envie sugestões e fale com a equipe Barbex direto do painel.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Suporte | Barbex" },
+      {
+        property: "og:description",
+        content: "Abra chamados e fale com a equipe Barbex.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function SupportPage() {
