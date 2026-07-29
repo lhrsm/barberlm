@@ -8664,6 +8664,20 @@ export type Database = {
           total_price: number
         }[]
       }
+      get_appointment_for_rating: {
+        Args: { p_cancel_token: string }
+        Returns: {
+          already_rated: boolean
+          barber_id: string
+          customer_id: string
+          id: string
+          service_id: string
+          start_time: string
+          status: string
+          tenant_id: string
+          user_id: string
+        }[]
+      }
       get_appointment_group_by_token: {
         Args: { _token: string }
         Returns: Json
@@ -8829,6 +8843,10 @@ export type Database = {
       }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
+      get_new_appointment_management_token: {
+        Args: { p_appointment_id: string }
+        Returns: string
+      }
       get_or_create_automation: {
         Args: { p_name?: string; p_tenant_id: string; p_type: string }
         Returns: string

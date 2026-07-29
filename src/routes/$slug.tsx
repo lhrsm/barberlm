@@ -1283,7 +1283,14 @@ function ShopPageComponent() {
           }]
         };
 
-        return supabase.from("appointments").insert([appointmentPayload]).select().single();
+        // Colunas explícitas: o papel anônimo não lê mais os tokens de gestão.
+        return supabase
+          .from("appointments")
+          .insert([appointmentPayload])
+          .select(
+            "id, user_id, tenant_id, customer_id, barber_id, service_id, start_time, end_time, status, total_price, appointment_group_id, payment_method, payment_status, subscription_id, subscription_plan_id, subscription_covered_amount, extra_amount, coupon_code, discount_amount, subtotal_amount, items",
+          )
+          .single();
       });
 
 
@@ -1537,7 +1544,7 @@ function ShopPageComponent() {
       const isMultipleFinal = createdAppointments.length > 1;
       const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
 
-      const runRedirect = () => {
+      const runRedirect = async () => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
@@ -1548,12 +1555,24 @@ function ShopPageComponent() {
           if (portalSession) {
             navigate({ to: `/${slug}/portal` as any, replace: true });
           } else {
-            navigate({ to: `/agendamento/${appt.management_token || appt.id}` as any, search: { tenant: shop.id } as any, replace: true });
+            // O token de gestão não é mais legível na tabela pelo papel anônimo:
+            // é entregue apenas para o agendamento recém-criado, via RPC.
+            let token: string | null = null;
+            try {
+              const { data } = await supabase.rpc("get_new_appointment_management_token" as any, {
+                p_appointment_id: appt.id,
+              });
+              token = (Array.isArray(data) ? data[0] : data) ?? null;
+            } catch {
+              token = null;
+            }
+            navigate({ to: `/agendamento/${token || appt.id}` as any, search: { tenant: shop.id } as any, replace: true });
           }
         } else {
           navigate({ to: `/${slug}/portal` as any, replace: true });
         }
       };
+
 
       // PIX: pede o comprovante antes de redirecionar
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
@@ -1652,11 +1671,13 @@ function ShopPageComponent() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("appointments")
-        .select("*, service_ratings(id)")
-        .eq("cancel_token", cancelTokenInput)
-        .single();
+      // O token de cancelamento não é mais legível diretamente pela tabela
+      // (evita varredura pública de tokens). A busca passa por RPC escopada.
+      const { data: rows, error } = await supabase.rpc(
+        "get_appointment_for_rating" as any,
+        { p_cancel_token: cancelTokenInput },
+      );
+      const data: any = Array.isArray(rows) ? rows[0] : rows;
 
       if (error || !data) {
         toast.error("Agendamento não encontrado.");
@@ -1668,10 +1689,11 @@ function ShopPageComponent() {
         return;
       }
 
-      if (data.service_ratings && (Array.isArray(data.service_ratings) ? data.service_ratings.length > 0 : !!data.service_ratings)) {
+      if (data.already_rated) {
         toast.error("Este atendimento já foi avaliado.");
         return;
       }
+
 
       setRatingAppointment(data);
       setIsRatingModalOpen(true);
