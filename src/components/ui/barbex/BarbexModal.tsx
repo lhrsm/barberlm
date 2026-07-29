@@ -31,7 +31,8 @@ export const BarbexModalContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 grid w-[95vw] max-w-[700px] -translate-x-1/2 -translate-y-1/2 gap-0 rounded-[20px] bg-[#0B1220] border border-white/[0.08] shadow-2xl",
+        "fixed left-1/2 top-1/2 z-50 grid w-[95vw] max-w-[700px] -translate-x-1/2 -translate-y-1/2 gap-0 rounded-[20px] border border-border bg-surface-raised shadow-2xl",
+
         "max-h-[90vh] overflow-hidden",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         className

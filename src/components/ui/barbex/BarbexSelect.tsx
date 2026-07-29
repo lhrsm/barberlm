@@ -14,16 +14,16 @@ export const BarbexSelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-12 w-full items-center justify-between rounded-xl bg-[#0B1220] border border-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-slate-500 transition-all duration-200",
-      "focus:outline-none focus:border-[#F59E0B] focus:shadow-[0_0_0_3px_rgba(245,158,11,0.15)]",
-      "disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-slate-500",
-      className
+      "flex h-12 w-full items-center justify-between rounded-xl border border-border bg-surface-sunken px-4 py-3 text-sm text-foreground transition-all duration-200",
+      "focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/35",
+      "disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground",
+      className,
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 text-slate-400 opacity-70" />
+      <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -38,10 +38,10 @@ export const BarbexSelectContent = React.forwardRef<
       ref={ref}
       position={position}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0B1220] text-white shadow-xl",
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-surface-raised text-foreground shadow-xl",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         position === "popper" && "translate-y-1",
-        className
+        className,
       )}
       {...props}
     >
@@ -59,15 +59,15 @@ export const BarbexSelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-3 pr-8 text-sm outline-none transition-colors",
-      "focus:bg-[#F59E0B]/15 focus:text-[#F59E0B] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
+      "focus:bg-gold/15 focus:text-gold data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className,
     )}
     {...props}
   >
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     <span className="absolute right-2 flex h-4 w-4 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-[#F59E0B]" />
+        <Check className="h-4 w-4 text-gold" />
       </SelectPrimitive.ItemIndicator>
     </span>
   </SelectPrimitive.Item>
