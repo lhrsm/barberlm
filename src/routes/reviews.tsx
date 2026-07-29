@@ -378,7 +378,7 @@ function ReviewsAdminPage() {
 
                 {/* Testimonial */}
                 {hasText && (
-                  <blockquote className="mt-4 relative rounded-xl border border-gold/15 border-l-[3px] border-l-[#D4AF37] bg-gold/[0.04] p-4 pl-5">
+                  <blockquote className="mt-4 relative rounded-xl border border-gold/15 border-l-[3px] border-l-gold bg-gold/[0.04] p-4 pl-5">
                     <Quote className="absolute top-3 right-3 h-5 w-5 text-gold/30" />
                     <p className="text-sm text-gray-200 italic leading-relaxed pr-6 break-words">"{r.testimonial_text}"</p>
                   </blockquote>
