@@ -1544,7 +1544,7 @@ function ShopPageComponent() {
       const isMultipleFinal = createdAppointments.length > 1;
       const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
 
-      const runRedirect = () => {
+      const runRedirect = async () => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
@@ -1555,12 +1555,24 @@ function ShopPageComponent() {
           if (portalSession) {
             navigate({ to: `/${slug}/portal` as any, replace: true });
           } else {
-            navigate({ to: `/agendamento/${appt.management_token || appt.id}` as any, search: { tenant: shop.id } as any, replace: true });
+            // O token de gestão não é mais legível na tabela pelo papel anônimo:
+            // é entregue apenas para o agendamento recém-criado, via RPC.
+            let token: string | null = null;
+            try {
+              const { data } = await supabase.rpc("get_new_appointment_management_token" as any, {
+                p_appointment_id: appt.id,
+              });
+              token = (Array.isArray(data) ? data[0] : data) ?? null;
+            } catch {
+              token = null;
+            }
+            navigate({ to: `/agendamento/${token || appt.id}` as any, search: { tenant: shop.id } as any, replace: true });
           }
         } else {
           navigate({ to: `/${slug}/portal` as any, replace: true });
         }
       };
+
 
       // PIX: pede o comprovante antes de redirecionar
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
