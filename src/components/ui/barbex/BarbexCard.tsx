@@ -8,10 +8,11 @@ export const BarbexCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl bg-[#0B1220] border border-[#F59E0B]/[0.12] p-6 transition-all duration-200",
-      "hover:border-[#F59E0B]/30",
+      "rounded-2xl bg-card border border-hairline p-6 shadow-raised transition-all duration-200",
+      "hover:border-gold/30",
       className
     )}
+
     {...props}
   />
 ));
