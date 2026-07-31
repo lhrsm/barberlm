@@ -644,7 +644,7 @@ function DashboardComponent() {
             appointments={todayAppointments}
             stats={stats}
             birthdaysCount={birthdayCustomers.length}
-            loading={statsLoading}
+            loading={loading}
           />
 
 
