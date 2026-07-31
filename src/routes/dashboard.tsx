@@ -1461,135 +1461,99 @@ function DashboardComponent() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              <Card className="bg-white border-2 border-blue-500/30 shadow-lg shadow-blue-500/5 hover:border-blue-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-900">Serviços Vendidos Hoje</CardTitle>
-                  <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <Scissors className="h-4 w-4 text-blue-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-blue-700">R$ {stats.daily.totalServicesValue.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-blue-500/60 mt-1">Valor total dos serviços</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-2 border-green-500/30 shadow-lg shadow-green-500/5 hover:border-green-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-green-900">Entrada em Caixa Hoje</CardTitle>
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <CircleDollarSign className="h-4 w-4 text-green-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-green-700">R$ {stats.daily.realCashInflow.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-green-500/60 mt-1">Dinheiro novo (PIX/Dinheiro)</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-2 border-purple-500/30 shadow-lg shadow-purple-500/5 hover:border-purple-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-purple-900">Créditos Utilizados Hoje</CardTitle>
-                  <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <Wallet className="h-4 w-4 text-purple-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-purple-700">R$ {stats.daily.creditsUsed.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-purple-500/60 mt-1">Abatido de saldos anteriores</p>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 pt-2">
-              <Card className="bg-white border-2 border-orange-500/30 shadow-lg shadow-orange-500/5 hover:border-orange-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-900">Cashback Utilizado Hoje</CardTitle>
-                  <div className="p-2 bg-orange-500/10 rounded-lg">
-                    <ArrowUpRight className="h-4 w-4 text-orange-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-orange-700">R$ {stats.daily.cashbackUsed.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-orange-500/60 mt-1">Abatimento via cashback</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/5 hover:border-yellow-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Concedido</CardTitle>
-                  <div className="p-2 bg-yellow-500/10 rounded-lg">
-                    <TicketPercent className="h-4 w-4 text-yellow-500" />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <div className="text-2xl font-black tracking-tighter text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
-                    <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Hoje</p>
-                  </div>
-                  <div className="flex justify-between border-t border-yellow-500/10 pt-2">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <span className="h-px w-8 bg-amber-500" aria-hidden />
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
+                  Painel financeiro do dia
+                </span>
+              </div>
+
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <MetricCard
+                  label="Serviços vendidos hoje"
+                  value={`R$ ${stats.daily.totalServicesValue.toFixed(2)}`}
+                  hint="Valor total dos serviços"
+                  icon={Scissors}
+                  tone="blue"
+                />
+                <MetricCard
+                  label="Entrada em caixa hoje"
+                  value={`R$ ${stats.daily.realCashInflow.toFixed(2)}`}
+                  hint="Dinheiro novo (PIX/Dinheiro)"
+                  icon={CircleDollarSign}
+                  tone="emerald"
+                />
+                <MetricCard
+                  label="Créditos utilizados hoje"
+                  value={`R$ ${stats.daily.creditsUsed.toFixed(2)}`}
+                  hint="Abatido de saldos anteriores"
+                  icon={Wallet}
+                  tone="purple"
+                />
+                <MetricCard
+                  label="Cashback utilizado hoje"
+                  value={`R$ ${stats.daily.cashbackUsed.toFixed(2)}`}
+                  hint="Abatimento via cashback"
+                  icon={ArrowUpRight}
+                  tone="orange"
+                />
+                <MetricCard
+                  label="Cashback concedido"
+                  value={`R$ ${stats.daily.cashbackEarned.toFixed(2)}`}
+                  hint="Hoje"
+                  icon={TicketPercent}
+                  tone="gold"
+                >
+                  <div className="flex justify-between">
                     <div>
-                      <p className="text-[9px] font-bold text-yellow-600/60 uppercase">Semana</p>
-                      <p className="text-sm font-black text-yellow-700">R$ {stats.weekly.cashbackEarned.toFixed(2)}</p>
+                      <p className="text-[9px] font-bold uppercase text-zinc-500">Semana</p>
+                      <p className="text-sm font-black text-amber-300">R$ {stats.weekly.cashbackEarned.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] font-bold text-yellow-600/60 uppercase">Mês</p>
-                      <p className="text-sm font-black text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</p>
+                      <p className="text-[9px] font-bold uppercase text-zinc-500">Mês</p>
+                      <p className="text-sm font-black text-amber-300">R$ {stats.monthly.cashbackEarned.toFixed(2)}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-2 border-indigo-500/30 shadow-lg shadow-indigo-500/5 hover:border-indigo-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-indigo-900">Clientes com Cashback</CardTitle>
-                  <div className="p-2 bg-indigo-500/10 rounded-lg">
-                    <Users className="h-4 w-4 text-indigo-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-indigo-700">{stats.total.customersWithCashback}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-indigo-500/60 mt-1">Clientes com saldo ativo</p>
-                </CardContent>
-              </Card>
+                </MetricCard>
+                <MetricCard
+                  label="Clientes com cashback"
+                  value={stats.total.customersWithCashback}
+                  hint="Clientes com saldo ativo"
+                  icon={Users}
+                  tone="indigo"
+                />
+                <MetricCard
+                  label="Agendamentos hoje"
+                  value={stats.daily.appointments}
+                  hint="Total de horários marcados"
+                  icon={Calendar}
+                  tone="neutral"
+                />
+                <MetricCard
+                  label="Novos clientes"
+                  value={stats.daily.newCustomers}
+                  hint="Cadastrados hoje"
+                  icon={Users}
+                  tone="neutral"
+                />
+                <MetricCard
+                  label="Ticket médio (mês)"
+                  value={`R$ ${stats.monthly.appointments > 0 ? (stats.monthly.totalServicesValue / stats.monthly.appointments).toFixed(2) : "0.00"}`}
+                  hint="Baseado no mês atual"
+                  icon={Target}
+                  tone="gold"
+                />
+              </div>
+
+              <InsightsPanel
+                appointments={todayAppointments}
+                stats={stats}
+                barbers={barbers}
+                birthdaysCount={birthdayCustomers.length}
+              />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
-              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Agendamentos Hoje</CardTitle>
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <Calendar className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.daily.appointments}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Total de horários marcados</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Novos Clientes</CardTitle>
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <Users className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.daily.newCustomers}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Cadastrados hoje</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Ticket Médio (Mês)</CardTitle>
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <Target className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-slate-900">
-                    R$ {stats.monthly.appointments > 0 ? (stats.monthly.totalServicesValue / stats.monthly.appointments).toFixed(2) : "0.00"}
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Baseado no mês atual</p>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* Assinaturas Premium */}
             {tenantId && (
