@@ -639,6 +639,16 @@ function DashboardComponent() {
             />
           </header>
 
+          <ExecutiveSummary
+            name={profile?.responsible_name || profile?.business_name}
+            appointments={todayAppointments}
+            stats={stats}
+            birthdaysCount={birthdayCustomers.length}
+            loading={statsLoading}
+          />
+
+
+
         
         {/* Banner de Trial / Assinatura */}
         {((isTrial || isExpired) && !hasActiveSubscription) && (
