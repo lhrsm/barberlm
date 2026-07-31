@@ -1571,111 +1571,71 @@ function DashboardComponent() {
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="bg-white border-2 border-blue-500/30 shadow-lg shadow-blue-500/5 hover:border-blue-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-900">Serviços Vendidos (Mês)</CardTitle>
-                  <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <Scissors className="h-4 w-4 text-blue-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-blue-700">R$ {stats.monthly.totalServicesValue.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-blue-500/60 mt-1">Valor total no mês</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-green-500/30 shadow-lg shadow-green-500/5 hover:border-green-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-green-900">Entrada Real (Mês)</CardTitle>
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <CircleDollarSign className="h-4 w-4 text-green-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-green-700">R$ {stats.monthly.realCashInflow.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-green-500/60 mt-1">Dinheiro novo em caixa</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-purple-500/30 shadow-lg shadow-purple-500/5 hover:border-purple-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-purple-900">Créditos Usados (Mês)</CardTitle>
-                  <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <Wallet className="h-4 w-4 text-purple-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-purple-700">R$ {stats.monthly.creditsUsed.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-purple-500/60 mt-1">Abatido via créditos</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-orange-500/30 shadow-lg shadow-orange-500/5 hover:border-orange-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-900">Cashback Utilizado (Mês)</CardTitle>
-                  <div className="p-2 bg-orange-500/10 rounded-lg">
-                    <ArrowUpRight className="h-4 w-4 text-orange-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-orange-700">R$ {stats.monthly.cashbackUsed.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-orange-500/60 mt-1">Abatimento via cashback</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/5 hover:border-yellow-500/60 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Gerado (Mês)</CardTitle>
-                  <div className="p-2 bg-yellow-500/10 rounded-lg">
-                    <ArrowDownRight className="h-4 w-4 text-yellow-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Novos saldos gerados</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Agendamentos (Mês)</CardTitle>
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <Calendar className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.monthly.appointments}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Total de horários marcados</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Novos Clientes (Mês)</CardTitle>
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <Users className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.monthly.newCustomers}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Conquistados este mês</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Total de Clientes</CardTitle>
-                  <div className="p-2 bg-slate-100 rounded-lg">
-                    <TrendingUp className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.total.customers}</div>
-                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Base de dados completa</p>
-                </CardContent>
-              </Card>
+            <div className="flex items-center gap-2">
+              <span className="h-px w-8 bg-amber-500" aria-hidden />
+              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
+                Consolidado do mês
+              </span>
             </div>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <MetricCard
+                label="Serviços vendidos (mês)"
+                value={`R$ ${stats.monthly.totalServicesValue.toFixed(2)}`}
+                hint="Valor total no mês"
+                icon={Scissors}
+                tone="blue"
+              />
+              <MetricCard
+                label="Entrada real (mês)"
+                value={`R$ ${stats.monthly.realCashInflow.toFixed(2)}`}
+                hint="Dinheiro novo em caixa"
+                icon={CircleDollarSign}
+                tone="emerald"
+              />
+              <MetricCard
+                label="Créditos usados (mês)"
+                value={`R$ ${stats.monthly.creditsUsed.toFixed(2)}`}
+                hint="Abatido via créditos"
+                icon={Wallet}
+                tone="purple"
+              />
+              <MetricCard
+                label="Cashback utilizado (mês)"
+                value={`R$ ${stats.monthly.cashbackUsed.toFixed(2)}`}
+                hint="Abatimento via cashback"
+                icon={ArrowUpRight}
+                tone="orange"
+              />
+              <MetricCard
+                label="Cashback gerado (mês)"
+                value={`R$ ${stats.monthly.cashbackEarned.toFixed(2)}`}
+                hint="Novos saldos gerados"
+                icon={ArrowDownRight}
+                tone="gold"
+              />
+              <MetricCard
+                label="Agendamentos (mês)"
+                value={stats.monthly.appointments}
+                hint="Total de horários marcados"
+                icon={Calendar}
+                tone="neutral"
+              />
+              <MetricCard
+                label="Novos clientes (mês)"
+                value={stats.monthly.newCustomers}
+                hint="Conquistados este mês"
+                icon={Users}
+                tone="neutral"
+              />
+              <MetricCard
+                label="Total de clientes"
+                value={stats.total.customers}
+                hint="Base de dados completa"
+                icon={TrendingUp}
+                tone="indigo"
+              />
+            </div>
+
           </TabsContent>
         </Tabs>
 
