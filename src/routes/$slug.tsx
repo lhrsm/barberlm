@@ -2740,6 +2740,16 @@ function ShopPageComponent() {
           </section>
         )}
 
+        {/* Por que escolher nossa barbearia — indicadores reais */}
+        <WhyChooseUs
+          shop={shop}
+          testimonials={publicTestimonials}
+          barbers={barbers}
+          services={services}
+        />
+
+
+
         {/* Clube Premium / Assinaturas */}
         {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
           <section id="clube" className="py-24 bg-[#050505] relative overflow-hidden">
