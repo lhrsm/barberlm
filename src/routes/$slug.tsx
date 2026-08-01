@@ -2035,7 +2035,7 @@ function ShopPageComponent() {
       {!canAccess && !isProfissionalRoute && <TrialExpiredBlock />}
 
       {/* Main Content */}
-      {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (
+      {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute && !isEquipeRoute) ? (
         <>
           {/* Header */}
           {!isEmbedded && (
