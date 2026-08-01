@@ -24,6 +24,13 @@ import { EditScheduleDialog } from "@/components/professional/EditScheduleDialog
 import { CancelAppointmentDialog } from "@/components/professional/CancelAppointmentDialog";
 import { ProfessionalNotifications } from "@/components/professional/ProfessionalNotifications";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
+import { ProfessionalHero } from "@/components/professional/panel/ProfessionalHero";
+import { ProfessionalKpiGrid } from "@/components/professional/panel/ProfessionalKpiGrid";
+import { ProfessionalTimeline } from "@/components/professional/panel/ProfessionalTimeline";
+import { ProfessionalInsights } from "@/components/professional/panel/ProfessionalInsights";
+import { ProfessionalEvolution } from "@/components/professional/panel/ProfessionalEvolution";
+import { useProfessionalExtras } from "@/components/professional/panel/useProfessionalExtras";
+import { buildTodaySummary, buildEvolution, buildInsights, sameDay } from "@/components/professional/panel/metrics";
 
 export const Route = createFileRoute("/$slug/profissional")({
   validateSearch: (search: Record<string, unknown>) => {
