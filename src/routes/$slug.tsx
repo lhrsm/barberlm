@@ -30,6 +30,8 @@ import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
 import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
 import { SubscribePlanModal } from "@/components/portal/SubscribePlanModal";
 import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
+import { WhyChooseUs } from "@/components/public/WhyChooseUs";
+import { PortalFaq } from "@/components/public/PortalFaq";
 
 
 import { PhoneInput } from 'react-international-phone';
@@ -58,9 +60,33 @@ export const Route = createFileRoute("/$slug")({
         },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `https://barbex.shop/${params.slug}` },
+        { property: "og:site_name", content: pretty },
+        { property: "og:locale", content: "pt_BR" },
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: `${pretty} — Agendamento online` },
+        {
+          name: "twitter:description",
+          content: `Escolha profissional, serviço e horário na ${pretty}. Agendamento rápido, sem ligações.`,
+        },
       ],
       links: [{ rel: "canonical", href: `https://barbex.shop/${params.slug}` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HairSalon",
+            name: pretty,
+            url: `https://barbex.shop/${params.slug}`,
+            priceRange: "$$",
+            potentialAction: {
+              "@type": "ReserveAction",
+              target: `https://barbex.shop/${params.slug}`,
+              name: "Agendar horário",
+            },
+          }),
+        },
+      ],
     };
   },
 });
@@ -2263,6 +2289,9 @@ function ShopPageComponent() {
           </motion.div>
         </section>
 
+
+
+
         {/* Services Section */}
         <section id="servicos" className="py-24 bg-black relative">
           <div className="max-w-6xl mx-auto px-4">
@@ -2740,6 +2769,16 @@ function ShopPageComponent() {
           </section>
         )}
 
+        {/* Por que escolher nossa barbearia — indicadores reais */}
+        <WhyChooseUs
+          shop={shop}
+          testimonials={publicTestimonials}
+          barbers={barbers}
+          services={services}
+        />
+
+
+
         {/* Clube Premium / Assinaturas */}
         {subscriptionsEnabled && publicSubscriptionPlans.length > 0 && (
           <section id="clube" className="py-24 bg-[#050505] relative overflow-hidden">
@@ -2967,6 +3006,16 @@ function ShopPageComponent() {
             )}
           </div>
         </section>
+
+        {/* FAQ por categorias */}
+        <PortalFaq
+          shop={shop}
+          productsEnabled={productsEnabled}
+          subscriptionsEnabled={subscriptionsEnabled}
+          cashbackEnabled={cashbackEnabled}
+          couponsEnabled={couponsEnabled}
+          loyaltyEnabled={loyaltyEnabled}
+        />
 
         {/* Portal CTA Section — Premium with image */}
         <section className="py-20 md:py-24 bg-[#0a0a0a] relative overflow-hidden">
