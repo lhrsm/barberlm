@@ -4,7 +4,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense, lazy } from "react";
+const ErpCenter = lazy(() => import("@/components/finances/erp/ErpCenter").then((m) => ({ default: m.ErpCenter })));
+
 import { useFinancesFilters } from "@/hooks/use-finances-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -264,10 +266,19 @@ function FinancesComponent() {
 
 
           {role !== 'barber' && user && (
+            <TabsContent value="erp" className="pt-4">
+              <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Carregando Centro Financeiro...</div>}>
+                <ErpCenter tenantId={user.id} />
+              </Suspense>
+            </TabsContent>
+          )}
+
+          {role !== 'barber' && user && (
             <TabsContent value="managerial" className="pt-4">
               <ManagerialView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
+
 
           {role !== 'barber' && user && (
             <TabsContent value="coupons" className="pt-4">

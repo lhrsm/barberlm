@@ -1,5 +1,5 @@
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, FileText, Clock, RefreshCcw, TicketPercent, Users, AlertCircle, Package } from "lucide-react";
+import { BarChart3, FileText, Clock, RefreshCcw, TicketPercent, Users, AlertCircle, Package, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FinancesTabsListProps {
@@ -10,7 +10,10 @@ interface FinancesTabsListProps {
 
 export function FinancesTabsList({ role, financeTab, setFinanceTab }: FinancesTabsListProps) {
   const items = [
-    ...(role !== 'barber' ? [{ v: "managerial", icon: BarChart3, label: "Visão Gerencial" }] : []),
+    ...(role !== 'barber' ? [
+      { v: "erp", icon: Sparkles, label: "Centro Financeiro" },
+      { v: "managerial", icon: BarChart3, label: "Visão Gerencial" },
+    ] : []),
     { v: "transactions", icon: FileText, label: "Lançamentos" },
     { v: "pending", icon: Clock, label: "Pendentes" },
     { v: "refunds", icon: RefreshCcw, label: "Estornos" },
@@ -25,7 +28,8 @@ export function FinancesTabsList({ role, financeTab, setFinanceTab }: FinancesTa
   return (
     <>
       {/* Desktop tabs */}
-      <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-8 max-w-[1320px]" : "grid-cols-3 max-w-[600px]")}>
+      <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-9 max-w-[1480px]" : "grid-cols-3 max-w-[600px]")}>
+
 
         {items.map(({ v, icon: Icon, label }) => (
           <TabsTrigger key={v} value={v} className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
