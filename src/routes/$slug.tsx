@@ -2265,6 +2265,18 @@ function ShopPageComponent() {
           </motion.div>
         </section>
 
+        {/* FAQ por categorias */}
+        <PortalFaq
+          shop={shop}
+          productsEnabled={productsEnabled}
+          subscriptionsEnabled={subscriptionsEnabled}
+          cashbackEnabled={cashbackEnabled}
+          couponsEnabled={couponsEnabled}
+          loyaltyEnabled={loyaltyEnabled}
+        />
+
+
+
         {/* Services Section */}
         <section id="servicos" className="py-24 bg-black relative">
           <div className="max-w-6xl mx-auto px-4">
