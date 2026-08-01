@@ -24,6 +24,7 @@ import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyFaqRouteImport } from './routes/privacy-faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as MarketingRouteImport } from './routes/marketing'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as IntelligenceRouteImport } from './routes/intelligence'
@@ -165,6 +166,11 @@ const PrivacyFaqRoute = PrivacyFaqRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketingRoute = MarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoyaltyRoute = LoyaltyRouteImport.update({
@@ -535,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/intelligence': typeof IntelligenceRoute
   '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRouteWithChildren
+  '/marketing': typeof MarketingRoute
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -617,6 +624,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof IntegrationsRoute
   '/intelligence': typeof IntelligenceRoute
   '/lgpd': typeof LgpdRoute
+  '/marketing': typeof MarketingRoute
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -702,6 +710,7 @@ export interface FileRoutesById {
   '/intelligence': typeof IntelligenceRoute
   '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRouteWithChildren
+  '/marketing': typeof MarketingRoute
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
@@ -788,6 +797,7 @@ export interface FileRouteTypes {
     | '/intelligence'
     | '/lgpd'
     | '/loyalty'
+    | '/marketing'
     | '/privacy'
     | '/privacy-faq'
     | '/products'
@@ -870,6 +880,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/intelligence'
     | '/lgpd'
+    | '/marketing'
     | '/privacy'
     | '/privacy-faq'
     | '/products'
@@ -954,6 +965,7 @@ export interface FileRouteTypes {
     | '/intelligence'
     | '/lgpd'
     | '/loyalty'
+    | '/marketing'
     | '/privacy'
     | '/privacy-faq'
     | '/products'
@@ -1039,6 +1051,7 @@ export interface RootRouteChildren {
   IntelligenceRoute: typeof IntelligenceRoute
   LgpdRoute: typeof LgpdRoute
   LoyaltyRoute: typeof LoyaltyRouteWithChildren
+  MarketingRoute: typeof MarketingRoute
   PrivacyRoute: typeof PrivacyRoute
   PrivacyFaqRoute: typeof PrivacyFaqRoute
   ProductsRoute: typeof ProductsRoute
@@ -1179,6 +1192,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing': {
+      id: '/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loyalty': {
@@ -1777,6 +1797,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntelligenceRoute: IntelligenceRoute,
   LgpdRoute: LgpdRoute,
   LoyaltyRoute: LoyaltyRouteWithChildren,
+  MarketingRoute: MarketingRoute,
   PrivacyRoute: PrivacyRoute,
   PrivacyFaqRoute: PrivacyFaqRoute,
   ProductsRoute: ProductsRoute,
