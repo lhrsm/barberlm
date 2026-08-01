@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,8 +47,13 @@ import {
   Crown,
   Medal,
   Award,
+  Gauge,
 } from "lucide-react";
 import { withModule } from "@/components/modules/withModule";
+
+const PerformanceCenter = lazy(
+  () => import("@/components/commissions/perf/PerformanceCenter"),
+);
 
 export const Route = createFileRoute("/commissions")({
   component: withModule("commissions", "Comissões", CommissionsPage),
@@ -453,6 +458,7 @@ function CommissionsPage() {
             <TabsList className="hidden md:flex bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 flex-wrap">
               {[
                 { v: "dashboard", label: "Dashboard", icon: TrendingUp },
+                { v: "performance", label: "Desempenho", icon: Gauge },
                 { v: "ranking", label: "Ranking", icon: Trophy },
                 { v: "reports", label: "Relatórios", icon: Receipt },
                 { v: "closings", label: "Fechamentos", icon: Wallet },
@@ -473,6 +479,7 @@ function CommissionsPage() {
                 <div className="flex w-max min-w-full items-end gap-1">
                   {[
                     { v: "dashboard", icon: TrendingUp, label: "Dashboard" },
+                    { v: "performance", icon: Gauge, label: "Desempenho" },
                     { v: "ranking", icon: Trophy, label: "Ranking" },
                     { v: "reports", icon: Receipt, label: "Relatórios" },
                     { v: "closings", icon: Wallet, label: "Fechamentos" },
@@ -500,8 +507,27 @@ function CommissionsPage() {
             </div>
 
 
+            {/* DESEMPENHO (painel de produtividade — somente leitura) */}
+            <TabsContent value="performance" className="mt-6">
+              <Suspense
+                fallback={
+                  <div className="rounded-2xl border border-zinc-800/80 bg-[#0b0f17] p-10 text-center text-zinc-500">
+                    Carregando painel de desempenho...
+                  </div>
+                }
+              >
+                <PerformanceCenter
+                  tenantId={user?.id ?? null}
+                  barbers={barbers}
+                  from={from}
+                  to={to}
+                />
+              </Suspense>
+            </TabsContent>
+
             {/* DASHBOARD */}
             <TabsContent value="dashboard" className="mt-6 space-y-4">
+
               {byBarber.length === 0 && (
                 <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-10 text-center text-zinc-500">
                   Nenhum barbeiro cadastrado.
