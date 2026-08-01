@@ -60,9 +60,33 @@ export const Route = createFileRoute("/$slug")({
         },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `https://barbex.shop/${params.slug}` },
+        { property: "og:site_name", content: pretty },
+        { property: "og:locale", content: "pt_BR" },
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: `${pretty} — Agendamento online` },
+        {
+          name: "twitter:description",
+          content: `Escolha profissional, serviço e horário na ${pretty}. Agendamento rápido, sem ligações.`,
+        },
       ],
       links: [{ rel: "canonical", href: `https://barbex.shop/${params.slug}` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HairSalon",
+            name: pretty,
+            url: `https://barbex.shop/${params.slug}`,
+            priceRange: "$$",
+            potentialAction: {
+              "@type": "ReserveAction",
+              target: `https://barbex.shop/${params.slug}`,
+              name: "Agendar horário",
+            },
+          }),
+        },
+      ],
     };
   },
 });
