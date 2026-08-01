@@ -3376,6 +3376,15 @@ function ShopPageComponent() {
                   </div>
                 </div>
               </div>
+
+              <Link
+                to="/$slug/equipe/$barberId"
+                params={{ slug, barberId: barber.id }}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-gold transition-colors"
+              >
+                Ver perfil completo <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </motion.div>
           ))}
         </div>
