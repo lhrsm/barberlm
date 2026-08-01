@@ -105,6 +105,7 @@ function ShopPageComponent() {
   const initialName = searchParams.get('name') || "";
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
+  const [activeServiceCategory, setActiveServiceCategory] = useState<string>("Todos");
   const [barbers, setBarbers] = useState<any[]>([]);
   const [publicTestimonials, setPublicTestimonials] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
