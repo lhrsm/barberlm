@@ -264,10 +264,19 @@ function FinancesComponent() {
 
 
           {role !== 'barber' && user && (
+            <TabsContent value="erp" className="pt-4">
+              <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Carregando Centro Financeiro...</div>}>
+                <ErpCenter tenantId={user.id} />
+              </Suspense>
+            </TabsContent>
+          )}
+
+          {role !== 'barber' && user && (
             <TabsContent value="managerial" className="pt-4">
               <ManagerialView tenantId={user.id} initialPeriod={globalPeriod as any} periodKey={globalPeriod} />
             </TabsContent>
           )}
+
 
           {role !== 'barber' && user && (
             <TabsContent value="coupons" className="pt-4">
