@@ -494,7 +494,14 @@ function ProfessionalDashboard() {
           </TabsList>
 
           
+          <TabsContent value="performance" className="mt-8 space-y-4 animate-in fade-in duration-300">
+            <ProfessionalInsights insights={insights} objectives={objectives} />
+            <ProfessionalEvolution evo={evolution} reviews={reviews} productSales={productSales} />
+          </TabsContent>
+
           <TabsContent value="appointments" className="mt-8 space-y-6">
+            <ProfessionalTimeline today={todaySummary} />
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h2 className="text-gold font-black uppercase text-xs tracking-[0.2em]">
                 Minha Agenda — {filterLabels[appointmentFilter]}
