@@ -28,13 +28,10 @@ import {
   UserPlus,
   Search,
   Phone,
-  Gift,
   Clock,
   User as UserIcon,
-  Star,
   Edit,
   Trash2,
-  Mail,
   Crown,
   Sparkles,
   CalendarPlus,
@@ -44,20 +41,15 @@ import {
   Users,
   DollarSign,
   CreditCard,
-  Cake,
   AlertCircle,
   Award,
   Gem,
   Medal,
-  Package,
-  History as HistoryIcon,
   Wallet,
 } from "lucide-react";
 import { format, differenceInDays, isAfter, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerCrmDialog } from "@/components/customers/crm/CustomerCrmDialog";
 
