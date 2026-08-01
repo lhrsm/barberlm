@@ -541,7 +541,11 @@ function ProductsComponent() {
               </div>
             </div>
 
-
+            <TabsContent value="commerce" className="pt-6">
+              <Suspense fallback={<div className="h-64 rounded-3xl border border-white/10 bg-white/[0.03] animate-pulse" />}>
+                <CommerceCenter />
+              </Suspense>
+            </TabsContent>
 
             <TabsContent value="inventory" className="pt-6">
               <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5">
