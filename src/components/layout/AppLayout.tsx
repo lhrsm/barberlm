@@ -57,6 +57,7 @@ import { useModules, type ModuleKey } from "@/hooks/use-modules";
 const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: ModuleKey }> = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Inteligência", icon: Radar, to: "/intelligence" },
+  { label: "Marketing", icon: Megaphone, to: "/marketing" },
   { label: "Agenda", icon: Calendar, to: "/calendar" },
   { label: "Clientes", icon: Users, to: "/customers" },
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
