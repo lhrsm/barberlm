@@ -82,6 +82,7 @@ import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subs
 import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaigns.$id'
 import { Route as ApiPublicSendPushRouteImport } from './routes/api/public/send-push'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
+import { Route as SlugEquipeBarberIdRouteImport } from './routes/$slug.equipe.$barberId'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicSubscriptionsWebhookRouteImport } from './routes/api/public/subscriptions/webhook'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -460,6 +461,11 @@ const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
   path: '/agendamentos/grupo/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugEquipeBarberIdRoute = SlugEquipeBarberIdRouteImport.update({
+  id: '/equipe/$barberId',
+  path: '/equipe/$barberId',
+  getParentRoute: () => SlugRoute,
+} as any)
 const ApiWebhooksZapiBarbershopIdRoute =
   ApiWebhooksZapiBarbershopIdRouteImport.update({
     id: '/api/webhooks/zapi/$barbershopId',
@@ -591,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
+  '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
@@ -674,6 +681,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
   '/subscription': typeof SubscriptionIndexRoute
+  '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
@@ -760,6 +768,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
+  '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
@@ -847,6 +856,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/loyalty/'
     | '/subscription/'
+    | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
@@ -930,6 +940,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/loyalty'
     | '/subscription'
+    | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
@@ -1015,6 +1026,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/loyalty/'
     | '/subscription/'
+    | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
@@ -1600,6 +1612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendamentosGrupoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug/equipe/$barberId': {
+      id: '/$slug/equipe/$barberId'
+      path: '/equipe/$barberId'
+      fullPath: '/$slug/equipe/$barberId'
+      preLoaderRoute: typeof SlugEquipeBarberIdRouteImport
+      parentRoute: typeof SlugRoute
+    }
     '/api/webhooks/zapi/$barbershopId': {
       id: '/api/webhooks/zapi/$barbershopId'
       path: '/api/webhooks/zapi/$barbershopId'
@@ -1677,12 +1696,14 @@ interface SlugRouteChildren {
   SlugCheckinRoute: typeof SlugCheckinRoute
   SlugPortalRoute: typeof SlugPortalRoute
   SlugProfissionalRoute: typeof SlugProfissionalRoute
+  SlugEquipeBarberIdRoute: typeof SlugEquipeBarberIdRoute
 }
 
 const SlugRouteChildren: SlugRouteChildren = {
   SlugCheckinRoute: SlugCheckinRoute,
   SlugPortalRoute: SlugPortalRoute,
   SlugProfissionalRoute: SlugProfissionalRoute,
+  SlugEquipeBarberIdRoute: SlugEquipeBarberIdRoute,
 }
 
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)

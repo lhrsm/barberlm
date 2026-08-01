@@ -105,6 +105,7 @@ function ShopPageComponent() {
   const initialName = searchParams.get('name') || "";
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
+  const [activeServiceCategory, setActiveServiceCategory] = useState<string>("Todos");
   const [barbers, setBarbers] = useState<any[]>([]);
   const [publicTestimonials, setPublicTestimonials] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -133,6 +134,7 @@ function ShopPageComponent() {
   const isPortalRoute = location.pathname.includes('/portal');
   const isProfissionalRoute = location.pathname.includes('/profissional');
   const isProfessionalsRoute = location.pathname.includes('/professionals');
+  const isEquipeRoute = location.pathname.includes('/equipe');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2034,7 +2036,7 @@ function ShopPageComponent() {
       {!canAccess && !isProfissionalRoute && <TrialExpiredBlock />}
 
       {/* Main Content */}
-      {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (
+      {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute && !isEquipeRoute) ? (
         <>
           {/* Header */}
           {!isEmbedded && (
@@ -2325,8 +2327,44 @@ function ShopPageComponent() {
               </p>
             </div>
 
+            {(() => {
+              const cats = Array.from(
+                new Set(services.map((s: any) => (s.category || "").trim()).filter(Boolean)),
+              ) as string[];
+              if (cats.length < 2) return null;
+              const all = ["Todos", ...cats];
+              return (
+                <div className="flex flex-wrap items-center gap-2.5 mb-10">
+                  {all.map((cat) => {
+                    const isActive = activeServiceCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setActiveServiceCategory(cat)}
+                        className={cn(
+                          "h-10 px-5 rounded-full font-black uppercase tracking-widest text-[11px] transition-all duration-200 border",
+                          isActive
+                            ? "bg-gold text-black border-transparent shadow-[0_8px_20px_-8px_rgba(212,175,55,0.6)]"
+                            : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-gold/50 hover:text-white",
+                        )}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {services.map((service, idx) => (
+              {services
+                .filter((s: any) =>
+                  activeServiceCategory === "Todos"
+                    ? true
+                    : (s.category || "").trim() === activeServiceCategory,
+                )
+                .map((service, idx) => (
                 <motion.div
                   key={service.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -2612,6 +2650,28 @@ function ShopPageComponent() {
                       </div>
                     </div>
                   </div>
+
+                  {Array.isArray(barber.specialties) && barber.specialties.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4 -mt-2">
+                      {barber.specialties.slice(0, 3).map((sp: string) => (
+                        <span
+                          key={sp}
+                          className="rounded-full border border-gold/25 bg-gold/[0.07] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gold"
+                        >
+                          {sp}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <Link
+                    to="/$slug/equipe/$barberId"
+                    params={{ slug, barberId: barber.id }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-gold transition-colors"
+                  >
+                    Ver perfil completo <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
                 </motion.div>
               ))}
             </div>
@@ -3316,6 +3376,15 @@ function ShopPageComponent() {
                   </div>
                 </div>
               </div>
+
+              <Link
+                to="/$slug/equipe/$barberId"
+                params={{ slug, barberId: barber.id }}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-gold transition-colors"
+              >
+                Ver perfil completo <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </motion.div>
           ))}
         </div>
