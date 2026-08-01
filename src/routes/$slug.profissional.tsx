@@ -383,78 +383,75 @@ function ProfessionalDashboard() {
   return (
     <AppLayout>
       <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#05070d] min-h-screen text-white">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0b0f17] p-8 rounded-2xl border border-gold/20 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20 border-2 border-gold shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-              <AvatarImage src={barber?.avatar_url} />
-              <AvatarFallback className="bg-gold/10 text-gold text-2xl font-black">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-3xl font-black text-white tracking-tight">Olá, {session.name} 👋</h1>
-              <div className="flex items-center gap-3 mt-3">
-                <Badge className={cn(
-                  "px-3 py-1 font-black text-[10px] uppercase tracking-wider border-0 shadow-sm",
-                  barber?.active ? "bg-green-600 text-white" : "bg-red-600 text-white"
-                )}>
-                  {barber?.active ? "🟢 Disponível" : "🔴 Indisponível"}
-                </Badge>
-                <Badge className="px-3 py-1 bg-gold text-black font-black text-[10px] uppercase tracking-wider border-0 shadow-sm">
-                  👑 {barber?.category || "Profissional"}
-                </Badge>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ProfessionalNotifications barberId={session.barber_id} />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleManualRefresh}
-              disabled={isRefreshing}
-              title="Atualizar painel"
-              className="h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200 disabled:opacity-60"
-            >
-              <RefreshCcw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowEditProfile(true)}
-              title="Meu perfil"
-              className="h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
-            >
-              <UserIcon className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={logout}
-              className="h-10 rounded-full px-4 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_18px_rgba(239,68,68,0.4)] transition-all duration-200 font-bold text-sm"
-            >
-              <LogOut className="h-4 w-4 mr-2" /> Sair
-            </Button>
-          </div>
-        </div>
+        <ProfessionalHero
+          name={session.name}
+          barber={barber}
+          today={todaySummary}
+          goal={monthlyGoal}
+          productionMonth={productionMonth}
+          actions={
+            <>
+              <ProfessionalNotifications barberId={session.barber_id} />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                title="Atualizar painel"
+                aria-label="Atualizar painel"
+                className="h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200 disabled:opacity-60"
+              >
+                <RefreshCcw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowEditProfile(true)}
+                title="Meu perfil"
+                aria-label="Meu perfil"
+                className="h-10 w-10 rounded-full bg-transparent border border-gold/40 text-gold hover:bg-gold hover:text-black hover:border-gold hover:shadow-[0_0_18px_rgba(212,175,55,0.45)] transition-all duration-200"
+              >
+                <UserIcon className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={logout}
+                className="h-10 rounded-full px-4 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_18px_rgba(239,68,68,0.4)] transition-all duration-200 font-bold text-sm"
+              >
+                <LogOut className="h-4 w-4 mr-2" /> Sair
+              </Button>
+            </>
+          }
+        />
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <ProfessionalKpiGrid
+          today={todaySummary}
+          productsToday={productsToday}
+          commissionForecast={commissionForecast}
+          avgRating={ratingStats.avg}
+          ratingsCount={ratingStats.count}
+        />
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[
-            { title: "Atendimentos Hoje", value: stats.today, icon: Calendar },
-            { title: "Atendimentos Semana", value: stats.week, icon: Users },
-            { title: "Atendimentos Mês", value: stats.month, icon: Scissors },
+            { title: "Atendimentos Semana", value: String(stats.week), icon: Users },
+            { title: "Atendimentos Mês", value: String(stats.month), icon: Scissors },
             { title: "Faturamento Mês", value: `R$ ${stats.revenueMonth.toFixed(2)}`, icon: CircleDollarSign },
             { title: "Comissão Mês", value: `R$ ${stats.commissionMonth.toFixed(2)}`, icon: Crown },
-            { title: "Ticket Médio", value: `R$ ${stats.avgTicket.toFixed(2)}`, icon: TrendingUp },
-            { title: "Cancelamentos", value: stats.cancelledMonth, icon: X },
-            { title: "Próximo Atendimento", value: stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---", icon: Clock },
           ].map((stat, i) => (
-            <Card key={i} className="bg-[#0b0f17] border-gold/20 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl p-6 transition-all hover:border-gold/50 hover:shadow-[0_8px_24px_rgba(212,175,55,0.1)]">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">{stat.title}</span>
-                <stat.icon className="h-6 w-6 text-gold" />
+            <Card
+              key={i}
+              className="bg-[#0b0f17] border-gold/20 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_8px_24px_rgba(212,175,55,0.12)]"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.title}</span>
+                <stat.icon className="h-5 w-5 text-gold" aria-hidden />
               </div>
-              <div className="text-3xl font-black text-white">{stat.value}</div>
+              <div className="text-2xl font-black text-white">{stat.value}</div>
             </Card>
           ))}
         </div>
+
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="bg-[#0b0f17] p-1.5 gap-2 flex overflow-x-auto h-auto rounded-2xl border border-gold/10 w-fit">
