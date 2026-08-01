@@ -83,7 +83,7 @@ export function CategoryChart({ data }: { data: { category: string; revenue: num
             key={c.category}
             index={i + 1}
             title={c.category}
-            subtitle={`${c.units} unidades • ${c.products ?? 0 ? "" : ""}`.trim() || `${c.units} unidades`}
+            subtitle={`${c.units} unidades`}
             value={money(c.revenue)}
             progress={(c.revenue / max) * 100}
           />
