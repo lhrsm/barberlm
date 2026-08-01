@@ -461,6 +461,12 @@ function ProfessionalDashboard() {
             >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
+            <TabsTrigger
+              value="performance"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
+            >
+              <Sparkles className="h-4 w-4" /> Desempenho
+            </TabsTrigger>
             <TabsTrigger 
               value="history" 
               className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-gold data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
