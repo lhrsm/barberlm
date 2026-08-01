@@ -78,6 +78,34 @@ function ProfessionalDashboard() {
   const [appointmentFilter, setAppointmentFilter] = useState<'today'|'week'|'month'|'completed'|'cancelled'|'pending'>('today');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // ——— Camada de leitura premium (somente apresentação, zero regra de negócio) ———
+  const { reviews, productSales } = useProfessionalExtras(session?.barber_id, !!session?.barber_id);
+
+  const todaySummary = useMemo(() => buildTodaySummary(appointments), [appointments]);
+  const evolution = useMemo(() => buildEvolution(appointments), [appointments]);
+
+  const monthlyGoal = Number(barber?.monthly_goal || 0);
+  const productionMonth = Number(commissionSummary?.production_total || stats?.revenueMonth || 0);
+  const commissionForecast = Number(commissionSummary?.commission_total || stats?.commissionMonth || 0);
+
+  const productsToday = useMemo(() => {
+    const now = new Date();
+    const rows = productSales.filter((s) => s.created_at && sameDay(new Date(s.created_at), now));
+    return { count: rows.length, total: rows.reduce((s, p) => s + Number(p.total_amount || 0), 0) };
+  }, [productSales]);
+
+  const ratingStats = useMemo(() => {
+    const list = reviews.map((r) => Number(r.barber_rating || 0)).filter((n) => n > 0);
+    return { avg: list.length ? list.reduce((a, b) => a + b, 0) / list.length : null, count: list.length };
+  }, [reviews]);
+
+  const { insights, objectives } = useMemo(
+    () => buildInsights(todaySummary, evolution, stats, monthlyGoal, productionMonth),
+    [todaySummary, evolution, stats, monthlyGoal, productionMonth],
+  );
+
+
+
   const handleManualRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
