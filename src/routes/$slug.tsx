@@ -2265,15 +2265,6 @@ function ShopPageComponent() {
           </motion.div>
         </section>
 
-        {/* FAQ por categorias */}
-        <PortalFaq
-          shop={shop}
-          productsEnabled={productsEnabled}
-          subscriptionsEnabled={subscriptionsEnabled}
-          cashbackEnabled={cashbackEnabled}
-          couponsEnabled={couponsEnabled}
-          loyaltyEnabled={loyaltyEnabled}
-        />
 
 
 
