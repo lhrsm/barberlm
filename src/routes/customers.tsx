@@ -28,13 +28,10 @@ import {
   UserPlus,
   Search,
   Phone,
-  Gift,
   Clock,
   User as UserIcon,
-  Star,
   Edit,
   Trash2,
-  Mail,
   Crown,
   Sparkles,
   CalendarPlus,
@@ -44,22 +41,17 @@ import {
   Users,
   DollarSign,
   CreditCard,
-  Cake,
   AlertCircle,
   Award,
   Gem,
   Medal,
-  Package,
-  History as HistoryIcon,
   Wallet,
 } from "lucide-react";
 import { format, differenceInDays, isAfter, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerCrmDialog } from "@/components/customers/crm/CustomerCrmDialog";
 
 export const Route = createFileRoute("/customers")({
   component: CustomersComponent,
@@ -273,6 +265,19 @@ function CustomersComponent() {
     }
   }
 
+  async function handleSaveNotes(notes: string) {
+    if (!user || !selectedCustomer) return;
+    const { error } = await supabase
+      .from("customers")
+      .update({ notes })
+      .eq("id", selectedCustomer.id)
+      .eq("tenant_id", user.id);
+    if (error) return toast.error("Erro ao salvar observações");
+    toast.success("Observações salvas!");
+    setSelectedCustomer({ ...selectedCustomer, notes });
+    fetchCustomers();
+  }
+
   const openEditDialog = (customer: any) => {
     setEditingCustomer({
       id: customer.id,
@@ -323,7 +328,9 @@ function CustomersComponent() {
         c.name?.toLowerCase().includes(term) ||
         c.phone?.includes(term) ||
         c.email?.toLowerCase().includes(term) ||
-        sub?.subscription_plans?.name?.toLowerCase().includes(term);
+        sub?.subscription_plans?.name?.toLowerCase().includes(term) ||
+        c.id?.toLowerCase().startsWith(term) ||
+        String(c.id || "").slice(0, 8).toLowerCase().includes(term);
       if (!matchSearch) return false;
 
       const days = daysSinceLast(c);
@@ -348,6 +355,10 @@ function CustomersComponent() {
           return days !== null && days >= 30 && days < 60;
         case "d60":
           return days !== null && days >= 60 && days < 90;
+        case "recurring":
+          return Number(c.total_visits || 0) >= 4 || (days !== null && days <= 45 && Number(c.total_visits || 0) >= 3);
+        case "new":
+          return !!c.created_at && isAfter(new Date(c.created_at), subDays(new Date(), 30));
         case "d90":
           return days !== null && days >= 90;
         default:
@@ -410,7 +421,7 @@ function CustomersComponent() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <Input
-              placeholder="Buscar por nome, telefone, e-mail ou plano..."
+              placeholder="Buscar por nome, telefone, e-mail, plano ou código..."
               className="pl-10 bg-[#0b0f17] border-[#1f2937] text-white focus:border-gold h-11 rounded-xl"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -424,6 +435,8 @@ function CustomersComponent() {
               { k: "vip", label: "VIP" },
               { k: "cashback", label: "Com Cashback" },
               { k: "credits", label: "Com Créditos" },
+              { k: "recurring", label: "Recorrentes" },
+              { k: "new", label: "Novos (30d)" },
               { k: "birthday", label: "🎂 Aniversariantes" },
               { k: "inactive", label: "Inativos" },
               { k: "d30", label: "Sem visita 30d" },
@@ -469,7 +482,7 @@ function CustomersComponent() {
         )}
 
         {/* Dialogs */}
-        <CustomerProfileDialog
+        <CustomerCrmDialog
           isOpen={isProfileOpen}
           onOpenChange={setIsProfileOpen}
           customer={selectedCustomer}
@@ -481,6 +494,7 @@ function CustomersComponent() {
           onEdit={() => {
             if (selectedCustomer) openEditDialog(selectedCustomer);
           }}
+          onSaveNotes={handleSaveNotes}
         />
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -776,307 +790,6 @@ function MiniStat({ label, value, accent = "text-white" }: any) {
     <div className="bg-white/[0.02] rounded-lg border border-white/5 px-2.5 py-2">
       <p className="text-[9px] uppercase text-slate-500 font-bold tracking-wider">{label}</p>
       <p className={cn("text-sm font-black leading-tight mt-0.5", accent)}>{value}</p>
-    </div>
-  );
-}
-
-// ============================================================
-// Profile Dialog
-// ============================================================
-
-function CustomerProfileDialog({
-  isOpen,
-  onOpenChange,
-  customer,
-  subscription,
-  shopProfile,
-  history,
-  products,
-  loading,
-  onEdit,
-}: any) {
-  if (!customer) return null;
-  const isSub = !!subscription;
-  const tier = getCustomerTier(customer, isSub);
-  const tierMeta = TIER_META[tier];
-
-  const totalSpent = Number(customer.total_spent || customer.lifetime_value || 0);
-  const visits = history.filter((h: any) => h.status === "completed").length || Number(customer.total_visits || 0);
-  const avgTicket = visits > 0 ? totalSpent / visits : 0;
-  const productsSpent = products.reduce((a: number, p: any) => a + Number(p.total_amount || 0), 0);
-
-  const plan = subscription?.subscription_plans;
-  const maxUses = plan?.max_uses_per_month ?? null;
-  const usesThis = subscription?.uses_this_period ?? 0;
-  const remaining = maxUses !== null ? Math.max(0, maxUses - usesThis) : null;
-  const monthlySavings = isSub && plan?.monthly_price ? Math.max(0, totalSpent - Number(plan.monthly_price) * 3) : 0;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col bg-[#0b0f17] border-[#1f2937] text-white p-0 overflow-hidden">
-        {/* Header */}
-        <div
-          className={cn(
-            "relative p-6 border-b border-[#1f2937]",
-            isSub && "bg-gradient-to-br from-[#1a1408] via-[#0b0f17] to-[#0b0f17]",
-          )}
-        >
-          {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gold via-[#F5C842] to-gold" />}
-          <DialogHeader>
-            <DialogTitle className="sr-only">Perfil de {customer.name}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col md:flex-row gap-5 items-start">
-            <div className="relative">
-              {customer.avatar_url ? (
-                <img src={customer.avatar_url} alt={customer.name} className={cn("h-20 w-20 rounded-full object-cover border-2", isSub ? "border-gold" : "border-slate-700")} />
-              ) : (
-                <div className={cn("h-20 w-20 rounded-full flex items-center justify-center text-2xl font-black border-2", isSub ? "border-gold bg-gradient-to-br from-gold/25 to-gold/5 text-gold" : "border-slate-700 bg-slate-800 text-slate-300")}>
-                  {initials(customer.name)}
-                </div>
-              )}
-              {isSub && (
-                <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-gold flex items-center justify-center border-2 border-[#0b0f17]">
-                  <Crown size={14} className="text-black" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-2xl font-black text-white">{customer.name}</h3>
-                {isSub ? (
-                  <Badge className="bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 hover:border-gold/60 text-[10px] font-black uppercase tracking-wider transition-colors">
-                    <Crown size={10} className="mr-1" /> Premium
-                  </Badge>
-                ) : (
-                  <Badge className="bg-slate-500/10 text-slate-300 border border-slate-500/30 hover:bg-slate-500/20 hover:border-slate-500/60 text-[10px] font-black uppercase tracking-wider transition-colors">Cliente</Badge>
-                )}
-
-                <Badge className={cn("text-[10px] font-black uppercase border", tierMeta.ring, tierMeta.color)}>{tierMeta.label}</Badge>
-              </div>
-              <div className="flex flex-wrap gap-4 mt-2 text-xs text-slate-400">
-                <span className="flex items-center gap-1"><Phone size={12} /> {customer.phone || "—"}</span>
-                {customer.email && <span className="flex items-center gap-1"><Mail size={12} /> {customer.email}</span>}
-                {customer.birth_date && <span className="flex items-center gap-1"><Cake size={12} /> {format(new Date(customer.birth_date), "dd/MM")}</span>}
-                <span className="flex items-center gap-1"><Clock size={12} /> Última: {customer.last_visit ? format(new Date(customer.last_visit), "dd/MM/yyyy") : "—"}</span>
-                <span>Cliente desde {customer.created_at ? format(new Date(customer.created_at), "MM/yyyy") : "—"}</span>
-              </div>
-              {isSub && plan && (
-                <div className="mt-2 text-sm text-gold font-bold">Plano {plan.name}</div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => openWhatsApp(customer.phone)} className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
-                <MessageCircle size={14} /> WhatsApp
-              </Button>
-              <Button size="sm" variant="outline" onClick={onEdit} className="border-slate-700 text-slate-200 hover:bg-white/5 gap-1.5">
-                <Edit size={14} /> Editar
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <div className="p-6 space-y-6">
-            {/* Summary stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <SummaryStat label="Atendimentos" value={visits} accent="text-white" />
-              <SummaryStat label="Valor gasto" value={formatBRL(totalSpent)} accent="text-emerald-400" />
-              <SummaryStat label="Ticket médio" value={formatBRL(avgTicket)} accent="text-white" />
-              <SummaryStat label="Produtos" value={formatBRL(productsSpent)} accent="text-white" />
-              <SummaryStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-gold" />
-              <SummaryStat label="Créditos" value={formatBRL(customer.credits)} accent="text-emerald-400" />
-              <SummaryStat label="Fidelidade" value={`${customer.loyalty_points || 0}/${shopProfile?.free_service_threshold || 10}`} accent="text-white" />
-              <SummaryStat label="Cashback usado" value={formatBRL(customer.cashback_used)} accent="text-slate-300" />
-            </div>
-
-            {/* Premium block */}
-            {isSub ? (
-              <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-gold/10 via-gold/[0.03] to-transparent p-5 relative overflow-hidden">
-                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
-                <div className="flex items-center gap-2 mb-4">
-                  <Crown className="text-gold" size={18} />
-                  <h4 className="font-black text-white uppercase text-sm tracking-wider">Assinatura Premium</h4>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <PremiumField label="Plano" value={plan?.name || "—"} />
-                  <PremiumField label="Status" value="Ativa" accent="text-emerald-400" />
-                  <PremiumField label="Adesão" value={subscription.started_at ? format(new Date(subscription.started_at), "dd/MM/yyyy") : "—"} />
-                  <PremiumField label="Renovação" value={subscription.next_billing_at ? format(new Date(subscription.next_billing_at), "dd/MM/yyyy") : "—"} />
-                  <PremiumField label="Mensalidade" value={formatBRL(plan?.monthly_price)} accent="text-gold" />
-                  <PremiumField label="Consumidos" value={usesThis} />
-                  <PremiumField label="Restantes" value={maxUses !== null ? remaining : "Ilimitado"} accent="text-gold" />
-                  <PremiumField label="Economia" value={formatBRL(monthlySavings)} accent="text-emerald-400" />
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-gold/40 bg-gold/[0.03] p-5 text-center">
-                <Crown className="mx-auto text-gold mb-2" size={26} />
-                <p className="text-white font-bold">Este cliente ainda não faz parte do Clube Barbex.</p>
-                <p className="text-slate-400 text-sm mt-1">Assinantes retornam mais e possuem maior fidelização.</p>
-                <Button onClick={() => openWhatsApp(customer.phone)} className="mt-3 bg-gradient-to-r from-gold to-[#F5C842] text-black font-bold hover:brightness-110">
-                  Oferecer Assinatura
-                </Button>
-              </div>
-            )}
-
-            {/* Tabs */}
-            <Tabs defaultValue="appointments">
-              <TabsList className="bg-[#111827] border border-[#1f2937] p-1 h-auto flex-wrap">
-                <TabsTrigger value="appointments" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-                  <HistoryIcon size={13} className="mr-1.5" /> Agendamentos
-                </TabsTrigger>
-                <TabsTrigger value="financial" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-                  <DollarSign size={13} className="mr-1.5" /> Financeiro
-                </TabsTrigger>
-                <TabsTrigger value="products" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-                  <Package size={13} className="mr-1.5" /> Produtos
-                </TabsTrigger>
-                <TabsTrigger value="loyalty" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-                  <Gift size={13} className="mr-1.5" /> Fidelidade
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="appointments" className="mt-4">
-                {loading ? (
-                  <p className="text-slate-500 text-center py-8 animate-pulse">Carregando...</p>
-                ) : history.length === 0 ? (
-                  <EmptyState icon={HistoryIcon} text="Nenhum agendamento encontrado" />
-                ) : (
-                  <div className="space-y-2">
-                    {history.map((app: any) => (
-                      <div key={app.id} className="flex items-center justify-between p-3 bg-[#111827] border border-[#1f2937] rounded-xl hover:border-gold/30 transition-all">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-white">{app.services?.name}</p>
-                          <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-slate-400">
-                            <span className="flex items-center gap-1"><Clock size={11} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
-                            <span className="flex items-center gap-1"><UserIcon size={11} /> {app.barbers?.name}</span>
-                            {app.total_price != null && <span className="text-gold font-bold">{formatBRL(app.total_price)}</span>}
-                            {app.payment_method && (
-                              <Badge variant="outline" className="text-[9px] py-0 h-4 uppercase border-slate-700 text-slate-500 bg-[#0b0f17]">
-                                {app.payment_method === "pix" ? "PIX" : app.payment_method === "credits" ? "Créditos" : app.payment_method === "cashback" ? "Cashback" : "Balcão"}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1.5">
-                          <Badge className={cn("text-[10px] uppercase font-bold border-none", app.status === "completed" ? "bg-green-500/10 text-green-500" : app.status === "scheduled" ? "bg-blue-500/10 text-blue-500" : "bg-red-500/10 text-red-500")}>
-                            {app.status === "completed" ? "Concluído" : app.status === "scheduled" ? "Agendado" : "Cancelado"}
-                          </Badge>
-                          {app.service_ratings?.[0] && (
-                            <div className="flex items-center gap-1 text-yellow-500">
-                              <Star size={10} fill="currentColor" />
-                              <span className="text-[10px] font-black">{app.service_ratings[0].rating}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="financial" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <SummaryStat label="Total gasto" value={formatBRL(totalSpent)} accent="text-emerald-400" />
-                  <SummaryStat label="Ticket médio" value={formatBRL(avgTicket)} accent="text-white" />
-                  <SummaryStat label="Cashback recebido" value={formatBRL(Number(customer.cashback_balance) + Number(customer.cashback_used || 0))} accent="text-gold" />
-                  <SummaryStat label="Cashback utilizado" value={formatBRL(customer.cashback_used)} accent="text-slate-300" />
-                  <SummaryStat label="Créditos recebidos" value={formatBRL(Number(customer.credits) + Number(customer.credits_used || 0))} accent="text-emerald-400" />
-                  <SummaryStat label="Créditos utilizados" value={formatBRL(customer.credits_used)} accent="text-slate-300" />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="products" className="mt-4">
-                {products.length === 0 ? (
-                  <EmptyState icon={Package} text="Nenhum produto adquirido" />
-                ) : (
-                  <div className="space-y-2">
-                    {products.map((p: any) => (
-                      <div key={p.id} className="flex items-center justify-between p-3 bg-[#111827] border border-[#1f2937] rounded-xl">
-                        <div>
-                          <p className="font-bold text-white text-sm">{Array.isArray(p.items) ? `${p.items.length} item(s)` : "Compra"}</p>
-                          <p className="text-[11px] text-slate-400">{format(new Date(p.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                        </div>
-                        <p className="text-gold font-black">{formatBRL(p.total_amount)}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="loyalty" className="mt-4 space-y-4">
-                <div className="rounded-xl p-4 bg-[#111827] border border-[#1f2937]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-bold text-sm">Programa Tradicional</span>
-                    <span className="text-gold font-black">
-                      {customer.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-[#1f2937] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-gold to-orange-500 transition-all"
-                      style={{
-                        width: `${Math.min(((customer.loyalty_points || 0) / (shopProfile?.free_service_threshold || 10)) * 100, 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-2">
-                    Faltam {Math.max(0, (shopProfile?.free_service_threshold || 10) - (customer.loyalty_points || 0))} atendimentos para o próximo prêmio.
-                  </p>
-                </div>
-                {isSub ? (
-                  <div className="rounded-xl p-4 border border-gold/30 bg-gold/5">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Crown size={14} className="text-gold" />
-                      <span className="text-white font-bold text-sm">Fidelidade Premium</span>
-                    </div>
-                    <p className="text-slate-300 text-xs">
-                      Assinante ativo do plano <span className="text-gold font-bold">{plan?.name}</span> — acumulando benefícios premium.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-xl p-4 border border-dashed border-slate-700 text-center text-slate-500 text-sm">
-                    Cliente não participa da Fidelidade Premium.
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-
-            {customer.notes && (
-              <div className="p-3 bg-blue-500/5 rounded-xl border border-blue-500/20 text-xs text-blue-200 italic">
-                "{customer.notes}"
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SummaryStat({ label, value, accent = "text-white" }: any) {
-  return (
-    <div className="rounded-xl bg-[#111827] border border-[#1f2937] p-3">
-      <p className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">{label}</p>
-      <p className={cn("text-lg font-black mt-1", accent)}>{value}</p>
-    </div>
-  );
-}
-
-function PremiumField({ label, value, accent = "text-white" }: any) {
-  return (
-    <div>
-      <p className="text-[9px] uppercase text-gold/70 font-bold tracking-wider">{label}</p>
-      <p className={cn("font-black mt-0.5", accent)}>{value}</p>
-    </div>
-  );
-}
-
-function EmptyState({ icon: Icon, text }: any) {
-  return (
-    <div className="text-center py-10">
-      <Icon className="mx-auto text-slate-700 mb-2" size={36} />
-      <p className="text-slate-500 text-sm">{text}</p>
     </div>
   );
 }
