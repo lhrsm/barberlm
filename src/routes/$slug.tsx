@@ -2983,6 +2983,16 @@ function ShopPageComponent() {
           </div>
         </section>
 
+        {/* FAQ por categorias */}
+        <PortalFaq
+          shop={shop}
+          productsEnabled={productsEnabled}
+          subscriptionsEnabled={subscriptionsEnabled}
+          cashbackEnabled={cashbackEnabled}
+          couponsEnabled={couponsEnabled}
+          loyaltyEnabled={loyaltyEnabled}
+        />
+
         {/* Portal CTA Section — Premium with image */}
         <section className="py-20 md:py-24 bg-[#0a0a0a] relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[120px] rounded-full pointer-events-none" style={{ backgroundColor: `${primaryColor}05` }} />
