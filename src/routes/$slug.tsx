@@ -2650,6 +2650,28 @@ function ShopPageComponent() {
                       </div>
                     </div>
                   </div>
+
+                  {Array.isArray(barber.specialties) && barber.specialties.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4 -mt-2">
+                      {barber.specialties.slice(0, 3).map((sp: string) => (
+                        <span
+                          key={sp}
+                          className="rounded-full border border-gold/25 bg-gold/[0.07] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gold"
+                        >
+                          {sp}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <Link
+                    to="/$slug/equipe/$barberId"
+                    params={{ slug, barberId: barber.id }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white/60 hover:text-gold transition-colors"
+                  >
+                    Ver perfil completo <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
                 </motion.div>
               ))}
             </div>
