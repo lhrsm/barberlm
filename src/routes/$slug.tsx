@@ -32,6 +32,8 @@ import { SubscribePlanModal } from "@/components/portal/SubscribePlanModal";
 import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
+import { AboutShop } from "@/components/public/AboutShop";
+
 
 
 import { PhoneInput } from 'react-international-phone';
