@@ -4,7 +4,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense, lazy } from "react";
+const ErpCenter = lazy(() => import("@/components/finances/erp/ErpCenter").then((m) => ({ default: m.ErpCenter })));
+
 import { useFinancesFilters } from "@/hooks/use-finances-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
