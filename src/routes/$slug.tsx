@@ -2200,8 +2200,17 @@ function ShopPageComponent() {
           {/* Background Image with Parallax effect could be added here */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10" />
           <div className="absolute inset-0 z-0">
-             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074')] bg-cover bg-center scale-105 animate-pulse duration-[10s]" />
+             <div
+               className="absolute inset-0 bg-cover bg-center scale-105"
+               style={{
+                 backgroundImage: `url('${
+                   (Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images[0]) ||
+                   "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074"
+                 }')`,
+               }}
+             />
           </div>
+
 
           <div className="relative z-20 max-w-5xl mx-auto px-4 text-center space-y-8">
             <motion.div
