@@ -4,7 +4,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
+
+const CommerceCenter = lazy(() => import("@/components/products/commerce/CommerceCenter"));
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -495,6 +497,9 @@ function ProductsComponent() {
           <Tabs value={productsTab} onValueChange={setProductsTab} className="w-full">
             {/* Desktop tabs */}
             <TabsList className="hidden md:inline-flex bg-[#0b0f17] border border-zinc-800/80 rounded-xl p-1 h-auto">
+              <TabsTrigger value="commerce" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#D4AF37] data-[state=active]:to-[#F5D061] data-[state=active]:text-black text-zinc-400">
+                <LayoutGrid size={16} /> Centro Comercial
+              </TabsTrigger>
               <TabsTrigger value="inventory" className="gap-2 h-10 px-4 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f59e0b] data-[state=active]:to-[#ea580c] data-[state=active]:text-white text-zinc-400">
                 <Package size={16} /> Estoque
               </TabsTrigger>
@@ -511,6 +516,7 @@ function ProductsComponent() {
               <div className="premium-tabs-scroll overflow-x-auto bg-[#050816] px-2 pt-2">
                 <div className="flex w-max min-w-full items-end gap-1">
                   {[
+                    { val: "commerce", label: "Centro Comercial", icon: LayoutGrid },
                     { val: "inventory", label: "Estoque", icon: Package },
                     { val: "billing", label: "Faturamento", icon: History },
                     { val: "history", label: "Histórico", icon: History },
@@ -537,7 +543,11 @@ function ProductsComponent() {
               </div>
             </div>
 
-
+            <TabsContent value="commerce" className="pt-6">
+              <Suspense fallback={<div className="h-64 rounded-3xl border border-white/10 bg-white/[0.03] animate-pulse" />}>
+                <CommerceCenter />
+              </Suspense>
+            </TabsContent>
 
             <TabsContent value="inventory" className="pt-6">
               <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5">
