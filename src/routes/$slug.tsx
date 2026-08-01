@@ -2301,7 +2301,16 @@ function ShopPageComponent() {
 
 
 
+        <AboutShop
+          shop={shop}
+          barbers={barbers}
+          services={services}
+          products={products}
+          testimonials={publicTestimonials}
+        />
+
         {/* Services Section */}
+
         <section id="servicos" className="py-24 bg-black relative">
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
