@@ -29,7 +29,8 @@ import {
   User,
   Layout,
   Gift,
-  ExternalLink
+  ExternalLink,
+  Radar
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";

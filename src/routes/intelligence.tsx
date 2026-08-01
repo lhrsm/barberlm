@@ -54,7 +54,7 @@ export const Route = createFileRoute("/intelligence")({
 
 function IntelligencePage() {
   const { tenantId } = useTenant();
-  const { data, isLoading, isFetching, refetch } = useIntelligenceData(tenantId);
+  const { data, isLoading, isFetching, refetch } = useIntelligenceData(tenantId ?? null);
   const iq = useMemo(() => buildIntelligence(data), [data]);
 
   const idleToday = iq.idle.today.reduce((s, i) => s + i.freeSlots, 0);
