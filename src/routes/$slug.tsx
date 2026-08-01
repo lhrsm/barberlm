@@ -133,6 +133,7 @@ function ShopPageComponent() {
   const isPortalRoute = location.pathname.includes('/portal');
   const isProfissionalRoute = location.pathname.includes('/profissional');
   const isProfessionalsRoute = location.pathname.includes('/professionals');
+  const isEquipeRoute = location.pathname.includes('/equipe');
 
   useEffect(() => {
     const handleScroll = () => {
