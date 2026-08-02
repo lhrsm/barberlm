@@ -2876,7 +2876,9 @@ function ShopPageComponent() {
                   Assine um plano mensal e tenha benefícios exclusivos todos os meses na {shop.business_name}.
                 </p>
               </div>
+              <SubscriptionValueProps plans={publicSubscriptionPlans} services={services} />
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
                 {publicSubscriptionPlans.slice(0, 6).map((plan, idx) => {
                   const benefits = Array.isArray(plan.benefits) ? plan.benefits : (Array.isArray(plan.included_benefits) ? plan.included_benefits : []);
                   return (
