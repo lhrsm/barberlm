@@ -53,6 +53,7 @@ import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
 import { Route as SubscriptionAddonsRouteImport } from './routes/subscription.addons'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
+import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
@@ -315,6 +316,11 @@ const ReviewTokenRoute = ReviewTokenRouteImport.update({
   id: '/review/$token',
   path: '/review/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ReceptionAgendaRoute = ReceptionAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => ReceptionRoute,
 } as any)
 const LoyaltyTemplatesRoute = LoyaltyTemplatesRouteImport.update({
   id: '/templates',
@@ -603,6 +609,7 @@ export interface FileRoutesByFullPath {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/reception/agenda': typeof ReceptionAgendaRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
@@ -688,6 +695,7 @@ export interface FileRoutesByTo {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/reception/agenda': typeof ReceptionAgendaRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
@@ -777,6 +785,7 @@ export interface FileRoutesById {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/reception/agenda': typeof ReceptionAgendaRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
@@ -867,6 +876,7 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/reception/agenda'
     | '/review/$token'
     | '/subscription/addons'
     | '/subscriptions/reports'
@@ -952,6 +962,7 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/reception/agenda'
     | '/review/$token'
     | '/subscription/addons'
     | '/subscriptions/reports'
@@ -1040,6 +1051,7 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/reception/agenda'
     | '/review/$token'
     | '/subscription/addons'
     | '/subscriptions/reports'
@@ -1432,6 +1444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reception/agenda': {
+      id: '/reception/agenda'
+      path: '/agenda'
+      fullPath: '/reception/agenda'
+      preLoaderRoute: typeof ReceptionAgendaRouteImport
+      parentRoute: typeof ReceptionRoute
+    }
     '/loyalty/templates': {
       id: '/loyalty/templates'
       path: '/templates'
@@ -1822,10 +1841,12 @@ const LoyaltyRouteWithChildren =
   LoyaltyRoute._addFileChildren(LoyaltyRouteChildren)
 
 interface ReceptionRouteChildren {
+  ReceptionAgendaRoute: typeof ReceptionAgendaRoute
   ReceptionIndexRoute: typeof ReceptionIndexRoute
 }
 
 const ReceptionRouteChildren: ReceptionRouteChildren = {
+  ReceptionAgendaRoute: ReceptionAgendaRoute,
   ReceptionIndexRoute: ReceptionIndexRoute,
 }
 

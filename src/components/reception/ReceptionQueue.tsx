@@ -48,7 +48,7 @@ function delayInfo(startTime: string, arrived: string | null) {
   return { label: `Atraso crítico (${diff} min)`, tone: "text-destructive" };
 }
 
-export function ReceptionQueue({ date }: { date?: string }) {
+export function ReceptionQueue({ date, barberId }: { date?: string; barberId?: string }) {
   const { tenantId, can } = useReception();
   const { updateStatus } = useAppointmentStatus();
   const queryClient = useQueryClient();
@@ -58,15 +58,14 @@ export function ReceptionQueue({ date }: { date?: string }) {
   const day = date || format(new Date(), "yyyy-MM-dd");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["reception-queue", tenantId, day],
+    queryKey: ["reception-queue", tenantId, day, barberId ?? "all"],
     enabled: !!tenantId,
     refetchInterval: 60_000,
     queryFn: async () => {
       const start = `${day}T00:00:00`;
       const end = `${day}T23:59:59`;
 
-      const [{ data: appts, error }, { data: checkins }] = await Promise.all([
-        supabase
+      let apptQuery = supabase
           .from("appointments")
           .select(
             "id, start_time, end_time, status, payment_method, payment_status, notes, source, walkin_ticket_number, customers(id, name, phone, avatar_url), barbers!appointments_barber_id_fkey(id, name, avatar_url), services(id, name, duration)",
@@ -74,7 +73,12 @@ export function ReceptionQueue({ date }: { date?: string }) {
           .eq("tenant_id", tenantId!)
           .gte("start_time", start)
           .lte("start_time", end)
-          .order("start_time", { ascending: true }),
+          .order("start_time", { ascending: true });
+
+      if (barberId) apptQuery = apptQuery.eq("barber_id", barberId);
+
+      const [{ data: appts, error }, { data: checkins }] = await Promise.all([
+        apptQuery,
         supabase
           .from("appointment_checkins")
           .select("appointment_id, checked_in_at")
