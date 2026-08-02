@@ -119,11 +119,11 @@ export const updateReceptionPermissions = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const tenantId = await requireOwner(context);
 
-    const patch: Record<string, any> = {};
+    const patch: { permissions?: Record<string, boolean>; is_active?: boolean } = {};
     if (data.permissions) patch.permissions = data.permissions;
     if (typeof data.is_active === "boolean") patch.is_active = data.is_active;
 
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("reception_permissions")
       .update(patch)
       .eq("user_id", data.user_id)
