@@ -33,6 +33,9 @@ import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availabil
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
+import { StoreHighlights } from "@/components/public/StoreHighlights";
+import { SubscriptionValueProps } from "@/components/public/SubscriptionValueProps";
+import { LoyaltySteps } from "@/components/public/LoyaltySteps";
 
 
 
@@ -2452,7 +2455,14 @@ function ShopPageComponent() {
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
             </div>
+            <StoreHighlights
+              products={products}
+              onView={(p) => setSelectedProductProductForModal(p)}
+              onAdd={(p) => toggleProduct(p)}
+              isInCart={(p) => !!selectedProducts.find((s: any) => s.id === p.id)}
+            />
             <div className="-mx-4 sm:mx-0 mt-3 mb-4 lg:mb-12 w-screen sm:w-auto overflow-hidden">
+
               <div
                 className="flex items-center gap-2.5 lg:gap-2 overflow-x-auto lg:overflow-visible lg:flex-wrap lg:justify-center px-4 py-2 lg:p-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                 style={{ scrollPaddingInline: 16, overscrollBehaviorInline: 'contain' }}
@@ -2873,7 +2883,9 @@ function ShopPageComponent() {
                   Assine um plano mensal e tenha benefícios exclusivos todos os meses na {shop.business_name}.
                 </p>
               </div>
+              <SubscriptionValueProps plans={publicSubscriptionPlans} services={services} />
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
                 {publicSubscriptionPlans.slice(0, 6).map((plan, idx) => {
                   const benefits = Array.isArray(plan.benefits) ? plan.benefits : (Array.isArray(plan.included_benefits) ? plan.included_benefits : []);
                   return (
@@ -3003,6 +3015,11 @@ function ShopPageComponent() {
                     </p>
                   </div>
                 )}
+                <LoyaltySteps
+                  required={publicLoyaltySettings?.appointments_required}
+                  benefit={publicLoyaltySettings?.benefit_description}
+                />
+
                 <Button
                   className="h-12 px-8 rounded-full bg-gold text-black font-black uppercase tracking-tighter hover:bg-gold/90"
                   onClick={handleBookingAction}
