@@ -4854,6 +4854,9 @@ export type Database = {
           pix_key: string | null
           pix_qr_code_url: string | null
           plan: string | null
+          portal_before_after: Json
+          portal_events: Json
+          portal_partners: Json
           primary_color: string | null
           responsible_name: string | null
           role: string | null
@@ -4912,6 +4915,9 @@ export type Database = {
           pix_key?: string | null
           pix_qr_code_url?: string | null
           plan?: string | null
+          portal_before_after?: Json
+          portal_events?: Json
+          portal_partners?: Json
           primary_color?: string | null
           responsible_name?: string | null
           role?: string | null
@@ -4970,6 +4976,9 @@ export type Database = {
           pix_key?: string | null
           pix_qr_code_url?: string | null
           plan?: string | null
+          portal_before_after?: Json
+          portal_events?: Json
+          portal_partners?: Json
           primary_color?: string | null
           responsible_name?: string | null
           role?: string | null
