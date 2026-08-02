@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PortalContentEditor } from "@/components/settings/PortalContentEditor";
 import { CheckinQRCard } from "@/components/settings/CheckinQRCard";
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
@@ -1058,6 +1059,14 @@ function SettingsComponent() {
                       )}
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider">Conteúdo do Portal</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <PortalContentEditor userId={user?.id} />
                 </CardContent>
               </Card>
               <CheckinQRCard />

@@ -36,6 +36,9 @@ import { AboutShop } from "@/components/public/AboutShop";
 import { StoreHighlights } from "@/components/public/StoreHighlights";
 import { SubscriptionValueProps } from "@/components/public/SubscriptionValueProps";
 import { LoyaltySteps } from "@/components/public/LoyaltySteps";
+import { BeforeAfterShowcase } from "@/components/public/BeforeAfterShowcase";
+import { PortalEvents } from "@/components/public/PortalEvents";
+import { PortalPartners } from "@/components/public/PortalPartners";
 
 
 
@@ -709,7 +712,10 @@ function ShopPageComponent() {
           selected_plan,
           opening_date,
           social_links,
-          gallery_images
+          gallery_images,
+          portal_before_after,
+          portal_events,
+          portal_partners
         `)
         .eq("slug", normalizedSlug)
         .maybeSingle();
@@ -2724,6 +2730,12 @@ function ShopPageComponent() {
             </div>
           </section>
         )}
+
+        <BeforeAfterShowcase items={(shop as any)?.portal_before_after} shopName={shop?.business_name} />
+
+        <PortalEvents items={(shop as any)?.portal_events} />
+
+        <PortalPartners items={(shop as any)?.portal_partners} />
 
         {/* Lightbox */}
         <AnimatePresence>
