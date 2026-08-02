@@ -3015,6 +3015,11 @@ function ShopPageComponent() {
                     </p>
                   </div>
                 )}
+                <LoyaltySteps
+                  required={publicLoyaltySettings?.appointments_required}
+                  benefit={publicLoyaltySettings?.benefit_description}
+                />
+
                 <Button
                   className="h-12 px-8 rounded-full bg-gold text-black font-black uppercase tracking-tighter hover:bg-gold/90"
                   onClick={handleBookingAction}
