@@ -46,6 +46,7 @@ import { Route as AccessibilityRouteImport } from './routes/accessibility'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionIndexRouteImport } from './routes/subscription.index'
+import { Route as ReceptionIndexRouteImport } from './routes/reception.index'
 import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
@@ -279,6 +280,11 @@ const SubscriptionIndexRoute = SubscriptionIndexRouteImport.update({
   id: '/subscription/',
   path: '/subscription/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ReceptionIndexRoute = ReceptionIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReceptionRoute,
 } as any)
 const LoyaltyIndexRoute = LoyaltyIndexRouteImport.update({
   id: '/',
@@ -557,7 +563,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
-  '/reception': typeof ReceptionRoute
+  '/reception': typeof ReceptionRouteWithChildren
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -603,6 +609,7 @@ export interface FileRoutesByFullPath {
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
+  '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -642,7 +649,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
-  '/reception': typeof ReceptionRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -688,6 +694,7 @@ export interface FileRoutesByTo {
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
+  '/reception': typeof ReceptionIndexRoute
   '/subscription': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -730,7 +737,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
-  '/reception': typeof ReceptionRoute
+  '/reception': typeof ReceptionRouteWithChildren
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -776,6 +783,7 @@ export interface FileRoutesById {
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
+  '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -865,6 +873,7 @@ export interface FileRouteTypes {
     | '/subscriptions/status'
     | '/admin/'
     | '/loyalty/'
+    | '/reception/'
     | '/subscription/'
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
@@ -904,7 +913,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-faq'
     | '/products'
-    | '/reception'
     | '/reviews'
     | '/security'
     | '/services'
@@ -950,6 +958,7 @@ export interface FileRouteTypes {
     | '/subscriptions/status'
     | '/admin'
     | '/loyalty'
+    | '/reception'
     | '/subscription'
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
@@ -1037,6 +1046,7 @@ export interface FileRouteTypes {
     | '/subscriptions/status'
     | '/admin/'
     | '/loyalty/'
+    | '/reception/'
     | '/subscription/'
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
@@ -1079,7 +1089,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivacyFaqRoute: typeof PrivacyFaqRoute
   ProductsRoute: typeof ProductsRoute
-  ReceptionRoute: typeof ReceptionRoute
+  ReceptionRoute: typeof ReceptionRouteWithChildren
   ReviewsRoute: typeof ReviewsRoute
   SecurityRoute: typeof SecurityRoute
   ServicesRoute: typeof ServicesRoute
@@ -1372,6 +1382,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/subscription/'
       preLoaderRoute: typeof SubscriptionIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/reception/': {
+      id: '/reception/'
+      path: '/'
+      fullPath: '/reception/'
+      preLoaderRoute: typeof ReceptionIndexRouteImport
+      parentRoute: typeof ReceptionRoute
     }
     '/loyalty/': {
       id: '/loyalty/'
@@ -1804,6 +1821,18 @@ const LoyaltyRouteChildren: LoyaltyRouteChildren = {
 const LoyaltyRouteWithChildren =
   LoyaltyRoute._addFileChildren(LoyaltyRouteChildren)
 
+interface ReceptionRouteChildren {
+  ReceptionIndexRoute: typeof ReceptionIndexRoute
+}
+
+const ReceptionRouteChildren: ReceptionRouteChildren = {
+  ReceptionIndexRoute: ReceptionIndexRoute,
+}
+
+const ReceptionRouteWithChildren = ReceptionRoute._addFileChildren(
+  ReceptionRouteChildren,
+)
+
 interface SubscriptionsRouteChildren {
   SubscriptionsReportsRoute: typeof SubscriptionsReportsRoute
   SubscriptionsStatusRoute: typeof SubscriptionsStatusRoute
@@ -1842,7 +1871,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivacyFaqRoute: PrivacyFaqRoute,
   ProductsRoute: ProductsRoute,
-  ReceptionRoute: ReceptionRoute,
+  ReceptionRoute: ReceptionRouteWithChildren,
   ReviewsRoute: ReviewsRoute,
   SecurityRoute: SecurityRoute,
   ServicesRoute: ServicesRoute,
