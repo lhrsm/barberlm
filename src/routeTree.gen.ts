@@ -21,6 +21,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyFaqRouteImport } from './routes/privacy-faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -152,6 +153,11 @@ const SecurityRoute = SecurityRouteImport.update({
 const ReviewsRoute = ReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceptionRoute = ReceptionRouteImport.update({
+  id: '/reception',
+  path: '/reception',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
+  '/reception': typeof ReceptionRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -635,6 +642,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
+  '/reception': typeof ReceptionRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -722,6 +730,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
+  '/reception': typeof ReceptionRoute
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -810,6 +819,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-faq'
     | '/products'
+    | '/reception'
     | '/reviews'
     | '/security'
     | '/services'
@@ -894,6 +904,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-faq'
     | '/products'
+    | '/reception'
     | '/reviews'
     | '/security'
     | '/services'
@@ -980,6 +991,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-faq'
     | '/products'
+    | '/reception'
     | '/reviews'
     | '/security'
     | '/services'
@@ -1067,6 +1079,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivacyFaqRoute: typeof PrivacyFaqRoute
   ProductsRoute: typeof ProductsRoute
+  ReceptionRoute: typeof ReceptionRoute
   ReviewsRoute: typeof ReviewsRoute
   SecurityRoute: typeof SecurityRoute
   ServicesRoute: typeof ServicesRoute
@@ -1183,6 +1196,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/reviews'
       preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reception': {
+      id: '/reception'
+      path: '/reception'
+      fullPath: '/reception'
+      preLoaderRoute: typeof ReceptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -1822,6 +1842,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivacyFaqRoute: PrivacyFaqRoute,
   ProductsRoute: ProductsRoute,
+  ReceptionRoute: ReceptionRoute,
   ReviewsRoute: ReviewsRoute,
   SecurityRoute: SecurityRoute,
   ServicesRoute: ServicesRoute,
