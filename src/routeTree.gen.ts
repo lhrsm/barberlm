@@ -54,6 +54,7 @@ import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions
 import { Route as SubscriptionAddonsRouteImport } from './routes/subscription.addons'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as ReceptionWaitingListRouteImport } from './routes/reception.waiting-list'
+import { Route as ReceptionCustomersRouteImport } from './routes/reception.customers'
 import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
@@ -321,6 +322,11 @@ const ReviewTokenRoute = ReviewTokenRouteImport.update({
 const ReceptionWaitingListRoute = ReceptionWaitingListRouteImport.update({
   id: '/waiting-list',
   path: '/waiting-list',
+  getParentRoute: () => ReceptionRoute,
+} as any)
+const ReceptionCustomersRoute = ReceptionCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => ReceptionRoute,
 } as any)
 const ReceptionAgendaRoute = ReceptionAgendaRouteImport.update({
@@ -616,6 +622,7 @@ export interface FileRoutesByFullPath {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/reception/agenda': typeof ReceptionAgendaRoute
+  '/reception/customers': typeof ReceptionCustomersRoute
   '/reception/waiting-list': typeof ReceptionWaitingListRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
@@ -703,6 +710,7 @@ export interface FileRoutesByTo {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/reception/agenda': typeof ReceptionAgendaRoute
+  '/reception/customers': typeof ReceptionCustomersRoute
   '/reception/waiting-list': typeof ReceptionWaitingListRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
@@ -794,6 +802,7 @@ export interface FileRoutesById {
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
   '/reception/agenda': typeof ReceptionAgendaRoute
+  '/reception/customers': typeof ReceptionCustomersRoute
   '/reception/waiting-list': typeof ReceptionWaitingListRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
@@ -886,6 +895,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/reception/agenda'
+    | '/reception/customers'
     | '/reception/waiting-list'
     | '/review/$token'
     | '/subscription/addons'
@@ -973,6 +983,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/reception/agenda'
+    | '/reception/customers'
     | '/reception/waiting-list'
     | '/review/$token'
     | '/subscription/addons'
@@ -1063,6 +1074,7 @@ export interface FileRouteTypes {
     | '/loyalty/dashboard'
     | '/loyalty/templates'
     | '/reception/agenda'
+    | '/reception/customers'
     | '/reception/waiting-list'
     | '/review/$token'
     | '/subscription/addons'
@@ -1463,6 +1475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReceptionWaitingListRouteImport
       parentRoute: typeof ReceptionRoute
     }
+    '/reception/customers': {
+      id: '/reception/customers'
+      path: '/customers'
+      fullPath: '/reception/customers'
+      preLoaderRoute: typeof ReceptionCustomersRouteImport
+      parentRoute: typeof ReceptionRoute
+    }
     '/reception/agenda': {
       id: '/reception/agenda'
       path: '/agenda'
@@ -1861,12 +1880,14 @@ const LoyaltyRouteWithChildren =
 
 interface ReceptionRouteChildren {
   ReceptionAgendaRoute: typeof ReceptionAgendaRoute
+  ReceptionCustomersRoute: typeof ReceptionCustomersRoute
   ReceptionWaitingListRoute: typeof ReceptionWaitingListRoute
   ReceptionIndexRoute: typeof ReceptionIndexRoute
 }
 
 const ReceptionRouteChildren: ReceptionRouteChildren = {
   ReceptionAgendaRoute: ReceptionAgendaRoute,
+  ReceptionCustomersRoute: ReceptionCustomersRoute,
   ReceptionWaitingListRoute: ReceptionWaitingListRoute,
   ReceptionIndexRoute: ReceptionIndexRoute,
 }
