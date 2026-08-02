@@ -2455,7 +2455,14 @@ function ShopPageComponent() {
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
             </div>
+            <StoreHighlights
+              products={products}
+              onView={(p) => setSelectedProductProductForModal(p)}
+              onAdd={(p) => toggleProduct(p)}
+              isInCart={(p) => !!selectedProducts.find((s: any) => s.id === p.id)}
+            />
             <div className="-mx-4 sm:mx-0 mt-3 mb-4 lg:mb-12 w-screen sm:w-auto overflow-hidden">
+
               <div
                 className="flex items-center gap-2.5 lg:gap-2 overflow-x-auto lg:overflow-visible lg:flex-wrap lg:justify-center px-4 py-2 lg:p-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                 style={{ scrollPaddingInline: 16, overscrollBehaviorInline: 'contain' }}
