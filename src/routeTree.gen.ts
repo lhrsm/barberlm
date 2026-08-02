@@ -21,6 +21,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyFaqRouteImport } from './routes/privacy-faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -45,12 +46,16 @@ import { Route as AccessibilityRouteImport } from './routes/accessibility'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionIndexRouteImport } from './routes/subscription.index'
+import { Route as ReceptionIndexRouteImport } from './routes/reception.index'
 import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
 import { Route as SubscriptionAddonsRouteImport } from './routes/subscription.addons'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
+import { Route as ReceptionWaitingListRouteImport } from './routes/reception.waiting-list'
+import { Route as ReceptionCustomersRouteImport } from './routes/reception.customers'
+import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
@@ -152,6 +157,11 @@ const SecurityRoute = SecurityRouteImport.update({
 const ReviewsRoute = ReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceptionRoute = ReceptionRouteImport.update({
+  id: '/reception',
+  path: '/reception',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -274,6 +284,11 @@ const SubscriptionIndexRoute = SubscriptionIndexRouteImport.update({
   path: '/subscription/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReceptionIndexRoute = ReceptionIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReceptionRoute,
+} as any)
 const LoyaltyIndexRoute = LoyaltyIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -303,6 +318,21 @@ const ReviewTokenRoute = ReviewTokenRouteImport.update({
   id: '/review/$token',
   path: '/review/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ReceptionWaitingListRoute = ReceptionWaitingListRouteImport.update({
+  id: '/waiting-list',
+  path: '/waiting-list',
+  getParentRoute: () => ReceptionRoute,
+} as any)
+const ReceptionCustomersRoute = ReceptionCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => ReceptionRoute,
+} as any)
+const ReceptionAgendaRoute = ReceptionAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => ReceptionRoute,
 } as any)
 const LoyaltyTemplatesRoute = LoyaltyTemplatesRouteImport.update({
   id: '/templates',
@@ -551,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
+  '/reception': typeof ReceptionRouteWithChildren
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -590,12 +621,16 @@ export interface FileRoutesByFullPath {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/reception/agenda': typeof ReceptionAgendaRoute
+  '/reception/customers': typeof ReceptionCustomersRoute
+  '/reception/waiting-list': typeof ReceptionWaitingListRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
+  '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -674,12 +709,16 @@ export interface FileRoutesByTo {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/reception/agenda': typeof ReceptionAgendaRoute
+  '/reception/customers': typeof ReceptionCustomersRoute
+  '/reception/waiting-list': typeof ReceptionWaitingListRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
+  '/reception': typeof ReceptionIndexRoute
   '/subscription': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -722,6 +761,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/privacy-faq': typeof PrivacyFaqRoute
   '/products': typeof ProductsRoute
+  '/reception': typeof ReceptionRouteWithChildren
   '/reviews': typeof ReviewsRoute
   '/security': typeof SecurityRoute
   '/services': typeof ServicesRoute
@@ -761,12 +801,16 @@ export interface FileRoutesById {
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
+  '/reception/agenda': typeof ReceptionAgendaRoute
+  '/reception/customers': typeof ReceptionCustomersRoute
+  '/reception/waiting-list': typeof ReceptionWaitingListRoute
   '/review/$token': typeof ReviewTokenRoute
   '/subscription/addons': typeof SubscriptionAddonsRoute
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
+  '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
@@ -810,6 +854,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-faq'
     | '/products'
+    | '/reception'
     | '/reviews'
     | '/security'
     | '/services'
@@ -849,12 +894,16 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/reception/agenda'
+    | '/reception/customers'
+    | '/reception/waiting-list'
     | '/review/$token'
     | '/subscription/addons'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
     | '/loyalty/'
+    | '/reception/'
     | '/subscription/'
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
@@ -933,12 +982,16 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/reception/agenda'
+    | '/reception/customers'
+    | '/reception/waiting-list'
     | '/review/$token'
     | '/subscription/addons'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin'
     | '/loyalty'
+    | '/reception'
     | '/subscription'
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
@@ -980,6 +1033,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-faq'
     | '/products'
+    | '/reception'
     | '/reviews'
     | '/security'
     | '/services'
@@ -1019,12 +1073,16 @@ export interface FileRouteTypes {
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
+    | '/reception/agenda'
+    | '/reception/customers'
+    | '/reception/waiting-list'
     | '/review/$token'
     | '/subscription/addons'
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
     | '/loyalty/'
+    | '/reception/'
     | '/subscription/'
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
@@ -1067,6 +1125,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivacyFaqRoute: typeof PrivacyFaqRoute
   ProductsRoute: typeof ProductsRoute
+  ReceptionRoute: typeof ReceptionRouteWithChildren
   ReviewsRoute: typeof ReviewsRoute
   SecurityRoute: typeof SecurityRoute
   ServicesRoute: typeof ServicesRoute
@@ -1183,6 +1242,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/reviews'
       preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reception': {
+      id: '/reception'
+      path: '/reception'
+      fullPath: '/reception'
+      preLoaderRoute: typeof ReceptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -1353,6 +1419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reception/': {
+      id: '/reception/'
+      path: '/'
+      fullPath: '/reception/'
+      preLoaderRoute: typeof ReceptionIndexRouteImport
+      parentRoute: typeof ReceptionRoute
+    }
     '/loyalty/': {
       id: '/loyalty/'
       path: '/'
@@ -1394,6 +1467,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/review/$token'
       preLoaderRoute: typeof ReviewTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/reception/waiting-list': {
+      id: '/reception/waiting-list'
+      path: '/waiting-list'
+      fullPath: '/reception/waiting-list'
+      preLoaderRoute: typeof ReceptionWaitingListRouteImport
+      parentRoute: typeof ReceptionRoute
+    }
+    '/reception/customers': {
+      id: '/reception/customers'
+      path: '/customers'
+      fullPath: '/reception/customers'
+      preLoaderRoute: typeof ReceptionCustomersRouteImport
+      parentRoute: typeof ReceptionRoute
+    }
+    '/reception/agenda': {
+      id: '/reception/agenda'
+      path: '/agenda'
+      fullPath: '/reception/agenda'
+      preLoaderRoute: typeof ReceptionAgendaRouteImport
+      parentRoute: typeof ReceptionRoute
     }
     '/loyalty/templates': {
       id: '/loyalty/templates'
@@ -1784,6 +1878,24 @@ const LoyaltyRouteChildren: LoyaltyRouteChildren = {
 const LoyaltyRouteWithChildren =
   LoyaltyRoute._addFileChildren(LoyaltyRouteChildren)
 
+interface ReceptionRouteChildren {
+  ReceptionAgendaRoute: typeof ReceptionAgendaRoute
+  ReceptionCustomersRoute: typeof ReceptionCustomersRoute
+  ReceptionWaitingListRoute: typeof ReceptionWaitingListRoute
+  ReceptionIndexRoute: typeof ReceptionIndexRoute
+}
+
+const ReceptionRouteChildren: ReceptionRouteChildren = {
+  ReceptionAgendaRoute: ReceptionAgendaRoute,
+  ReceptionCustomersRoute: ReceptionCustomersRoute,
+  ReceptionWaitingListRoute: ReceptionWaitingListRoute,
+  ReceptionIndexRoute: ReceptionIndexRoute,
+}
+
+const ReceptionRouteWithChildren = ReceptionRoute._addFileChildren(
+  ReceptionRouteChildren,
+)
+
 interface SubscriptionsRouteChildren {
   SubscriptionsReportsRoute: typeof SubscriptionsReportsRoute
   SubscriptionsStatusRoute: typeof SubscriptionsStatusRoute
@@ -1822,6 +1934,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivacyFaqRoute: PrivacyFaqRoute,
   ProductsRoute: ProductsRoute,
+  ReceptionRoute: ReceptionRouteWithChildren,
   ReviewsRoute: ReviewsRoute,
   SecurityRoute: SecurityRoute,
   ServicesRoute: ServicesRoute,
