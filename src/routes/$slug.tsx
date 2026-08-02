@@ -3354,6 +3354,8 @@ function ShopPageComponent() {
           );
         })()}
 
+        <div className="md:hidden h-20" aria-hidden />
+
         <PortalStickyCta
           onBook={handleBookingAction}
           whatsapp={(shop as any)?.whatsapp_number}
