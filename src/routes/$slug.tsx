@@ -33,6 +33,9 @@ import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availabil
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
+import { StoreHighlights } from "@/components/public/StoreHighlights";
+import { SubscriptionValueProps } from "@/components/public/SubscriptionValueProps";
+import { LoyaltySteps } from "@/components/public/LoyaltySteps";
 
 
 
