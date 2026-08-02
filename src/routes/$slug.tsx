@@ -39,6 +39,8 @@ import { LoyaltySteps } from "@/components/public/LoyaltySteps";
 import { BeforeAfterShowcase } from "@/components/public/BeforeAfterShowcase";
 import { PortalEvents } from "@/components/public/PortalEvents";
 import { PortalPartners } from "@/components/public/PortalPartners";
+import { PortalStickyCta } from "@/components/public/PortalStickyCta";
+import { PortalStructuredData } from "@/components/public/PortalStructuredData";
 
 
 
@@ -2098,6 +2100,8 @@ function ShopPageComponent() {
                     ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
                     ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
                     ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+                    ...(Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 ? [{ href: "#galeria", label: "Galeria" }] : []),
+                    ...(Array.isArray((shop as any)?.portal_events) && (shop as any).portal_events.length > 0 ? [{ href: "#eventos", label: "Eventos" }] : []),
                     { href: "#contato", label: "Contato" },
                   ].map((it) => (
                     <a
@@ -2179,6 +2183,10 @@ function ShopPageComponent() {
                           ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
                           ...(cashbackEnabled && shop?.cashback_enabled ? [{ href: "#cashback", label: "Cashback" }] : []),
                           ...(couponsEnabled && publicActiveCoupons.length > 0 ? [{ href: "#campanhas", label: "Campanhas" }] : []),
+                          ...(Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 ? [{ href: "#galeria", label: "Galeria" }] : []),
+                          ...(Array.isArray((shop as any)?.portal_before_after) && (shop as any).portal_before_after.length > 0 ? [{ href: "#antes-depois", label: "Antes & Depois" }] : []),
+                          ...(Array.isArray((shop as any)?.portal_events) && (shop as any).portal_events.length > 0 ? [{ href: "#eventos", label: "Eventos" }] : []),
+                          ...(Array.isArray((shop as any)?.portal_partners) && (shop as any).portal_partners.length > 0 ? [{ href: "#parceiros", label: "Parceiros" }] : []),
                           { href: "#contato", label: "Contato" },
                           { href: `/${shop.slug}/portal`, label: "Portal do Cliente" },
                         ].map((it) => (
@@ -3346,7 +3354,26 @@ function ShopPageComponent() {
           );
         })()}
 
-        {/* Mobile Bottom CTA removed — header + hero CTAs are sufficient */}
+        <div className="md:hidden h-20" aria-hidden />
+
+        <PortalStickyCta
+          onBook={handleBookingAction}
+          whatsapp={(shop as any)?.whatsapp_number}
+          shopName={shop?.business_name}
+          label={shop?.scheduling_mode === 'manual' ? 'Falar no WhatsApp' : 'Agendar agora'}
+        />
+
+        <PortalStructuredData
+          shop={shop}
+          slug={slug}
+          services={services}
+          ratingAverage={
+            publicTestimonials.length > 0
+              ? publicTestimonials.reduce((acc: number, t: any) => acc + (Number(t?.rating) || 0), 0) / publicTestimonials.length
+              : null
+          }
+          ratingCount={publicTestimonials.length || null}
+        />
 
       </main>
     </>
