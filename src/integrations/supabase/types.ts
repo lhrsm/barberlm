@@ -5077,6 +5077,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reception_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          permissions: Json
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       refund_audits: {
         Row: {
           changed_by_id: string | null
@@ -7604,6 +7634,82 @@ export type Database = {
         }
         Relationships: []
       }
+      waiting_list: {
+        Row: {
+          barber_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          customer_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          preferred_date: string | null
+          priority: string
+          service_id: string | null
+          status: string
+          tenant_id: string
+          time_range: string | null
+          updated_at: string
+        }
+        Insert: {
+          barber_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_date?: string | null
+          priority?: string
+          service_id?: string | null
+          status?: string
+          tenant_id: string
+          time_range?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barber_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_date?: string | null
+          priority?: string
+          service_id?: string | null
+          status?: string
+          tenant_id?: string
+          time_range?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiting_list_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiting_list_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiting_list_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet: {
         Row: {
           balance: number
@@ -8949,6 +9055,7 @@ export type Database = {
       }
       is_internal_test_tenant: { Args: { _user_id: string }; Returns: boolean }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_reception: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_super_admin_user: { Args: never; Returns: boolean }
       list_admin_event_catalog: {
@@ -9038,6 +9145,11 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: number
       }
+      reception_can: {
+        Args: { _action: string; _user_id: string }
+        Returns: boolean
+      }
+      reception_tenant_id: { Args: { _user_id: string }; Returns: string }
       reconcile_automation_logs: { Args: never; Returns: undefined }
       reconcile_expired_addons: {
         Args: never
@@ -9301,7 +9413,13 @@ export type Database = {
     Enums: {
       addon_access_source: "addon" | "plan" | "voucher"
       addon_billing_cycle: "monthly" | "annual"
-      app_role: "super_admin" | "admin" | "tenant_admin" | "barber" | "client"
+      app_role:
+        | "super_admin"
+        | "admin"
+        | "tenant_admin"
+        | "barber"
+        | "client"
+        | "reception"
       automation_flow_type: "single" | "multi"
       product_sale_status: "completed" | "cancelled" | "refunded"
     }
@@ -9433,7 +9551,14 @@ export const Constants = {
     Enums: {
       addon_access_source: ["addon", "plan", "voucher"],
       addon_billing_cycle: ["monthly", "annual"],
-      app_role: ["super_admin", "admin", "tenant_admin", "barber", "client"],
+      app_role: [
+        "super_admin",
+        "admin",
+        "tenant_admin",
+        "barber",
+        "client",
+        "reception",
+      ],
       automation_flow_type: ["single", "multi"],
       product_sale_status: ["completed", "cancelled", "refunded"],
     },
