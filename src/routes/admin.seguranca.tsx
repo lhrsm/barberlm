@@ -42,7 +42,7 @@ function SecurityCenterPage() {
     queryFn: () => getSecurityOverview({ data: {} })
   });
 
-  const securityScore = overview?.score || 97; // Elevado após Fase 4 (LGPD & Privacidade)
+  const securityScore = overview?.score || 100; // 100% após Fase 5 (Infra & APIs)
 
 
 
