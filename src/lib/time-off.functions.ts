@@ -1,7 +1,11 @@
-import { supabase } from "@/integrations/supabase/client";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { Database } from "@/integrations/supabase/types";
+
+const getSupabase = async () => {
+  const { supabase } = await import("@/integrations/supabase/client");
+  return supabase;
+};
 
 export type TimeOffType = Database["public"]["Enums"]["time_off_type"];
 export type TimeOffStatus = Database["public"]["Enums"]["time_off_status"];
@@ -30,7 +34,8 @@ export const getTimeOff = createServerFn({ method: "GET" })
     }).parse(data)
   )
   .handler(async ({ data }) => {
-    let query = supabase
+    const sb = await getSupabase();
+    let query = sb
       .from("professional_time_off")
       .select("*")
       .eq("professional_id", data.professionalId)
@@ -65,11 +70,12 @@ export const createTimeOff = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data }) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const sb = await getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
     if (!user) throw new Error("Unauthorized");
 
     // Get professional to find tenant_id
-    const { data: professional } = await supabase
+    const { data: professional } = await sb
       .from("barbers")
       .select("tenant_id")
       .eq("id", data.professional_id)
@@ -90,7 +96,7 @@ export const createTimeOff = createServerFn({ method: "POST" })
       requested_by: user.id
     };
 
-    const { data: timeOff, error } = await supabase
+    const { data: timeOff, error } = await sb
       .from("professional_time_off")
       .insert(insertData)
       .select()
@@ -119,7 +125,8 @@ export const updateTimeOff = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data }) => {
-    const { data: timeOff, error } = await supabase
+    const sb = await getSupabase();
+    const { data: timeOff, error } = await sb
       .from("professional_time_off")
       .update(data.updates as any)
       .eq("id", data.id)
@@ -133,7 +140,8 @@ export const updateTimeOff = createServerFn({ method: "POST" })
 export const deleteTimeOff = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const { error } = await supabase
+    const sb = await getSupabase();
+    const { error } = await sb
       .from("professional_time_off")
       .delete()
       .eq("id", data.id);
@@ -151,7 +159,8 @@ export const checkConflicts = createServerFn({ method: "GET" })
     }).parse(data)
   )
   .handler(async ({ data }) => {
-    const { data: conflicts, error } = await supabase.rpc("check_time_off_conflicts", {
+    const sb = await getSupabase();
+    const { data: conflicts, error } = await sb.rpc("check_time_off_conflicts", {
       p_professional_id: data.professionalId,
       p_starts_at: data.startsAt,
       p_ends_at: data.endsAt
