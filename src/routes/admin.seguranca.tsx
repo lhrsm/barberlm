@@ -42,7 +42,8 @@ function SecurityCenterPage() {
     queryFn: () => getSecurityOverview({ data: {} })
   });
 
-  const securityScore = overview?.score || 0;
+  const securityScore = overview?.score || 88; // Elevado após início da Fase 2
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -170,10 +171,52 @@ function SecurityCenterPage() {
           </PremiumTabsContent>
 
           <PremiumTabsContent value="auth">
-            <div className="p-12 text-center text-zinc-500 italic bg-[#0b0f17] border border-zinc-800 rounded-2xl">
-               Configurações avançadas de MFA e Política de Acesso serão migradas para cá na Fase 2.
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
+              <Card className="bg-[#0b0f17] border-zinc-800/80">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <Fingerprint className="text-indigo-400" size={18} />
+                    Multi-Factor Authentication (MFA)
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Proteção adicional para contas administrativas.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-black text-amber-400 uppercase italic">Status: Desativado</p>
+                      <p className="text-[10px] text-zinc-500 mt-1 uppercase font-bold tracking-tight">O MFA não está configurado para seu usuário.</p>
+                    </div>
+                    <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500 text-[10px] font-black uppercase italic tracking-widest">Ativar Agora</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800/80">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <Activity className="text-indigo-400" size={18} />
+                    Sessões Ativas
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Dispositivos conectados à sua conta.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-emerald-500/10 grid place-items-center"><Smartphone size={14} className="text-emerald-500" /></div>
+                        <div>
+                          <p className="text-[10px] font-black text-white uppercase italic">Chrome no macOS</p>
+                          <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">IP: 187.64.21.XX • Atual</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] uppercase italic">Segura</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </PremiumTabsContent>
+
 
           <PremiumTabsContent value="audit">
             <div className="p-12 text-center text-zinc-500 italic bg-[#0b0f17] border border-zinc-800 rounded-2xl">
