@@ -1,6 +1,8 @@
 import { useMemo, memo } from "react";
-import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock } from "lucide-react";
+import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock, Users, ArrowUpRight, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   name?: string | null;
@@ -107,53 +109,113 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
     .join(" ");
 
   return (
-    <section
-      aria-label="Resumo executivo"
-      className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-gradient-to-br from-[#0b0f17] via-[#0b0f17] to-[#12100a] p-5 md:p-6"
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-amber-500/10 blur-[90px]"
-      />
-      <div className="relative space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-px w-8 bg-amber-500" aria-hidden />
-          <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
-            Resumo executivo
-          </span>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <Badge variant="gold" className="px-4 py-1.5 uppercase tracking-widest font-black text-[10px] animate-glow">
+            <Sparkles className="h-3 w-3 mr-2 fill-current" />
+            Visão Executiva
+          </Badge>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tightest">
+            {greeting()}, <span className="text-gradient-gold italic">{name?.split(' ')[0] || 'Comandante'}</span>
+          </h1>
+          <p className="text-muted-foreground font-bold flex items-center gap-2">
+            <Clock className="h-4 w-4 text-gold/60" />
+            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
+          </p>
         </div>
 
-        <div>
-          <h2 className="text-xl font-black tracking-tight text-white md:text-2xl">
-            {greeting()}
-            {name ? `, ${String(name).split(" ")[0]}` : ""}.
-          </h2>
-          {loading ? (
-            <div className="mt-2 h-4 w-3/4 animate-pulse rounded bg-white/10" />
-          ) : (
-            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-400">{sentence}</p>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {chips.map((c) => (
-            <div
-              key={c.label}
-              className={cn(
-                "inline-flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2 transition-transform duration-300 hover:-translate-y-0.5",
-                c.tone,
-              )}
-              title={c.label}
-            >
-              <c.icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                {c.label}
-              </span>
-              <span className="truncate text-sm font-black">{c.value}</span>
+        {birthdaysCount > 0 && (
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-gold/5 border border-gold/20 shadow-gold/5 animate-bounce">
+            <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
+              <Cake className="h-5 w-5 text-gold" />
             </div>
-          ))}
-        </div>
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-gold/60">Aniversariantes</div>
+              <div className="text-sm font-black">{birthdaysCount} clientes celebram hoje</div>
+            </div>
+          </div>
+        )}
       </div>
-    </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Faturamento Hoje"
+          value={brl(m.revenue)}
+          icon={<CircleDollarSign className="h-5 w-5" />}
+          trend={m.ticketDelta}
+          label="vs média mensal"
+          variant="gold"
+        />
+        <MetricCard
+          title="Agendamentos"
+          value={m.active}
+          icon={<CalendarCheck className="h-5 w-5" />}
+          label={`${m.completed} concluídos hoje`}
+          variant="default"
+        />
+        <MetricCard
+          title="Taxa de Ocupação"
+          value={`${m.completionRate.toFixed(0)}%`}
+          icon={<Target className="h-5 w-5" />}
+          label="Eficiência de atendimento"
+          variant="default"
+        />
+        <MetricCard
+          title="Novos Clientes"
+          value={m.newCustomers}
+          icon={<Users className="h-5 w-5" />}
+          label="Expansão da base"
+          variant="default"
+        />
+      </div>
+    </div>
   );
 });
+
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  trend?: number | null;
+  label: string;
+  variant?: 'gold' | 'default';
+}
+
+function MetricCard({ title, value, icon, trend, label, variant = 'default' }: MetricCardProps) {
+  return (
+    <Card className={cn(
+      "relative group overflow-hidden shine",
+      variant === 'gold' && "border-gold/20 bg-gold/[0.03]"
+    )}>
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300",
+            variant === 'gold' ? "bg-gold/10 text-gold" : "bg-surface-raised text-muted-foreground"
+          )}>
+            {icon}
+          </div>
+          {trend !== undefined && trend !== null && (
+            <Badge variant={trend >= 0 ? "success" : "destructive"} className="font-black text-[10px]">
+              {trend >= 0 ? '+' : ''}{trend.toFixed(1)}%
+            </Badge>
+          )}
+        </div>
+        
+        <div className="space-y-1">
+          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{title}</div>
+          <div className="text-3xl font-black tracking-tight">{value}</div>
+          <div className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+            {label}
+            {trend !== undefined && trend !== null && <ArrowUpRight className={cn("h-3 w-3", trend >= 0 ? "text-success" : "text-destructive")} />}
+          </div>
+        </div>
+      </CardContent>
+      
+      {variant === 'gold' && (
+        <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-gold/5 blur-3xl rounded-full" />
+      )}
+    </Card>
+  );
+}

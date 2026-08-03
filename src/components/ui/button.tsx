@@ -10,20 +10,20 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground shadow-soft hover:brightness-110 hover:shadow-gold",
-        gold: "bg-gradient-gold text-gold-foreground shadow-gold hover:brightness-105",
+        gold: "bg-gradient-gold text-gold-foreground shadow-gold hover:brightness-105 shine",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90 hover:brightness-110",
         success: "bg-success text-success-foreground shadow-soft hover:brightness-110",
         outline:
-          "border border-hairline bg-surface-raised/60 text-foreground shadow-soft hover:border-gold/50 hover:bg-surface-raised hover:text-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/80",
-        ghost: "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          "border border-hairline bg-surface-raised/40 text-foreground shadow-soft hover:border-gold/50 hover:bg-surface-raised hover:text-foreground",
+        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:brightness-110",
+        ghost: "text-muted-foreground hover:bg-gold/10 hover:text-gold hover:border-gold/20 border border-transparent",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-12 w-full px-4",
+        default: "h-11 w-full px-5 md:w-auto",
         sm: "h-9 rounded-lg px-3 text-xs",
-        lg: "h-12 rounded-2xl px-8 text-base",
+        lg: "h-13 rounded-2xl px-10 text-base font-bold",
         icon: "h-11 w-11 rounded-xl",
       },
     },
