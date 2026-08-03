@@ -4,8 +4,6 @@ import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
-
-
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     console.log("[Auth Middleware] 🔐 Verificando autenticação Supabase...");
@@ -15,8 +13,8 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       if (typeof window === 'undefined') {
-        // Only warn during local dev SSR where env vars might be missing
         console.warn("[Supabase Auth Middleware] Skipping auth check during SSR: Missing env vars");
+        // @ts-ignore - Allowing next() without the expected context for SSR fallback
         return next();
       }
       const message = `Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud.`;

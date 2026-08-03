@@ -9,9 +9,13 @@ function createSupabaseClient() {
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     if (typeof window === 'undefined') {
-      // Return a dummy client or handle it safely in SSR
       console.warn(`[Supabase SSR] Missing env vars. Returning a partial client.`);
-      return { auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }) } } as any;
+      return { 
+        auth: { 
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+          getSession: async () => ({ data: { session: null }, error: null })
+        } 
+      } as any;
     }
     const message = `Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud.`;
     console.error(`[Supabase] ${message}`);
@@ -89,5 +93,6 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return value;
   },
 });
+
 
 
