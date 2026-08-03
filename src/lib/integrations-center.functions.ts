@@ -20,7 +20,7 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
 
     const { data: whatsappInstances } = await supabaseAdmin
       .from("whatsapp_instances")
-      .select("id, status, last_activity_at")
+      .select("id, status, updated_at")
       .eq("tenant_id", data.tenantId)
       .limit(1);
 

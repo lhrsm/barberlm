@@ -21,8 +21,10 @@ import {
   ExternalLink,
   Lock,
   Calendar,
-  Layers
+  Layers,
+  Activity
 } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -255,4 +257,3 @@ export const Route = createFileRoute("/dashboard/integracoes")({
   component: withModule("integrations_center", "Central de Integrações", IntegrationsCenterPage),
 });
 
-import { Activity } from "lucide-react";
