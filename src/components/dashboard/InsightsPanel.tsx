@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { Lightbulb, AlertTriangle, TrendingUp, Cake, Clock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +13,7 @@ type Insight = { id: string; text: string; tone: "info" | "warn" | "good"; icon:
 
 const brl = (v: number) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function InsightsPanel({ appointments, stats, barbers = [], birthdaysCount = 0 }: Props) {
+export const InsightsPanel = memo(({ appointments, stats, barbers = [], birthdaysCount = 0 }: Props) => {
   const insights = useMemo<Insight[]>(() => {
     const list = appointments || [];
     const out: Insight[] = [];
@@ -183,4 +183,4 @@ export function InsightsPanel({ appointments, stats, barbers = [], birthdaysCoun
       </ul>
     </section>
   );
-}
+});

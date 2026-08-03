@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ function greeting(d = new Date()) {
 const brl = (v: number) =>
   (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function ExecutiveSummary({ name, appointments, stats, birthdaysCount = 0, loading }: Props) {
+export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCount = 0, loading }: Props) => {
   const m = useMemo(() => {
     const list = appointments || [];
     const total = list.length;
@@ -156,4 +156,4 @@ export function ExecutiveSummary({ name, appointments, stats, birthdaysCount = 0
       </div>
     </section>
   );
-}
+});

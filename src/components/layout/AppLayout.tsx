@@ -1,4 +1,4 @@
-import { useState, useEffect, useId, useCallback } from "react";
+import { useState, useEffect, useId, useCallback, memo } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { 
   Calendar, 
@@ -88,7 +88,7 @@ const barberNavItems = (slug: string) => [
 ];
 
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const instanceId = useId().replace(/:/g, "");
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId, isLoading: tenantLoading } = useTenant();
@@ -364,7 +364,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-}
+});
 
 function InternalTestingBannerSlot() {
   const { isInternalTesting } = useBillingContext();
