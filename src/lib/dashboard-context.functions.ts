@@ -3,17 +3,11 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const resolveDashboardContext = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
-    // 1. Get user session from auth-middleware (injected by attachSupabaseAuth)
-    // In TanStack Start, context.supabase is available if middleware is used.
-    // However, for this core resolver, we'll use the user ID from the request context
-    // which is populated by the auth attacher.
-    
     const userId = (context as any).userId;
     if (!userId) {
       return { role: 'guest', permissions: [] };
     }
 
-    // 2. Fetch profile and role in a single privileged call to avoid RLS circularity during context resolution
     const [{ data: profile }, { data: userRole }] = await Promise.all([
       supabaseAdmin
         .from("profiles")
@@ -30,28 +24,34 @@ export const resolveDashboardContext = createServerFn({ method: "GET" })
     const role = userRole?.role || profile?.role || 'client';
     const tenantId = profile?.tenant_id;
 
-    // 3. Fetch active modules and plan if tenant exists
     let modules: string[] = [];
     let plan = 'free';
+    
     if (tenantId) {
       const { data: tenantModules } = await supabaseAdmin
-        .from("tenant_modules")
+        .from("barbershop_modules" as any)
         .select("module_key")
         .eq("tenant_id", tenantId)
         .eq("enabled", true);
       
       const { data: subscription } = await supabaseAdmin
         .from("subscriptions")
-        .select("plan_id, status")
+        .select("price_id, billing_status")
         .eq("user_id", tenantId)
-        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      modules = tenantModules?.map(m => m.module_key) || [];
-      plan = subscription?.plan_id || 'free';
+      modules = tenantModules?.map((m: any) => m.module_key) || [];
+      
+      if (subscription?.price_id) {
+        plan = String(subscription.price_id).split('_')[0].toLowerCase();
+      } else if (profile?.role === 'admin' || profile?.role === 'tenant_admin') {
+        // Fallback or trial check could go here
+        plan = 'trial';
+      }
     }
 
-    // 4. Map role to allowed dashboard sections and default routes
     const dashboardMap: Record<string, { route: string, sections: string[] }> = {
       'super_admin': { 
         route: '/admin/dashboard', 
