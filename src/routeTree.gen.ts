@@ -62,6 +62,7 @@ import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
 import { Route as DashboardMembershipRouteImport } from './routes/dashboard.membership'
+import { Route as DashboardIntegracoesRouteImport } from './routes/dashboard.integracoes'
 import { Route as DashboardCrmRouteImport } from './routes/dashboard.crm'
 import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard/communications'
 import { Route as DashboardCentroDeComandoRouteImport } from './routes/dashboard.centro-de-comando'
@@ -372,6 +373,11 @@ const DashboardMembershipRoute = DashboardMembershipRouteImport.update({
   path: '/membership',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardIntegracoesRoute = DashboardIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCrmRoute = DashboardCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -674,6 +680,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/crm': typeof DashboardCrmRoute
+  '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
@@ -770,6 +777,7 @@ export interface FileRoutesByTo {
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/crm': typeof DashboardCrmRoute
+  '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
@@ -870,6 +878,7 @@ export interface FileRoutesById {
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/crm': typeof DashboardCrmRoute
+  '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
@@ -971,6 +980,7 @@ export interface FileRouteTypes {
     | '/dashboard/centro-de-comando'
     | '/dashboard/communications'
     | '/dashboard/crm'
+    | '/dashboard/integracoes'
     | '/dashboard/membership'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
@@ -1067,6 +1077,7 @@ export interface FileRouteTypes {
     | '/dashboard/centro-de-comando'
     | '/dashboard/communications'
     | '/dashboard/crm'
+    | '/dashboard/integracoes'
     | '/dashboard/membership'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
@@ -1166,6 +1177,7 @@ export interface FileRouteTypes {
     | '/dashboard/centro-de-comando'
     | '/dashboard/communications'
     | '/dashboard/crm'
+    | '/dashboard/integracoes'
     | '/dashboard/membership'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
@@ -1630,6 +1642,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMembershipRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/integracoes': {
+      id: '/dashboard/integracoes'
+      path: '/integracoes'
+      fullPath: '/dashboard/integracoes'
+      preLoaderRoute: typeof DashboardIntegracoesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/crm': {
       id: '/dashboard/crm'
       path: '/crm'
@@ -2011,6 +2030,7 @@ interface DashboardRouteChildren {
   DashboardCentroDeComandoRoute: typeof DashboardCentroDeComandoRoute
   DashboardCommunicationsRoute: typeof DashboardCommunicationsRoute
   DashboardCrmRoute: typeof DashboardCrmRoute
+  DashboardIntegracoesRoute: typeof DashboardIntegracoesRoute
   DashboardMembershipRoute: typeof DashboardMembershipRoute
 }
 
@@ -2020,6 +2040,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCentroDeComandoRoute: DashboardCentroDeComandoRoute,
   DashboardCommunicationsRoute: DashboardCommunicationsRoute,
   DashboardCrmRoute: DashboardCrmRoute,
+  DashboardIntegracoesRoute: DashboardIntegracoesRoute,
   DashboardMembershipRoute: DashboardMembershipRoute,
 }
 
@@ -2148,3 +2169,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
