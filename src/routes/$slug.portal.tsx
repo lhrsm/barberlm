@@ -1217,7 +1217,7 @@ function ClientPortalComponent() {
               products={products}
               subscriptionsEnabled={subscriptionsEnabled}
               onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
-              onNavigate={(tab) => setActiveTab(tab)}
+              onNavigate={(tab: string) => setActiveTab(tab)}
             />
           </div>
         )}
