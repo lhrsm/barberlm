@@ -78,6 +78,8 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Produtos", icon: ShoppingBag, to: "/products", module: "products" },
   { label: "Automações", icon: MessageSquare, to: "/automations", module: "automations" },
   { label: "Campanhas", icon: Megaphone, to: "/campaigns", module: "campaigns" },
+  { label: "Integrações", icon: Share2, to: "/dashboard/integracoes", module: "integrations_center" },
+
   { label: "Integrações", icon: Share2, to: "/integrations", module: "integrations" },
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials", module: "tutorials" },
   { label: "Suporte", icon: Headset, to: "/support", module: "support" },

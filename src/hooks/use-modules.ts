@@ -22,7 +22,9 @@ export type ModuleKey =
   | "white_label"
     | "api_access"
     | "corporate_reports"
-    | "communications";
+    | "communications"
+    | "integrations_center";
+
 
 
 // Módulos sempre habilitados (essenciais do core)
@@ -52,7 +54,9 @@ export const DEFAULT_MODULES: Record<string, boolean> = {
   pix_key: false,
   subscription_rewards: false,
   communications: true,
+  integrations_center: true,
 };
+
 
 
 export interface PlanInfo {
