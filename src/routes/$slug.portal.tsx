@@ -2176,13 +2176,15 @@ function ClientPortalComponent() {
                     </DialogContent>
                   </Dialog>
                 </div>
-              );
-            })()}
-          </TabsContent>
+                );
+              })()}
+            </div>
           )}
 
+
           {mySubscription && (
-          <TabsContent value="card" className="pt-6">
+          {mySubscription && activeTab === "card" && (
+            <div className="pt-6">
             {(() => {
               const status = mySubscription.status as string;
               const isActive = status === "active";
@@ -2251,7 +2253,7 @@ function ClientPortalComponent() {
                 </div>
               );
             })()}
-          </div>
+            </div>
           )}
 
           {mySubscription && activeTab === "club" && (
