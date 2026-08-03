@@ -20,9 +20,12 @@ import {
   Filter,
   ArrowRight
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useModules } from "@/hooks/use-modules";
 import { CustomerCrmDialog } from "@/components/customers/crm/CustomerCrmDialog";
 import { computeKpis, formatBRL } from "@/components/customers/crm/metrics";
 import { useCustomerCrm } from "@/components/customers/crm/useCustomerCrm";
+
 
 export const Route = createFileRoute("/dashboard/crm")({
   component: CRM360Page,
