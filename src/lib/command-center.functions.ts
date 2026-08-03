@@ -19,7 +19,7 @@ export const resolveCommandCenterContext = createServerFn({ method: "GET" })
       .eq("id", userId)
       .single();
 
-    if (!profile) throw new Error("Profile not found");
+    if (!profile || !profile.tenant_id) throw new Error("Profile or Tenant not found");
     const tenantId = profile.tenant_id;
 
     // Use a business date reference (Today in local time)
@@ -27,7 +27,7 @@ export const resolveCommandCenterContext = createServerFn({ method: "GET" })
     const startOfDay = `${today}T00:00:00Z`;
     const endOfDay = `${today}T23:59:59Z`;
 
-    // 2. Aggregate Data in Parallel
+    // 2. Aggregate Data in Parallel with safer type handling
     const [
       barbershop,
       professionals,
@@ -43,7 +43,7 @@ export const resolveCommandCenterContext = createServerFn({ method: "GET" })
       authSupabase.from("appointments").select("*").eq("tenant_id", tenantId).gte("start_time", startOfDay).lte("start_time", endOfDay),
       authSupabase.from("waiting_list" as any).select("*").eq("tenant_id", tenantId).eq("status", "waiting"),
       authSupabase.from("cash_registers" as any).select("*").eq("tenant_id", tenantId).eq("status", "open").maybeSingle(),
-      authSupabase.from("transactions").select("*").eq("tenant_id", tenantId).eq("status", "pending").gte("date", startOfDay),
+      authSupabase.from("transactions").select("*").eq("tenant_id", tenantId).eq("status", "pending"),
       authSupabase.from("product_orders" as any).select("*").eq("tenant_id", tenantId).in("status", ["pending", "preparing"]),
       authSupabase.from("operational_insights" as any).select("*").eq("tenant_id", tenantId).eq("status", "active").limit(5)
     ]);
@@ -51,22 +51,21 @@ export const resolveCommandCenterContext = createServerFn({ method: "GET" })
     // 3. Construct Operational Status
     const activeProfCount = professionals.data?.length || 0;
     const waitingCount = waitingClients.data?.length || 0;
-    const currentApps = appointments.data?.filter(a => a.status === 'confirmed' || a.status === 'in_progress') || [];
     
     return {
       barbershop: barbershop.data,
       metrics: {
         active_professionals: activeProfCount,
         waiting_clients: waitingCount,
-        in_progress: appointments.data?.filter(a => a.status === 'in_progress').length || 0,
+        in_progress: (appointments.data as any[])?.filter(a => a.status === 'in_progress').length || 0,
         pending_payments: pendingPayments.data?.length || 0,
         pending_orders: pendingOrders.data?.length || 0
       },
-      appointments: appointments.data || [],
-      waiting_list: waitingClients.data || [],
-      cash_register: cashRegister.data,
-      alerts: insights.data || [],
-      professionals: professionals.data || [],
+      appointments: (appointments.data as any[]) || [],
+      waiting_list: (waitingClients.data as any[]) || [],
+      cash_register: cashRegister.data as any,
+      alerts: (insights.data as any[]) || [],
+      professionals: (professionals.data as any[]) || [],
       business_date: today
     };
   });

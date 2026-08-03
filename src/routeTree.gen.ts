@@ -61,6 +61,7 @@ import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
+import { Route as DashboardCentroDeComandoRouteImport } from './routes/dashboard.centro-de-comando'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
@@ -362,6 +363,12 @@ const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => LoyaltyRoute,
 } as any)
+const DashboardCentroDeComandoRoute =
+  DashboardCentroDeComandoRouteImport.update({
+    id: '/centro-de-comando',
+    path: '/centro-de-comando',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardAssistenteRoute = DashboardAssistenteRouteImport.update({
   id: '/assistente',
   path: '/assistente',
@@ -639,6 +646,7 @@ export interface FileRoutesByFullPath {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
+  '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -730,6 +738,7 @@ export interface FileRoutesByTo {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
+  '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -825,6 +834,7 @@ export interface FileRoutesById {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
+  '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -921,6 +931,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/dashboard/assistente'
+    | '/dashboard/centro-de-comando'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1012,6 +1023,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/dashboard/assistente'
+    | '/dashboard/centro-de-comando'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1106,6 +1118,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/dashboard/assistente'
+    | '/dashboard/centro-de-comando'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1562,6 +1575,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoyaltyCampaignsRouteImport
       parentRoute: typeof LoyaltyRoute
     }
+    '/dashboard/centro-de-comando': {
+      id: '/dashboard/centro-de-comando'
+      path: '/centro-de-comando'
+      fullPath: '/dashboard/centro-de-comando'
+      preLoaderRoute: typeof DashboardCentroDeComandoRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/assistente': {
       id: '/dashboard/assistente'
       path: '/assistente'
@@ -1911,10 +1931,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardAssistenteRoute: typeof DashboardAssistenteRoute
+  DashboardCentroDeComandoRoute: typeof DashboardCentroDeComandoRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAssistenteRoute: DashboardAssistenteRoute,
+  DashboardCentroDeComandoRoute: DashboardCentroDeComandoRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
@@ -2042,3 +2064,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
