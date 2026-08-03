@@ -72,9 +72,16 @@ function CRM360Page() {
 
   const customerData = useMemo(() => {
     return customers.map(c => {
-      // Mock history/products/crm for summary KPIs if needed, 
-      // but usually we'll calculate real ones when opening the profile
-      const kpis = computeKpis(c, [], [], { cashback: [], creditTx: [], credits: [], reviews: [], automations: [], usage: [] });
+      const kpis = computeKpis(c, [], [], { 
+        cashback: [], 
+        creditTx: [], 
+        credits: [], 
+        reviews: [], 
+        automations: [], 
+        usage: [],
+        interactions: [],
+        tasks: []
+      });
       return { ...c, kpis };
     });
   }, [customers]);

@@ -19,6 +19,8 @@ const EMPTY: CustomerCrmData = {
   reviews: [],
   automations: [],
   usage: [],
+  interactions: [],
+  tasks: [],
 };
 
 /**
@@ -38,7 +40,7 @@ export function useCustomerCrm(customerId: string | null, enabled: boolean) {
     setLoading(true);
 
     (async () => {
-      const [cashback, creditTx, credits, reviews, automations, usage] = await Promise.all([
+      const [cashback, creditTx, credits, reviews, automations, usage, interactions, tasks] = await Promise.all([
         supabase
           .from("cashback_transactions")
           .select("id, type, amount, base_amount, description, created_at, appointment_id")
@@ -73,6 +75,16 @@ export function useCustomerCrm(customerId: string | null, enabled: boolean) {
           .eq("customer_id", customerId)
           .order("used_at", { ascending: false })
           .limit(100),
+        supabase
+          .from("customer_interactions")
+          .select("*")
+          .eq("customer_id", customerId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("customer_tasks")
+          .select("*")
+          .eq("customer_id", customerId)
+          .order("due_at", { ascending: true, nullsFirst: false }),
       ]);
 
       if (cancelled) return;
@@ -83,6 +95,8 @@ export function useCustomerCrm(customerId: string | null, enabled: boolean) {
         reviews: reviews.data || [],
         automations: automations.data || [],
         usage: usage.data || [],
+        interactions: interactions.data || [],
+        tasks: tasks.data || [],
       });
       setLoading(false);
     })();
