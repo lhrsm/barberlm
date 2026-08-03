@@ -1581,7 +1581,8 @@ function ClientPortalComponent() {
 
         {/* Content sections below controlled by activeTab */}
 
-          <TabsContent value="loyalty" className="pt-6">
+          {activeTab === "loyalty" && (
+            <div className="pt-6">
             {(() => {
               const target = loyaltySettings?.appointments_required ?? 10;
               const current = Math.min(customerData?.loyalty_points || 0, target);
@@ -1688,10 +1689,12 @@ function ClientPortalComponent() {
                 </div>
               );
             })()}
-          </TabsContent>
+            </div>
+          )}
 
-          {mySubscription && (
-          <TabsContent value="benefits" className="pt-6">
+
+          {mySubscription && activeTab === "benefits" && (
+            <div className="pt-6">
             {(() => {
               const plan = mySubscription.plan;
               const usage = getSubscriptionUsage(mySubscription, subPlanServices, subUsageLogs);
