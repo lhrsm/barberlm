@@ -2182,7 +2182,6 @@ function ClientPortalComponent() {
           )}
 
 
-          {mySubscription && (
           {mySubscription && activeTab === "card" && (
             <div className="pt-6">
             {(() => {
