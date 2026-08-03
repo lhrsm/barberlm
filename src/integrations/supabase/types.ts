@@ -4328,6 +4328,45 @@ export type Database = {
         }
         Relationships: []
       }
+      operational_insights_interactions: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          rule_key: string
+          status: string
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          rule_key: string
+          status: string
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          rule_key?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_gateway_logs: {
         Row: {
           created_at: string
