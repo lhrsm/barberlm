@@ -80,3 +80,37 @@ export const getAudienceCustomers = createServerFn({ method: "POST" })
     
     return { customers: customers || [] };
   });
+
+/**
+ * Agenda o disparo de uma campanha de marketing em background
+ */
+export const scheduleCampaignDispatch = createServerFn({ method: "POST" })
+  .inputValidator((data) => z.object({
+    tenantId: z.string(),
+    campaignId: z.string(),
+    filters: z.array(z.any()),
+    logic: z.string(),
+    message: z.string()
+  }).parse(data))
+  .handler(async ({ data }) => {
+    const { enqueueJob } = await import("./scalability-jobs.functions");
+    
+    // Cria um job para o "Dispatcher" da campanha
+    // Este job irá, por sua vez, fragmentar os envios individuais para não travar o worker
+    const job = await (enqueueJob as any)({
+      data: {
+        tenant_id: data.tenantId,
+        queue_name: "marketing",
+        priority: 10,
+        payload: {
+          type: "MARKETING_CAMPAIGN_DISPATCH",
+          campaignId: data.campaignId,
+          filters: data.filters,
+          logic: data.logic,
+          message: data.message
+        }
+      }
+    });
+
+    return { success: true, jobId: job?.id };
+  });
