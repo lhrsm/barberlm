@@ -9,25 +9,41 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const SUPABASE_URL = process.env['SUPABASE_URL'];
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY'];
 
-    const request = getRequest();
-    const authHeader = request?.headers?.get('authorization');
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      return next();
+    }
     
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !authHeader || !authHeader.startsWith('Bearer ')) {
-      // In SSR/Prerender, headers might be missing or there's no bearer token.
-      // We return next() without context so that public content can still render.
-      // Handlers using .middleware([requireSupabaseAuth]) MUST check if context.userId exists
-      // or risk crashing if they assume it's always there.
+    const request = getRequest();
+
+    if (!request?.headers) {
+      return next();
+    }
+
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next();
     }
 
     const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      return next();
+    }
+
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient<Database>(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_URL!,
+      SUPABASE_PUBLISHABLE_KEY!,
       {
-        global: { headers: { Authorization: `Bearer ${token}` } },
-        auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+        auth: {
+          storage: undefined,
+          persistSession: false,
+          autoRefreshToken: false,
+        },
       }
     );
 
