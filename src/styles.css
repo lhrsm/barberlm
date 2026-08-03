@@ -262,7 +262,7 @@
 
   /* Consistent, accessible focus ring across the whole app */
   :focus-visible {
-    outline: 2px solid var(--gold-400);
+    outline: 2px solid var(--color-gold);
     outline-offset: 2px;
   }
 }
@@ -337,8 +337,8 @@
     background: rgba(17, 17, 24, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--hairline);
+    background-color: var(--surface-sunken);
   }
   .neon-glow {
     box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);

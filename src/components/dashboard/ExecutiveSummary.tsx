@@ -1,6 +1,8 @@
 import { useMemo, memo } from "react";
-import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock } from "lucide-react";
+import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock, Users, ArrowUpRight, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   name?: string | null;
