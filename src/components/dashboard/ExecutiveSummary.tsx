@@ -208,7 +208,7 @@ function MetricCard({ title, value, icon, trend, label, variant = 'default' }: M
           <div className="text-3xl font-black tracking-tight">{value}</div>
           <div className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
             {label}
-            {trend !== undefined && <ArrowUpRight className={cn("h-3 w-3", trend >= 0 ? "text-success" : "text-destructive")} />}
+            {trend !== undefined && trend !== null && <ArrowUpRight className={cn("h-3 w-3", trend >= 0 ? "text-success" : "text-destructive")} />}
           </div>
         </div>
       </CardContent>
