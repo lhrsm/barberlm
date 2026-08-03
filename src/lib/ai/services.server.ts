@@ -16,8 +16,7 @@ export const AIInternalServices = {
     const { tenant_id } = context;
     const { start_date, end_date, professional_id } = input;
 
-    // Parallel fetch of all necessary data for ERP engine
-    // Using explicit table names that exist in the schema
+    // Parallel fetch using verified table names from useErpFinance.ts and schema inspection
     const [
       transactionsRes,
       appointmentsRes,
@@ -31,12 +30,11 @@ export const AIInternalServices = {
       supabase.from("appointments").select("*").eq("tenant_id", tenant_id).gte("start_time", start_date).lte("start_time", end_date),
       supabase.from("product_sales").select("*").eq("tenant_id", tenant_id).gte("created_at", start_date).lte("created_at", end_date),
       supabase.from("cashback_transactions").select("*").eq("tenant_id", tenant_id).gte("created_at", start_date).lte("created_at", end_date),
-      supabase.from("credits_transactions").select("*").eq("tenant_id", tenant_id).gte("created_at", start_date).lte("created_at", end_date),
-      supabase.from("subscriptions").select("*").eq("tenant_id", tenant_id),
-      supabase.from("commissions").select("*").eq("tenant_id", tenant_id).gte("created_at", start_date).lte("created_at", end_date)
+      supabase.from("credit_transactions").select("*").eq("tenant_id", tenant_id).gte("created_at", start_date).lte("created_at", end_date),
+      supabase.from("customer_subscriptions").select("*").eq("tenant_id", tenant_id),
+      supabase.from("barber_commissions").select("*").eq("tenant_id", tenant_id).gte("created_at", start_date).lte("created_at", end_date)
     ]);
 
-    // Handle potential errors or empty data gracefully
     const transactions = transactionsRes.data || [];
     const appointments = appointmentsRes.data || [];
     const productSales = productSalesRes.data || [];
@@ -53,7 +51,7 @@ export const AIInternalServices = {
     const totals = computeTotals({
       transactions,
       appointments: filteredAppointments,
-      commissions,
+      commissions: (commissions as any[]).map(c => ({ ...c, commission_amount: c.commission_amount || 0 })),
       productSales,
       cashback,
       credits,
@@ -84,7 +82,7 @@ export const AIInternalServices = {
 
     if (!appointments) return { total: 0, status_breakdown: {} };
 
-    const status_breakdown = appointments.reduce((acc: Record<string, number>, curr) => {
+    const status_breakdown = (appointments as any[]).reduce((acc: Record<string, number>, curr) => {
       const status = curr.status || "unknown";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
@@ -93,7 +91,7 @@ export const AIInternalServices = {
     return {
       total: appointments.length,
       status_breakdown,
-      completed_revenue: appointments
+      completed_revenue: (appointments as any[])
         .filter(a => a.status === 'completed')
         .reduce((sum, a) => sum + (Number(a.final_amount) || Number(a.total_price) || 0), 0)
     };
