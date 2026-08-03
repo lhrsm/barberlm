@@ -130,8 +130,8 @@ function ObservabilityCenterPage() {
             { value: "overview", label: "Overview", icon: BarChart3 },
             { value: "queues", label: "Filas & Jobs", icon: History },
             { value: "resilience", label: "Resiliência", icon: ShieldCheck },
+            { value: "healing", label: "Auto-Healing", icon: RefreshCw },
             { value: "database", label: "Performance DB", icon: Database },
-            { value: "logs", label: "Live Logs", icon: Terminal },
           ]}
         />
         <PremiumTabsBody>
@@ -221,6 +221,57 @@ function ObservabilityCenterPage() {
                   </div>
                   <div className="h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 mt-4">
                     <div className="h-full bg-indigo-500 w-[65%]" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </PremiumTabsContent>
+
+          <PremiumTabsContent value="healing">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-[#0b0f17] border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight">Auto-Healing Engine</CardTitle>
+                  <CardDescription className="text-zinc-500 font-bold uppercase text-[10px]">Correção automática de falhas estruturais</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-black text-white uppercase italic">Status do Motor</p>
+                      <p className="text-[10px] font-bold text-emerald-500 uppercase mt-0.5 tracking-tighter">Ativo • Monitorando 24/7</p>
+                    </div>
+                    <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-black text-[10px] font-black uppercase tracking-widest px-4">
+                      Forçar Ciclo
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {[
+                      { name: "Jobs Travados (>15m)", action: "Reset automático", status: "Nenhum detectado" },
+                      { name: "Conexões DB Inativas", action: "Flush pool", status: "Otimizado" },
+                      { name: "Payloads Antigos", action: "Arquivamento", status: "Agendado (03:00)" }
+                    ].map(item => (
+                      <div key={item.name} className="flex justify-between items-center py-2 border-b border-zinc-800/50">
+                        <div>
+                          <p className="text-xs font-bold text-zinc-300">{item.name}</p>
+                          <p className="text-[9px] font-black text-zinc-500 uppercase italic">{item.action}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase italic text-zinc-400">
+                          {item.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight">Estatísticas de Recuperação</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px] flex items-center justify-center text-zinc-600 italic text-sm">
+                    Gráfico de auto-healing em desenvolvimento...
                   </div>
                 </CardContent>
               </Card>
