@@ -385,6 +385,20 @@ export function buildTimeline(
         tone: "gold",
       });
   }
+  
+  for (const i of crm.interactions) {
+    const d = toDate(i.created_at);
+    if (!d) continue;
+    push({
+      id: `i-${i.id}`,
+      date: d,
+      kind: "interacao",
+      title: i.type === "note" ? "Nota interna" : i.type === "call" ? "Registro de ligação" : "Interação",
+      description: i.content,
+      tone: "slate",
+    });
+  }
 
   return ev.sort((a, b) => b.date.getTime() - a.date.getTime());
+
 }
