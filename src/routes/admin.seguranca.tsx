@@ -159,8 +159,9 @@ function SecurityCenterPage() {
                 title="Conformidade LGPD"
                 description="Governança de dados, consentimentos e anonimização."
                 icon={FileLock}
-                status="Pendente"
-                items={["Inventário de Dados", "Portabilidade", "Direito ao Esquecimento"]}
+                 status="Ativo"
+                 items={["Inventário de Dados", "Portabilidade", "Direito ao Esquecimento"]}
+
               />
               <SecurityModuleCard 
                 title="Auditoria Proativa"
