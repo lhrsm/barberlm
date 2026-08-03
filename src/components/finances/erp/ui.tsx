@@ -32,18 +32,19 @@ export function ErpSection({
   className?: string;
 }) {
   return (
-    <Card className={cn("border-border bg-card shadow-sm animate-in fade-in-50 duration-300", className)}>
+    <Card className={cn("border border-white/[0.07] bg-[#0b0f17] shadow-sm animate-in fade-in-50 duration-300 rounded-[32px] overflow-hidden", className)}>
       <CardContent className="p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             {Icon && (
-              <span className="rounded-xl bg-primary/10 p-2 text-primary">
+              <span className="rounded-2xl bg-gold/10 p-2.5 text-gold">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
             )}
             <div>
-              <h3 className="text-base font-bold tracking-tight text-foreground">{title}</h3>
-              {description && <p className="text-xs text-muted-foreground">{description}</p>}
+              <h3 className="text-lg font-black text-white">{title}</h3>
+              {description && <p className="text-xs font-medium text-white/40">{description}</p>}
+
             </div>
           </div>
           {actions}
@@ -161,10 +162,10 @@ export function ErpMetricCard({
 
 export function MiniStat({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-3 transition-colors hover:border-[rgba(212,175,55,0.4)]">
-      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate text-sm font-bold text-foreground">{value}</p>
-      {detail && <p className="text-[11px] text-muted-foreground">{detail}</p>}
+    <div className="rounded-2xl border border-white/[0.07] bg-[#050810] p-4 transition-all duration-200 hover:border-gold/30">
+      <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{label}</p>
+      <p className="mt-1 truncate text-lg font-black text-white">{value}</p>
+      {detail && <p className="mt-1 text-[10px] font-bold text-white/20">{detail}</p>}
     </div>
   );
 }
