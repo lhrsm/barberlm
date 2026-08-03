@@ -1309,12 +1309,14 @@ function ClientPortalComponent() {
         )}
 
         {activeTab === "home" && !mySubscription && !subscriptionsEnabled && (
-          <MemberDashboard
-            appointments={appointments}
-            sales={sales}
-            customerData={customerData}
-            loyaltyRewards={loyaltyRewards}
-          />
+          <div className="space-y-6">
+            <MemberDashboard
+              appointments={appointments}
+              sales={sales}
+              customerData={customerData}
+              loyaltyRewards={loyaltyRewards}
+            />
+          </div>
         )}
 
         {mySubscription && false && (
