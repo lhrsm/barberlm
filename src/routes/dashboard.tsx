@@ -299,7 +299,7 @@ function DashboardComponent() {
             todayAppointments={todayAppointments}
             barbers={barbers}
             birthdayCustomers={birthdayCustomers}
-            tenantId={tenantId}
+            tenantId={tenantId || null}
             navigate={navigate}
             setIsWalkinOpen={setIsWalkinOpen}
             dashboardTab={dashboardTab}
