@@ -1,35 +1,24 @@
 ---
 name: scalability-audit-phase-1
-description: Diagnóstico de Escalabilidade, Resiliência e Observabilidade - Fase 1
+description: Diagnóstico de Escalabilidade, Resiliência e Observabilidade - Fase 1 - CONCLUÍDA
 type: feature
 ---
 
-# Auditoria de Arquitetura - Fase 1
+# Auditoria de Arquitetura - Fase 1 (CONCLUÍDA)
 
-## 1. Riscos e Gargalos Identificados
+## 1. Implementações Realizadas
+- **BX-Logger**: Sistema de logs estruturados (JSON em prod, legível em dev).
+- **Correlation ID**: Propagação de `correlation_id` em Server Functions via Middleware.
+- **BX-Trace**: Motor de rastreamento de performance para medir latência de operações críticas.
+- **Central de Observabilidade**: Nova rota `/admin/observability` para monitoramento de saúde, latência do DB, filas e métricas SaaS.
+- **Health Checks**: RPCs para monitoramento de serviços fundamentais (DB, Auth, Realtime).
 
-### Observabilidade
-- **Gargalo**: Logs dispersos e inconsistentes (`console.log` no frontend e backend).
-- **Risco**: Dificuldade em rastrear falhas multi-tenant sem um `correlation_id` unificado.
-- **Solução**: Implementar `BX-Logger` (estruturado) e propagação de `x-correlation-id`.
+## 2. Riscos e Gargalos Mapeados (Para Fase 2)
+- **Gargalo**: `triggerAutomation` em `src/utils/automation.ts` ainda é disperso e sem garantia de idempotência.
+- **Risco**: Duplicidade em disparos de webhooks de pagamento.
+- **Solução**: Implementar `Idempotency-Key` e `Operation-Lock` na Fase 2.
 
-### Escalabilidade & Banco
-- **Gargalo**: Algumas consultas em `automation.ts` realizam múltiplos `select` encadeados sem transação ou cache.
-- **Risco**: Concorrência em agendamentos simultâneos e overhead em horários de pico.
-- **Solução**: Otimizar RPCs de disponibilidade e implementar locking/idempotência na Fase 2.
+## 3. Próximos Passos (Fase 2)
+- Padronizar chaves de idempotência em fluxos financeiros.
+- Implementar locking em reservas de horário e consumo de saldos.
 
-### Processamento
-- **Gargalo**: Webhooks e automações possuem lógica de deduplicação manual que pode falhar em alta carga.
-- **Risco**: Disparos duplicados de mensagens e processamento redundante.
-- **Solução**: Padrão Outbox e filas robustas (Fase 3).
-
-## 2. Estratégia de Implementação
-
-- **FASE 1**: Estabelecer a base de observabilidade (Logs estruturados + Correlation ID).
-- **FASE 2**: Garantir integridade com Idempotência em pagamentos e agendamentos.
-- **FASE 3**: Migrar tarefas pesadas para o novo sistema de Filas/Jobs.
-- **FASE 4+**: Otimização fina de infraestrutura e governança.
-
-## 3. Próximos Passos (Imediato)
-- Criar `src/lib/observability.ts` para logs estruturados.
-- Injetar `correlation_id` no middleware do TanStack Start.
