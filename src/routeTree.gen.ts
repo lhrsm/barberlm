@@ -79,6 +79,7 @@ import { Route as AdminSuggestionsRouteImport } from './routes/admin.suggestions
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminStatusRouteImport } from './routes/admin.status'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminSegurancaRouteImport } from './routes/admin.seguranca'
 import { Route as AdminRlsTestsRouteImport } from './routes/admin.rls-tests'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
@@ -460,6 +461,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSegurancaRoute = AdminSegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRlsTestsRoute = AdminRlsTestsRouteImport.update({
   id: '/rls-tests',
   path: '/rls-tests',
@@ -664,6 +670,7 @@ export interface FileRoutesByFullPath {
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/rls-tests': typeof AdminRlsTestsRoute
+  '/admin/seguranca': typeof AdminSegurancaRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -761,6 +768,7 @@ export interface FileRoutesByTo {
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/rls-tests': typeof AdminRlsTestsRoute
+  '/admin/seguranca': typeof AdminSegurancaRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -862,6 +870,7 @@ export interface FileRoutesById {
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/rls-tests': typeof AdminRlsTestsRoute
+  '/admin/seguranca': typeof AdminSegurancaRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/status': typeof AdminStatusRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
@@ -964,6 +973,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/rls-tests'
+    | '/admin/seguranca'
     | '/admin/settings'
     | '/admin/status'
     | '/admin/subscriptions'
@@ -1061,6 +1071,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/rls-tests'
+    | '/admin/seguranca'
     | '/admin/settings'
     | '/admin/status'
     | '/admin/subscriptions'
@@ -1161,6 +1172,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/rls-tests'
+    | '/admin/seguranca'
     | '/admin/settings'
     | '/admin/status'
     | '/admin/subscriptions'
@@ -1761,6 +1773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/seguranca': {
+      id: '/admin/seguranca'
+      path: '/seguranca'
+      fullPath: '/admin/seguranca'
+      preLoaderRoute: typeof AdminSegurancaRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/rls-tests': {
       id: '/admin/rls-tests'
       path: '/rls-tests'
@@ -1987,6 +2006,7 @@ interface AdminRouteChildren {
   AdminPlansRoute: typeof AdminPlansRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminRlsTestsRoute: typeof AdminRlsTestsRoute
+  AdminSegurancaRoute: typeof AdminSegurancaRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStatusRoute: typeof AdminStatusRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
@@ -2010,6 +2030,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlansRoute: AdminPlansRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminRlsTestsRoute: AdminRlsTestsRoute,
+  AdminSegurancaRoute: AdminSegurancaRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminStatusRoute: AdminStatusRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
