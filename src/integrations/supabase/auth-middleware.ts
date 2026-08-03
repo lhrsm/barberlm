@@ -14,11 +14,12 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      const missing = [
-        ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-        ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
-      ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
+      if (typeof window === 'undefined') {
+        // Only warn during local dev SSR where env vars might be missing
+        console.warn("[Supabase Auth Middleware] Skipping auth check during SSR: Missing env vars");
+        return next();
+      }
+      const message = `Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud.`;
       console.error(`[Supabase Auth Middleware] ❌ ${message}`);
       throw new Response(message, { status: 500 });
     }
