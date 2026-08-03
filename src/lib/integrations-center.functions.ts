@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
+
 /**
  * Mapeamento de Saúde das Integrações
  * Este arquivo atua como o adapter para monitoramento centralizado.
@@ -9,29 +14,29 @@ import { z } from "zod";
 export const getIntegrationHealth = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ tenantId: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = await getAdmin();
     
     // 1. Z-API Health (via whatsapp_instances)
-    const { data: profile } = await supabaseAdmin
+    const { data: profile } = await admin
       .from("profiles")
       .select("whatsapp_enabled")
       .eq("id", data.tenantId)
       .maybeSingle();
 
-    const { data: whatsappInstances } = await supabaseAdmin
+    const { data: whatsappInstances } = await admin
       .from("whatsapp_instances")
       .select("id, status, updated_at")
       .eq("tenant_id", data.tenantId)
       .limit(1);
 
     // 2. Stripe/Mercado Pago Gateways
-    const { data: gateways } = await supabaseAdmin
+    const { data: gateways } = await admin
       .from("payment_gateways")
       .select("id, provider, status, environment, last_sync_at")
       .eq("tenant_id", data.tenantId);
 
     // 3. Automation Queue/Logs
-    const { data: logs } = await supabaseAdmin
+    const { data: logs } = await admin
       .from("automation_logs")
       .select("status")
       .eq("tenant_id", data.tenantId)

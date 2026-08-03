@@ -1,7 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { bxLog, bxTrace } from "./observability";
-import { bxLock } from "./scalability-resilience";
+
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
+
+const getLock = async () => {
+  const { bxLock } = await import("./scalability-resilience");
+  return bxLock;
+};
 
 const jobSchema = z.object({
   tenant_id: z.string().uuid(),
@@ -18,9 +27,9 @@ export const enqueueJob = createServerFn({ method: "POST" })
   .handler(async ({ data }: any) => {
     return bxTrace(`enqueue_job:${data?.queue_name || 'default'}`, async () => {
       const validated = jobSchema.parse(data);
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const admin = await getAdmin();
       
-      const { data: job, error } = await supabaseAdmin
+      const { data: job, error } = await admin
         .from("background_jobs")
         .insert({
           tenant_id: validated.tenant_id,
@@ -49,10 +58,11 @@ export const enqueueJob = createServerFn({ method: "POST" })
 export const processNextJob = createServerFn({ method: "POST" })
   .handler(async () => {
     return bxTrace("process_next_job", async () => {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const anySupabase = supabaseAdmin as any;
+      const admin = await getAdmin();
+      const anySupabase = admin as any;
+      const lock = await getLock();
 
-      return await bxLock("worker:process_next", async () => {
+      return await lock("worker:process_next", async () => {
         const { data: job, error: fetchError } = await anySupabase
           .from("background_jobs")
           .select("*")
