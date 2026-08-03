@@ -79,6 +79,8 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Automações", icon: MessageSquare, to: "/automations", module: "automations" },
   { label: "Campanhas", icon: Megaphone, to: "/campaigns", module: "campaigns" },
   { label: "Integrações", icon: Share2, to: "/dashboard/integracoes", module: "integrations_center" },
+  { label: "Segurança", icon: ShieldCheck, to: "/admin/seguranca", module: "super_admin_only" },
+
 
   { label: "Integrações", icon: Share2, to: "/integrations", module: "integrations" },
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials", module: "tutorials" },
