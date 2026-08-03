@@ -1239,9 +1239,7 @@ function ClientPortalComponent() {
 
 
 
-        {/* Panels handled by activeTab */}
-        <div className={cn(activeTab === "home" ? "block" : "hidden")}>
-          {mySubscription && (
+        {activeTab === "home" && mySubscription && (
           <SubscriberPanel
             client={client}
             shop={shop}
@@ -1260,8 +1258,7 @@ function ClientPortalComponent() {
             onCancel={handleCancelAppointment}
             onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
           />
-          )}
-        </div>
+        )}
 
         {activeTab === "benefits" && mySubscription && (
           <SubscriberPanel
