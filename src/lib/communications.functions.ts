@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+
+const getSupabase = async () => {
+  const { supabase } = await import("@/integrations/supabase/client");
+  return supabase;
+};
 
 export type ChannelType = 'whatsapp' | 'email' | 'sms' | 'push' | 'internal' | 'telegram' | 'instagram';
 export type MessageStatus = 'pending' | 'queued' | 'processing' | 'sent' | 'delivered' | 'read' | 'replied' | 'failed' | 'cancelled' | 'expired';
@@ -9,7 +13,8 @@ export type CommunicationCategory = 'transactional' | 'operational' | 'commercia
 export const getChannels = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ tenantId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { data: channels, error } = await supabase
+    const sb = await getSupabase();
+    const { data: channels, error } = await sb
       .from("communication_channels")
       .select("*")
       .eq("tenant_id", data.tenantId);
@@ -27,7 +32,8 @@ export const getMessages = createServerFn({ method: "GET" })
     status: z.enum(['pending', 'queued', 'processing', 'sent', 'delivered', 'read', 'replied', 'failed', 'cancelled', 'expired']).optional()
   }).parse(data))
   .handler(async ({ data }) => {
-    let query = supabase
+    const sb = await getSupabase();
+    let query = sb
       .from("communication_messages")
       .select(`
         *,
@@ -49,7 +55,8 @@ export const getMessages = createServerFn({ method: "GET" })
 export const getTemplates = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ tenantId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { data: templates, error } = await supabase
+    const sb = await getSupabase();
+    const { data: templates, error } = await sb
       .from("communication_templates")
       .select("*")
       .eq("tenant_id", data.tenantId);
@@ -65,7 +72,8 @@ export const updateChannelStatus = createServerFn({ method: "POST" })
     isActive: z.boolean()
   }).parse(data))
   .handler(async ({ data }) => {
-    const { error } = await supabase
+    const sb = await getSupabase();
+    const { error } = await sb
       .from("communication_channels")
       .update({ 
         status: data.status,
