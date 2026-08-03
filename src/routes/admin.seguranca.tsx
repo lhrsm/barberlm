@@ -279,7 +279,70 @@ function SecurityCenterPage() {
                 </CardContent>
               </Card>
             </div>
+          <PremiumTabsContent value="lgpd">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
+              <Card className="bg-[#0b0f17] border-zinc-800/80 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <FileLock className="text-indigo-400" size={18} />
+                    Governança LGPD
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Privacidade e conformidade de dados.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                      <span>Mapeamento de Dados</span>
+                      <span className="text-emerald-500">100%</span>
+                    </div>
+                    <Progress value={100} className="h-1 bg-zinc-800" />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+                    <span className="text-[10px] font-black text-white uppercase italic">Anonimização</span>
+                    <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] uppercase italic tracking-widest">Ativa</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800/80 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <Eye className="text-indigo-400" size={18} />
+                    Direitos do Titular
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Ferramentas de transparência.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button variant="outline" className="w-full justify-between bg-zinc-900 border-zinc-800 text-[10px] font-black uppercase italic tracking-widest hover:border-indigo-500/30 transition-all">
+                    Portabilidade de Dados <ArrowRight size={12} className="text-zinc-600" />
+                  </Button>
+                  <Button variant="outline" className="w-full justify-between bg-zinc-900 border-zinc-800 text-[10px] font-black uppercase italic tracking-widest hover:border-rose-500/30 hover:text-rose-400 transition-all group">
+                    Direito ao Esquecimento <ArrowRight size={12} className="text-zinc-600 group-hover:text-rose-400" />
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800/80 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <History className="text-indigo-400" size={18} />
+                    Retenção de Dados
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Políticas de guarda e descarte.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Período Padrão</p>
+                    <p className="text-xl font-black text-white italic mt-1 tracking-tighter">5 ANOS</p>
+                  </div>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase italic leading-tight">
+                    * Dados sensíveis são automaticamente anonimizados após 24 meses de inatividade conforme política interna.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </PremiumTabsContent>
+
 
         </PremiumTabsBody>
       </PremiumTabs>
