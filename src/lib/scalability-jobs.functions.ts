@@ -15,19 +15,19 @@ const jobSchema = z.object({
  * Agendamento de Background Job
  */
 export const enqueueJob = createServerFn({ method: "POST" })
-  .validator((data: unknown) => jobSchema.parse(data))
   .handler(async ({ data }: any) => {
-    return bxTrace(`enqueue_job:${data.queue_name}`, async () => {
+    return bxTrace(`enqueue_job:${data?.queue_name || 'default'}`, async () => {
+      const validated = jobSchema.parse(data);
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       
       const { data: job, error } = await supabaseAdmin
         .from("background_jobs")
         .insert({
-          tenant_id: data.tenant_id,
-          queue_name: data.queue_name,
-          payload: data.payload,
-          priority: data.priority,
-          next_run_at: data.next_run_at || new Date().toISOString(),
+          tenant_id: validated.tenant_id,
+          queue_name: validated.queue_name,
+          payload: validated.payload,
+          priority: validated.priority,
+          next_run_at: validated.next_run_at || new Date().toISOString(),
           status: 'pending'
         })
         .select()
@@ -38,7 +38,7 @@ export const enqueueJob = createServerFn({ method: "POST" })
         throw new Error("Erro ao agendar tarefa em background.");
       }
 
-      bxLog("info", `Job enqueued: ${job.id}`, { metadata: { jobId: job.id, queue: data.queue_name } });
+      bxLog("info", `Job enqueued: ${job.id}`, { metadata: { jobId: job.id, queue: validated.queue_name } });
       return job;
     });
   });
@@ -103,6 +103,7 @@ export const processNextJob = createServerFn({ method: "POST" })
       });
     });
   });
+
 
 
 
