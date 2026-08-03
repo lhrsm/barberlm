@@ -91,6 +91,14 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
   );
 }
 
+// Attach virtual routes to the existing layout tree
+KpisRoute.addChildren([
+  IntelligenceRoute,
+  AIAssistantRoute,
+  OperationalInsightsRoute,
+  CommandCenterRoute,
+]);
+
 export const getRouter = () => {
   const router = createRouter({
     routeTree,
