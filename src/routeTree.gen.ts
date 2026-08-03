@@ -61,6 +61,7 @@ import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
+import { Route as DashboardCrmRouteImport } from './routes/dashboard.crm'
 import { Route as DashboardCentroDeComandoRouteImport } from './routes/dashboard.centro-de-comando'
 import { Route as DashboardBiRouteImport } from './routes/dashboard.bi'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
@@ -364,6 +365,11 @@ const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => LoyaltyRoute,
 } as any)
+const DashboardCrmRoute = DashboardCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCentroDeComandoRoute =
   DashboardCentroDeComandoRouteImport.update({
     id: '/centro-de-comando',
@@ -654,6 +660,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
+  '/dashboard/crm': typeof DashboardCrmRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -747,6 +754,7 @@ export interface FileRoutesByTo {
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
+  '/dashboard/crm': typeof DashboardCrmRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -844,6 +852,7 @@ export interface FileRoutesById {
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
+  '/dashboard/crm': typeof DashboardCrmRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -942,6 +951,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistente'
     | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
+    | '/dashboard/crm'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1035,6 +1045,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistente'
     | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
+    | '/dashboard/crm'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1131,6 +1142,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistente'
     | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
+    | '/dashboard/crm'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1587,6 +1599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoyaltyCampaignsRouteImport
       parentRoute: typeof LoyaltyRoute
     }
+    '/dashboard/crm': {
+      id: '/dashboard/crm'
+      path: '/crm'
+      fullPath: '/dashboard/crm'
+      preLoaderRoute: typeof DashboardCrmRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/centro-de-comando': {
       id: '/dashboard/centro-de-comando'
       path: '/centro-de-comando'
@@ -1952,12 +1971,14 @@ interface DashboardRouteChildren {
   DashboardAssistenteRoute: typeof DashboardAssistenteRoute
   DashboardBiRoute: typeof DashboardBiRoute
   DashboardCentroDeComandoRoute: typeof DashboardCentroDeComandoRoute
+  DashboardCrmRoute: typeof DashboardCrmRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAssistenteRoute: DashboardAssistenteRoute,
   DashboardBiRoute: DashboardBiRoute,
   DashboardCentroDeComandoRoute: DashboardCentroDeComandoRoute,
+  DashboardCrmRoute: DashboardCrmRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
