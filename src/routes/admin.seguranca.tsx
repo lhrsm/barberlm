@@ -110,6 +110,7 @@ function SecurityCenterPage() {
               </div>
             ))}
             {(!overview?.alerts || overview.alerts.length === 0) && (
+
               <div className="h-full flex flex-col items-center justify-center py-8 text-center">
                 <ShieldCheck className="text-emerald-500/20 mb-2" size={48} />
                 <p className="text-xs font-bold text-zinc-500 italic">Nenhuma vulnerabilidade crítica detectada no momento.</p>
