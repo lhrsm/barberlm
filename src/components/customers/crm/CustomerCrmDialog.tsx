@@ -345,81 +345,13 @@ export function CustomerCrmDialog({
                           >
                             <Repeat size={11} /> Repetir
                           </button>
-                <TabsContent value="tarefas" className="mt-4 animate-in fade-in duration-300">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-black text-white uppercase text-xs tracking-wider">Tarefas e Lembretes</h4>
-                      <Button size="sm" className="bg-gold text-black hover:bg-gold/80 h-8 text-[10px] font-black uppercase">
-                        Nova Tarefa
-                      </Button>
-                    </div>
-                    {crm.tasks.length === 0 ? (
-                      <Empty text="Nenhuma tarefa pendente" />
-                    ) : (
-                      <div className="space-y-2">
-                        {crm.tasks.map((task: any) => (
-                          <div key={task.id} className="p-3 bg-[#111827] border border-[#1f2937] rounded-xl flex items-center justify-between gap-3">
-                            <div>
-                              <p className="font-bold text-sm text-white">{task.title}</p>
-                              {task.due_at && (
-                                <p className="text-[10px] text-slate-500 mt-0.5">
-                                  Prazo: {format(new Date(task.due_at), "dd/MM/yyyy")}
-                                </p>
-                              )}
-                            </div>
-                            <Badge className={cn(
-                              "text-[9px] uppercase font-black",
-                              task.status === "completed" ? "bg-emerald-500/10 text-emerald-400" : "bg-orange-500/10 text-orange-400"
-                            )}>
-                              {task.status === "completed" ? "Concluída" : "Pendente"}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="observacoes" className="mt-4 animate-in fade-in duration-300">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase text-slate-400">Nova Observação</Label>
-                      <Textarea 
-                        placeholder="Digite aqui informações importantes sobre o cliente..."
-                        className="bg-[#111827] border-[#1f2937] text-white min-h-[100px]"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                      />
-                      <Button 
-                        size="sm" 
-                        onClick={() => onSaveNotes(notes)} 
-                        disabled={savingNotes}
-                        className="bg-gold text-black hover:bg-gold/80 font-black uppercase text-[10px]"
-                      >
-                        {savingNotes ? "Salvando..." : "Registrar Observação"}
-                      </Button>
-                    </div>
-                    
-                    <div className="pt-4 border-t border-white/5">
-                      <h4 className="font-black text-white uppercase text-xs tracking-wider mb-3">Histórico de Notas</h4>
-                      {crm.interactions.filter((i: any) => i.type === 'note').length === 0 ? (
-                        <Empty text="Nenhuma nota registrada anteriormente" />
-                      ) : (
-                        <div className="space-y-3">
-                          {crm.interactions.filter((i: any) => i.type === 'note').map((note: any) => (
-                            <div key={note.id} className="p-3 bg-[#111827]/50 border border-[#1f2937] rounded-xl">
-                              <p className="text-sm text-slate-200">{note.content}</p>
-                              <p className="text-[9px] text-slate-500 mt-2 font-bold uppercase">
-                                {format(new Date(note.created_at), "dd/MM/yyyy HH:mm")}
-                              </p>
-                            </div>
-                          ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                </TabsContent>
-              </TabsList>
+                )}
+              </TabsContent>
+
 
                             className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-green-600/10 border border-green-600/30 text-green-400 hover:bg-green-600/20 focus-visible:ring-2 focus-visible:ring-gold flex items-center gap-1"
                           >
