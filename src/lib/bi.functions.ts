@@ -15,7 +15,7 @@ const BIInputSchema = z.object({
 export const getBIAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => BIInputSchema.parse(data))
-  .handler(async ({ input, context }) => {
+  .handler(async ({ data, context }) => {
     const { userId, supabase: authSupabase } = context;
     
     // Resolve Tenant
@@ -59,17 +59,17 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
       });
     };
 
-    const currentTotals = await fetchPeriodData(input.start_date, input.end_date);
+    const currentTotals = await fetchPeriodData(data.start_date, data.end_date);
     let comparisonTotals = null;
 
-    if (input.compare_start_date && input.compare_end_date) {
-      comparisonTotals = await fetchPeriodData(input.compare_start_date, input.compare_end_date);
+    if (data.compare_start_date && data.compare_end_date) {
+      comparisonTotals = await fetchPeriodData(data.compare_start_date, data.compare_end_date);
     }
 
     return {
       current: currentTotals,
       comparison: comparisonTotals,
-      period: { start: input.start_date, end: input.end_date },
+      period: { start: data.start_date, end: data.end_date },
       metadata: {
         last_sync: new Date().toISOString(),
         currency: "BRL"
