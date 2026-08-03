@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
@@ -56,10 +56,17 @@ const PERIODS: { value: ErpPeriod; label: string }[] = [
 ];
 
 function KpisCentralPage() {
-  const { tenantId } = useTenant();
-  const { role } = useAuth();
+  const { tenantId, isLoading: tenantLoading } = useTenant();
+  const { role, user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [period, setPeriod] = useState<ErpPeriod>("month");
-  
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [user, authLoading, navigate]);
+
   // Data Sources
   const range = useMemo(() => erpPeriodRange(period), [period]);
   const prevRange = useMemo(() => previousRange(range), [range]);
@@ -79,7 +86,23 @@ function KpisCentralPage() {
   const barbersCount = (erpData as any).barbers?.filter((b: any) => b.active).length || 0;
   const kpiMetrics = useMemo(() => computeKpis(totals, { appointments: erpData.appointments, barbersCount }), [totals, erpData.appointments, barbersCount]);
 
-  const isLoading = erpData.isLoading || intelData.isLoading;
+  const isLoadingData = erpData.isLoading || intelData.isLoading || tenantLoading || authLoading;
+
+  if (isLoadingData) {
+    return (
+      <AppLayout>
+        <div className="p-8 space-y-4">
+          <Skeleton className="h-12 w-64 rounded-xl" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Skeleton className="h-32 rounded-3xl" />
+            <Skeleton className="h-32 rounded-3xl" />
+            <Skeleton className="h-32 rounded-3xl" />
+            <Skeleton className="h-32 rounded-3xl" />
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
