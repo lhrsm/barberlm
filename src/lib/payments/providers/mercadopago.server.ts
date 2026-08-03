@@ -62,14 +62,15 @@ async function verifyMpSignature(
   if (!Number.isFinite(age) || age > 300) return false;
 
   const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
-  const key = await crypto.subtle.importKey(
+  const cryptoObj = typeof crypto !== 'undefined' ? crypto : (await import('node:crypto')).webcrypto;
+  const key = await cryptoObj.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
-  const signed = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
+  const signed = await cryptoObj.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
   const expected = Array.from(new Uint8Array(signed))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
