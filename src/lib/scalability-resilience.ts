@@ -86,7 +86,7 @@ export const withCircuitBreaker = async <T>(
     state.lastFailureTime = Date.now();
     
     if (state.failures >= options.threshold) {
-      if (state.status !== 'OPEN') {
+      if ((state.status as string) !== 'OPEN') {
         bxLog("error", `Circuit breaker for ${serviceName} tripped to OPEN`, { error });
         state.status = 'OPEN';
       }
