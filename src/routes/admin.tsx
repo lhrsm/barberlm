@@ -56,6 +56,7 @@ const adminNavItems = [
   { label: "Receita", icon: TrendingUp, to: "/admin/finance" },
   { label: "Relatórios", icon: BarChart3, to: "/admin/reports" },
   { label: "Analytics", icon: LineChartIcon, to: "/admin/analytics" },
+  { label: "Observabilidade", icon: Activity, to: "/admin/observability" },
   { label: "Logs do Sistema", icon: History, to: "/admin/errors" },
   { label: "Notificações", icon: Bell, to: "/admin/notifications" },
   { label: "Status", icon: Activity, to: "/admin/status" },
