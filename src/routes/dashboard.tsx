@@ -8,60 +8,27 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Progress } from "@/components/ui/progress";
 import { 
   Users, 
   Scissors, 
   Calendar, 
   CircleDollarSign,
   TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-  TicketPercent,
   Target,
-  Crown,
-  Zap,
-  Globe,
-  ExternalLink,
-  Copy,
-  Wallet,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Check,
-  Bell,
-  User as UserIcon,
-  RefreshCcw,
-  Maximize2,
-  Minimize2,
-  Gift,
-  Eye,
-  StopCircle,
-  Rocket,
-  AlertCircle
+  Plus,
+  UserPlus
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { WalkinModal } from "@/components/calendar/WalkinModal";
-import { UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek, format, formatDistanceToNow, isSameDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek } from "date-fns";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { 
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { TenantCharts } from "@/components/dashboard/TenantCharts";
-import { SubscriptionsPremiumCards } from "@/components/dashboard/SubscriptionsPremiumCards";
-import { MetricCard } from "@/components/dashboard/MetricCard";
-import { ExecutiveSummary } from "@/components/dashboard/ExecutiveSummary";
-import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 import { AdminDashboardView } from "@/components/dashboard/views/AdminDashboardView";
 import { ManagerDashboardView } from "@/components/dashboard/views/ManagerDashboardView";
@@ -78,13 +45,10 @@ function DashboardComponent() {
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits, loading: planLoading } = usePlanLimits();
-  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
-  const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
+  const { refresh: refreshLimits, loading: planLoading } = usePlanLimits();
   const loading = authLoading || tenantLoading || planLoading;
-  const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
+  
   const [isWalkinOpen, setIsWalkinOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
     daily: {
@@ -111,18 +75,10 @@ function DashboardComponent() {
     total: {
       customers: 0,
       services: 0,
-      customerCredits: 0,
-      customerCreditsConceded: 0,
-      customerCreditsUsed: 0,
-      customerCashback: 0,
-      customerCashbackConceded: 0,
-      customerCashbackUsed: 0,
       customersWithCashback: 0
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dashboardTab, setDashboardTab] = useState<string>("daily");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [birthdayCustomers, setBirthdayCustomers] = useState<any[]>([]);
@@ -135,111 +91,56 @@ function DashboardComponent() {
       return;
     }
 
-    // Se for super_admin e não estiver personificando, redirecionar para o admin dashboard
     if (role === 'super_admin') {
       const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
       if (!impersonatedId) {
-        console.log("Dashboard: Redirecting super_admin to admin portal");
         navigate({ to: "/admin/dashboard" });
         return;
       }
-    }
-
-    // Se for tenant_admin sem tenantId resolvido, temos um problema de dados
-    if (role === 'tenant_admin' && !tenantId) {
-      console.warn("Dashboard: tenant_admin without tenantId");
-      // toast.error("Erro ao carregar dados da barbearia.");
     }
   }, [user, role, loading, navigate]);
 
   useEffect(() => {
     if (tenantId) {
       fetchStats();
-      fetchNotifications();
       fetchTodayAppointments();
       fetchBirthdayCustomers();
 
-      const tables = [
-        { name: 'appointments', filter: `tenant_id=eq.${tenantId}` },
-        { name: 'transactions', filter: `tenant_id=eq.${tenantId}` },
-        { name: 'notifications', filter: `tenant_id=eq.${tenantId}` },
-        { name: 'customers', filter: `tenant_id=eq.${tenantId}` },
-        { name: 'cashback_transactions', filter: `tenant_id=eq.${tenantId}` },
-        { name: 'credit_transactions', filter: `tenant_id=eq.${tenantId}` },
-        { name: 'subscriptions', filter: `user_id=eq.${tenantId}` }
-      ];
-      const channels: any[] = [];
-
-      tables.forEach(table => {
-        const channel = supabase
-          .channel(`dashboard-realtime-${table.name}-${tenantId}`)
-          .on('postgres_changes', { 
-            event: '*', 
-            schema: 'public', 
-            table: table.name, 
-            filter: table.filter
-          }, (payload: any) => {
-            console.log(`REALTIME ${table.name.toUpperCase()} CHANGE`, payload);
-            
-            fetchTodayAppointments();
-            fetchStats();
-            refreshLimits();
-            
-            const queryKeys = [
-              ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
-              ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
-              ['admin-dashboard'], ['credits'], ['finances'], ['financial-dashboard'],
-              ['customers'], ['notifications'], ['cashback']
-            ];
-
-            queryKeys.forEach(key => {
-              queryClient.invalidateQueries({ queryKey: key });
-            });
-          })
-          .subscribe();
-        channels.push(channel);
-      });
+      const channel = supabase
+        .channel(`dashboard-realtime-${tenantId}`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'appointments', 
+          filter: `tenant_id=eq.${tenantId}`
+        }, () => {
+          fetchTodayAppointments();
+          fetchStats();
+          refreshLimits();
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        })
+        .subscribe();
 
       return () => {
-        channels.forEach(channel => supabase.removeChannel(channel));
+        supabase.removeChannel(channel);
       };
     }
-  }, [tenantId, statusFilter, selectedDate]);
-
-  async function fetchNotifications() {
-    if (!tenantId) return;
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setNotifications(data);
-  }
+  }, [tenantId, selectedDate]);
 
   async function fetchBirthdayCustomers() {
     if (!tenantId) return;
     const today = new Date();
-    const currentMonth = today.getMonth() + 1; // 1-12
+    const currentMonth = today.getMonth() + 1;
     const todayDay = today.getDate();
     
-    console.log("Fetching birthdays for tenant:", tenantId, "Month:", currentMonth);
-
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("customers")
       .select("id, name, phone, birth_date, avatar_url")
       .eq("tenant_id", tenantId);
 
-    if (error) {
-      console.error("Error fetching birthdays:", error);
-      return;
-    }
-
     if (data) {
-      console.log("Total customers for tenant:", data.length);
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
-        
         let month = 0;
         let day = 0;
         
@@ -248,9 +149,6 @@ function DashboardComponent() {
           if (parts.length === 3) {
             month = parseInt(parts[1]);
             day = parseInt(parts[2]);
-          } else if (parts.length === 2) {
-            month = parseInt(parts[0]);
-            day = parseInt(parts[1]);
           }
         } else if (c.birth_date.includes('/')) {
           const parts = c.birth_date.split('/');
@@ -260,19 +158,8 @@ function DashboardComponent() {
           }
         }
         
-        if (isNaN(month) || isNaN(day) || month === 0) return false;
         return month === currentMonth && day >= todayDay;
-      }).sort((a, b) => {
-        const getDayNum = (dateStr: string | null) => {
-          if (!dateStr) return 0;
-          if (dateStr.includes('-')) return parseInt(dateStr.split('-').reverse()[0]) || 0;
-          if (dateStr.includes('/')) return parseInt(dateStr.split('/')[0]) || 0;
-          return 0;
-        };
-        return getDayNum(a.birth_date) - getDayNum(b.birth_date);
       });
-      
-      console.log("Filtered birthdays this month (today onwards):", currentMonthBirthdays.length);
       setBirthdayCustomers(currentMonthBirthdays);
     }
   }
@@ -282,130 +169,19 @@ function DashboardComponent() {
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
-    console.log('FETCHING APPOINTMENTS FOR:', { tenantId, dayStart, dayEnd });
-
-    let query = supabase
+    const { data } = await supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers!appointments_barber_id_fkey(name)")
       .eq("tenant_id", tenantId)
       .gte("start_time", dayStart)
-      .lte("start_time", dayEnd);
+      .lte("start_time", dayEnd)
+      .order("start_time", { ascending: false });
 
-    // Filter by status if not 'all'
-    if (statusFilter !== "all") {
-      query = query.eq("status", statusFilter);
-    } else {
-      // In 'all', we might want to show everything except definitely cancelled ones 
-      // OR show them but marked. The original code was using a complex OR.
-      // Let's simplify and show all for that day.
-    }
-
-    const { data, error } = await query.order("start_time", { ascending: false });
-    console.log('DASHBOARD APPOINTMENTS DEBUG:', { tenantId, date: selectedDate, count: data?.length, error });
     if (data) setTodayAppointments(data);
   }
 
-  async function markAsRead(id: string) {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
-    fetchNotifications();
-  }
-
-  async function completeAppointment(appointment: any) {
-    if (appointment.status === 'completed') return;
-
-    // 1. Update status using CENTRALIZED RPC hook
-    const result = await centralUpdateStatus(
-      appointment.id,
-      'completed',
-      {
-        payment_status: 'paid',
-        payment_method: appointment.payment_method || 'pix'
-      },
-      'dashboard'
-    );
-
-    if (!result.success) return;
-
-    // 2. Finance is now handled inside complete_appointment RPC
-    fetchTodayAppointments();
-    fetchStats();
-    refreshLimits();
-  }
-
-  async function togglePaymentStatus(appointment: any) {
-    const newStatus = appointment.payment_status === 'paid' ? 'pending' : 'paid';
-    
-    // If marking as paid, and appointment is already completed, ensure it exists in transactions
-    if (newStatus === 'paid' && appointment.status === 'completed') {
-      const remainingToPay = Number(appointment.final_amount || appointment.total_price || 0);
-      const usedCredits = Number(appointment.credit_used || 0);
-      
-      // Criar transação mesmo que seja 0 para constar no financeiro
-      const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-      
-      if (!tenantId) {
-        toast.error("Tenant não identificado");
-        return;
-      }
-
-      // O RPC complete_appointment agora é idempotente e trata a criação da transação.
-      // Basta chamá-lo para garantir que a transação exista sem risco de duplicidade.
-      const { error: completeError } = await supabase.rpc('complete_appointment', {
-        p_appointment_id: appointment.id,
-        p_changed_by_type: 'admin',
-        p_changed_by_id: user?.id as any,
-        p_source: 'dashboard_payment_toggle',
-        p_metadata: { payment_status: 'paid', payment_method: appointment.payment_method || 'pix' }
-      });
-      
-      if (completeError) console.error("Error ensuring transaction via RPC:", completeError);
-    } else if (newStatus === 'pending') {
-    }
-
-    const { error } = await supabase
-      .from("appointments")
-      .update({ 
-        // @ts-ignore
-        payment_status: newStatus,
-        // @ts-ignore
-        paid_at: newStatus === 'paid' ? new Date().toISOString() : null
-      })
-      .eq("id", appointment.id);
-
-    if (error) {
-      toast.error("Erro ao atualizar status de pagamento");
-      return;
-    }
-
-    toast.success(`Pagamento marcado como ${newStatus === 'paid' ? 'pago' : 'pendente'}`);
-    
-    fetchTodayAppointments();
-    fetchStats();
-  }
-
-  async function cancelAppointment(appointmentId: string) {
-    if (!confirm("Deseja realmente cancelar este agendamento?")) return;
-
-    try {
-      const { data, error } = await supabase.rpc('cancel_appointment', {
-        p_appointment_id: appointmentId,
-        p_cancelled_by: 'admin',
-        p_source: 'dashboard',
-        p_refund_preference: 'none'
-      });
-
-      if (error) throw error;
-      
-      toast.success("Agendamento cancelado!");
-      fetchTodayAppointments();
-      fetchStats();
-      refreshLimits();
-    } catch (err: any) {
-      toast.error("Erro ao cancelar: " + err.message);
-    }
-  }
   async function fetchStats() {
-    if (!user || !tenantId) return;
+    if (!tenantId) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString();
@@ -415,15 +191,11 @@ function DashboardComponent() {
     const [
       dailyApp, 
       monthlyApp, 
-      dailyTrans, 
-      monthlyTrans,
       dailyCust,
       monthlyCust,
       totalCust,
       totalServ,
       barbersData,
-      profileData,
-      walletData,
       dailyAppointmentsData,
       weeklyAppointmentsData,
       monthlyAppointmentsData,
@@ -431,17 +203,11 @@ function DashboardComponent() {
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
-      // Buscar todas as transações para filtrar em memória
-      supabase.from("transactions").select("amount, type, payment_method, pix_amount, cash_amount, credit_card_amount, debit_card_amount, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount, type, payment_method, pix_amount, cash_amount, credit_card_amount, debit_card_amount, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
       supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
       supabase.from("barbers").select("*").eq("tenant_id", tenantId).eq("active", true).limit(5),
-      supabase.from("profiles").select("*").eq("id", tenantId).single(),
-      supabase.from("wallet").select("balance").eq("user_id", tenantId),
-      // Valor dos serviços: APENAS CONCLUÍDOS
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
@@ -454,96 +220,22 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credits, credits_used, cashback_balance, cashback_used").eq("tenant_id", tenantId)
+      supabase.from("customers").select("cashback_balance").eq("tenant_id", tenantId)
     ]);
 
-    const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits || 0), 0) || 0;
-    const totalCreditsUsed = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits_used || 0), 0) || 0;
-    const totalCreditsConceded = totalCredits + totalCreditsUsed;
-    const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
-    const totalCashbackUsed = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_used || 0), 0) || 0;
-    const totalCashbackConceded = totalCashback + totalCashbackUsed;
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const dailyCashInflow = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_earned || 0), 0) || 0;
+    
+    const weeklyCashbackEarned = weeklyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_earned || 0), 0) || 0;
 
-    setBarbers(barbersData.data || []);
-    setProfile(profileData.data);
-
-    // Função auxiliar para calcular entrada real desconsiderando agendamentos cancelados e pagamentos via saldo
-    const calculateCashInflow = (transData: any[] | null) => {
-      return transData?.reduce((acc, curr: any) => {
-        if (curr.type === 'income') {
-          // Ignorar se vinculado a agendamento cancelado
-          if (curr.appointment && curr.appointment.status === 'cancelled') {
-            return acc;
-          }
-          
-          // Verificar se tem detalhamento proporcional (misto) ou transação real Pix/Dinheiro
-          if (curr.pix_amount > 0 || curr.cash_amount > 0 || curr.credit_card_amount > 0 || curr.debit_card_amount > 0) {
-            return acc + (
-              Number(curr.pix_amount || 0) + 
-              Number(curr.cash_amount || 0) + 
-              Number(curr.credit_card_amount || 0) + 
-              Number(curr.debit_card_amount || 0)
-            );
-          }
-
-          // Se for transação simples sem breakdown, mas for Pix/Dinheiro/Cartão
-          if (curr.payment_method && !['credits', 'wallet', 'cashback'].includes(curr.payment_method)) {
-             return acc + (parseFloat(String(curr.amount)) || 0);
-          }
-          
-          // Para transações de agendamento, se o método for Pix/Dinheiro/Cartão (fallback)
-          const method = curr.payment_method || curr.appointment?.payment_method;
-          if (method && !['credits', 'wallet', 'cashback'].includes(method)) {
-            return acc + Number(curr.amount || 0);
-          }
-
-          return acc;
-        } else if (curr.type === 'expense') {
-            return acc - Number(curr.amount || 0);
-        }
-        return acc;
-      }, 0) || 0;
-    };
-
-    // Cálculos Diários
-    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
-    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => {
-      let val = (Number(curr.credit_used || 0) + Number(curr.credits_used || 0));
-      if (val === 0 && curr.payment_method === 'credits') {
-        val = Number(curr.total_price || curr.original_total || 0);
-      }
-      return acc + val;
-    }, 0) || 0;
-    const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => {
-      let val = Number(curr.cashback_used || 0);
-      if (val === 0 && curr.payment_method === 'cashback') {
-        val = Number(curr.total_price || curr.original_total || 0);
-      }
-      return acc + val;
-    }, 0) || 0;
-    const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
-    const dailyCashInflow = calculateCashInflow(dailyTrans.data);
-
-    // Cálculos Mensais
-    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
-    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => {
-      let val = (Number(curr.credit_used || 0) + Number(curr.credits_used || 0));
-      if (val === 0 && curr.payment_method === 'credits') {
-        val = Number(curr.total_price || curr.original_total || 0);
-      }
-      return acc + val;
-    }, 0) || 0;
-    const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => {
-      let val = Number(curr.cashback_used || 0);
-      if (val === 0 && curr.payment_method === 'cashback') {
-        val = Number(curr.total_price || curr.original_total || 0);
-      }
-      return acc + val;
-    }, 0) || 0;
-    const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
-    const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
-
-    const weeklyCashbackEarned = weeklyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const monthlyCashInflow = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_earned || 0), 0) || 0;
 
     setStats({
       daily: {
@@ -570,1188 +262,69 @@ function DashboardComponent() {
       total: {
         customers: totalCust.count || 0,
         services: totalServ.count || 0,
-        customerCredits: totalCredits,
-        customerCreditsConceded: totalCreditsConceded,
-        customerCreditsUsed: totalCreditsUsed,
-        customerCashback: totalCashback,
-        customerCashbackConceded: totalCashbackConceded,
-        customerCashbackUsed: totalCashbackUsed,
         customersWithCashback: (customersWithBalances.data || []).filter(c => Number(c.cashback_balance || 0) > 0).length
       }
     });
 
-    console.log('TENANT CARD DATA', {
-      tenantId,
-      plan: (profileData.data as any)?.plan || 'free',
-      appointmentsCount: monthlyApp.count || 0,
-      professionalsCount: barbersData.data?.length || 0,
-      servicesCount: totalServ.count || 0,
-      whatsappCount: 0, // Need to fetch this too if needed, but it's in usePlanLimits
-      totalCredits,
-      totalCashback
-    });
+    if (barbersData.data) setBarbers(barbersData.data);
   }
 
   if (loading || !user) return null;
 
+  const renderSpecializedView = () => {
+    switch (role) {
+      case 'manager':
+        return (
+          <ManagerDashboardView
+            stats={stats}
+            todayAppointments={todayAppointments}
+            barbers={barbers}
+            birthdaysCount={birthdayCustomers.length}
+            tenantId={tenantId || ""}
+            navigate={navigate}
+          />
+        );
+      case 'finance':
+        return (
+          <FinanceDashboardView
+            stats={stats}
+            tenantId={tenantId || ""}
+            navigate={navigate}
+          />
+        );
+      default:
+        return (
+          <AdminDashboardView
+            stats={stats}
+            todayAppointments={todayAppointments}
+            barbers={barbers}
+            birthdayCustomers={birthdayCustomers}
+            tenantId={tenantId}
+            navigate={navigate}
+            setIsWalkinOpen={setIsWalkinOpen}
+            dashboardTab={dashboardTab}
+            setDashboardTab={setDashboardTab}
+          />
+        );
+    }
+  };
+
   return (
     <AppLayout>
-      <div className="min-h-screen bg-[#05070d] text-white">
-        <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
-          {/* HEADER */}
-          <header className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.responsible_name || profile.business_name}
-                  className="shrink-0 h-14 w-14 rounded-2xl object-cover border border-[#f59e0b]/30 shadow-[0_4px_20px_rgba(245,158,11,0.15)]"
-                />
-              ) : (
-                <div className="shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br from-[#f59e0b]/20 to-[#ea580c]/5 border border-[#f59e0b]/30 grid place-items-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
-                  <UserIcon className="h-7 w-7 text-[#f59e0b]" />
-                </div>
-              )}
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight truncate">
-                  {(profile?.responsible_name || profile?.business_name) ? `Olá, ${profile.responsible_name || profile.business_name}!` : "Painel de Controle"}
-                </h1>
-                <p className="text-sm text-zinc-400 mt-1 truncate">
-                  Bem-vindo de volta ao seu painel administrativo.
-                </p>
-              </div>
-            </div>
-            <WalkinModal
-              open={isWalkinOpen}
-              onOpenChange={setIsWalkinOpen}
-              onSuccess={() => {
-                fetchTodayAppointments();
-                fetchStats();
-              }}
-            />
-            <AppointmentModal
-              onSuccess={() => {
-                fetchTodayAppointments();
-                fetchStats();
-              }}
-              trigger={
-                <Button className="h-[42px] px-[18px] rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f59e0b] text-white font-bold shadow-[0_4px_16px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.45)] transition-all hover:-translate-y-0.5 w-full sm:w-auto">
-                  <Calendar size={18} className="mr-2" /> Novo Agendamento
-                </Button>
-              }
-            />
-          </header>
-
-          <ExecutiveSummary
-            name={profile?.responsible_name || profile?.business_name}
-            appointments={todayAppointments}
-            stats={stats}
-            birthdaysCount={birthdayCustomers.length}
-            loading={loading}
-          />
-
-
-
-        
-        {/* Banner de Trial / Assinatura */}
-        {((isTrial || isExpired) && !hasActiveSubscription) && (
-          <div className={cn(
-            "relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group",
-            isExpired ? "bg-white border-2 border-red-500/50 shadow-red-500/10" : 
-            "bg-white border-2 border-amber-500/50 shadow-amber-500/10"
-          )}>
-            {/* Glow Effect */}
-            <div className={cn(
-              "absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-10 rounded-full",
-              isExpired ? "bg-red-500" : "bg-amber-500"
-            )} />
-            
-            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className={cn(
-                  "p-4 rounded-2xl shadow-inner flex items-center justify-center",
-                  isExpired ? "bg-red-500/10 text-red-600" : "bg-amber-100 text-amber-600"
-                )}>
-                  {isExpired ? <AlertCircle className="w-8 h-8" /> : <Crown className="w-8 h-8 animate-pulse" />}
-                </div>
-                <div className="space-y-1">
-                  <h3 className={cn(
-                    "text-xl font-black italic tracking-tight flex items-center gap-2",
-                    isExpired ? "text-red-900" : "text-amber-900"
-                  )}>
-                    {isExpired ? "PERÍODO DE TESTE EXPIRADO" : "STATUS DA ASSINATURA SAAS"}
-                  </h3>
-                  <p className="text-muted-foreground font-medium max-w-md">
-                    {isExpired 
-                      ? "Seu período de avaliação gratuita terminou. Assine agora para continuar usando todos os recursos." 
-                      : `Você está usando o período de teste gratuito. Restam ${trialDaysRemaining} dias.`}
-                  </p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => navigate({ to: "/subscription" })}
-                className={cn(
-                  "px-8 h-12 rounded-2xl font-black italic transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl",
-                  isExpired ? "bg-red-600 hover:bg-red-700 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"
-                )}
-              >
-                {isExpired ? "ASSINAR AGORA" : "FAZER UPGRADE"}
-              </Button>
-            </div>
-          </div>
-        )}
-
-
-        {profile?.slug && (
-          <Card className="bg-primary/5 border-primary/20 overflow-hidden mb-6">
-            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                  <Globe size={20} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Sua Página de Agendamento</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {window.location.origin}/{profile.slug}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 sm:flex-none gap-2"
-                  onClick={() => {
-                    const url = `${window.location.origin}/${profile.slug}`;
-                    navigator.clipboard.writeText(url);
-                    toast.success("Link copiado!");
-                  }}
-                >
-                  <Copy size={14} /> Copiar Link
-                </Button>
-                <Button
-                  size="sm"
-                  className="group relative flex-1 sm:flex-none gap-2 overflow-hidden border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold font-bold text-black shadow-[0_8px_24px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
-                  asChild
-                >
-                  <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
-                    <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                    <ExternalLink size={14} className="relative" />
-                    <span className="relative">Abrir Página</span>
-                  </a>
-                </Button>
-
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {birthdayCustomers.length > 0 && (
-          <Card className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border-pink-500/20 mb-6">
-            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-pink-500/20 rounded-lg text-pink-600">
-                  <Gift size={24} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-pink-700">Aniversariantes do Mês! 🎂</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {birthdayCustomers.length} cliente{birthdayCustomers.length > 1 ? 's fazem' : ' faz'} aniversário este mês.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="flex -space-x-2 overflow-hidden">
-                  {birthdayCustomers.slice(0, 5).map((customer, i) => (
-                    <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-pink-100 flex items-center justify-center text-[10px] font-bold text-pink-700 overflow-hidden">
-                      {customer.avatar_url ? (
-                        <img src={customer.avatar_url} alt={customer.name} className="h-full w-full object-cover" />
-                      ) : (
-                        customer.name.substring(0, 2).toUpperCase()
-                      )}
-                    </div>
-                  ))}
-                  {birthdayCustomers.length > 5 && (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-medium">
-                      +{birthdayCustomers.length - 5}
-                    </div>
-                  )}
-                </div>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-pink-700 hover:text-pink-800 hover:bg-pink-500/10 gap-1 font-bold whitespace-nowrap"
-                  onClick={() => navigate({ to: "/customers" })}
-                >
-                  Ver Lista <ArrowUpRight size={14} />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-7 mb-6">
-          <Card className="lg:col-span-4 bg-card border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
-            {/* Glow sutil no fundo */}
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
-            
-            <CardHeader className="pb-2 relative">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="flex items-center flex-wrap gap-2">
-                    <CardTitle className="text-xl font-black italic tracking-tight text-amber-600 dark:text-amber-500">
-                      Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
-                    </CardTitle>
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
-                      <Crown className="w-3 h-3 text-amber-600" />
-                      <span className="text-[10px] font-black italic text-amber-700 dark:text-amber-400 tracking-tight uppercase">
-                        Status da Assinatura SaaS
-                      </span>
-                    </div>
-                    {isSubscribed ? (
-                      <Badge className="bg-green-100 text-green-700 border-green-200 font-black italic text-[10px] tracking-widest uppercase">
-                        Assinatura Ativa
-                      </Badge>
-                    ) : isTrial ? (
-                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-black italic text-[10px] tracking-widest uppercase">
-                        Trial Ativo
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-red-500/10 text-red-700 border-red-500/20 font-black italic text-[10px] tracking-widest uppercase">
-                        Expirado
-                      </Badge>
-                    )}
-                  </div>
-                  <CardDescription className="font-bold text-muted-foreground text-[11px] tracking-wide uppercase italic">
-                    Gerencie os recursos e limites da sua barbearia
-                  </CardDescription>
-                </div>
-                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center border border-amber-100 dark:border-amber-800/30">
-                  {plan === 'elite' ? <Rocket className="w-5 h-5 text-amber-600 animate-bounce-slow" /> : 
-                   plan === 'pro' ? <Crown className="w-5 h-5 text-amber-500" /> : 
-                   <Zap className="w-5 h-5 text-amber-500" />}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
-                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Profissionais</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-black leading-none text-foreground">{usage.barbers}</span>
-                    <span className="text-[10px] text-muted-foreground font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
-                      style={{ width: `${limits.barbers === Infinity ? 100 : Math.min((usage.barbers / limits.barbers) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
-                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Serviços</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-black leading-none text-foreground">{usage.services}</span>
-                    <span className="text-[10px] text-muted-foreground font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
-                      style={{ width: `${limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
-                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Agendamentos</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-black leading-none text-foreground">{usage.monthlyAppointments}</span>
-                    <span className="text-[10px] text-muted-foreground font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
-                      style={{ width: `${limits.monthlyAppointments === Infinity ? 100 : Math.min((usage.monthlyAppointments / limits.monthlyAppointments) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1 bg-sky-500/5 p-3 rounded-2xl border border-sky-500/10">
-                  <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-500">WhatsApp</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-black leading-none text-foreground">{usage.whatsappConnections}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
-                  </div>
-                  <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1 bg-sky-100" />
-                </div>
-                <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
-                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Saldo de Créditos</span>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
-                    </span>
-                    <div className="flex justify-between items-end gap-2 mt-1">
-                      <div className="space-y-0.5">
-                        <p className="text-[8px] font-bold text-purple-600/70 uppercase">Concedidos</p>
-                        <p className="text-[10px] font-black text-purple-700/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                      <div className="space-y-0.5 text-right">
-                        <p className="text-[8px] font-bold text-purple-600/70 uppercase">Utilizados</p>
-                        <p className="text-[10px] font-black text-purple-700/80">R$ {stats.total.customerCreditsUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
-                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Saldo de Cashback</span>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
-                    </span>
-                    <div className="flex justify-between items-end gap-2 mt-1">
-                      <div className="space-y-0.5">
-                        <p className="text-[8px] font-bold text-orange-600/70 uppercase">Concedido</p>
-                        <p className="text-[10px] font-black text-orange-700/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                      <div className="space-y-0.5 text-right">
-                        <p className="text-[8px] font-bold text-orange-600/70 uppercase">Utilizado</p>
-                        <p className="text-[10px] font-black text-orange-700/80">R$ {stats.total.customerCashbackUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className={cn(
-            "lg:col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
-            !isExpired 
-              ? "border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
-              : "border-red-500/30 shadow-2xl shadow-red-500/10"
-          )}>
-            <div className={cn(
-              "absolute -bottom-12 -left-12 w-32 h-32 blur-[50px] rounded-full pointer-events-none group-hover:opacity-100 transition-all duration-500",
-              !isExpired ? "bg-emerald-500/10 opacity-60" : "bg-red-500/10 opacity-60"
-            )} />
-            
-            <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Crown className={cn("w-12 h-12 rotate-12", !isExpired ? "text-emerald-500" : "text-red-500")} />
-            </div>
-
-            <CardContent className="py-6 space-y-6 relative z-10">
-              <div className="flex justify-center mb-2">
-                <div className={cn(
-                  "flex items-center gap-1.5 px-3 py-1 rounded-full shadow-sm",
-                  !isExpired ? "bg-emerald-500/10 border border-emerald-500/20 shadow-emerald-500/5" : "bg-red-500/10 border border-red-500/20 shadow-red-500/5"
-                )}>
-                  <Crown className={cn("w-3 h-3", !isExpired ? "text-emerald-600" : "text-red-600")} />
-                  <span className={cn("text-[10px] font-black italic tracking-tight uppercase", !isExpired ? "text-emerald-700" : "text-red-700")}>
-                    Status da Assinatura SaaS
-                  </span>
-                </div>
-              </div>
-
-              {/* Plan & Status */}
-              <div className="flex justify-between items-center bg-muted/50 p-4 rounded-2xl border border-border">
-                <div>
-                  <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Plano Atual</h4>
-                  <p className="text-lg font-black uppercase italic text-foreground">
-                    {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
-                  </p>
-                </div>
-                <Badge className={cn(
-                  "text-[10px] font-black italic tracking-widest uppercase px-3 py-1 border-none",
-                  isExpired ? "bg-red-500 text-white" : isTrial ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
-                )}>
-                  {isExpired ? "EXPIRADA" : isTrial ? "TRIAL" : "ATIVA"}
-                </Badge>
-              </div>
-
-              {/* Limits */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Uso do Plano</h4>
-                <div className="grid grid-cols-1 gap-2.5">
-                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                    <span className="flex items-center gap-2"><Users size={14} className="text-primary" /> Profissionais</span>
-                    <span className="font-bold">{usage.barbers} / {limits.barbers === Infinity ? '∞' : limits.barbers}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                    <span className="flex items-center gap-2"><Scissors size={14} className="text-primary" /> Serviços</span>
-                    <span className="font-bold">{usage.services} / {limits.services === Infinity ? '∞' : limits.services}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                    <span className="flex items-center gap-2"><Calendar size={14} className="text-primary" /> Agendamentos (Mês)</span>
-                    <span className="font-bold">{usage.monthlyAppointments} / {limits.monthlyAppointments === Infinity ? '∞' : limits.monthlyAppointments}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                    <span className="flex items-center gap-2"><Zap size={14} className="text-primary" /> Conexões WhatsApp</span>
-                    <span className="font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? '∞' : limits.whatsappConnections}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Financial Tenant Stats */}
-              <div className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Saldo de Créditos</h4>
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg shrink-0">
-                        <Wallet className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
-                      </div>
-                      <span className="text-base font-black text-purple-900 dark:text-purple-100 truncate">
-                        R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center px-1">
-                      <div className="space-y-0.5">
-                        <p className="text-[8px] font-bold text-purple-600/70 uppercase leading-none">Concedidos</p>
-                        <p className="text-[10px] font-black text-purple-800/80">R$ {stats.total.customerCreditsConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                      <div className="space-y-0.5 text-right">
-                        <p className="text-[8px] font-bold text-purple-600/70 uppercase leading-none">Utilizados</p>
-                        <p className="text-[10px] font-black text-purple-800/80">R$ {stats.total.customerCreditsUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
-                  <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Saldo de Cashback</h4>
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg shrink-0">
-                        <Gift className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
-                      </div>
-                      <span className="text-base font-black text-orange-900 dark:text-orange-100 truncate">
-                        R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center px-1">
-                      <div className="space-y-0.5">
-                        <p className="text-[8px] font-bold text-orange-600/70 uppercase leading-none">Concedido</p>
-                        <p className="text-[10px] font-black text-orange-800/80">R$ {stats.total.customerCashbackConceded.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                      <div className="space-y-0.5 text-right">
-                        <p className="text-[8px] font-bold text-orange-600/70 uppercase leading-none">Utilizado</p>
-                        <p className="text-[10px] font-black text-orange-800/80">R$ {stats.total.customerCashbackUsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Button 
-                variant="outline" 
-                className={cn(
-                  "w-full mt-2 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm",
-                  !isExpired ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/30" : "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
-                )} 
-                asChild
-              >
-                <Link to="/subscription">Gerenciar Assinatura</Link>
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-[#05070d] pb-20">
+        <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8">
+          {renderSpecializedView()}
         </div>
 
-        <Tabs value={dashboardTab} onValueChange={setDashboardTab} className="space-y-6">
-          {/* Desktop tabs */}
-          <div className="hidden sm:block overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
-              <TabsTrigger value="daily">Hoje</TabsTrigger>
-              <TabsTrigger value="monthly">Este Mês</TabsTrigger>
-              <TabsTrigger value="analytics">Gráficos</TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* Mobile accordion selector */}
-          <div className="sm:hidden">
-            <Accordion type="single" collapsible className="rounded-2xl border border-white/10 bg-[#0b0f17]">
-              <AccordionItem value="period" className="border-0">
-                <AccordionTrigger className="px-4 py-3 text-sm font-semibold hover:no-underline">
-                  <span className="flex items-center gap-2 text-zinc-300">
-                    <span className="text-[11px] uppercase tracking-[0.08em] text-zinc-500">Visão</span>
-                    <span className="text-white">
-                      {({ daily: "Hoje", monthly: "Este Mês", analytics: "Gráficos" } as Record<string, string>)[dashboardTab]}
-                    </span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="px-3 pb-3">
-                  <div className="grid grid-cols-1 gap-2">
-                    {[
-                      { v: "daily", label: "Hoje" },
-                      { v: "monthly", label: "Este Mês" },
-                      { v: "analytics", label: "Gráficos" },
-                    ].map((opt) => (
-                      <Button
-                        key={opt.v}
-                        variant={dashboardTab === opt.v ? "default" : "outline"}
-                        size="sm"
-                        className="w-full rounded-xl h-10 justify-start"
-                        onClick={() => setDashboardTab(opt.v)}
-                      >
-                        {opt.label}
-                      </Button>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-
-
-
-          <TabsContent value="daily" className="space-y-6">
-            <div className="flex flex-col gap-4 mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 className="text-lg font-semibold shrink-0">
-                  {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd/MM")}`}
-                </h3>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
-                      <Calendar size={14} />
-                      Filtrar Data
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarUI
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
-                      initialFocus
-                      locale={ptBR}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              {/* Desktop: pill buttons */}
-              <div className="hidden sm:flex gap-2 overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1">
-                {[
-                  { v: "all", label: "Todos" },
-                  { v: "scheduled", label: "Agendados" },
-                  { v: "completed", label: "Concluídos" },
-                  { v: "cancelled", label: "Cancelados" },
-                ].map((opt) => (
-                  <Button
-                    key={opt.v}
-                    variant={statusFilter === opt.v ? "default" : "outline"}
-                    size="sm"
-                    className="flex-shrink-0 w-auto rounded-xl"
-                    onClick={() => setStatusFilter(opt.v)}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Mobile: accordion */}
-              <div className="sm:hidden">
-                <Accordion type="single" collapsible className="rounded-2xl border border-white/10 bg-[#0b0f17]">
-                  <AccordionItem value="filter" className="border-0">
-                    <AccordionTrigger className="px-4 py-3 text-sm font-semibold hover:no-underline">
-                      <span className="flex items-center gap-2 text-zinc-300">
-                        <span className="text-[11px] uppercase tracking-[0.08em] text-zinc-500">Status</span>
-                        <span className="text-white">
-                          {({ all: "Todos", scheduled: "Agendados", completed: "Concluídos", cancelled: "Cancelados" } as Record<string, string>)[statusFilter]}
-                        </span>
-                      </span>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-3 pb-3">
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { v: "all", label: "Todos" },
-                          { v: "scheduled", label: "Agendados" },
-                          { v: "completed", label: "Concluídos" },
-                          { v: "cancelled", label: "Cancelados" },
-                        ].map((opt) => (
-                          <Button
-                            key={opt.v}
-                            variant={statusFilter === opt.v ? "default" : "outline"}
-                            size="sm"
-                            className="w-full rounded-xl h-10"
-                            onClick={() => setStatusFilter(opt.v)}
-                          >
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-            </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`}
-                </CardTitle>
-                <CardDescription>
-                  {isSameDay(selectedDate, new Date()) 
-                    ? "Consulte os detalhes dos horários marcados para hoje." 
-                    : `Consulte os detalhes dos horários marcados para o dia ${format(selectedDate, "dd/MM/yyyy")}.`}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 gap-2 text-xs font-bold border-zinc-200 hover:bg-zinc-50 rounded-xl"
-                      onClick={() => fetchTodayAppointments()}
-                    >
-                      <RefreshCcw size={14} className={cn("text-sky-500", loading && "animate-spin")} />
-                      Recalcular Dashboard
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                  {todayAppointments.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground">
-                      Nenhum agendamento para hoje.
-                    </div>
-                  ) : (
-                    todayAppointments.map((app) => (
-                      <div 
-                        key={app.id} 
-                        className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 border border-white/10 bg-[#0b0f17] rounded-2xl hover:border-[#f59e0b]/30 hover:bg-[#0f1422] transition-colors group gap-4"
-                      >
-                        <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate({ to: "/calendar" })}>
-                          <div className="h-12 w-12 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0">
-                            {app.customers?.avatar_url ? (
-                              <img 
-                                src={app.customers.avatar_url} 
-                                alt={app.customers.name} 
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              app.customers?.name?.[0].toUpperCase()
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold truncate">{app.customers?.name}</p>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Clock size={12} className="shrink-0" /> {format(new Date(app.start_time), 'HH:mm')}</span>
-                              <span className="flex items-center gap-1"><Scissors size={12} className="shrink-0" /> {app.services?.name}</span>
-                              <span className="flex items-center gap-1"><UserIcon size={12} className="shrink-0" /> {app.barbers?.name}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                             {app.refund_requested_at && (
-                               app.refund_status === 'pending' ? (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 px-2 text-white bg-amber-500/80 hover:bg-amber-500 text-[10px] gap-1 w-auto"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
-                                  if (confirm(`Confirmar ${type} para este cliente?`)) {
-                                      try {
-                                        const now = new Date();
-                                        const formattedDate = format(now, "yyyy-MM-dd");
-
-                                        // Restore used cashback/credits and remove earned cashback
-                                        const { data: currentCustomer } = await supabase
-                                          .from("customers")
-                                          .select("credits, cashback_balance")
-                                          .eq("id", app.customer_id)
-                                          .single();
-
-                                        const restoredCredits = (currentCustomer?.credits || 0) + (app.credit_used || 0);
-                                        const restoredCashback = (currentCustomer?.cashback_balance || 0) + (app.cashback_used || 0) - (app.cashback_earned || 0);
-
-                                        await supabase
-                                          .from("customers")
-                                          .update({ 
-                                            credits: restoredCredits,
-                                            cashback_balance: Math.max(0, restoredCashback)
-                                          })
-                                          .eq("id", app.customer_id);
-
-                                        if (app.refund_type === 'credits') {
-                                          let { data: wallet } = await supabase
-                                            .from("wallet")
-                                            .select("id")
-                                            .eq("customer_id", app.customer_id)
-                                            .maybeSingle();
-                                            
-                                          if (!wallet && tenantId) {
-                                            const { data: newWallet } = await supabase
-                                              .from("wallet")
-                                              .insert({ 
-                                                customer_id: app.customer_id, 
-                                                user_id: tenantId,
-                                                balance: 0 
-                                              })
-                                              .select()
-                                              .single();
-                                            wallet = newWallet;
-                                          }
-
-                                          if (wallet && tenantId) {
-                                            // The refund amount should be the final_amount (what was paid in new money)
-                                            const refundAmount = Number(app.final_amount || 0);
-
-                                            if (refundAmount > 0) {
-                                              await supabase.from("wallet_transactions").insert({
-                                                wallet_id: wallet.id,
-                                                amount: refundAmount,
-                                                type: "credit",
-                                                description: `Crédito por cancelamento (Estorno Real): ${app.services?.name}`,
-                                                appointment_id: app.id,
-                                                user_id: tenantId
-                                              });
-
-                                              // Update customer credits with the additional refund amount
-                                              await supabase.from("customers").update({ credits: restoredCredits + refundAmount }).eq("id", app.customer_id);
-
-                                              // Remove original income from transactions when converting to credits
-                                              await supabase.from("transactions").insert({ 
-                                                user_id: tenantId, 
-                                                barber_id: app.barber_id, 
-                                                appointment_id: app.id, 
-                                                type: "expense", 
-                                                category: "Estorno (Créditos)", 
-                                                amount: refundAmount, 
-                                                description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
-                                                date: formattedDate 
-                                              });
-                                            }
-
-                                          await supabase.from("appointments").update({ 
-                                            status: "cancelled",
-                                            refund_status: "completed"
-                                          }).eq("id", app.id);
-
-                                          toast.success("Valor convertido em créditos e agendamento cancelado!");
-                                        }
-                                      } else if (app.refund_type === 'refund' && tenantId) {
-                                        const refundAmount = Number(app.final_amount || 0);
-
-                                        if (refundAmount > 0) {
-                                          await supabase.from("transactions").insert({
-                                            user_id: tenantId,
-                                            barber_id: app.barber_id,
-                                            appointment_id: app.id,
-                                            type: "expense",
-                                            category: "Estorno",
-                                            amount: refundAmount,
-                                            description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
-                                            date: formattedDate
-                                          });
-                                        }
-
-                                        await supabase
-                                          .from("appointments")
-                                          .update({ 
-                                            status: "cancelled",
-                                            refund_status: "completed"
-                                          })
-                                          .eq("id", app.id);
-                                        
-                                        toast.success("Estorno registrado como saída!");
-                                      }
-                                      
-                                      // Trigger re-fetches for all related data
-                                      await Promise.all([
-                                        fetchTodayAppointments(),
-                                        fetchStats(),
-                                        fetchNotifications()
-                                      ]);
-                                    } catch (err) {
-                                      console.error("Erro ao processar estorno:", err);
-                                      toast.error("Erro ao processar solicitação");
-                                    }
-                                  }
-                                }}
-                              >
-                                <RefreshCcw size={14} />
-                                <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
-                              </Button>
-                                ) : (
-                                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-[10px]">
-                                    {app.refund_type === 'credits' ? 'Créditos' : 'Estorno'} Concluído
-                                  </Badge>
-                                )
-                              )}
-                            {['scheduled', 'confirmed', 'pending', 'awaiting_payment'].includes(app.status) && (
-                              <Button 
-                                variant="default"
-                                size="sm" 
-                                className="h-8 gap-1 text-xs bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  completeAppointment(app);
-                                }}
-                              >
-                                <CheckCircle2 className="h-4 w-4" />
-                                Concluir
-                              </Button>
-                            )}
-                            {['scheduled', 'confirmed', 'pending', 'awaiting_payment'].includes(app.status) && (
-                              <Button 
-                                variant="outline"
-                                size="sm" 
-                                className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10 w-full sm:w-auto"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Deseja cancelar este agendamento?")) {
-                                    try {
-                                      // Restore used credits and cashback
-                                      const { data: customer } = await supabase
-                                        .from("customers")
-                                        .select("credits, cashback_balance")
-                                        .eq("id", app.customer_id)
-                                        .single();
-
-                                      if (customer) {
-                                        await supabase
-                                          .from("customers")
-                                          .update({
-                                            credits: (customer.credits || 0) + (app.credit_used || 0),
-                                            cashback_balance: (customer.cashback_balance || 0) + (app.cashback_used || 0)
-                                          })
-                                          .eq("id", app.customer_id);
-                                      }
-
-                                       const result = await centralUpdateStatus(app.id, 'cancelled', {}, 'dashboard');
-                                       if (!result.success) throw result.error;
-
-                                      fetchTodayAppointments();
-                                      fetchStats();
-                                      toast.success("Agendamento cancelado e saldos restaurados");
-                                    } catch (err) {
-                                      console.error("Erro ao cancelar:", err);
-                                      toast.error("Erro ao cancelar agendamento");
-                                    }
-                                  }
-                                }}
-                              >
-                                <XCircle className="h-4 w-4" />
-                                Cancelar
-                              </Button>
-                            )}
-                                {app.status === 'cancelled' ? (
-                                  <Badge variant="destructive" className="text-[10px]">Cancelado</Badge>
-                                ) : (
-                                  <>
-                                    <Button 
-                                      variant={app.payment_status === 'paid' ? 'secondary' : 'outline'} 
-                                      size="sm" 
-                                      className={cn(
-                                        "h-8 gap-1 text-xs w-full sm:w-auto",
-                                        app.payment_status === 'paid' && "text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
-                                      )}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        togglePaymentStatus(app);
-                                      }}
-                                    >
-                                      <Check size={14} />
-                                      {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
-                                    </Button>
-                                    <Badge className={cn(
-                                      app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
-                                      app.status === 'confirmed' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                      app.status === 'completed' ? 'bg-emerald-600 text-white' : 
-                                      'bg-destructive text-white'
-                                    )} variant="outline">
-                                      {app.status === 'scheduled' ? 'Agendado' : app.status === 'confirmed' ? 'Confirmado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
-                                    </Badge>
-                                  </>
-                                )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <span className="h-px w-8 bg-amber-500" aria-hidden />
-                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
-                  Painel financeiro do dia
-                </span>
-              </div>
-
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                <MetricCard
-                  label="Serviços vendidos hoje"
-                  value={`R$ ${stats.daily.totalServicesValue.toFixed(2)}`}
-                  hint="Valor total dos serviços"
-                  icon={Scissors}
-                  tone="blue"
-                />
-                <MetricCard
-                  label="Entrada em caixa hoje"
-                  value={`R$ ${stats.daily.realCashInflow.toFixed(2)}`}
-                  hint="Dinheiro novo (PIX/Dinheiro)"
-                  icon={CircleDollarSign}
-                  tone="emerald"
-                />
-                <MetricCard
-                  label="Créditos utilizados hoje"
-                  value={`R$ ${stats.daily.creditsUsed.toFixed(2)}`}
-                  hint="Abatido de saldos anteriores"
-                  icon={Wallet}
-                  tone="purple"
-                />
-                <MetricCard
-                  label="Cashback utilizado hoje"
-                  value={`R$ ${stats.daily.cashbackUsed.toFixed(2)}`}
-                  hint="Abatimento via cashback"
-                  icon={ArrowUpRight}
-                  tone="orange"
-                />
-                <MetricCard
-                  label="Cashback concedido"
-                  value={`R$ ${stats.daily.cashbackEarned.toFixed(2)}`}
-                  hint="Hoje"
-                  icon={TicketPercent}
-                  tone="gold"
-                >
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[9px] font-bold uppercase text-zinc-500">Semana</p>
-                      <p className="text-sm font-black text-amber-300">R$ {stats.weekly.cashbackEarned.toFixed(2)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[9px] font-bold uppercase text-zinc-500">Mês</p>
-                      <p className="text-sm font-black text-amber-300">R$ {stats.monthly.cashbackEarned.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </MetricCard>
-                <MetricCard
-                  label="Clientes com cashback"
-                  value={stats.total.customersWithCashback}
-                  hint="Clientes com saldo ativo"
-                  icon={Users}
-                  tone="indigo"
-                />
-                <MetricCard
-                  label="Agendamentos hoje"
-                  value={stats.daily.appointments}
-                  hint="Total de horários marcados"
-                  icon={Calendar}
-                  tone="neutral"
-                />
-                <MetricCard
-                  label="Novos clientes"
-                  value={stats.daily.newCustomers}
-                  hint="Cadastrados hoje"
-                  icon={Users}
-                  tone="neutral"
-                />
-                <MetricCard
-                  label="Ticket médio (mês)"
-                  value={`R$ ${stats.monthly.appointments > 0 ? (stats.monthly.totalServicesValue / stats.monthly.appointments).toFixed(2) : "0.00"}`}
-                  hint="Baseado no mês atual"
-                  icon={Target}
-                  tone="gold"
-                />
-              </div>
-
-              <InsightsPanel
-                appointments={todayAppointments}
-                stats={stats}
-                barbers={barbers}
-                birthdaysCount={birthdayCustomers.length}
-              />
-            </div>
-
-
-            {/* Assinaturas Premium */}
-            {tenantId && (
-              <div className="pt-4">
-                <SubscriptionsPremiumCards tenantId={tenantId} />
-              </div>
-            )}
-          </TabsContent>
-
-
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="p-6 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50">
-               <TenantCharts tenantId={tenantId || ""} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="monthly" className="space-y-6">
-            <div className="flex items-center gap-2">
-              <span className="h-px w-8 bg-amber-500" aria-hidden />
-              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
-                Consolidado do mês
-              </span>
-            </div>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <MetricCard
-                label="Serviços vendidos (mês)"
-                value={`R$ ${stats.monthly.totalServicesValue.toFixed(2)}`}
-                hint="Valor total no mês"
-                icon={Scissors}
-                tone="blue"
-              />
-              <MetricCard
-                label="Entrada real (mês)"
-                value={`R$ ${stats.monthly.realCashInflow.toFixed(2)}`}
-                hint="Dinheiro novo em caixa"
-                icon={CircleDollarSign}
-                tone="emerald"
-              />
-              <MetricCard
-                label="Créditos usados (mês)"
-                value={`R$ ${stats.monthly.creditsUsed.toFixed(2)}`}
-                hint="Abatido via créditos"
-                icon={Wallet}
-                tone="purple"
-              />
-              <MetricCard
-                label="Cashback utilizado (mês)"
-                value={`R$ ${stats.monthly.cashbackUsed.toFixed(2)}`}
-                hint="Abatimento via cashback"
-                icon={ArrowUpRight}
-                tone="orange"
-              />
-              <MetricCard
-                label="Cashback gerado (mês)"
-                value={`R$ ${stats.monthly.cashbackEarned.toFixed(2)}`}
-                hint="Novos saldos gerados"
-                icon={ArrowDownRight}
-                tone="gold"
-              />
-              <MetricCard
-                label="Agendamentos (mês)"
-                value={stats.monthly.appointments}
-                hint="Total de horários marcados"
-                icon={Calendar}
-                tone="neutral"
-              />
-              <MetricCard
-                label="Novos clientes (mês)"
-                value={stats.monthly.newCustomers}
-                hint="Conquistados este mês"
-                icon={Users}
-                tone="neutral"
-              />
-              <MetricCard
-                label="Total de clientes"
-                value={stats.total.customers}
-                hint="Base de dados completa"
-                icon={TrendingUp}
-                tone="indigo"
-              />
-            </div>
-
-          </TabsContent>
-        </Tabs>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                onClick={() => setIsWalkinOpen(true)}
-                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
-              >
-                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <UserPlus size={14} className="relative" />
-                <span className="relative">Agendamento Presencial</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => navigate({ to: "/customers" })}
-                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
-              >
-                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <Users size={14} className="relative" />
-                <span className="relative">Novo Cliente</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => navigate({ to: "/barbers" })}
-                className="group relative h-8 gap-1.5 overflow-hidden rounded-lg border border-gold/60 bg-gradient-to-r from-gold via-[#F0D67B] to-gold px-3 text-xs font-bold text-black shadow-[0_6px_18px_-10px_rgba(212,175,55,0.8)] transition-all hover:brightness-110"
-              >
-                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <Target size={14} className="relative" />
-                <span className="relative">Ver Equipe</span>
-              </Button>
-            </CardContent>
-
-          </Card>
-          
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>Status da Operação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-green-600">
-                <TrendingUp size={20} />
-                <span className="font-medium">Sistema Online</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Sua barbearia possui {stats.total.services} serviços ativos cadastrados.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Equipe</CardTitle>
-              <CardDescription>Profissionais e suas categorias</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/barbers">Ver Todos</Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {barbers.map((barber) => (
-                <div key={barber.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                    {barber.avatar_url ? (
-                      <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-primary font-bold text-xs">{typeof barber.name === 'string' ? barber.name.substring(0, 2).toUpperCase() : "??"}</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{barber.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                        barber.category === 'Freelancer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                      }`}>
-                        {barber.category}
-                      </span>
-                      {barber.category === 'Freelancer' && (
-                        <span className="text-[10px] text-muted-foreground italic">
-                          {barber.commission_rate}% comissão
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {barbers.length === 0 && (
-                <p className="col-span-full text-center text-sm text-muted-foreground py-4">
-                  Nenhum profissional cadastrado.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        </div>
+        <AppointmentModal />
+        <WalkinModal 
+          open={isWalkinOpen} 
+          onOpenChange={setIsWalkinOpen}
+          onSuccess={() => {
+            fetchTodayAppointments();
+            fetchStats();
+          }}
+        />
       </div>
     </AppLayout>
   );
