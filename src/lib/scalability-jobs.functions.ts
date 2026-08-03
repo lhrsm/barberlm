@@ -4,25 +4,22 @@ import { bxLog, bxTrace } from "./observability";
 import { bxLock } from "./scalability-resilience";
 
 /**
- * Interface para Payload de Job
- */
-export interface JobPayload {
-  type: string;
-  data: any;
-  metadata?: Record<string, any>;
-}
-
-/**
  * Agendamento de Background Job
  */
 export const enqueueJob = createServerFn({ method: "POST" })
-  .input(z.object({
+  .validator((data: {
+    tenant_id: string;
+    queue_name?: string;
+    payload: any;
+    priority?: number;
+    next_run_at?: string;
+  }) => z.object({
     tenant_id: z.string().uuid(),
     queue_name: z.string().default("default"),
     payload: z.any(),
     priority: z.number().default(0),
     next_run_at: z.string().optional(),
-  }))
+  }).parse(data))
   .handler(async ({ data }) => {
     return bxTrace(`enqueue_job:${data.queue_name}`, async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -51,8 +48,7 @@ export const enqueueJob = createServerFn({ method: "POST" })
   });
 
 /**
- * Processamento de Job (Simulação do Worker)
- * Na prática, isso seria chamado por um Edge Function (Cron) ou via Webhook.
+ * Processamento de Job
  */
 export const processNextJob = createServerFn({ method: "POST" })
   .handler(async () => {
@@ -60,7 +56,6 @@ export const processNextJob = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const anySupabase = supabaseAdmin as any;
 
-      // 1. Buscar próximo job disponível com Lock Otimista (bxLock)
       return await bxLock("worker:process_next", async () => {
         const { data: job, error: fetchError } = await anySupabase
           .from("background_jobs")
@@ -74,7 +69,6 @@ export const processNextJob = createServerFn({ method: "POST" })
 
         if (fetchError || !job) return { status: "no_jobs" };
 
-        // 2. Marcar como em processamento
         await anySupabase
           .from("background_jobs")
           .update({ status: "processing", updated_at: new Date().toISOString() })
@@ -82,10 +76,8 @@ export const processNextJob = createServerFn({ method: "POST" })
 
         bxLog("info", `Processing job ${job.id}`, { metadata: { jobId: job.id } });
 
-        // 3. Execução (Mock de lógica de despacho)
-        // Aqui entraria a lógica de roteamento baseada no payload.type
         try {
-          // Simulando sucesso
+          // Lógica de despacho simulada
           await anySupabase
             .from("background_jobs")
             .update({ 
@@ -107,7 +99,7 @@ export const processNextJob = createServerFn({ method: "POST" })
               status,
               attempts: newAttempts,
               last_error: e.message,
-              next_run_at: new Date(Date.now() + Math.pow(2, newAttempts) * 1000 * 60).toISOString() // Backoff exponencial
+              next_run_at: new Date(Date.now() + Math.pow(2, newAttempts) * 1000 * 60).toISOString()
             })
             .eq("id", job.id);
             
@@ -116,3 +108,4 @@ export const processNextJob = createServerFn({ method: "POST" })
       });
     });
   });
+
