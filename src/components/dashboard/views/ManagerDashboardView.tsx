@@ -85,7 +85,6 @@ export function ManagerDashboardView({
           <ExecutiveSummary 
             appointments={todayAppointments} 
             stats={stats} 
-            barbers={barbers}
           />
           
           <div className="space-y-4">
