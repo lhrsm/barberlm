@@ -110,20 +110,16 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
-        <div id="main-content">
-          <Outlet />
-        </div>
+        <ProfessionalAuthProvider>
+          <div id="main-content">
+            <Outlet />
+          </div>
         <Toaster />
-        {typeof window !== 'undefined' && (
-          <>
-            <ProfessionalAuthProvider>
-              <SkipLink />
-              <AccessibilityWidget />
-              <CookieBanner />
-            </ProfessionalAuthProvider>
-          </>
-        )}
-      </AccessibilityProvider>
-    </QueryClientProvider>
-  );
+        <SkipLink />
+        <AccessibilityWidget />
+        <CookieBanner />
+      </ProfessionalAuthProvider>
+    </AccessibilityProvider>
+  </QueryClientProvider>
+);
 }
