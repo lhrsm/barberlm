@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getProvider } from "@/lib/payments/providers/index.server";
+import { createClient } from "@supabase/supabase-js";
 import type { PaymentGatewayRow, ProviderKey } from "@/lib/payments/types";
 import { enforceRateLimit } from "@/lib/rate-limit.server";
 

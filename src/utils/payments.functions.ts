@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
 
 async function resolveOrCreateCustomer(
-  stripe: ReturnType<typeof createStripeClient>,
+  stripe: Awaited<ReturnType<typeof createStripeClient>>,
   options: { email?: string; userId?: string },
 ): Promise<string> {
   console.log("[resolveOrCreateCustomer] 🔍 Iniciando busca/criação de cliente para:", options);
@@ -101,7 +101,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         ? Math.floor((trialEnd.getTime() - now.getTime()) / 1000)
         : 0;
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       console.log("[Checkout Server] 💳 Cliente Stripe criado para ambiente:", data.environment, "Trial remaining (s):", trialRemainingSeconds);
     
       let stripePrice;
@@ -253,7 +253,7 @@ export const createPlanCheckout = createServerFn({ method: "POST" })
       : 0;
 
     // 3. Create Stripe checkout
-    const stripe = createStripeClient(data.environment);
+    const stripe = await createStripeClient(data.environment);
     const stripePrice = await stripe.prices.retrieve(priceId, { expand: ["product"] });
     const product = stripePrice.product as any;
     const productName = product?.name || planRow.name;
@@ -324,7 +324,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
       .maybeSingle();
     
     if (subError || !sub?.stripe_customer_id) {
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       const found = await stripe.customers.search({
         query: `metadata['userId']:'${userId}'`,
         limit: 1,
@@ -339,7 +339,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
       throw new Error("No subscription or customer found");
     }
 
-    const stripe = createStripeClient(data.environment);
+    const stripe = await createStripeClient(data.environment);
     const portal = await stripe.billingPortal.sessions.create({
       customer: sub.stripe_customer_id as string,
       ...(data.returnUrl && { return_url: data.returnUrl }),

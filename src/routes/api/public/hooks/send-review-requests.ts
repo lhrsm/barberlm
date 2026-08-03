@@ -22,8 +22,13 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
           process.env.PUBLIC_APP_URL?.replace(/\/$/, "") ||
           "https://barbex.shop";
 
-        const SUPABASE_URL = process.env.SUPABASE_URL!;
-        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!SUPABASE_URL || !SERVICE_KEY) {
+          return new Response("Missing env vars", { status: 500 });
+        }
+
         const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
           auth: { persistSession: false, autoRefreshToken: false },
         });
@@ -155,7 +160,7 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
             const template = tpl?.template || defaultTemplate;
 
             // Create the review row + token
-            const token = crypto.randomUUID();
+            const token = (globalThis as any).crypto?.randomUUID?.() || Math.random().toString(36).substring(2);
             const { data: reviewRow, error: revErr } = await supabase
               .from("appointment_reviews")
               .upsert(

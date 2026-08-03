@@ -51,7 +51,11 @@ export async function assertCronOrSuperAdmin(request: Request): Promise<Response
 
   try {
     const { createClient } = await import("@supabase/supabase-js");
-    const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return unauthorized;
+    
+    const admin = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const { data: userRes } = await admin.auth.getUser(token);

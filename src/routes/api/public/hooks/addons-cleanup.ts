@@ -17,11 +17,13 @@ export const Route = createFileRoute("/api/public/hooks/addons-cleanup")({
         const denied = assertCronAuth(request);
         if (denied) return denied;
 
-        const sb = createClient(
-          process.env.SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          { auth: { persistSession: false, autoRefreshToken: false } },
-        );
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!SUPABASE_URL || !KEY) return new Response("Missing env", { status: 500 });
+
+        const sb = createClient(SUPABASE_URL, KEY, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
 
         const nowIso = new Date().toISOString();
         const { data: rows, error } = await sb
@@ -42,7 +44,7 @@ export const Route = createFileRoute("/api/public/hooks/addons-cleanup")({
           try {
             const env = (r.environment ?? "sandbox") as StripeEnv;
             if (r.stripe_subscription_item_id) {
-              const stripe = createStripeClient(env);
+              const stripe = await createStripeClient(env);
               try {
                 await stripe.subscriptionItems.del(r.stripe_subscription_item_id, {
                   proration_behavior: "none",

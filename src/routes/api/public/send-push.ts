@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import webpush from "web-push";
 import { z } from "zod";
 
 const bodySchema = z.object({
@@ -44,7 +43,9 @@ async function handler({ request }: { request: Request }) {
   const priv = process.env.VAPID_PRIVATE_KEY!;
   const subject = process.env.VAPID_SUBJECT || "mailto:contato@barbex.shop";
   if (!pub || !priv) return new Response("VAPID not configured", { status: 500 });
-  webpush.setVapidDetails(subject, pub, priv);
+  
+  const webpush = await import("web-push");
+  webpush.default.setVapidDetails(subject, pub, priv);
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   let query = supabaseAdmin.from("push_subscriptions").select("*").eq("active", true);
@@ -65,7 +66,7 @@ async function handler({ request }: { request: Request }) {
   await Promise.all(
     subs.map(async (s: any) => {
       try {
-        await webpush.sendNotification(
+        await webpush.default.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
           JSON.stringify(parsed.data.payload),
         );

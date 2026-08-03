@@ -75,7 +75,7 @@ export const previewAddon = createServerFn({ method: "POST" })
         .eq("user_id", userId).eq("environment", data.environment)
         .order("created_at", { ascending: false }).limit(1).maybeSingle();
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       const qty = Math.max(1, data.quantity ?? 1);
 
       if (!sub?.stripe_subscription_id) {
@@ -176,7 +176,7 @@ export const subscribeToAddon = createServerFn({ method: "POST" })
         return { ok: false, error: "Você precisa ter uma assinatura ativa (Starter, Pro ou Elite) para contratar add-ons." };
       }
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       const qty = Math.max(1, data.quantity ?? 1);
 
       const trialDays = Number((addon as any).trial_days ?? 0);
@@ -269,7 +269,7 @@ export const cancelAddon = createServerFn({ method: "POST" })
       const itemId = (contract as any).stripe_subscription_item_id;
       if (!itemId) return { ok: false, error: "Sem item no Stripe para cancelar" };
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       // "Cancelar ao fim do ciclo" para um item = update com cancel_at_period_end via item metadata
       // Como a API do Stripe não tem cancel_at_period_end em items, usamos metadata + flag local.
       // Stripe efetiva o cancelamento via deletion agendada — simulamos com metadata + jobs.
@@ -330,7 +330,7 @@ export const reactivateAddon = createServerFn({ method: "POST" })
 
       const itemId = (contract as any).stripe_subscription_item_id;
       if (itemId) {
-        const stripe = createStripeClient(data.environment);
+        const stripe = await createStripeClient(data.environment);
         const meta = { ...(contract as any).metadata } as Record<string, any>;
         delete meta.cancel_at_period_end;
         delete meta.cancelled_at;
@@ -371,7 +371,7 @@ export const updateAddonQuantity = createServerFn({ method: "POST" })
 
       const itemId = (contract as any).stripe_subscription_item_id;
       if (itemId) {
-        const stripe = createStripeClient(data.environment);
+        const stripe = await createStripeClient(data.environment);
         await stripe.subscriptionItems.update(itemId, {
           quantity: qty,
           proration_behavior: "create_prorations",
@@ -423,7 +423,7 @@ export const adminCreateAddonStripePrice = createServerFn({ method: "POST" })
         return { ok: false, error: `Price já existe (${data.environment}): ${(addon as any)[field]}` };
       }
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       const productKey = `addon_${(addon as any).addon_key}`;
       const lookupKey = `${productKey}_monthly`;
 
@@ -568,7 +568,7 @@ export const subscribeToAddonsBatch = createServerFn({ method: "POST" })
         });
       }
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       const subscription = await stripe.subscriptions.retrieve(sub.stripe_subscription_id as string);
 
       const newItems = validated.map((v) => ({
@@ -690,7 +690,7 @@ export const previewAddonsBatch = createServerFn({ method: "POST" })
         return { ok: false, error: "Nenhum add-on configurado no Stripe" };
       }
 
-      const stripe = createStripeClient(data.environment);
+      const stripe = await createStripeClient(data.environment);
       const subscription = await stripe.subscriptions.retrieve(sub.stripe_subscription_id as string);
       const upcoming = await (stripe.invoices as any).createPreview({
         customer: subscription.customer as string,

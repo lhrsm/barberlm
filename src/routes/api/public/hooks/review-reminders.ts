@@ -21,8 +21,13 @@ export const Route = createFileRoute("/api/public/hooks/review-reminders")({
 
         const origin =
           process.env.PUBLIC_APP_URL?.replace(/\/$/, "") || "https://barbex.shop";
-        const SUPABASE_URL = process.env.SUPABASE_URL!;
-        const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!SUPABASE_URL || !KEY) {
+          return new Response("Missing env vars", { status: 500 });
+        }
+
         const supabase = createClient(SUPABASE_URL, KEY, {
           auth: { persistSession: false, autoRefreshToken: false },
         });

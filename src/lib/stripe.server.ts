@@ -1,4 +1,5 @@
-import Stripe from 'stripe';
+// Stripe import removed from top-level to prevent edge runtime errors.
+// Imported dynamically inside createStripeClient.
 
 const getEnv = (key: string): string => {
   const value = process.env[key];
@@ -16,7 +17,8 @@ export function getConnectionApiKey(env: StripeEnv): string {
     : getEnv('STRIPE_LIVE_API_KEY');
 }
 
-export function createStripeClient(env: StripeEnv): Stripe {
+export async function createStripeClient(env: StripeEnv) {
+  const Stripe = (await import('stripe')).default;
   console.log(`[Stripe Server] 💳 Criando cliente para ambiente: ${env}`);
   const connectionApiKey = getConnectionApiKey(env);
   const lovableApiKey = getEnv('LOVABLE_API_KEY');

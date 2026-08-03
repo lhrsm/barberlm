@@ -6,10 +6,11 @@ import { enforceRateLimit } from "@/lib/rate-limit.server";
 let _supabase: any = null;
 function getSupabase(): any {
   if (!_supabase) {
-    _supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) throw new Error("Missing env");
+    
+    _supabase = createClient(url, key);
   }
   return _supabase;
 }
@@ -223,7 +224,7 @@ async function absorbAddonsIntoPlan(args: {
   );
   if (absorbCandidates.length === 0) return;
 
-  const stripe = createStripeClient(env);
+  const stripe = await createStripeClient(env);
   for (const c of absorbCandidates) {
     const itemId = c.stripe_subscription_item_id;
     if (itemId) {

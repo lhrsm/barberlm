@@ -17,8 +17,10 @@ export const Route = createFileRoute("/api/public/hooks/admin-risk-scan")({
         const denied = assertCronAuth(request);
         if (denied) return denied;
 
-        const SUPABASE_URL = process.env.SUPABASE_URL!;
-        const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!SUPABASE_URL || !KEY) return new Response("Missing env", { status: 500 });
+
         const supabase = createClient(SUPABASE_URL, KEY, {
           auth: { persistSession: false, autoRefreshToken: false },
         });
