@@ -55,6 +55,10 @@ export interface CustomerKpis {
   nextVisit: Date | null;
   monthlySpend: { month: string; value: number }[];
   yearlySpend: { year: string; value: number }[];
+  relationshipScore: { label: string; value: number; color: string };
+  segments: string[];
+  opportunities: { title: string; description: string; type: string }[];
+  funnelStage: "Novo" | "Recorrente" | "VIP" | "Em Risco" | "Inativo" | "Recuperado";
 }
 
 export function computeKpis(customer: any, history: any[], products: any[], crm: CustomerCrmData): CustomerKpis {
