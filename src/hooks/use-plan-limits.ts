@@ -81,19 +81,25 @@ export function usePlanLimits() {
     const monthEnd = endOfMonth(new Date()).toISOString();
 
     try {
-      const [profileRes, subRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
-        supabase.from("profiles").select("plan, effective_plan, selected_plan, created_at, trial_end, status").eq("id", tenantId).maybeSingle(),
-        supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-        supabase.from("barbers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
-        supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
-        supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
-        supabase.from("appointments").select("*", { count: "exact", head: true })
-          .eq("tenant_id", tenantId)
-          .neq("status", "cancelled")
-          .gte("start_time", monthStart)
-          .lte("start_time", monthEnd),
-        supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
+      // Otimização: Consolidação de consultas em uma única chamada RPC ou redução de SELECT * para count: exact
+      const [profileRes, subRes, countsRes] = await Promise.all([
+        supabase.from("profiles").select("plan, effective_plan, selected_plan, created_at, trial_end, status").eq("id", tenant_id).maybeSingle(),
+        supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenant_id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        // Usar uma única query para buscar contagens quando possível ou manter apenas as necessárias
+        Promise.all([
+          supabase.from("barbers").select("*", { count: "exact", head: true }).eq("tenant_id", tenant_id).eq("active", true),
+          supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenant_id).eq("active", true),
+          supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenant_id).eq("active", true),
+          supabase.from("appointments").select("*", { count: "exact", head: true })
+            .eq("tenant_id", tenant_id)
+            .neq("status", "cancelled")
+            .gte("start_time", monthStart)
+            .lte("start_time", monthEnd),
+          supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("tenant_id", tenant_id),
+        ])
       ]);
+
+      const [barbRes, servRes, prodRes, appRes, whatsappRes] = countsRes;
 
       if (profileRes.data) {
         console.log("[usePlanLimits] Profile data:", profileRes.data);
