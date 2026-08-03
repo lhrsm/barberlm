@@ -78,11 +78,11 @@ function SecurityCenterPage() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                <span>Hardening Score</span>
                 <span className="text-white">{securityScore}/100</span>
               </div>
-              <Progress value={securityScore} className="h-2 bg-zinc-800" indicatorClassName="bg-gradient-to-r from-indigo-500 to-emerald-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+              <Progress value={securityScore} className="h-2 bg-zinc-800" />
             </div>
+
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-zinc-800/50">
               <SecurityIndicator icon={Lock} label="RLS Ativo" status="success" />
@@ -101,6 +101,7 @@ function SecurityCenterPage() {
             {overview?.alerts?.map((alert: any) => (
               <div key={alert.id} className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl flex items-start gap-3 hover:border-amber-500/30 transition-all cursor-pointer group">
                 <AlertTriangle className={cn("mt-0.5 shrink-0", alert.severity === 'high' ? "text-rose-500" : "text-amber-500")} size={16} />
+
                 <div className="flex-1">
                   <p className="text-xs font-black text-white uppercase tracking-tight group-hover:text-amber-400 transition-colors">{alert.title}</p>
                   <p className="text-[10px] font-bold text-zinc-500 uppercase mt-0.5">{alert.actor}</p>
