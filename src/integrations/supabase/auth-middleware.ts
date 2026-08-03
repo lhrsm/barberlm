@@ -9,14 +9,10 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const SUPABASE_URL = process.env['SUPABASE_URL']
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY']
 
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      return next()
-    }
-    
     const request = getRequest()
     const authHeader = request?.headers?.get('authorization')
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !authHeader || !authHeader.startsWith('Bearer ')) {
       return next()
     }
 
