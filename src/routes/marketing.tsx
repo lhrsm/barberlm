@@ -43,7 +43,10 @@ import { MarketingOverview } from "@/components/marketing-hub/MarketingOverview"
 import { CampaignList } from "@/components/marketing-hub/CampaignList";
 import { AudienceBuilder } from "@/components/marketing-hub/AudienceBuilder";
 
+import { CampaignCalendar } from "@/components/marketing-hub/CampaignCalendar";
+
 export const Route = createFileRoute("/marketing")({
+
   component: MarketingPage,
   head: () => ({
     meta: [
@@ -191,8 +194,14 @@ function MarketingPage() {
               </div>
             </TabsContent>
 
-            {/* OUTRAS ABAS */}
-            {["templates", "calendario", "oportunidades", "resultados", "automacoes", "configuracoes"].map((tab) => (
+          {/* CALENDÁRIO */}
+          <TabsContent value="calendario" className="mt-0 focus-visible:outline-none">
+            <CampaignCalendar model={model} loading={loading} />
+          </TabsContent>
+
+          {/* OUTRAS ABAS */}
+          {["templates", "oportunidades", "resultados", "automacoes", "configuracoes"].map((tab) => (
+
               <TabsContent key={tab} value={tab} className="mt-0 focus-visible:outline-none">
                 <div className="rounded-3xl border border-white/[0.07] bg-[#0b0f17] p-12 text-center">
                   <Settings className="mx-auto mb-4 text-white/10 animate-spin-slow" size={48} />
