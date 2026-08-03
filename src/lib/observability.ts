@@ -1,7 +1,8 @@
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { createMiddleware } from "@tanstack/react-start";
+import { createHash } from "crypto";
 
-export type LogLevel = "debug" | "info" | "warn" | "error" | "critical";
+export type LogLevel = "debug" | "info" | "warn" | "error" | "critical" | "audit";
 
 interface LogPayload {
   message: string;
@@ -14,10 +15,12 @@ interface LogPayload {
   metadata?: Record<string, any>;
   error?: any;
   timestamp: string;
+  integrity_hash?: string;
 }
 
 /**
  * BX-Logger: Sistema de Logs Estruturados do Barbex
+ * Integridade Imutável (Fase 7): Gera um hash para auditoria de logs críticos.
  */
 export const bxLog = createIsomorphicFn()
   .server((level: LogLevel, message: string, data: Partial<LogPayload> = {}) => {
@@ -29,16 +32,23 @@ export const bxLog = createIsomorphicFn()
       ...data,
     };
 
+    // Auditoria Imutável (Fase 7): Para logs de nível 'audit' ou 'critical'
+    if (level === 'audit' || level === 'critical') {
+      const logString = `${payload.timestamp}|${payload.level}|${payload.message}|${payload.correlation_id}`;
+      payload.integrity_hash = createHash('sha256').update(logString).digest('hex');
+    }
+
     if (process.env.NODE_ENV === "production") {
       console.log(JSON.stringify(payload));
     } else {
-      const color = level === 'error' || level === 'critical' ? '\x1b[31m' : '\x1b[36m';
+      const color = level === 'error' || level === 'critical' ? '\x1b[31m' : 
+                   level === 'audit' ? '\x1b[35m' : '\x1b[36m';
       console.log(`${color}[${payload.timestamp}] [${level.toUpperCase()}] ${message}\x1b[0m`, data.metadata || '');
     }
   })
   .client((level: LogLevel, message: string, data: Partial<LogPayload> = {}) => {
     if (import.meta.env.DEV) {
-      console[level === 'critical' ? 'error' : level](`[BX-LOG] ${message}`, data);
+      console[level === 'critical' || level === 'audit' ? 'error' : level](`[BX-LOG] ${message}`, data);
     }
   });
 
@@ -72,6 +82,7 @@ export const bxTrace = async <T>(
     throw error;
   }
 };
+
 
 
 
