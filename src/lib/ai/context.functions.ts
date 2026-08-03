@@ -18,11 +18,12 @@ export const resolveAIContext = createServerFn({ method: "GET" })
 
     if (!profile) throw new Error("Profile not found");
 
-    // 2. Fetch enabled modules
+    // 2. Fetch enabled modules using the verified table name
     const { data: tenantModules } = await authSupabase
-      .from("tenant_modules")
+      .from("barbershop_modules" as any)
       .select("module_key")
-      .eq("tenant_id", profile.tenant_id);
+      .eq("tenant_id", profile.tenant_id)
+      .eq("enabled", true);
 
     // 3. Check for AI Feature Flag (SaaS Admin defined or internal test)
     // For now, we allow it for super_admin or internal testing tenant
@@ -38,7 +39,7 @@ export const resolveAIContext = createServerFn({ method: "GET" })
         tenant_id: profile.tenant_id,
         user_id: userId,
         role: profile.role,
-        enabled_modules: tenantModules?.map(m => m.module_key) || []
+        enabled_modules: (tenantModules as any[])?.map(m => m.module_key) || []
       }
     };
   });
