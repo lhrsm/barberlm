@@ -22,7 +22,7 @@ export const testGatewayConnection = createServerFn({ method: "POST" })
 
     if (error || !gw) return { ok: false, message: "Gateway não encontrado" };
 
-    const provider = getProvider((gw as any).provider as ProviderKey);
+    const provider = await getProvider((gw as any).provider as ProviderKey);
     const result = await provider.testConnection(gw as unknown as PaymentGatewayRow);
 
     await supabase
@@ -155,7 +155,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
 
     if (planErr || !plan) throw new Error("Plano não encontrado.");
 
-    const provider = getProvider((gw as any).provider as ProviderKey);
+    const provider = await getProvider((gw as any).provider as ProviderKey);
     if (!provider.createSubscription) {
       throw new Error(`Provider ${provider.displayName} ainda não suporta assinaturas via API.`);
     }
