@@ -53,17 +53,9 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerCrmDialog } from "@/components/customers/crm/CustomerCrmDialog";
 
+// ... (Existing helpers) ...
+
 const CustomersComponent = memo(() => {
-  // ... rest of component logic
-});
-
-export const Route = createFileRoute("/customers")({
-  component: CustomersComponent,
-});
-
-// ============================================================
-// Helpers
-// ============================================================
 
 type Tier = "bronze" | "prata" | "ouro" | "diamante";
 
@@ -121,7 +113,7 @@ function openWhatsApp(phone: string | undefined) {
 // Component
 // ============================================================
 
-function CustomersComponent() {
+// (Removing redundant CustomersComponent declaration)
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<any[]>([]);

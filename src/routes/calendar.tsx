@@ -724,3 +724,7 @@ const CalendarComponent = memo(() => {
     </AppLayout>
   );
 });
+
+export const Route = createFileRoute("/calendar")({
+  component: CalendarComponent,
+});
