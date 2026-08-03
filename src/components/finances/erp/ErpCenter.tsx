@@ -464,7 +464,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
 
         {/* Inteligência */}
         <TabsContent value="resumo" className="space-y-4 pt-4">
-          <ErpSection title="Centro Financeiro Inteligente" description="Destaques automáticos do período" icon={Sparkles}>
+          <ErpSection title="Destaques Automáticos" description="Resumo inteligente do período" icon={Sparkles}>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {spotlights.map((s) => (
                 <MiniStat key={s.label} label={s.label} value={s.value} detail={s.detail} />
@@ -473,7 +473,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </ErpSection>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <ErpSection title="Análises automáticas" description="Leitura objetiva dos números" icon={Lightbulb}>
+            <ErpSection title="Smart Insights" description="Análises automáticas dos números" icon={Lightbulb}>
               {insights.length === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">Sem dados suficientes no período.</p>
               ) : (
@@ -498,7 +498,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
               )}
             </ErpSection>
 
-            <ErpSection title="Previsão financeira" description="Projeção linear pelo ritmo atual (sem IA)" icon={TrendingUp}>
+            <ErpSection title="Previsão Financeira" description="Projeção linear baseada no ritmo atual" icon={TrendingUp}>
               {!fc ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">Sem movimentações para projetar.</p>
               ) : (
@@ -540,7 +540,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             />
           </div>
 
-          <ErpSection title="Evolução diária" description="Entradas, saídas e saldo acumulado" icon={Activity}>
+          <ErpSection title="Evolução Diária" description="Entradas, saídas e saldo acumulado" icon={Activity}>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={series}>
@@ -567,7 +567,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             </div>
           </ErpSection>
 
-          <ErpSection title="Evolução mensal" description="Histórico consolidado por mês" icon={BarChart3}>
+          <ErpSection title="Evolução Mensal" description="Histórico consolidado por mês" icon={BarChart3}>
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={months}>
@@ -588,16 +588,16 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
         {/* Receitas */}
         <TabsContent value="receitas" className="space-y-4 pt-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <ErpSection title="Receita por profissional" icon={Users}>
+            <ErpSection title="Faturamento por Profissional" icon={Users}>
               <RankingList items={bd.byBarber.slice(0, 10)} />
             </ErpSection>
-            <ErpSection title="Receita por serviço" icon={Scissors}>
+            <ErpSection title="Faturamento por Serviço" icon={Scissors}>
               <RankingList items={bd.byService.slice(0, 10)} />
             </ErpSection>
-            <ErpSection title="Receita por produto" icon={Package}>
+            <ErpSection title="Faturamento por Produto" icon={Package}>
               <RankingList items={bd.byProduct.slice(0, 10)} emptyLabel="Nenhum produto vendido no período" />
             </ErpSection>
-            <ErpSection title="Receita por origem" description="Walk-in, online e manual" icon={Activity}>
+            <ErpSection title="Faturamento por origem" description="Walk-in, online e manual" icon={Activity}>
               <RankingList items={bd.byOrigin.slice(0, 10)} />
             </ErpSection>
           </div>
