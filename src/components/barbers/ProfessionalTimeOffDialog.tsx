@@ -88,7 +88,7 @@ export function ProfessionalTimeOffDialog({ professional, open, onOpenChange }: 
   async function loadTimeOffs() {
     setIsLoading(true);
     try {
-      const data = await getTimeOff({ professionalId: professional.id });
+      const data = await getTimeOff({ data: { professionalId: professional.id } });
       setTimeOffs(data);
     } catch (error) {
       console.error("Error loading time off:", error);
@@ -104,10 +104,13 @@ export function ProfessionalTimeOffDialog({ professional, open, onOpenChange }: 
     setIsCheckingConflicts(true);
     try {
       const data = await checkConflicts({
-        professionalId: professional.id,
-        startsAt: formData.starts_at,
-        endsAt: formData.ends_at
+        data: {
+          professionalId: professional.id,
+          startsAt: formData.starts_at,
+          endsAt: formData.ends_at
+        }
       });
+
       setConflicts(data as any[]);
     } catch (error) {
       console.error("Error checking conflicts:", error);
@@ -134,14 +137,17 @@ export function ProfessionalTimeOffDialog({ professional, open, onOpenChange }: 
 
     try {
       await createTimeOff({
-        professional_id: professional.id,
-        type: formData.type as any,
-        title: formData.title,
-        description: formData.description,
-        starts_at: new Date(formData.starts_at).toISOString(),
-        ends_at: new Date(formData.ends_at).toISOString(),
-        all_day: formData.all_day
+        data: {
+          professional_id: professional.id,
+          type: formData.type as any,
+          title: formData.title,
+          description: formData.description,
+          starts_at: new Date(formData.starts_at).toISOString(),
+          ends_at: new Date(formData.ends_at).toISOString(),
+          all_day: formData.all_day
+        }
       });
+
       toast.success("Ausência registrada com sucesso");
       setIsAdding(false);
       setFormData({
@@ -163,7 +169,7 @@ export function ProfessionalTimeOffDialog({ professional, open, onOpenChange }: 
     if (!confirm("Tem certeza que deseja excluir esta ausência?")) return;
     
     try {
-      await deleteTimeOff({ id });
+      await deleteTimeOff({ data: { id } });
       toast.success("Ausência excluída");
       loadTimeOffs();
     } catch (error) {

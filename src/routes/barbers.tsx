@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/tooltip";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { BarberPerformanceDialog } from "@/components/barbers/BarberPerformanceDialog";
+import { ProfessionalTimeOffDialog } from "@/components/barbers/ProfessionalTimeOffDialog";
+
 
 
 export const Route = createFileRoute("/barbers")({
@@ -110,6 +112,9 @@ function BarbersComponent() {
   });
   const [uploading, setUploading] = useState(false);
   const [performanceBarber, setPerformanceBarber] = useState<any>(null);
+  const [timeOffBarber, setTimeOffBarber] = useState<any>(null);
+  const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
+
 
   const canAddBarber = checkLimit("barbers");
 
