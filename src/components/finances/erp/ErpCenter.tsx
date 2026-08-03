@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import {
   Activity,
+  AlertTriangle,
   BadgePercent,
   BarChart3,
   CalendarDays,
@@ -35,12 +36,14 @@ import {
   Receipt,
   Scissors,
   Sparkles,
+  Target,
   TicketPercent,
   TrendingDown,
   TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
