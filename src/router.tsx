@@ -3,6 +3,7 @@ import { routeTree } from "./routeTree.gen";
 import { Route as KpisRoute } from "./routes/kpis";
 import { Route as OperationalInsightsRoute } from "./routes/operational-insights";
 import { Route as AIAssistantRoute } from "./routes/dashboard.assistente";
+import { Route as CommandCenterRoute } from "./routes/dashboard.centro-de-comando";
 import { Route as IntelligenceRoute } from "./routes/intelligence";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -89,6 +90,14 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
     </div>
   );
 }
+
+// Attach virtual routes to the existing layout tree
+KpisRoute.addChildren([
+  IntelligenceRoute,
+  AIAssistantRoute,
+  OperationalInsightsRoute,
+  CommandCenterRoute,
+]);
 
 export const getRouter = () => {
   const router = createRouter({
