@@ -11,7 +11,6 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const admin = await getAdmin();
     
-    // 1. Z-API Health (via whatsapp_instances)
     const { data: profile } = await admin
       .from("profiles")
       .select("whatsapp_enabled")
@@ -24,13 +23,11 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
       .eq("tenant_id", data.tenantId)
       .limit(1);
 
-    // 2. Stripe/Mercado Pago Gateways
     const { data: gateways } = await admin
       .from("payment_gateways")
       .select("id, provider, status, environment, last_sync_at")
       .eq("tenant_id", data.tenantId);
 
-    // 3. Automation Queue/Logs
     const { data: logs } = await admin
       .from("automation_logs")
       .select("status")
@@ -40,7 +37,6 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
 
     const instance = whatsappInstances?.[0];
     const whatsappStatus = profile?.whatsapp_enabled && instance ? "active" : "not_configured";
-
     const recentFailures = (logs || []).filter((l: any) => l.status === 'error').length;
 
     return {
@@ -66,7 +62,6 @@ export const testIntegration = createServerFn({ method: "POST" })
     integrationKey: z.string() 
   }).parse(data))
   .handler(async ({ data }) => {
-    // Implementação mockada inicial para a Central
     await new Promise(r => setTimeout(r, 1500));
     return { ok: true, message: `Teste concluído para ${data.integrationKey}` };
   });
