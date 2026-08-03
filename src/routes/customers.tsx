@@ -53,10 +53,6 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerCrmDialog } from "@/components/customers/crm/CustomerCrmDialog";
 
-// ... (Existing helpers) ...
-
-const CustomersComponent = memo(() => {
-
 type Tier = "bronze" | "prata" | "ouro" | "diamante";
 
 function getCustomerTier(c: any, isSubscriber: boolean): Tier {
@@ -109,11 +105,205 @@ function openWhatsApp(phone: string | undefined) {
   window.open(`https://wa.me/55${clean}`, "_blank");
 }
 
-// ============================================================
-// Component
-// ============================================================
+function FormField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-slate-300">{label}</Label>
+      <Input
+        type={type}
+        placeholder={placeholder}
+        required={required}
+        className="bg-[#111827] border-[#1f2937] text-white"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
 
-// (Removing redundant CustomersComponent declaration)
+function MetricCard({ icon: Icon, label, value, accent, glow }: any) {
+  return (
+    <Card
+      className={cn(
+        "bg-[#0b0f17] border border-[#1f2937] shadow-none rounded-xl transition-all hover:border-gold/30",
+        glow && "border-gold/30 shadow-[0_0_18px_-6px_rgba(212,175,55,0.35)]",
+      )}
+    >
+      <CardHeader className="pb-1.5 flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">{label}</CardTitle>
+        <Icon size={14} className="text-slate-500" />
+      </CardHeader>
+      <CardContent className="pb-3">
+        <p className={cn("text-xl md:text-2xl font-black leading-tight", accent)}>{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MiniStat({ label, value, accent = "text-white" }: any) {
+  return (
+    <div className="bg-white/[0.02] rounded-lg border border-white/5 px-2.5 py-2">
+      <p className="text-[9px] uppercase text-slate-500 font-bold tracking-wider">{label}</p>
+      <p className={cn("text-sm font-black leading-tight mt-0.5", accent)}>{value}</p>
+    </div>
+  );
+}
+
+const CustomerCard = memo(({
+  customer,
+  subscription,
+  onView,
+  onEdit,
+  onDelete,
+}: {
+  customer: any;
+  subscription: any;
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) => {
+  const isSub = !!subscription;
+  const tier = getCustomerTier(customer, isSub);
+  const tierMeta = TIER_META[tier];
+  const TierIcon = tierMeta.icon;
+  const days = daysSinceLast(customer);
+  const birthdaySoon = isBirthdaySoon(customer);
+
+  const insights: string[] = [];
+  if (birthdaySoon) insights.push("🎂 Aniversário próximo");
+  if (days !== null && days >= 45) insights.push(`⏱ ${days}d sem retornar`);
+  if (Number(customer.cashback_balance) > 20) insights.push("💰 Cashback acumulado");
+  if (isSub && subscription?.next_billing_at) {
+    const dRenew = differenceInDays(new Date(subscription.next_billing_at), new Date());
+    if (dRenew >= 0 && dRenew <= 7) insights.push(`🔄 Renova em ${dRenew}d`);
+  }
+
+  return (
+    <div
+      className={cn(
+        "relative rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5 group",
+        isSub
+          ? "bg-gradient-to-br from-[#0b0f17] via-[#0f1420] to-[#1a1408] border-gold/50 shadow-[0_0_24px_-8px_rgba(212,175,55,0.4)] hover:shadow-[0_0_32px_-6px_rgba(212,175,55,0.55)]"
+          : "bg-[#0b0f17] border-[#1f2937] hover:border-slate-600",
+      )}
+    >
+      {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gold via-[#F5C842] to-gold" />}
+      {isSub && (
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-gradient-to-r from-gold to-[#F5C842] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow">
+          <Crown size={10} /> Premium
+        </div>
+      )}
+      <div className="p-5 space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="relative shrink-0">
+            {customer.avatar_url ? (
+              <img
+                src={customer.avatar_url}
+                alt={customer.name}
+                className={cn(
+                  "h-14 w-14 rounded-full object-cover border-2",
+                  isSub ? "border-gold" : "border-slate-700",
+                )}
+              />
+            ) : (
+              <div
+                className={cn(
+                  "h-14 w-14 rounded-full flex items-center justify-center text-lg font-black border-2",
+                  isSub
+                    ? "border-gold bg-gradient-to-br from-gold/20 to-gold/5 text-gold"
+                    : "border-slate-700 bg-slate-800 text-slate-300",
+                )}
+              >
+                {initials(customer.name)}
+              </div>
+            )}
+            {isSub && (
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-gold flex items-center justify-center border-2 border-[#0b0f17]">
+                <Crown size={12} className="text-black" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-black text-white truncate pr-16">{customer.name}</p>
+            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+              <Phone size={11} /> {customer.phone || "Sem telefone"}
+            </p>
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              {isSub ? (
+                <Badge className="bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 hover:border-gold/60 text-[9px] font-black uppercase tracking-wider transition-colors">
+                  <Crown size={9} className="mr-1" /> Assinante
+                </Badge>
+              ) : (
+                <Badge className="bg-slate-500/10 text-slate-300 border border-slate-500/30 hover:bg-slate-500/20 hover:border-slate-500/60 text-[9px] font-black uppercase tracking-wider transition-colors">
+                  <UserIcon size={9} className="mr-1" /> Cliente
+                </Badge>
+              )}
+              <Badge className={cn("text-[9px] font-black uppercase tracking-wider border", tierMeta.ring, tierMeta.color)}>
+                <TierIcon size={9} className="mr-1" /> {tierMeta.label}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        {isSub && subscription?.subscription_plans && (
+          <div className="rounded-lg bg-gold/5 border border-gold/20 px-3 py-2">
+            <p className="text-[9px] uppercase text-gold/70 font-bold tracking-wider">Plano Atual</p>
+            <p className="text-sm font-black text-white">{subscription.subscription_plans.name}</p>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-2">
+          <MiniStat label="Atendimentos" value={customer.total_visits ?? 0} />
+          <MiniStat label="Total gasto" value={formatBRL(customer.total_spent || customer.lifetime_value)} accent="text-emerald-400" />
+          <MiniStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-gold" />
+          <MiniStat label="Créditos" value={formatBRL(customer.credits)} accent="text-emerald-400" />
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-white/5 pt-3">
+          <span className="flex items-center gap-1">
+            <Clock size={10} /> Última: {customer.last_visit ? format(new Date(customer.last_visit), "dd/MM/yy") : "—"}
+          </span>
+          <span>
+            Cliente desde {customer.created_at ? format(new Date(customer.created_at), "MM/yy") : "—"}
+          </span>
+        </div>
+        {insights.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {insights.map((i, idx) => (
+              <span key={idx} className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/10 text-slate-300">{i}</span>
+            ))}
+          </div>
+        )}
+        {!isSub && (
+          <div className="rounded-lg bg-gold/5 border border-dashed border-gold/30 px-3 py-2 flex items-center justify-between gap-2">
+            <p className="text-[10px] text-slate-300 leading-tight">Transforme em assinante e aumente a retenção.</p>
+            <button onClick={() => openWhatsApp(customer.phone)} className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-gold text-black hover:brightness-110 shrink-0">Oferecer</button>
+          </div>
+        )}
+        <div className="flex items-center gap-1.5 pt-1">
+          <button title="WhatsApp" onClick={() => openWhatsApp(customer.phone)} className="flex-1 h-9 rounded-lg bg-green-600/10 border border-green-600/30 text-green-400 hover:bg-green-600/20 flex items-center justify-center transition-all"><MessageCircle size={14} /></button>
+          <button title="Novo Agendamento" onClick={() => (window.location.href = `/calendar?customer=${customer.id}`)} className="flex-1 h-9 rounded-lg bg-blue-600/10 border border-blue-600/30 text-blue-400 hover:bg-blue-600/20 flex items-center justify-center transition-all"><CalendarPlus size={14} /></button>
+          <button title="Ver Perfil" onClick={onView} className="flex-1 h-9 rounded-lg bg-gold/10 border border-gold/40 text-gold hover:bg-gold/20 flex items-center justify-center transition-all"><Eye size={14} /></button>
+          <button title="Editar" onClick={onEdit} className="h-9 w-9 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 flex items-center justify-center transition-all"><Edit size={13} /></button>
+          <button title="Excluir" onClick={onDelete} className="h-9 w-9 rounded-lg bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 flex items-center justify-center transition-all"><Trash2 size={13} /></button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const CustomersComponent = memo(() => {
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<any[]>([]);
@@ -291,7 +481,6 @@ function openWhatsApp(phone: string | undefined) {
     setIsDeleteDialogOpen(true);
   };
 
-  // Dashboard metrics
   const metrics = useMemo(() => {
     const total = customers.length;
     const subCount = subsByCustomer.size;
@@ -331,34 +520,22 @@ function openWhatsApp(phone: string | undefined) {
 
       const days = daysSinceLast(c);
       switch (filter) {
-        case "subscribers":
-          return !!sub;
-        case "common":
-          return !sub;
-        case "cashback":
-          return Number(c.cashback_balance) > 0;
-        case "credits":
-          return Number(c.credits) > 0;
+        case "subscribers": return !!sub;
+        case "common": return !sub;
+        case "cashback": return Number(c.cashback_balance) > 0;
+        case "credits": return Number(c.credits) > 0;
         case "vip": {
           const t = getCustomerTier(c, !!sub);
           return t === "ouro" || t === "diamante";
         }
-        case "inactive":
-          return days !== null && days > 60;
-        case "birthday":
-          return isBirthdaySoon(c);
-        case "d30":
-          return days !== null && days >= 30 && days < 60;
-        case "d60":
-          return days !== null && days >= 60 && days < 90;
-        case "recurring":
-          return Number(c.total_visits || 0) >= 4 || (days !== null && days <= 45 && Number(c.total_visits || 0) >= 3);
-        case "new":
-          return !!c.created_at && isAfter(new Date(c.created_at), subDays(new Date(), 30));
-        case "d90":
-          return days !== null && days >= 90;
-        default:
-          return true;
+        case "inactive": return days !== null && days > 60;
+        case "birthday": return isBirthdaySoon(c);
+        case "d30": return days !== null && days >= 30 && days < 60;
+        case "d60": return days !== null && days >= 60 && days < 90;
+        case "recurring": return Number(c.total_visits || 0) >= 4 || (days !== null && days <= 45 && Number(c.total_visits || 0) >= 3);
+        case "new": return !!c.created_at && isAfter(new Date(c.created_at), subDays(new Date(), 30));
+        case "d90": return days !== null && days >= 90;
+        default: return true;
       }
     });
   }, [customers, searchTerm, filter, subsByCustomer]);
@@ -368,7 +545,6 @@ function openWhatsApp(phone: string | undefined) {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
@@ -383,9 +559,7 @@ function openWhatsApp(phone: string | undefined) {
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-              <DialogHeader>
-                <DialogTitle className="text-white">Adicionar Novo Cliente</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle className="text-white">Adicionar Novo Cliente</DialogTitle></DialogHeader>
               <form onSubmit={handleAddCustomer} className="space-y-4 pt-4">
                 <FormField label="Nome Completo" required value={newCustomer.name} onChange={(v) => setNewCustomer({ ...newCustomer, name: v })} />
                 <FormField label="Telefone / WhatsApp" placeholder="(00) 00000-0000" value={newCustomer.phone} onChange={(v) => setNewCustomer({ ...newCustomer, phone: v })} />
@@ -397,8 +571,6 @@ function openWhatsApp(phone: string | undefined) {
             </DialogContent>
           </Dialog>
         </div>
-
-        {/* Dashboard cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <MetricCard icon={Users} label="Total de Clientes" value={metrics.total} accent="text-white" />
           <MetricCard icon={Crown} label="Assinantes Ativos" value={metrics.subCount} accent="text-gold" glow />
@@ -411,8 +583,6 @@ function openWhatsApp(phone: string | undefined) {
           <MetricCard icon={AlertCircle} label="Inativos (60+d)" value={metrics.inactive} accent="text-red-400" />
           <MetricCard icon={Sparkles} label="Novos no Mês" value={metrics.newMonth} accent="text-emerald-400" />
         </div>
-
-        {/* Search + filters */}
         <div className="space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -444,23 +614,16 @@ function openWhatsApp(phone: string | undefined) {
                 onClick={() => setFilter(f.k)}
                 className={cn(
                   "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all",
-                  filter === f.k
-                    ? "bg-gold text-black border-gold shadow shadow-[#D4AF37]/30"
-                    : "bg-[#0b0f17] text-slate-300 border-[#1f2937] hover:border-gold/40",
+                  filter === f.k ? "bg-gold text-black border-gold shadow shadow-[#D4AF37]/30" : "bg-[#0b0f17] text-slate-300 border-[#1f2937] hover:border-gold/40",
                 )}
-              >
-                {f.label}
-              </button>
+              >{f.label}</button>
             ))}
           </div>
         </div>
-
-        {/* Customer cards grid */}
         {filteredCustomers.length === 0 ? (
           <div className="bg-[#0b0f17] border border-[#1f2937] rounded-2xl p-16 text-center">
             <Users className="mx-auto text-slate-700 mb-3" size={48} />
             <p className="text-slate-400 font-semibold">Nenhum cliente encontrado</p>
-            <p className="text-slate-600 text-sm mt-1">Ajuste sua busca ou adicione um novo cliente.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -476,8 +639,6 @@ function openWhatsApp(phone: string | undefined) {
             ))}
           </div>
         )}
-
-        {/* Dialogs */}
         <CustomerCrmDialog
           isOpen={isProfileOpen}
           onOpenChange={setIsProfileOpen}
@@ -487,17 +648,12 @@ function openWhatsApp(phone: string | undefined) {
           history={customerHistory}
           products={customerProducts}
           loading={loadingProfile}
-          onEdit={() => {
-            if (selectedCustomer) openEditDialog(selectedCustomer);
-          }}
+          onEdit={() => { if (selectedCustomer) openEditDialog(selectedCustomer); }}
           onSaveNotes={handleSaveNotes}
         />
-
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
-            <DialogHeader>
-              <DialogTitle className="text-white">Editar Cliente</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle className="text-white">Editar Cliente</DialogTitle></DialogHeader>
             <form onSubmit={handleEditCustomer} className="space-y-4 pt-4">
               <FormField label="Nome Completo" required value={editingCustomer.name} onChange={(v) => setEditingCustomer({ ...editingCustomer, name: v })} />
               <FormField label="Telefone / WhatsApp" placeholder="(00) 00000-0000" value={editingCustomer.phone} onChange={(v) => setEditingCustomer({ ...editingCustomer, phone: v })} />
@@ -508,7 +664,6 @@ function openWhatsApp(phone: string | undefined) {
             </form>
           </DialogContent>
         </Dialog>
-
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
             <AlertDialogHeader>
@@ -519,9 +674,7 @@ function openWhatsApp(phone: string | undefined) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="bg-transparent border-[#1f2937] text-white hover:bg-[#111827]">Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-red-600 text-white hover:bg-red-700">
-                Excluir
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-red-600 text-white hover:bg-red-700">Excluir</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -530,262 +683,6 @@ function openWhatsApp(phone: string | undefined) {
   );
 });
 
-// ============================================================
-// UI Subcomponents
-// ============================================================
-
-function FormField({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-  required,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label className="text-slate-300">{label}</Label>
-      <Input
-        type={type}
-        placeholder={placeholder}
-        required={required}
-        className="bg-[#111827] border-[#1f2937] text-white"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
-function MetricCard({ icon: Icon, label, value, accent, glow }: any) {
-  return (
-    <Card
-      className={cn(
-        "bg-[#0b0f17] border border-[#1f2937] shadow-none rounded-xl transition-all hover:border-gold/30",
-        glow && "border-gold/30 shadow-[0_0_18px_-6px_rgba(212,175,55,0.35)]",
-      )}
-    >
-      <CardHeader className="pb-1.5 flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">{label}</CardTitle>
-        <Icon size={14} className="text-slate-500" />
-      </CardHeader>
-      <CardContent className="pb-3">
-        <p className={cn("text-xl md:text-2xl font-black leading-tight", accent)}>{value}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CustomerCard({
-  customer,
-  subscription,
-  onView,
-  onEdit,
-  onDelete,
-}: {
-  customer: any;
-  subscription: any;
-  onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const isSub = !!subscription;
-  const tier = getCustomerTier(customer, isSub);
-  const tierMeta = TIER_META[tier];
-  const TierIcon = tierMeta.icon;
-  const days = daysSinceLast(customer);
-  const birthdaySoon = isBirthdaySoon(customer);
-
-  const insights: string[] = [];
-  if (birthdaySoon) insights.push("🎂 Aniversário próximo");
-  if (days !== null && days >= 45) insights.push(`⏱ ${days}d sem retornar`);
-  if (Number(customer.cashback_balance) > 20) insights.push("💰 Cashback acumulado");
-  if (isSub && subscription?.next_billing_at) {
-    const dRenew = differenceInDays(new Date(subscription.next_billing_at), new Date());
-    if (dRenew >= 0 && dRenew <= 7) insights.push(`🔄 Renova em ${dRenew}d`);
-  }
-
-  return (
-    <div
-      className={cn(
-        "relative rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5 group",
-        isSub
-          ? "bg-gradient-to-br from-[#0b0f17] via-[#0f1420] to-[#1a1408] border-gold/50 shadow-[0_0_24px_-8px_rgba(212,175,55,0.4)] hover:shadow-[0_0_32px_-6px_rgba(212,175,55,0.55)]"
-          : "bg-[#0b0f17] border-[#1f2937] hover:border-slate-600",
-      )}
-    >
-      {/* Gold top bar for subscribers */}
-      {isSub && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gold via-[#F5C842] to-gold" />}
-
-      {/* Premium seal */}
-      {isSub && (
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-gradient-to-r from-gold to-[#F5C842] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow">
-          <Crown size={10} /> Premium
-        </div>
-      )}
-
-      <div className="p-5 space-y-4">
-        {/* Header row */}
-        <div className="flex items-start gap-3">
-          <div className="relative shrink-0">
-            {customer.avatar_url ? (
-              <img
-                src={customer.avatar_url}
-                alt={customer.name}
-                className={cn(
-                  "h-14 w-14 rounded-full object-cover border-2",
-                  isSub ? "border-gold" : "border-slate-700",
-                )}
-              />
-            ) : (
-              <div
-                className={cn(
-                  "h-14 w-14 rounded-full flex items-center justify-center text-lg font-black border-2",
-                  isSub
-                    ? "border-gold bg-gradient-to-br from-gold/20 to-gold/5 text-gold"
-                    : "border-slate-700 bg-slate-800 text-slate-300",
-                )}
-              >
-                {initials(customer.name)}
-              </div>
-            )}
-            {isSub && (
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-gold flex items-center justify-center border-2 border-[#0b0f17]">
-                <Crown size={12} className="text-black" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-black text-white truncate pr-16">{customer.name}</p>
-            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-              <Phone size={11} /> {customer.phone || "Sem telefone"}
-            </p>
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              {isSub ? (
-                <Badge className="bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 hover:border-gold/60 text-[9px] font-black uppercase tracking-wider transition-colors">
-                  <Crown size={9} className="mr-1" /> Assinante
-                </Badge>
-              ) : (
-                <Badge className="bg-slate-500/10 text-slate-300 border border-slate-500/30 hover:bg-slate-500/20 hover:border-slate-500/60 text-[9px] font-black uppercase tracking-wider transition-colors">
-                  <UserIcon size={9} className="mr-1" /> Cliente
-                </Badge>
-              )}
-
-              <Badge className={cn("text-[9px] font-black uppercase tracking-wider border", tierMeta.ring, tierMeta.color)}>
-                <TierIcon size={9} className="mr-1" /> {tierMeta.label}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Plan info for subscribers */}
-        {isSub && subscription?.subscription_plans && (
-          <div className="rounded-lg bg-gold/5 border border-gold/20 px-3 py-2">
-            <p className="text-[9px] uppercase text-gold/70 font-bold tracking-wider">Plano Atual</p>
-            <p className="text-sm font-black text-white">{subscription.subscription_plans.name}</p>
-          </div>
-        )}
-
-        {/* Metrics grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <MiniStat label="Atendimentos" value={customer.total_visits ?? 0} />
-          <MiniStat label="Total gasto" value={formatBRL(customer.total_spent || customer.lifetime_value)} accent="text-emerald-400" />
-          <MiniStat label="Cashback" value={formatBRL(customer.cashback_balance)} accent="text-gold" />
-          <MiniStat label="Créditos" value={formatBRL(customer.credits)} accent="text-emerald-400" />
-        </div>
-
-        {/* Meta */}
-        <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-white/5 pt-3">
-          <span className="flex items-center gap-1">
-            <Clock size={10} /> Última: {customer.last_visit ? format(new Date(customer.last_visit), "dd/MM/yy") : "—"}
-          </span>
-          <span>
-            Cliente desde {customer.created_at ? format(new Date(customer.created_at), "MM/yy") : "—"}
-          </span>
-        </div>
-
-        {/* Insights */}
-        {insights.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {insights.map((i, idx) => (
-              <span
-                key={idx}
-                className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/10 text-slate-300"
-              >
-                {i}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* CTA to convert */}
-        {!isSub && (
-          <div className="rounded-lg bg-gold/5 border border-dashed border-gold/30 px-3 py-2 flex items-center justify-between gap-2">
-            <p className="text-[10px] text-slate-300 leading-tight">Transforme em assinante e aumente a retenção.</p>
-            <button
-              onClick={() => openWhatsApp(customer.phone)}
-              className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-gold text-black hover:brightness-110 shrink-0"
-            >
-              Oferecer
-            </button>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center gap-1.5 pt-1">
-          <button
-            title="WhatsApp"
-            onClick={() => openWhatsApp(customer.phone)}
-            className="flex-1 h-9 rounded-lg bg-green-600/10 border border-green-600/30 text-green-400 hover:bg-green-600/20 flex items-center justify-center transition-all"
-          >
-            <MessageCircle size={14} />
-          </button>
-          <button
-            title="Novo Agendamento"
-            onClick={() => (window.location.href = `/calendar?customer=${customer.id}`)}
-            className="flex-1 h-9 rounded-lg bg-blue-600/10 border border-blue-600/30 text-blue-400 hover:bg-blue-600/20 flex items-center justify-center transition-all"
-          >
-            <CalendarPlus size={14} />
-          </button>
-          <button
-            title="Ver Perfil"
-            onClick={onView}
-            className="flex-1 h-9 rounded-lg bg-gold/10 border border-gold/40 text-gold hover:bg-gold/20 flex items-center justify-center transition-all"
-          >
-            <Eye size={14} />
-          </button>
-          <button
-            title="Editar"
-            onClick={onEdit}
-            className="h-9 w-9 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 flex items-center justify-center transition-all"
-          >
-            <Edit size={13} />
-          </button>
-          <button
-            title="Excluir"
-            onClick={onDelete}
-            className="h-9 w-9 rounded-lg bg-red-600/10 border border-red-600/30 text-red-400 hover:bg-red-600/20 flex items-center justify-center transition-all"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value, accent = "text-white" }: any) {
-  return (
-    <div className="bg-white/[0.02] rounded-lg border border-white/5 px-2.5 py-2">
-      <p className="text-[9px] uppercase text-slate-500 font-bold tracking-wider">{label}</p>
-      <p className={cn("text-sm font-black leading-tight mt-0.5", accent)}>{value}</p>
-    </div>
-  );
-}
+export const Route = createFileRoute("/customers")({
+  component: CustomersComponent,
+});
