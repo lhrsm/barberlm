@@ -53,11 +53,12 @@ function IntegrationsCenterPage() {
   if (!tenantId) return null;
 
   const categories = [
-    { id: 'payments', label: 'Pagamentos', icon: CreditCard, count: 3 },
+    { id: 'payments', label: 'Pagamentos', icon: CreditCard, count: 4 },
     { id: 'comms', label: 'Comunicação', icon: MessageSquare, count: 2 },
-    { id: 'marketing', label: 'Marketing & Analytics', icon: BarChart3, count: 4 },
-    { id: 'dev', label: 'Desenvolvimento', icon: Webhook, count: 2 },
+    { id: 'marketing', label: 'Marketing & Analytics', icon: BarChart3, count: 0 },
+    { id: 'dev', label: 'Desenvolvimento', icon: Webhook, count: 1 },
   ];
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -163,7 +164,17 @@ function IntegrationsCenterPage() {
                   category="Agenda"
                   icon={<Calendar className="text-rose-400" />}
                 />
+
+                <IntegrationCard 
+                  name="Barbex API (v1)"
+                  provider="internal"
+                  description="Acesso programático para desenvolvedores e integração com ERPs externos."
+                  status="coming_soon"
+                  category="Desenvolvimento"
+                  icon={<Webhook className="text-zinc-400" />}
+                />
              </div>
+
           </PremiumTabsContent>
 
           <PremiumTabsContent value="monitor">
