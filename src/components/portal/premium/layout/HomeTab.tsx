@@ -1,11 +1,11 @@
 import * as React from "react";
-import { HeroJornada } from "./HeroJornada";
-import { AssistenteBarbex } from "./AssistenteBarbex";
-import { QuickActions } from "./QuickActions";
-import { JourneyBarbex } from "./JourneyBarbex";
-import { ProfissionalFavorito } from "./ProfissionalFavorito";
-import { EstatisticasPessoais } from "./EstatisticasPessoais";
-import { ProdutosRecomendados } from "./ProdutosRecomendados";
+import { HeroJornada } from "../journey/HeroJornada";
+import { AssistenteBarbex } from "../journey/AssistenteBarbex";
+import { QuickActions } from "../journey/QuickActions";
+import { JourneyBarbex } from "../journey/JourneyEngine";
+import { ProfissionalFavorito } from "../journey/ProfissionalFavorito";
+import { EstatisticasPessoais } from "../journey/EstatisticasPessoais";
+import { ProdutosRecomendados } from "../journey/ProdutosRecomendados";
 
 type Props = {
   client: any;
@@ -20,15 +20,14 @@ type Props = {
   coupons?: any[];
   subscriptionsEnabled: boolean;
   onNewAppointment: () => void;
+  onNavigate: (tab: string) => void;
 };
 
 /**
- * "Sua Jornada Barbex" — Premium Portal Experience.
- *
- * Rules-based today, AI-ready tomorrow. Every card only renders when the
- * underlying data justifies it, keeping the surface honest and personal.
+ * Home dashboard for the premium portal.
+ * Refactored from SuaJornadaBarbex to support tabbed navigation.
  */
-export function SuaJornadaBarbex({
+export function HomeTab({
   client,
   shop,
   customerData,
@@ -41,6 +40,7 @@ export function SuaJornadaBarbex({
   coupons,
   subscriptionsEnabled,
   onNewAppointment,
+  onNavigate,
 }: Props) {
   const hasCashback = Number(customerData?.cashback_balance || 0) > 0;
   const hasCredits = Number(customerData?.credits || 0) > 0;
@@ -69,6 +69,7 @@ export function SuaJornadaBarbex({
         hasCredits={hasCredits}
         isSubscriber={isSubscriber}
         subscriptionsEnabled={subscriptionsEnabled}
+        onNavigate={onNavigate}
       />
 
       <JourneyBarbex

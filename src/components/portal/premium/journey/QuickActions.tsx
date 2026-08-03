@@ -16,22 +16,29 @@ type Props = {
   hasCredits: boolean;
   isSubscriber: boolean;
   subscriptionsEnabled: boolean;
+  onNavigate?: (tab: string) => void;
 };
 
-const dispatch = (event: string) => {
+const dispatchEvent = (event: string) => {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(event));
 };
 
-export function QuickActions({ hasCashback, hasCredits, isSubscriber, subscriptionsEnabled }: Props) {
+export function QuickActions({ 
+  hasCashback, 
+  hasCredits, 
+  isSubscriber, 
+  subscriptionsEnabled,
+  onNavigate 
+}: Props) {
   const actions = [
     { id: "book", label: "Agendar", icon: CalendarIcon, event: "OPEN_BOOKING_MODAL", accent: "gold", show: true },
-    { id: "products", label: "Comprar produtos", icon: ShoppingBag, event: "OPEN_PRODUCTS_TAB", accent: "white", show: true },
+    { id: "products", label: "Comprar produtos", icon: ShoppingBag, tab: "products", accent: "white", show: true },
     { id: "cashback", label: "Usar cashback", icon: Wallet, event: "OPEN_BOOKING_MODAL", accent: "emerald", show: hasCashback },
     { id: "credits", label: "Usar créditos", icon: Coins, event: "OPEN_BOOKING_MODAL", accent: "emerald", show: hasCredits },
-    { id: "renew", label: "Ver assinatura", icon: RefreshCcw, event: "OPEN_PLAN_DETAILS_MODAL", accent: "gold", show: isSubscriber },
-    { id: "change", label: "Alterar plano", icon: Crown, event: "OPEN_PLAN_DETAILS_MODAL", accent: "gold", show: isSubscriber },
-    { id: "subscribe", label: "Conhecer planos", icon: Crown, event: "OPEN_SUBSCRIBE_MODAL", accent: "gold", show: !isSubscriber && subscriptionsEnabled },
-    { id: "promos", label: "Ver promoções", icon: Gift, event: "OPEN_LOYALTY_MODAL", accent: "gold", show: true },
+    { id: "renew", label: "Ver assinatura", icon: RefreshCcw, tab: "benefits", accent: "gold", show: isSubscriber },
+    { id: "change", label: "Alterar plano", icon: Crown, tab: "club", accent: "gold", show: isSubscriber },
+    { id: "subscribe", label: "Conhecer planos", icon: Crown, tab: "club", accent: "gold", show: !isSubscriber && subscriptionsEnabled },
+    { id: "promos", label: "Ver promoções", icon: Gift, tab: "loyalty", accent: "gold", show: true },
   ].filter((a) => a.show);
 
   return (
@@ -51,7 +58,13 @@ export function QuickActions({ hasCashback, hasCredits, isSubscriber, subscripti
           <motion.button
             key={a.id}
             type="button"
-            onClick={() => dispatch(a.event)}
+            onClick={() => {
+              if (a.tab && onNavigate) {
+                onNavigate(a.tab);
+              } else if (a.event) {
+                dispatchEvent(a.event);
+              }
+            }}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03 }}
