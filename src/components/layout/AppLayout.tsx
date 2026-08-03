@@ -31,7 +31,8 @@ import {
   Layout,
   Gift,
   ExternalLink,
-  Radar
+  Radar,
+  Sparkles
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
@@ -58,6 +59,7 @@ import { useModules, type ModuleKey } from "@/hooks/use-modules";
 const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: ModuleKey }> = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
   { label: "KPIs", icon: BarChart3, to: "/kpis" },
+  { label: "Assistente", icon: Sparkles, to: "/dashboard/assistente" },
   { label: "Radar Op.", icon: Radar, to: "/operational-insights" },
   { label: "Inteligência", icon: Radar, to: "/intelligence" },
   { label: "Marketing", icon: Megaphone, to: "/marketing" },

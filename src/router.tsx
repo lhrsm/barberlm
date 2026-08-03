@@ -2,6 +2,7 @@ import { createRouter, useRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { Route as KpisRoute } from "./routes/kpis";
 import { Route as OperationalInsightsRoute } from "./routes/operational-insights";
+import { Route as AIAssistantRoute } from "./routes/dashboard.assistente";
 import { Route as IntelligenceRoute } from "./routes/intelligence";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
