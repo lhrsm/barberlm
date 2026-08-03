@@ -46,6 +46,6 @@ export const getScalabilityMetrics = createServerFn({ method: "GET" })
         pending: 5,
         failed: 2,
         dead_letter: 0
-      }
+      } as const
     };
   });

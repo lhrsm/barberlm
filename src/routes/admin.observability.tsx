@@ -139,7 +139,7 @@ function ObservabilityCenterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <MetricStatCard title="Tenants Ativos" value={metrics?.active_tenants || 0} unit="unidades" icon={Server} />
               <MetricStatCard title="Agendamentos" value={metrics?.total_appointments || 0} unit="histórico" icon={Clock} />
-              <MetricStatCard title="Taxa de Erro" value={`${((metrics?.error_rate || 0) * 100).toFixed(2)}%`} unit="avg" icon={AlertTriangle} isWarning={metrics?.error_rate > 0.05} />
+              <MetricStatCard title="Taxa de Erro" value={`${(((metrics?.error_rate || 0)) * 100).toFixed(2)}%`} unit="avg" icon={AlertTriangle} isWarning={(metrics?.error_rate || 0) > 0.05} />
             </div>
           </PremiumTabsContent>
 

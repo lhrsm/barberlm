@@ -83,6 +83,7 @@ import { Route as AdminSegurancaRouteImport } from './routes/admin.seguranca'
 import { Route as AdminRlsTestsRouteImport } from './routes/admin.rls-tests'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
+import { Route as AdminObservabilityRouteImport } from './routes/admin.observability'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminLgpdRouteImport } from './routes/admin.lgpd'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
@@ -481,6 +482,11 @@ const AdminPlansRoute = AdminPlansRouteImport.update({
   path: '/plans',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminObservabilityRoute = AdminObservabilityRouteImport.update({
+  id: '/observability',
+  path: '/observability',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -667,6 +673,7 @@ export interface FileRoutesByFullPath {
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/observability': typeof AdminObservabilityRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/rls-tests': typeof AdminRlsTestsRoute
@@ -765,6 +772,7 @@ export interface FileRoutesByTo {
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/observability': typeof AdminObservabilityRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/rls-tests': typeof AdminRlsTestsRoute
@@ -867,6 +875,7 @@ export interface FileRoutesById {
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/observability': typeof AdminObservabilityRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/rls-tests': typeof AdminRlsTestsRoute
@@ -970,6 +979,7 @@ export interface FileRouteTypes {
     | '/admin/finance'
     | '/admin/lgpd'
     | '/admin/notifications'
+    | '/admin/observability'
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/rls-tests'
@@ -1068,6 +1078,7 @@ export interface FileRouteTypes {
     | '/admin/finance'
     | '/admin/lgpd'
     | '/admin/notifications'
+    | '/admin/observability'
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/rls-tests'
@@ -1169,6 +1180,7 @@ export interface FileRouteTypes {
     | '/admin/finance'
     | '/admin/lgpd'
     | '/admin/notifications'
+    | '/admin/observability'
     | '/admin/plans'
     | '/admin/reports'
     | '/admin/rls-tests'
@@ -1801,6 +1813,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlansRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/observability': {
+      id: '/admin/observability'
+      path: '/observability'
+      fullPath: '/admin/observability'
+      preLoaderRoute: typeof AdminObservabilityRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/notifications': {
       id: '/admin/notifications'
       path: '/notifications'
@@ -2003,6 +2022,7 @@ interface AdminRouteChildren {
   AdminFinanceRoute: typeof AdminFinanceRoute
   AdminLgpdRoute: typeof AdminLgpdRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
+  AdminObservabilityRoute: typeof AdminObservabilityRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminRlsTestsRoute: typeof AdminRlsTestsRoute
@@ -2027,6 +2047,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFinanceRoute: AdminFinanceRoute,
   AdminLgpdRoute: AdminLgpdRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
+  AdminObservabilityRoute: AdminObservabilityRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminRlsTestsRoute: AdminRlsTestsRoute,
