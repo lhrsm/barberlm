@@ -43,7 +43,8 @@ export const resolveCommandCenterContext = createServerFn({ method: "GET" })
       authSupabase.from("appointments").select("*").eq("tenant_id", tenantId).gte("start_time", startOfDay).lte("start_time", endOfDay),
       authSupabase.from("waiting_list" as any).select("*").eq("tenant_id", tenantId).eq("status", "waiting"),
       authSupabase.from("cash_registers" as any).select("*").eq("tenant_id", tenantId).eq("status", "open").maybeSingle(),
-      authSupabase.from("transactions").select("*").eq("tenant_id", tenantId).eq("status", "pending"),
+      // Fix: Filter transactions by tenant and status correctly without assuming specific column availability in simple filters
+      authSupabase.from("transactions").select("*").eq("tenant_id", tenantId).filter("status", "eq", "pending"),
       authSupabase.from("product_orders" as any).select("*").eq("tenant_id", tenantId).in("status", ["pending", "preparing"]),
       authSupabase.from("operational_insights" as any).select("*").eq("tenant_id", tenantId).eq("status", "active").limit(5)
     ]);
