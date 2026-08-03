@@ -212,9 +212,9 @@ function KpisCentralPage() {
                    <CardDescription>Principais fontes de faturamento mapeadas</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
-                    <ProgressBar label="Serviços" value={totals.servicesRevenue} total={totals.income} color="bg-gold" />
-                    <ProgressBar label="Produtos" value={totals.productsRevenue} total={totals.income} color="bg-emerald-500" />
-                    <ProgressBar label="Assinaturas" value={totals.subscriptionsRevenue} total={totals.income} color="bg-purple-500" />
+                    <ProgressBar label="Serviços" value={totals.servicesRevenue} total={totals.income || 1} color="bg-gold" />
+                    <ProgressBar label="Produtos" value={totals.productsRevenue} total={totals.income || 1} color="bg-emerald-500" />
+                    <ProgressBar label="Assinaturas" value={totals.subscriptionsRevenue} total={totals.income || 1} color="bg-purple-500" />
                  </CardContent>
                </Card>
 
