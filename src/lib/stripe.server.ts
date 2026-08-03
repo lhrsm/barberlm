@@ -67,19 +67,22 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
     throw new Error("Webhook timestamp too old");
   }
 
-  const key = await crypto.subtle.importKey(
+  const cryptoObj = typeof crypto !== 'undefined' ? crypto : (await import('node:crypto')).webcrypto;
+  const key = await cryptoObj.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
   );
-  const signed = await crypto.subtle.sign(
+  const signed = await cryptoObj.subtle.sign(
     "HMAC",
     key,
     new TextEncoder().encode(`${timestamp}.${body}`)
   );
-  const expected = Buffer.from(new Uint8Array(signed)).toString('hex');
+  const expected = Array.from(new Uint8Array(signed))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
   if (!v1Signatures.includes(expected)) {
     throw new Error("Invalid webhook signature");

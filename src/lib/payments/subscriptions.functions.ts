@@ -22,7 +22,7 @@ export const testGatewayConnection = createServerFn({ method: "POST" })
 
     if (error || !gw) return { ok: false, message: "Gateway não encontrado" };
 
-    const provider = getProvider((gw as any).provider as ProviderKey);
+    const provider = await getProvider((gw as any).provider as ProviderKey);
     const result = await provider.testConnection(gw as unknown as PaymentGatewayRow);
 
     await supabase
@@ -74,17 +74,17 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
     const { requireAddonAnyEnv } = await import("@/lib/addon-guard.server");
     const phone = normalizePhone(data.phone);
     if (phone.length < 8) throw new Error("Telefone inválido");
 
     // Guard: shop must have the "subscriptions" add-on active to sell plans
-    await requireAddonAnyEnv(supabaseAdmin, data.tenantId, "subscriptions");
+    await requireAddonAnyEnv(admin, data.tenantId, "subscriptions");
 
 
     // 1. Autentica o cliente: phone tem que existir neste tenant E ter client_auth
-    const { data: customer, error: custErr } = await supabaseAdmin
+    const { data: customer, error: custErr } = await admin
       .from("customers")
       .select("id, name, email, phone, user_id")
       .eq("user_id", data.tenantId)
@@ -95,7 +95,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
       throw new Error("Cliente não encontrado. Faça login no portal primeiro.");
     }
 
-    const { data: auth } = await supabaseAdmin
+    const { data: auth } = await admin
       .from("client_auth")
       .select("customer_id")
       .eq("phone", phone)
@@ -108,7 +108,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     const customerId = (customer as any).id;
 
     // 2. Idempotência: já existe assinatura ativa/pendente do mesmo cliente+plano?
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await admin
       .from("customer_subscriptions")
       .select("id, status, metadata")
       .eq("tenant_id", data.tenantId)
@@ -133,7 +133,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     }
 
     // 3. Gateway principal ativo da barbearia
-    const { data: gw, error: gwErr } = await supabaseAdmin
+    const { data: gw, error: gwErr } = await admin
       .from("payment_gateways")
       .select("*")
       .eq("tenant_id", data.tenantId)
@@ -146,7 +146,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     }
 
     // 4. Plano
-    const { data: plan, error: planErr } = await supabaseAdmin
+    const { data: plan, error: planErr } = await admin
       .from("subscription_plans")
       .select("id, name, monthly_price")
       .eq("id", data.planId)
@@ -155,7 +155,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
 
     if (planErr || !plan) throw new Error("Plano não encontrado.");
 
-    const provider = getProvider((gw as any).provider as ProviderKey);
+    const provider = await getProvider((gw as any).provider as ProviderKey);
     if (!provider.createSubscription) {
       throw new Error(`Provider ${provider.displayName} ainda não suporta assinaturas via API.`);
     }
@@ -204,7 +204,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
         stack: err?.stack,
       });
       // Log em payment_gateway_logs para auditoria
-      await supabaseAdmin.from("payment_gateway_logs").insert({
+      await admin.from("payment_gateway_logs").insert({
         tenant_id: data.tenantId,
         gateway_id: (gw as any).id,
         event: "create_subscription",
@@ -215,7 +215,7 @@ export const createCustomerSubscription = createServerFn({ method: "POST" })
     }
 
     // 6. Registra em customer_subscriptions (pending_payment até webhook confirmar)
-    await supabaseAdmin.from("customer_subscriptions").insert({
+    await admin.from("customer_subscriptions").insert({
       tenant_id: data.tenantId,
       customer_id: customerId,
       plan_id: (plan as any).id,

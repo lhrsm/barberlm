@@ -63,10 +63,10 @@ export const createReceptionUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const tenantId = await requireOwner(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
 
     // Reaproveita usuário existente quando o e-mail já tem conta
-    const { data: existingProfile } = await supabaseAdmin
+    const { data: existingProfile } = await admin
       .from("profiles")
       .select("id")
       .eq("email", data.email)
@@ -75,7 +75,7 @@ export const createReceptionUser = createServerFn({ method: "POST" })
     let userId = existingProfile?.id as string | undefined;
 
     if (!userId) {
-      const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
         email: data.email,
         password: data.password,
         email_confirm: true,
@@ -85,16 +85,16 @@ export const createReceptionUser = createServerFn({ method: "POST" })
       userId = created.user!.id;
     }
 
-    await supabaseAdmin
+    await admin
       .from("profiles")
       .update({ role: "reception", tenant_id: tenantId, responsible_name: data.name || "Recepção" })
       .eq("id", userId);
 
-    await supabaseAdmin
+    await admin
       .from("user_roles")
       .upsert({ user_id: userId, role: "reception" as any }, { onConflict: "user_id,role" });
 
-    const { error: permError } = await supabaseAdmin
+    const { error: permError } = await admin
       .from("reception_permissions")
       .upsert(
         {

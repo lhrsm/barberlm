@@ -1,28 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
-let adminClient: ReturnType<typeof createClient> | null = null;
-function getAdmin() {
-  if (adminClient) return adminClient;
-  adminClient = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
-  return adminClient;
-}
-
-export function getClientIp(request: Request): string {
-  return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
-  );
-}
-
 /**
- * Returns null when allowed, or a 429 Response when the limit is exceeded.
- * Fails open on backend errors so a DB hiccup never blocks legitimate traffic.
+ * Utilitário de rate limit seguro para o ambiente de borda (Edge).
+ * Usa imports dinâmicos para o cliente administrativo e falha silenciosamente (fail-open).
  */
 export async function enforceRateLimit(
   request: Request,
@@ -30,13 +10,21 @@ export async function enforceRateLimit(
   opts: { max: number; windowSeconds: number; key?: string },
 ): Promise<Response | null> {
   try {
-    const key = opts.key ?? getClientIp(request);
-    const { data, error } = await (getAdmin().rpc as any)("check_rate_limit", {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const key = opts.key ?? (
+      request.headers.get("cf-connecting-ip") ||
+      request.headers.get("x-real-ip") ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown"
+    );
+
+    const { data, error } = await (supabaseAdmin.rpc as any)("check_rate_limit", {
       _bucket: bucket,
       _key: key,
       _max: opts.max,
       _window_seconds: opts.windowSeconds,
     });
+    
     if (error) return null;
     if (data === false) {
       return new Response(JSON.stringify({ error: "rate_limited" }), {
@@ -45,7 +33,8 @@ export async function enforceRateLimit(
       });
     }
     return null;
-  } catch {
+  } catch (err) {
+    console.error("[RateLimit] Error", err);
     return null;
   }
 }

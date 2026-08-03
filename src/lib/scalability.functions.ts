@@ -2,16 +2,21 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { bxLog, bxTrace } from "./observability";
 
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
+
 /**
  * Health Check do Ecossistema Barbex
  */
 export const getSystemHealth = createServerFn({ method: "GET" })
   .handler(async () => {
     return bxTrace("system_health_check", async () => {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const admin = await getAdmin();
       
       const start = Date.now();
-      const { error: dbError } = await supabaseAdmin.from("profiles").select("id").limit(1);
+      const { error: dbError } = await admin.from("profiles").select("id").limit(1);
       const dbLatency = Date.now() - start;
 
       return {
@@ -37,10 +42,10 @@ export const getSystemHealth = createServerFn({ method: "GET" })
 export const getScalabilityMetrics = createServerFn({ method: "GET" })
   .handler(async () => {
     return bxTrace("get_scalability_metrics", async () => {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const admin = await getAdmin();
       
       // Coleta real de status de jobs
-      const { data: jobStats } = await supabaseAdmin
+      const { data: jobStats } = await admin
         .from("background_jobs")
         .select("status", { count: "exact" });
       
@@ -72,8 +77,8 @@ export const runAutoHealingDiagnostic = createServerFn({ method: "POST" })
       bxLog("info", "Starting Auto-healing diagnostic cycle...");
       
       // Simulação de verificação de jobs travados
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: stuckJobs } = await supabaseAdmin
+      const admin = await getAdmin();
+      const { data: stuckJobs } = await admin
         .from("background_jobs")
         .select("id")
         .eq("status", "processing")
@@ -81,7 +86,7 @@ export const runAutoHealingDiagnostic = createServerFn({ method: "POST" })
 
       if (stuckJobs && stuckJobs.length > 0) {
         bxLog("warn", `Found ${stuckJobs.length} stuck jobs. Resetting to pending...`);
-        await supabaseAdmin
+        await admin
           .from("background_jobs")
           .update({ status: "pending", attempts: 1 })
           .in("id", stuckJobs.map(j => j.id));

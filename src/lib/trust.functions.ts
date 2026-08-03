@@ -43,8 +43,8 @@ export const submitCookieConsent = createServerFn({ method: "POST" })
   }) => d)
   .handler(async ({ data }) => {
     const { ip, user_agent } = clientMeta();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("cookie_consents").insert({
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (admin as any).from("cookie_consents").insert({
       tenant_id: data.tenant_id ?? null,
       necessary: true,
       preferences: !!data.preferences,
@@ -70,8 +70,8 @@ export const submitLgpdRequest = createServerFn({ method: "POST" })
   }) => d)
   .handler(async ({ data }) => {
     const { ip, user_agent } = clientMeta();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await (supabaseAdmin as any).from("lgpd_requests")
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await (admin as any).from("lgpd_requests")
       .insert({
         request_type: data.request_type,
         tenant_id: data.tenant_id ?? null,
@@ -111,8 +111,8 @@ export const adminListLgpdRequests = createServerFn({ method: "GET" })
       _role: "super_admin",
     });
     if (!isAdmin) throw new Error("Forbidden");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = (supabaseAdmin as any).from("lgpd_requests")
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    let q = (admin as any).from("lgpd_requests")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(200);
@@ -133,8 +133,8 @@ export const adminResolveLgpdRequest = createServerFn({ method: "POST" })
       _role: "super_admin",
     });
     if (!isAdmin) throw new Error("Forbidden");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await (supabaseAdmin as any).from("lgpd_requests")
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (admin as any).from("lgpd_requests")
       .update({
         status: data.status,
         response: data.response ? { note: data.response } : null,

@@ -19,7 +19,12 @@ const BASE = "https://api.pagar.me/core/v5";
 
 function authHeader(gw: PaymentGatewayRow): string {
   const key = requireCred(gw, "secret_key");
-  return `Basic ${btoa(`${key}:`)}`;
+  // btoa no Worker pode falhar dependendo do runtime; usando Buffer se disponível ou fallback seguro
+  const creds = `${key}:`;
+  const base64 = typeof btoa === 'function' 
+    ? btoa(creds) 
+    : Buffer.from(creds).toString('base64');
+  return `Basic ${base64}`;
 }
 
 function headers(gw: PaymentGatewayRow): Record<string, string> {

@@ -1,5 +1,10 @@
 import { bxLog, bxTrace } from "./observability";
 
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
+
 /**
  * bxLock: Utilitário para garantir idempotência e evitar race conditions
  * Utiliza um lock otimista baseado em chave única por operação.
@@ -9,10 +14,10 @@ export const bxLock = async <T>(
   fn: () => Promise<T>,
   ttlSeconds: number = 60
 ): Promise<T> => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = await getAdmin();
   
   return bxTrace(`lock:${lockKey}`, async () => {
-    const anySupabase = supabaseAdmin as any;
+    const anySupabase = admin as any;
     
     // 1. Tentar adquirir o lock
     try {

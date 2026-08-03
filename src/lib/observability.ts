@@ -1,6 +1,11 @@
-import { createIsomorphicFn } from "@tanstack/react-start";
-import { createMiddleware } from "@tanstack/react-start";
-import { createHash } from "crypto";
+import { createIsomorphicFn, createMiddleware } from "@tanstack/react-start";
+
+async function getCrypto() {
+  if (typeof window === 'undefined') {
+    return await import("node:crypto");
+  }
+  return null;
+}
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "critical" | "audit";
 
@@ -35,7 +40,11 @@ export const bxLog = createIsomorphicFn()
     // Auditoria Imutável (Fase 7): Para logs de nível 'audit' ou 'critical'
     if (level === 'audit' || level === 'critical') {
       const logString = `${payload.timestamp}|${payload.level}|${payload.message}|${payload.correlation_id}`;
-      payload.integrity_hash = createHash('sha256').update(logString).digest('hex');
+      getCrypto().then(crypto => {
+        if (crypto) {
+          payload.integrity_hash = crypto.createHash('sha256').update(logString).digest('hex');
+        }
+      });
     }
 
     if (process.env.NODE_ENV === "production") {
@@ -82,7 +91,3 @@ export const bxTrace = async <T>(
     throw error;
   }
 };
-
-
-
-

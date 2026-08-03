@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
 
 const FilterSchema = z.object({
   field: z.string(),
@@ -25,7 +29,8 @@ export const getAudienceCount = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { tenantId, filters, logic } = data;
     
-    let query = supabaseAdmin
+    const admin = await getAdmin();
+    let query = admin
       .from("customers")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
@@ -55,7 +60,8 @@ export const getAudienceCustomers = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { tenantId, filters, logic, limit, offset } = data;
     
-    let query = supabaseAdmin
+    const admin = await getAdmin();
+    let query = admin
       .from("customers")
       .select("*")
       .eq("tenant_id", tenantId)
