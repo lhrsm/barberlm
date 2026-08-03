@@ -1,4 +1,5 @@
 import * as React from "react";
+import { memo } from "react";
 import { format, addMinutes, startOfHour, parseISO, isSameDay, startOfWeek, endOfWeek, eachDayOfInterval, addDays, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -133,7 +134,7 @@ function getCalendarStatusConfig(status: string) {
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
 
-function CalendarComponent() {
+const CalendarComponent = memo(() => {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
@@ -174,8 +175,9 @@ function CalendarComponent() {
   }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user && role !== 'super_admin') {
-      fetchData();
+    if (!user || role === 'super_admin') return;
+
+    fetchData();
 
       const tenantId = user.id;
       
@@ -210,7 +212,6 @@ function CalendarComponent() {
       return () => {
         supabase.removeChannel(channel);
       };
-    }
   }, [user, currentDate, view]);
 
   async function fetchData() {
@@ -722,4 +723,4 @@ function CalendarComponent() {
       />
     </AppLayout>
   );
-}
+});
