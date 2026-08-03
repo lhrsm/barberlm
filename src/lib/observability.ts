@@ -1,9 +1,8 @@
-import { createIsomorphicFn } from "@tanstack/react-start";
-import { createMiddleware } from "@tanstack/react-start";
+import { createIsomorphicFn, createMiddleware } from "@tanstack/react-start";
 
 async function getCrypto() {
   if (typeof window === 'undefined') {
-    return await import("crypto");
+    return await import("node:crypto");
   }
   return null;
 }
@@ -92,7 +91,3 @@ export const bxTrace = async <T>(
     throw error;
   }
 };
-
-
-
-
