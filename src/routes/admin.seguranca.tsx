@@ -109,7 +109,7 @@ function SecurityCenterPage() {
                 <ArrowRight size={14} className="text-zinc-700 group-hover:translate-x-1 group-hover:text-white transition-all" />
               </div>
             ))}
-            {(!overview?.alerts || overview.alerts.length === 0) && (
+            {(!overview?.alerts || (overview.alerts as any[]).length === 0) && (
 
               <div className="h-full flex flex-col items-center justify-center py-8 text-center">
                 <ShieldCheck className="text-emerald-500/20 mb-2" size={48} />
