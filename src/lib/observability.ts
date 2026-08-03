@@ -33,6 +33,8 @@ export const bxLog = createIsomorphicFn()
       ...data,
     };
 
+    console.log(`[BX-LOG-S] [${level.toUpperCase()}] ${message}`);
+
     // Auditoria Imutável (Fase 7): Para logs de nível 'audit' ou 'critical'
     if (level === 'audit' || level === 'critical') {
       const logString = `${payload.timestamp}|${payload.level}|${payload.message}|${payload.correlation_id}`;
@@ -66,6 +68,7 @@ export const bxLog = createIsomorphicFn()
 export const correlationMiddleware = createMiddleware({ type: 'function' })
   .server(async ({ next }) => {
     const correlationId = `BX-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    console.log(`[Correlation Middleware] New ID: ${correlationId}`);
     (globalThis as any).currentCorrelationId = correlationId;
     return next();
   });
