@@ -3,19 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 function createSupabaseClient() {
-  const SUPABASE_URL = (typeof window !== 'undefined' ? import.meta.env.VITE_SUPABASE_URL : process.env.SUPABASE_URL);
-  const SUPABASE_PUBLISHABLE_KEY = (typeof window !== 'undefined' ? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY : process.env.SUPABASE_PUBLISHABLE_KEY);
+  const isBrowser = typeof window !== 'undefined';
+  const SUPABASE_URL = isBrowser ? import.meta.env.VITE_SUPABASE_URL : process.env.SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY = isBrowser ? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY : process.env.SUPABASE_PUBLISHABLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    if (typeof window === 'undefined') {
+    if (!isBrowser) {
       console.warn(`[Supabase SSR] Missing env vars. Returning a partial client.`);
+      const noop = () => ({ data: { subscription: { unsubscribe: () => {} } } });
+      const noopPromise = async () => ({ data: { session: null, claims: null }, error: null });
       return { 
         auth: { 
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-          getSession: async () => ({ data: { session: null }, error: null }),
-          refreshSession: async () => ({ data: { session: null }, error: null }),
-          getClaims: async () => ({ data: { claims: null }, error: null })
-        } 
+          onAuthStateChange: noop,
+          getSession: noopPromise,
+          refreshSession: noopPromise,
+          getClaims: noopPromise
+        },
+        from: () => ({ select: () => ({ eq: () => ({ maybeSingle: noopPromise, order: () => ({}) }) }) }),
+        rpc: noopPromise
       } as any;
     }
     const message = `Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud.`;
@@ -25,7 +30,7 @@ function createSupabaseClient() {
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
-      storage: typeof window !== 'undefined' ? localStorage : undefined,
+      storage: isBrowser ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true
@@ -51,6 +56,9 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
       return (...args: any[]) => {
         const result = value.apply(_supabase, args);
         
+        // During SSR, we don't want to wrap thenables for complex retry logic
+        if (typeof window === 'undefined') return result;
+
         // Wrap the thenable/Promise to catch auth errors
         const originalThen = result.then;
         result.then = function(onFullfilled: any, onRejected: any) {
@@ -75,7 +83,9 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
                 }
                 
                 // If we get here, refresh failed or didn't happen
-                if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth')) {
+                if (!window.location.pathname.includes('/auth')) {
+                  // Using dynamic import for toast to keep SSR clean
+                  const { toast } = await import('sonner');
                   toast.error("Sua sessão expirou. Redirecionando...");
                   setTimeout(() => {
                     window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
