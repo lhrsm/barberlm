@@ -30,6 +30,7 @@ import {
   Repeat,
   Eye,
   BadgeCheck,
+  Target,
 } from "lucide-react";
 import {
   ResponsiveContainer,
