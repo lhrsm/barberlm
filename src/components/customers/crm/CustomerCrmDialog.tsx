@@ -225,6 +225,7 @@ export function CustomerCrmDialog({
                 <TabsTrigger value="avaliacoes" className={TAB_CLS}><Star size={13} className="mr-1.5" />Avaliações</TabsTrigger>
                 <TabsTrigger value="automacoes" className={TAB_CLS}><Bot size={13} className="mr-1.5" />Automações</TabsTrigger>
                 <TabsTrigger value="observacoes" className={TAB_CLS}><StickyNote size={13} className="mr-1.5" />Observações</TabsTrigger>
+                <TabsTrigger value="tarefas" className={TAB_CLS}><Target size={13} className="mr-1.5" />Tarefas</TabsTrigger>
               </TabsList>
 
               {/* RESUMO */}
@@ -247,7 +248,9 @@ export function CustomerCrmDialog({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <Stat label="Score Relacionamento" value={kpis.relationshipScore.label} accent={kpis.relationshipScore.color} />
+                  <Stat label="Estágio Funil" value={kpis.funnelStage} accent="text-cyan-400" />
                   <Stat label="Atendimentos" value={kpis.completed} />
                   <Stat label="Cancelamentos" value={kpis.cancelled} accent="text-red-400" />
                   <Stat label="Frequência média" value={kpis.avgFrequencyDays ? `${kpis.avgFrequencyDays} dias` : "—"} />
