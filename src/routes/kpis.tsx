@@ -76,7 +76,7 @@ function KpisCentralPage() {
   const dre = useMemo(() => computeDre(totals), [totals]);
   const prevDre = useMemo(() => (prevTotals ? computeDre(prevTotals) : null), [prevTotals]);
 
-  const barbersCount = erpData.barbers.filter(b => b.active).length;
+  const barbersCount = (erpData as any).barbers?.filter((b: any) => b.active).length || 0;
   const kpiMetrics = useMemo(() => computeKpis(totals, { appointments: erpData.appointments, barbersCount }), [totals, erpData.appointments, barbersCount]);
 
   const isLoading = erpData.isLoading || intelData.isLoading;

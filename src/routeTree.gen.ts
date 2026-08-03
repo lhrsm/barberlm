@@ -28,6 +28,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MarketingRouteImport } from './routes/marketing'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as LgpdRouteImport } from './routes/lgpd'
+import { Route as KpisRouteImport } from './routes/kpis'
 import { Route as IntelligenceRouteImport } from './routes/intelligence'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -192,6 +193,11 @@ const LoyaltyRoute = LoyaltyRouteImport.update({
 const LgpdRoute = LgpdRouteImport.update({
   id: '/lgpd',
   path: '/lgpd',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KpisRoute = KpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntelligenceRoute = IntelligenceRouteImport.update({
@@ -575,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/intelligence': typeof IntelligenceRoute
+  '/kpis': typeof KpisRoute
   '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRouteWithChildren
   '/marketing': typeof MarketingRoute
@@ -665,6 +672,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/intelligence': typeof IntelligenceRoute
+  '/kpis': typeof KpisRoute
   '/lgpd': typeof LgpdRoute
   '/marketing': typeof MarketingRoute
   '/privacy': typeof PrivacyRoute
@@ -755,6 +763,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
   '/intelligence': typeof IntelligenceRoute
+  '/kpis': typeof KpisRoute
   '/lgpd': typeof LgpdRoute
   '/loyalty': typeof LoyaltyRouteWithChildren
   '/marketing': typeof MarketingRoute
@@ -848,6 +857,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/intelligence'
+    | '/kpis'
     | '/lgpd'
     | '/loyalty'
     | '/marketing'
@@ -938,6 +948,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/intelligence'
+    | '/kpis'
     | '/lgpd'
     | '/marketing'
     | '/privacy'
@@ -1027,6 +1038,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/integrations'
     | '/intelligence'
+    | '/kpis'
     | '/lgpd'
     | '/loyalty'
     | '/marketing'
@@ -1119,6 +1131,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   IntegrationsRoute: typeof IntegrationsRoute
   IntelligenceRoute: typeof IntelligenceRoute
+  KpisRoute: typeof KpisRoute
   LgpdRoute: typeof LgpdRoute
   LoyaltyRoute: typeof LoyaltyRouteWithChildren
   MarketingRoute: typeof MarketingRoute
@@ -1291,6 +1304,13 @@ declare module '@tanstack/react-router' {
       path: '/lgpd'
       fullPath: '/lgpd'
       preLoaderRoute: typeof LgpdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kpis': {
+      id: '/kpis'
+      path: '/kpis'
+      fullPath: '/kpis'
+      preLoaderRoute: typeof KpisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/intelligence': {
@@ -1928,6 +1948,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   IntegrationsRoute: IntegrationsRoute,
   IntelligenceRoute: IntelligenceRoute,
+  KpisRoute: KpisRoute,
   LgpdRoute: LgpdRoute,
   LoyaltyRoute: LoyaltyRouteWithChildren,
   MarketingRoute: MarketingRoute,
