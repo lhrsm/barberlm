@@ -21,14 +21,15 @@ export async function apiFetch(
 
 /** HMAC-SHA256 hex — usado por MP/Pagar.me/Stripe webhooks. */
 export async function hmacSha256Hex(secret: string, message: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
+  const cryptoObj = typeof crypto !== 'undefined' ? crypto : (await import('node:crypto')).webcrypto;
+  const key = await cryptoObj.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  const sig = await cryptoObj.subtle.sign("HMAC", key, new TextEncoder().encode(message));
   return Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -36,14 +37,15 @@ export async function hmacSha256Hex(secret: string, message: string): Promise<st
 
 /** HMAC-SHA1 hex — usado por Pagar.me v4/v5 webhooks. */
 export async function hmacSha1Hex(secret: string, message: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
+  const cryptoObj = typeof crypto !== 'undefined' ? crypto : (await import('node:crypto')).webcrypto;
+  const key = await cryptoObj.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-1" },
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  const sig = await cryptoObj.subtle.sign("HMAC", key, new TextEncoder().encode(message));
   return Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
