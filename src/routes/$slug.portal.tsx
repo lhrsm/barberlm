@@ -73,7 +73,9 @@ import { emitAutomationEvent } from "@/utils/emit-event";
 import { getSubscriptionUsage, categorizeService } from "@/hooks/use-subscription-usage";
 import { PremiumHeroCard } from "@/components/portal/premium/PremiumHeroCard";
 import { JourneyInsights } from "@/components/portal/premium/JourneyInsights";
-import { SuaJornadaBarbex } from "@/components/portal/premium/journey/SuaJornadaBarbex";
+import { HomeTab } from "@/components/portal/premium/layout/HomeTab";
+import { PortalNavigation } from "@/components/portal/premium/layout/PortalNavigation";
+import { AppointmentsTab } from "@/components/portal/premium/tabs/AppointmentsTab";
 import { NextAppointmentCard } from "@/components/portal/premium/NextAppointmentCard";
 import { PushOptInCard } from "@/components/push/PushOptInCard";
 import { PremiumDashboard } from "@/components/portal/premium/PremiumDashboard";
@@ -272,6 +274,8 @@ function ClientPortalComponent() {
       supabase.removeChannel(appointmentChannel);
     };
   }, [client?.customer_id]);
+
+  const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -1129,8 +1133,8 @@ function ClientPortalComponent() {
 
 
   return (
-    <div className="min-h-screen bg-black pb-20">
-      <header className="bg-black border-b border-white/10 sticky top-0 z-50">
+    <div className="min-h-screen bg-black">
+      <header className="bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-[60]">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="font-bold text-lg flex items-center gap-3 text-gold">
             <img src={barbexLogo.url} alt="Barbex" className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
@@ -1175,40 +1179,91 @@ function ClientPortalComponent() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-        <NextAppointmentCard
-          appointments={appointments}
-          shop={shop}
-          onReschedule={handleEditAppointment}
-          onCancel={handleCancelAppointment}
-          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
-        />
+      <PortalNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isSubscriber={!!mySubscription}
+        subscriptionsEnabled={subscriptionsEnabled}
+        storeEnabled={!!products.length}
+        couponsEnabled={true}
+      />
 
-        <PushOptInCard
-          customerPhone={client?.phone ?? null}
-          tenantId={shop?.id ?? null}
-          audience="customer"
-        />
+      <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
+        {activeTab === "home" && (
+          <div className="space-y-6">
+            <NextAppointmentCard
+              appointments={appointments}
+              shop={shop}
+              onReschedule={handleEditAppointment}
+              onCancel={handleCancelAppointment}
+              onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+            />
+
+            <PushOptInCard
+              customerPhone={client?.phone ?? null}
+              tenantId={shop?.id ?? null}
+              audience="customer"
+            />
+
+            <HomeTab
+              client={client}
+              shop={shop}
+              customerData={customerData}
+              mySubscription={mySubscription}
+              appointments={appointments}
+              sales={sales}
+              loyaltyRewards={loyaltyRewards}
+              barbers={barbers}
+              products={products}
+              subscriptionsEnabled={subscriptionsEnabled}
+              onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+              onNavigate={(tab) => setActiveTab(tab)}
+            />
+          </div>
+        )}
+
+        {activeTab === "appointments" && (
+          <AppointmentsTab 
+            appointments={appointments}
+            onViewDetails={(id) => {
+              setSelectedAppointmentId(id);
+              setIsDetailsModalOpen(true);
+            }}
+            onReview={(app) => {
+              setReviewAppointment(app);
+              setIsReviewOpen(true);
+            }}
+          />
+        )}
 
 
-        <SuaJornadaBarbex
-          client={client}
-          shop={shop}
-          customerData={customerData}
-          mySubscription={mySubscription}
-          appointments={appointments}
-          sales={sales}
-          loyaltyRewards={loyaltyRewards}
-          barbers={barbers}
-          products={products}
-          subscriptionsEnabled={subscriptionsEnabled}
-          onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
-        />
 
 
+        {/* Panels handled by activeTab */}
+        <div className={cn(activeTab === "home" ? "block" : "hidden")}>
+          {mySubscription && (
+          <SubscriberPanel
+            client={client}
+            shop={shop}
+            slug={slug}
+            customerData={customerData}
+            mySubscription={mySubscription}
+            appointments={appointments}
+            subPlanServices={subPlanServices}
+            benefitBalances={benefitBalances}
+            subRewards={subRewards}
+            subRewardsHistory={subRewardsHistory}
+            subUsageLogs={subUsageLogs}
+            myReferrals={myReferrals}
+            onOpenCard={() => setCardOpen(true)}
+            onReschedule={handleEditAppointment}
+            onCancel={handleCancelAppointment}
+            onNewAppointment={() => window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'))}
+          />
+          )}
+        </div>
 
-
-        {mySubscription && (
+        {activeTab === "benefits" && mySubscription && (
           <SubscriberPanel
             client={client}
             shop={shop}
@@ -1229,7 +1284,8 @@ function ClientPortalComponent() {
           />
         )}
 
-        {!mySubscription && subscriptionsEnabled && (
+
+        {(activeTab === "home" || activeTab === "club") && !mySubscription && subscriptionsEnabled && (
           <>
             <ClubBarbexUpgrade
               shopId={shop?.id}
@@ -1255,7 +1311,7 @@ function ClientPortalComponent() {
           </>
         )}
 
-        {!mySubscription && !subscriptionsEnabled && (
+        {activeTab === "home" && !mySubscription && !subscriptionsEnabled && (
           <MemberDashboard
             appointments={appointments}
             sales={sales}
@@ -1523,186 +1579,7 @@ function ClientPortalComponent() {
 
 
 
-        <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className={cn("flex w-full flex-wrap bg-white/5 p-1 rounded-xl gap-1", mySubscription ? "md:grid md:grid-cols-8 md:max-w-[1200px]" : "md:grid md:grid-cols-5 md:max-w-[900px]")}>
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-              <Calendar size={16} /> Agendamentos
-            </TabsTrigger>
-            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-              <Gift size={16} /> Fidelidade
-            </TabsTrigger>
-            {mySubscription && (
-              <TabsTrigger value="benefits" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-                Benefícios
-              </TabsTrigger>
-            )}
-            {mySubscription && (
-              <TabsTrigger value="card" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-                <QrCode size={16} /> Cartão
-              </TabsTrigger>
-            )}
-            {mySubscription && (
-              <TabsTrigger value="vip" className="gap-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold data-[state=active]:to-[#B8941F] data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-                VIP
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-               Extrato
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-              <UserIcon size={16} /> Perfil
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="gap-2 rounded-lg data-[state=active]:bg-gold data-[state=active]:text-black data-[state=active]:shadow-sm text-white flex-1 md:flex-none">
-              <ShieldCheck size={16} /> Privacidade
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="appointments" className="pt-6">
-            <Card className="bg-white/5 border-white/10 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-white">Histórico de Agendamentos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {appointments.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <History size={48} className="mx-auto mb-4 opacity-20" />
-                      <p>Nenhum agendamento encontrado.</p>
-                    </div>
-                  ) : (
-                    appointments.map((app) => (
-                      <div 
-                        key={app.id} 
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => {
-                          setSelectedAppointmentId(app.id);
-                          setIsDetailsModalOpen(true);
-                        }}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
-                            <Scissors className="text-gold h-6 w-6" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-white">{app.services?.name}</p>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-400">
-                              <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
-                               <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
-                               {(() => {
-                                 const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
-                                 const label = isSubCovered ? '✦ Incluso no Plano' :
-                                   app.payment_method === 'pix' ? 'Pago via PIX' :
-                                   app.payment_method === 'credits' ? 'Pago com Créditos' :
-                                   app.payment_method === 'cashback' ? 'Pago com Cashback' :
-                                   'Pagar na Barbearia';
-                                 return (
-                                   <Badge variant="outline" className={cn(
-                                     "capitalize text-[10px]",
-                                     isSubCovered && "text-gold border-gold/40 bg-gold/10"
-                                   )}>
-                                     {label}
-                                   </Badge>
-                                 );
-                               })()}
-                               {app.notes && app.notes.includes('Pagamento:') && (
-                                 <span className="text-[10px] text-gold font-medium">{app.notes}</span>
-                               )}
-                               {app.status === 'cancelled' && (
-                                 <Badge variant="outline" className="text-[10px] ml-2 text-red-600 border-red-200 bg-red-50">
-                                   Cancelado
-                                 </Badge>
-                               )}
-                               {app.status !== 'cancelled' && app.payment_status === 'paid' && (
-                                 <Badge variant="outline" className="text-[10px] ml-2 text-green-600 border-green-200 bg-green-50">
-                                   Pago
-                                 </Badge>
-                               )}
-                             </div>
-                           </div>
-                         </div>
-                         <div className="flex items-center gap-3 self-end sm:self-center">
-                           {app.status === 'cancelled' ? (
-                             <Badge variant="destructive" className="border-none">
-                               Cancelado
-                             </Badge>
-                           ) : (
-                             <div className="flex flex-col items-end gap-1.5">
-                               {(() => {
-                                 const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
-                                 if (isSubCovered) {
-                                   return (
-                                     <Badge className="bg-gold hover:bg-[#B8962E] text-black">
-                                       Incluso no Plano
-                                     </Badge>
-                                   );
-                                 }
-                                 return (
-                                   <Badge className={cn(
-                                     app.payment_status === 'paid' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-outline border text-foreground'
-                                   )}>
-                                     {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
-                                   </Badge>
-                                 );
-                               })()}
-                               <Badge variant={app.status === 'completed' ? 'default' : 'secondary'} className={cn(
-                                 app.status === 'completed' && "bg-green-600 hover:bg-green-700",
-                                 app.status === 'scheduled' && "bg-blue-500 hover:bg-blue-600"
-                               )}>
-                                 {app.status === 'completed' ? 'Concluído' : 'Agendado'}
-                               </Badge>
-                                {app.status === 'completed' && !app._review_id && (
-                                  <Button
-                                    size="sm"
-                                    onClick={(e) => { e.stopPropagation(); setReviewAppointment(app); setIsReviewOpen(true); }}
-                                    className="group relative h-7 px-3 text-[10px] font-bold tracking-wide uppercase rounded-full border border-gold/60 bg-gradient-to-r from-gold/15 via-[#F5C95A]/10 to-gold/15 text-[#F5C95A] shadow-[0_0_0_rgba(212,175,55,0)] transition-all duration-300 hover:border-[#F5C95A] hover:from-gold hover:via-[#F5C95A] hover:to-gold hover:text-black hover:shadow-[0_6px_20px_-4px_rgba(212,175,55,0.6)] hover:-translate-y-0.5"
-                                  >
-                                    <span className="mr-1 transition-transform duration-300 group-hover:rotate-[18deg] group-hover:scale-110">★</span>
-                                    Avaliar
-                                  </Button>
-                                )}
-                                {app.status === 'completed' && app._review_id && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
-                                    <span>★</span> Avaliado
-                                  </span>
-                                )}
-                             </div>
-                           )}
-                           {app.status === 'scheduled' && (
-                             <div className="flex flex-wrap items-center gap-1">
-                               <Button 
-                                 variant="ghost" 
-                                 size="sm" 
-                                 className="text-white hover:text-gold hover:bg-white/10 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   handleEditAppointment(app);
-                                 }}
-                                >
-                                 <Edit2 size={14} className="mr-1" /> Editar
-                               </Button>
-                               {canCancel(app.start_time) && (
-                                 <Button 
-                                   variant="ghost" 
-                                   size="sm" 
-                                   className="text-destructive h-8 px-2 text-xs"
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     handleCancelAppointment(app);
-                                   }}
-                                 >
-                                   Cancelar
-                                 </Button>
-                               )}
-                             </div>
-                           )}
-                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Content sections below controlled by activeTab */}
 
           <TabsContent value="loyalty" className="pt-6">
             {(() => {
@@ -2374,11 +2251,11 @@ function ClientPortalComponent() {
                 </div>
               );
             })()}
-          </TabsContent>
+          </div>
           )}
 
-          {mySubscription && (
-          <TabsContent value="vip" className="pt-6">
+          {mySubscription && activeTab === "club" && (
+            <div className="pt-6">
             {(() => {
               const plan = mySubscription.plan;
               const startedAt = mySubscription.started_at ? new Date(mySubscription.started_at) : new Date(mySubscription.created_at);
@@ -2494,12 +2371,13 @@ function ClientPortalComponent() {
                 </div>
               );
             })()}
-          </TabsContent>
+            </div>
           )}
 
 
 
-          <TabsContent value="finances" className="pt-6">
+          {/* Finances tab */}
+          {activeTab === "finances" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="bg-white/5 border-white/10 shadow-lg">
                 <CardHeader>
@@ -2557,9 +2435,10 @@ function ClientPortalComponent() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          )}
+
           
-          <TabsContent value="profile" className="pt-6">
+          {activeTab === "profile" && (
             <Card className="bg-white/5 border-white/10 shadow-md">
               <CardHeader>
                 <CardTitle className="text-white">Meu Perfil</CardTitle>
@@ -2737,13 +2616,14 @@ function ClientPortalComponent() {
                 </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="privacy" className="pt-6">
+          )}
+          {activeTab === "privacy" && (
             <PrivacyPanel customerData={customerData} appointments={appointments} />
-          </TabsContent>
-        </Tabs>
-      </main>
+          )}
+        </main>
+
+
+
 
       {!mySubscription && subscriptionsEnabled && (
         <FloatingUpgradeCTA
