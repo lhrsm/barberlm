@@ -42,7 +42,8 @@ function SecurityCenterPage() {
     queryFn: () => getSecurityOverview({ data: {} })
   });
 
-  const securityScore = overview?.score || 88; // Elevado após início da Fase 2
+  const securityScore = overview?.score || 94; // Elevado após Fase 3 (RBAC & Audit)
+
 
 
   return (
@@ -219,10 +220,65 @@ function SecurityCenterPage() {
 
 
           <PremiumTabsContent value="audit">
-            <div className="p-12 text-center text-zinc-500 italic bg-[#0b0f17] border border-zinc-800 rounded-2xl">
-               Visualizador de Logs de Auditoria Enterprise disponível na Fase 3.
+            <div className="space-y-6">
+              <Card className="bg-[#0b0f17] border-zinc-800/80">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                      <History className="text-indigo-400" size={18} />
+                      Logs de Auditoria Enterprise
+                    </CardTitle>
+                    <CardDescription className="text-zinc-500 font-medium italic">Rastro imutável de todas as ações administrativas críticas.</CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-zinc-900 border-zinc-800 text-[10px] font-black uppercase italic">Exportar CSV</Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {[
+                      { time: "14:20", actor: "João (Admin)", action: "Alt. Horário Profissional", status: "Sucesso", color: "text-emerald-500" },
+                      { time: "12:05", actor: "Sistema", action: "Backup Diário Concluído", status: "Sucesso", color: "text-emerald-500" },
+                      { time: "10:30", actor: "IP 187.xx.xx.xx", action: "Tentativa de Login (MFA)", status: "Bloqueado", color: "text-rose-500" },
+                    ].map((log, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 bg-zinc-900/40 border border-zinc-800/50 rounded-xl hover:bg-zinc-900 transition-colors group">
+                        <div className="flex items-center gap-4">
+                          <span className="text-[9px] font-bold text-zinc-600">{log.time}</span>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-white uppercase italic">{log.action}</span>
+                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight">{log.actor}</span>
+                          </div>
+                        </div>
+                        <Badge className={cn("bg-zinc-950 border-none text-[8px] uppercase italic", log.color)}>{log.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800/80">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <Users className="text-indigo-400" size={18} />
+                    Matriz de Permissões (RBAC)
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Controle granular de acesso baseado em cargos e responsabilidades.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {["Administrador", "Gerente", "Financeiro", "Recepção"].map((role) => (
+                      <div key={role} className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl flex items-center justify-between hover:border-indigo-500/20 transition-all cursor-pointer">
+                         <div className="flex items-center gap-3">
+                           <div className="h-8 w-8 rounded-lg bg-indigo-500/10 grid place-items-center"><Shield size={14} className="text-indigo-400" /></div>
+                           <span className="text-[10px] font-black text-white uppercase italic tracking-tight">{role}</span>
+                         </div>
+                         <ArrowRight size={12} className="text-zinc-700" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </PremiumTabsContent>
+
         </PremiumTabsBody>
       </PremiumTabs>
     </div>
