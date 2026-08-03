@@ -61,7 +61,7 @@ export interface CustomerKpis {
   funnelStage: "Novo" | "Recorrente" | "VIP" | "Em Risco" | "Inativo" | "Recuperado";
 }
 
-export function computeKpis(customer: any, history: any[], products: any[], crm: CustomerCrmData): CustomerKpis {
+export function computeKpis(customer: any, history: any[], products: any[], crm: CustomerCrmData, isSub: boolean = false): CustomerKpis {
   const completedList = history.filter((h) => h.status === "completed");
   const cancelled = history.filter((h) => h.status === "cancelled").length;
   const now = new Date();
