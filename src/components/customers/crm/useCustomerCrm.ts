@@ -8,6 +8,8 @@ export interface CustomerCrmData {
   reviews: any[];
   automations: any[];
   usage: any[];
+  interactions: any[];
+  tasks: any[];
 }
 
 const EMPTY: CustomerCrmData = {
