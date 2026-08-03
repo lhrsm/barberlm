@@ -528,7 +528,7 @@ function openWhatsApp(phone: string | undefined) {
       </div>
     </AppLayout>
   );
-}
+});
 
 // ============================================================
 // UI Subcomponents
