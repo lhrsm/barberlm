@@ -48,6 +48,8 @@ function CRM360Page() {
     }
   }, [user]);
 
+  const { isEnabled: isModuleEnabled } = useModules();
+
   async function fetchData() {
     if (!user) return;
     const [custRes, subRes] = await Promise.all([
