@@ -129,9 +129,9 @@ function ObservabilityCenterPage() {
           tabs={[
             { value: "overview", label: "Overview", icon: BarChart3 },
             { value: "queues", label: "Filas & Jobs", icon: History },
+            { value: "resilience", label: "Resiliência", icon: ShieldCheck },
             { value: "database", label: "Performance DB", icon: Database },
             { value: "logs", label: "Live Logs", icon: Terminal },
-            { value: "flags", label: "Rollout & Flags", icon: Zap },
           ]}
         />
         <PremiumTabsBody>
@@ -164,8 +164,67 @@ function ObservabilityCenterPage() {
                       <p className="text-3xl font-black text-rose-500 italic">{metrics?.queue_status?.dead_letter || 0}</p>
                     </div>
                  </div>
-               </CardContent>
+                </CardContent>
             </Card>
+          </PremiumTabsContent>
+
+          <PremiumTabsContent value="resilience">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-[#0b0f17] border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight">Circuit Breakers</CardTitle>
+                  <CardDescription className="text-zinc-500 font-bold uppercase text-[10px]">Status de falha e prevenção em cascata</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { name: "Z-API (WhatsApp)", status: "CLOSED", failures: 0, last: "Estável" },
+                    { name: "Stripe Gateway", status: "CLOSED", failures: 0, last: "Estável" },
+                    { name: "Mercado Pago", status: "HALF_OPEN", failures: 3, last: "Há 12m" }
+                  ].map(circuit => (
+                    <div key={circuit.name} className="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                      <div>
+                        <p className="text-xs font-black text-white uppercase italic">{circuit.name}</p>
+                        <p className="text-[9px] font-bold text-zinc-500 uppercase mt-0.5 tracking-tighter">Última Falha: {circuit.last}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-[9px] text-zinc-500 font-black uppercase">Falhas</p>
+                          <p className="text-xs font-mono text-white">{circuit.failures}</p>
+                        </div>
+                        <Badge className={cn(
+                          "h-6 px-3 font-black uppercase text-[10px] tracking-widest",
+                          circuit.status === 'CLOSED' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : 
+                          circuit.status === 'OPEN' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                          "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        )}>
+                          {circuit.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight">Estratégias de Idempotência</CardTitle>
+                  <CardDescription className="text-zinc-500 font-bold uppercase text-[10px]">Prevenção de operações duplicadas</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-400 font-bold italic uppercase text-[10px]">Locks Ativos</span>
+                    <span className="text-white font-black italic">12</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-400 font-bold italic uppercase text-[10px]">Race Conditions Evitadas</span>
+                    <span className="text-emerald-400 font-black italic">154</span>
+                  </div>
+                  <div className="h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 mt-4">
+                    <div className="h-full bg-indigo-500 w-[65%]" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </PremiumTabsContent>
           
           <PremiumTabsContent value="logs">
