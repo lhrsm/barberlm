@@ -1,47 +1,54 @@
 import type { PaymentProvider, ProviderKey } from "../types";
-import { mercadoPagoProvider } from "./mercadopago.server";
-import { asaasProvider } from "./asaas.server";
-import { pagarmeProvider } from "./pagarme.server";
-import { stripeProvider } from "./stripe.server";
-import { pagseguroProvider } from "./pagseguro.server";
-import { paypalProvider } from "./paypal.server";
-import { paggueProvider } from "./paggue.server";
-import { infinitepayProvider } from "./infinitepay.server";
 
 /**
- * Stub para providers marcados como "custom" — barbearia usa webhook próprio
- * ou fluxo manual. Só valida presença de credencial genérica.
+ * Registry dinâmico para evitar imports estáticos de providers no build do cliente.
  */
-const customProvider: PaymentProvider = {
-  key: "custom",
-  displayName: "Personalizado",
-  supportsSubscriptions: false,
-  async testConnection() {
-    return {
-      ok: true,
-      message: "Gateway personalizado — credenciais armazenadas. Integre via webhook manual.",
-    };
-  },
-};
-
-const REGISTRY: Record<ProviderKey, PaymentProvider> = {
-  mercadopago: mercadoPagoProvider,
-  asaas: asaasProvider,
-  stripe: stripeProvider,
-  pagseguro: pagseguroProvider,
-  pagarme: pagarmeProvider,
-  paypal: paypalProvider,
-  paggue: paggueProvider,
-  infinitepay: infinitepayProvider,
-  custom: customProvider,
-};
-
-export function getProvider(key: ProviderKey): PaymentProvider {
-  const p = REGISTRY[key];
-  if (!p) throw new Error(`Provider desconhecido: ${key}`);
-  return p;
+export async function getProvider(key: ProviderKey): Promise<PaymentProvider> {
+  switch (key) {
+    case "mercadopago":
+      return (await import("./mercadopago.server")).mercadoPagoProvider;
+    case "asaas":
+      return (await import("./asaas.server")).asaasProvider;
+    case "stripe":
+      return (await import("./stripe.server")).stripeProvider;
+    case "pagseguro":
+      return (await import("./pagseguro.server")).pagseguroProvider;
+    case "pagarme":
+      return (await import("./pagarme.server")).pagarmeProvider;
+    case "paypal":
+      return (await import("./paypal.server")).paypalProvider;
+    case "paggue":
+      return (await import("./paggue.server")).paggueProvider;
+    case "infinitepay":
+      return (await import("./infinitepay.server")).infinitepayProvider;
+    case "custom":
+      return {
+        key: "custom",
+        displayName: "Personalizado",
+        supportsSubscriptions: false,
+        async testConnection() {
+          return {
+            ok: true,
+            message: "Gateway personalizado — credenciais armazenadas. Integre via webhook manual.",
+          };
+        },
+      };
+    default:
+      throw new Error(`Provider desconhecido: ${key}`);
+  }
 }
 
-export function listProviders(): PaymentProvider[] {
-  return Object.values(REGISTRY);
+export async function listProviders(): Promise<PaymentProvider[]> {
+  const keys: ProviderKey[] = [
+    "mercadopago",
+    "asaas",
+    "stripe",
+    "pagseguro",
+    "pagarme",
+    "paypal",
+    "paggue",
+    "infinitepay",
+    "custom",
+  ];
+  return Promise.all(keys.map(getProvider));
 }
