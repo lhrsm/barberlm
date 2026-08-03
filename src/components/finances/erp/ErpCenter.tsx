@@ -210,7 +210,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
     <div className="space-y-5">
       {/* Filtros globais */}
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-2">
-        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Período</span>
+        <span className="mr-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Periodo</span>
         {PERIODS.map((p) => (
           <button
             key={p.value}
@@ -280,17 +280,18 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <MiniStat label="Saldo do período" value={brl(totals.result)} detail={totals.result >= 0 ? "Positivo" : "Negativo"} />
-              <MiniStat label="Receita de hoje" value={brl(todayIncome)} />
-              <MiniStat label="Receita 7 dias" value={brl(weekIncome)} />
-              <MiniStat label="Lucro estimado" value={brl(dre.netProfit)} detail={pct(dre.margin)} />
+              <MiniStat label="Saldo Periodo" value={brl(totals.result)} detail={totals.result >= 0 ? "Positivo" : "Negativo"} />
+              <MiniStat label="Receita Hoje" value={brl(todayIncome)} />
+              <MiniStat label="Receita 7d" value={brl(weekIncome)} />
+              <MiniStat label="Lucro Estimado" value={brl(dre.netProfit)} detail={pct(dre.margin)} />
+
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <MiniStat label="Entradas" value={brl(totals.income)} />
               <MiniStat label="Saídas" value={brl(totals.expense)} />
               <MiniStat label="Comissões" value={brl(totals.commissionsTotal)} detail={`${brl(totals.commissionsPending)} pendentes`} />
               <MiniStat
-                label="vs período anterior"
+                label="vs Anterior"
                 value={
                   prevTotals
                     ? `${(variation(totals.income, prevTotals.income) ?? 0) >= 0 ? "+" : ""}${(variation(totals.income, prevTotals.income) ?? 0).toFixed(1)}%`
@@ -302,10 +303,10 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </div>
 
           {/* Saúde financeira */}
-          <div className="rounded-2xl border border-[rgba(212,175,55,0.25)] bg-black/25 p-4">
+          <div className="rounded-[24px] border border-gold/15 bg-black/40 p-5">
             <div className="flex items-center gap-2">
               <Gauge className="h-4 w-4 text-[#D4AF37]" />
-              <h3 className="text-sm font-bold text-white">Saúde financeira da barbearia</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-gold">Financial Health Index</h3>
             </div>
             <div className="mt-3 flex items-end gap-3">
               <span className="text-4xl font-black text-[#F5D062]">{health.score}</span>
@@ -602,7 +603,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             </ErpSection>
           </div>
 
-          <ErpSection title="Receita por forma de pagamento" icon={CreditCard}>
+          <ErpSection title="Faturamento por Forma de Pagamento" icon={CreditCard}>
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -633,7 +634,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
               footer={bd.byCategory[0] ? brl(bd.byCategory[0].value) : undefined}
             />
           </div>
-          <ErpSection title="Despesas por categoria" description="Centro de custo derivado das categorias existentes" icon={Receipt}>
+          <ErpSection title="Despesas por Categoria" description="Centro de custo derivado das categorias existentes" icon={Receipt}>
             <div className="grid gap-4 lg:grid-cols-2">
               <RankingList items={bd.byCategory} emptyLabel="Nenhuma despesa lançada no período" />
               <div className="h-[260px]">
@@ -654,7 +655,8 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
         {/* DRE */}
         <TabsContent value="dre" className="space-y-4 pt-4">
           <ErpSection
-            title="DRE simplificada"
+            title="DRE Estruturada"
+
             description={`Demonstração de resultado — ${range.label}`}
             icon={FileText}
             actions={
@@ -734,10 +736,10 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             ))}
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            <ErpSection title="Receita por dia da semana" icon={CalendarDays}>
+            <ErpSection title="Faturamento por Dia da Semana" icon={CalendarDays}>
               <RankingList items={bd.byWeekday} />
             </ErpSection>
-            <ErpSection title="Receita por horário" icon={Activity}>
+            <ErpSection title="Faturamento por Horário" icon={Activity}>
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={bd.byHour}>
@@ -855,7 +857,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
 
         {/* Calendário */}
         <TabsContent value="calendario" className="pt-4">
-          <ErpSection title="Calendário financeiro" description="Entradas, saídas, previsões e renovações" icon={CalendarDays}>
+          <ErpSection title="Calendário Financeiro" description="Entradas, saídas, previsões e renovações" icon={CalendarDays}>
             <ErpFinancialCalendar
               transactions={data.transactions}
               appointments={data.appointments}
