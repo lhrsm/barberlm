@@ -3080,6 +3080,221 @@ export type Database = {
         }
         Relationships: []
       }
+      communication_channels: {
+        Row: {
+          created_at: string | null
+          health_status: Json | null
+          id: string
+          is_active: boolean | null
+          last_message_at: string | null
+          last_sync_at: string | null
+          metadata: Json | null
+          provider_name: string | null
+          settings: Json | null
+          status: string | null
+          tenant_id: string
+          type: Database["public"]["Enums"]["communication_channel_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          health_status?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_message_at?: string | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider_name?: string | null
+          settings?: Json | null
+          status?: string | null
+          tenant_id: string
+          type: Database["public"]["Enums"]["communication_channel_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          health_status?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_message_at?: string | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider_name?: string | null
+          settings?: Json | null
+          status?: string | null
+          tenant_id?: string
+          type?: Database["public"]["Enums"]["communication_channel_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_channels_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_messages: {
+        Row: {
+          category: Database["public"]["Enums"]["communication_category"] | null
+          channel_type: Database["public"]["Enums"]["communication_channel_type"]
+          content: string | null
+          conversation_id: string | null
+          correlation_id: string | null
+          created_at: string | null
+          customer_id: string | null
+          delivered_at: string | null
+          direction: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          provider_message_id: string | null
+          provider_response: Json | null
+          read_at: string | null
+          recipient_address: string
+          replied_at: string | null
+          sender_id: string | null
+          sent_at: string | null
+          status:
+            | Database["public"]["Enums"]["communication_message_status"]
+            | null
+          template_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?:
+            | Database["public"]["Enums"]["communication_category"]
+            | null
+          channel_type: Database["public"]["Enums"]["communication_channel_type"]
+          content?: string | null
+          conversation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          delivered_at?: string | null
+          direction: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          provider_message_id?: string | null
+          provider_response?: Json | null
+          read_at?: string | null
+          recipient_address: string
+          replied_at?: string | null
+          sender_id?: string | null
+          sent_at?: string | null
+          status?:
+            | Database["public"]["Enums"]["communication_message_status"]
+            | null
+          template_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?:
+            | Database["public"]["Enums"]["communication_category"]
+            | null
+          channel_type?: Database["public"]["Enums"]["communication_channel_type"]
+          content?: string | null
+          conversation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          delivered_at?: string | null
+          direction?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          provider_message_id?: string | null
+          provider_response?: Json | null
+          read_at?: string | null
+          recipient_address?: string
+          replied_at?: string | null
+          sender_id?: string | null
+          sent_at?: string | null
+          status?:
+            | Database["public"]["Enums"]["communication_message_status"]
+            | null
+          template_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_messages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["communication_category"]
+          channel_type: Database["public"]["Enums"]["communication_channel_type"]
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          key: string
+          name: string
+          subject: string | null
+          tenant_id: string
+          updated_at: string | null
+          variables: Json | null
+          version: number | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["communication_category"]
+          channel_type: Database["public"]["Enums"]["communication_channel_type"]
+          content: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key: string
+          name: string
+          subject?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: number | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["communication_category"]
+          channel_type?: Database["public"]["Enums"]["communication_channel_type"]
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key?: string
+          name?: string
+          subject?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cookie_consents: {
         Row: {
           created_at: string
@@ -9774,6 +9989,33 @@ export type Database = {
         | "reception"
       approval_status: "not_required" | "pending" | "approved" | "rejected"
       automation_flow_type: "single" | "multi"
+      communication_category:
+        | "transactional"
+        | "operational"
+        | "commercial"
+        | "billing"
+        | "support"
+        | "internal"
+        | "security"
+      communication_channel_type:
+        | "whatsapp"
+        | "email"
+        | "sms"
+        | "push"
+        | "internal"
+        | "telegram"
+        | "instagram"
+      communication_message_status:
+        | "pending"
+        | "queued"
+        | "processing"
+        | "sent"
+        | "delivered"
+        | "read"
+        | "replied"
+        | "failed"
+        | "cancelled"
+        | "expired"
       product_sale_status: "completed" | "cancelled" | "refunded"
       time_off_status: "scheduled" | "active" | "completed" | "cancelled"
       time_off_type:
@@ -9926,6 +10168,36 @@ export const Constants = {
       ],
       approval_status: ["not_required", "pending", "approved", "rejected"],
       automation_flow_type: ["single", "multi"],
+      communication_category: [
+        "transactional",
+        "operational",
+        "commercial",
+        "billing",
+        "support",
+        "internal",
+        "security",
+      ],
+      communication_channel_type: [
+        "whatsapp",
+        "email",
+        "sms",
+        "push",
+        "internal",
+        "telegram",
+        "instagram",
+      ],
+      communication_message_status: [
+        "pending",
+        "queued",
+        "processing",
+        "sent",
+        "delivered",
+        "read",
+        "replied",
+        "failed",
+        "cancelled",
+        "expired",
+      ],
       product_sale_status: ["completed", "cancelled", "refunded"],
       time_off_status: ["scheduled", "active", "completed", "cancelled"],
       time_off_type: [

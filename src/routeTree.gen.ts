@@ -63,6 +63,7 @@ import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
 import { Route as DashboardMembershipRouteImport } from './routes/dashboard.membership'
 import { Route as DashboardCrmRouteImport } from './routes/dashboard.crm'
+import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard/communications'
 import { Route as DashboardCentroDeComandoRouteImport } from './routes/dashboard.centro-de-comando'
 import { Route as DashboardBiRouteImport } from './routes/dashboard.bi'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
@@ -376,6 +377,11 @@ const DashboardCrmRoute = DashboardCrmRouteImport.update({
   path: '/crm',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardCommunicationsRoute = DashboardCommunicationsRouteImport.update({
+  id: '/communications',
+  path: '/communications',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCentroDeComandoRoute =
   DashboardCentroDeComandoRouteImport.update({
     id: '/centro-de-comando',
@@ -666,6 +672,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
+  '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
@@ -761,6 +768,7 @@ export interface FileRoutesByTo {
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
+  '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
@@ -860,6 +868,7 @@ export interface FileRoutesById {
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
+  '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
@@ -960,6 +969,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistente'
     | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
+    | '/dashboard/communications'
     | '/dashboard/crm'
     | '/dashboard/membership'
     | '/loyalty/campaigns'
@@ -1055,6 +1065,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistente'
     | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
+    | '/dashboard/communications'
     | '/dashboard/crm'
     | '/dashboard/membership'
     | '/loyalty/campaigns'
@@ -1153,6 +1164,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistente'
     | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
+    | '/dashboard/communications'
     | '/dashboard/crm'
     | '/dashboard/membership'
     | '/loyalty/campaigns'
@@ -1625,6 +1637,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCrmRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/communications': {
+      id: '/dashboard/communications'
+      path: '/communications'
+      fullPath: '/dashboard/communications'
+      preLoaderRoute: typeof DashboardCommunicationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/centro-de-comando': {
       id: '/dashboard/centro-de-comando'
       path: '/centro-de-comando'
@@ -1990,6 +2009,7 @@ interface DashboardRouteChildren {
   DashboardAssistenteRoute: typeof DashboardAssistenteRoute
   DashboardBiRoute: typeof DashboardBiRoute
   DashboardCentroDeComandoRoute: typeof DashboardCentroDeComandoRoute
+  DashboardCommunicationsRoute: typeof DashboardCommunicationsRoute
   DashboardCrmRoute: typeof DashboardCrmRoute
   DashboardMembershipRoute: typeof DashboardMembershipRoute
 }
@@ -1998,6 +2018,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAssistenteRoute: DashboardAssistenteRoute,
   DashboardBiRoute: DashboardBiRoute,
   DashboardCentroDeComandoRoute: DashboardCentroDeComandoRoute,
+  DashboardCommunicationsRoute: DashboardCommunicationsRoute,
   DashboardCrmRoute: DashboardCrmRoute,
   DashboardMembershipRoute: DashboardMembershipRoute,
 }
