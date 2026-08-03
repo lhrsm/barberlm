@@ -86,7 +86,11 @@ function LandingPageComponent() {
     monthly: { starter: "R$ 59,90", pro: "R$ 99,90", elite: "R$ 149,90" },
     annual:  { starter: "R$ 47,90", pro: "R$ 79,90", elite: "R$ 119,90" },
   } as const;
+  const WHATSAPP_COMERCIAL = "5571981708086";
+  const personalizadoUrl = `https://wa.me/${WHATSAPP_COMERCIAL}?text=${encodeURIComponent("Olá! Tenho interesse em um Plano Personalizado do BarberX para minha barbearia.")}`;
   const prices = planPrices[billingCycle];
+  const priceSuffix = billingCycle === "annual" ? "/mês · cobrado anualmente" : "/mês";
+
 
 
   useEffect(() => {
