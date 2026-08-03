@@ -23,8 +23,8 @@ export const getMessages = createServerFn({ method: "GET" })
     tenantId: z.string().uuid(),
     limit: z.number().optional().default(50),
     offset: z.number().optional().default(0),
-    channelType: z.string().optional(),
-    status: z.string().optional()
+    channelType: z.enum(['whatsapp', 'email', 'sms', 'push', 'internal', 'telegram', 'instagram']).optional(),
+    status: z.enum(['pending', 'queued', 'processing', 'sent', 'delivered', 'read', 'replied', 'failed', 'cancelled', 'expired']).optional()
   }).parse(data))
   .handler(async ({ data }) => {
     let query = supabase
@@ -37,8 +37,9 @@ export const getMessages = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .range(data.offset, data.offset + data.limit - 1);
     
-    if (data.channelType) query = query.eq("channel_type", data.channelType);
-    if (data.status) query = query.eq("status", data.status);
+    if (data.channelType) query = query.eq("channel_type", data.channelType as any);
+    if (data.status) query = query.eq("status", data.status as any);
+
     
     const { data: messages, error } = await query;
     if (error) throw error;
