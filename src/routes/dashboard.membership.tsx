@@ -18,10 +18,15 @@ import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/dashboard/membership")({
   loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: ["membership-stats"],
-      queryFn: () => getMembershipStats()
-    });
+    // context matches the generic record in the start template
+    // using queryClient from context if provided by the router instance
+    const queryClient = (context as any).queryClient;
+    if (queryClient) {
+      await queryClient.ensureQueryData({
+        queryKey: ["membership-stats"],
+        queryFn: () => getMembershipStats()
+      });
+    }
   },
   component: withModule("subscriptions", "Clube Barbex 2.0", MembershipDashboardRoute),
 });
