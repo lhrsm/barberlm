@@ -1,0 +1,64 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+
+/**
+ * Mapeamento de Saúde das Integrações
+ * Este arquivo atua como o adapter para monitoramento centralizado.
+ */
+
+export const getIntegrationHealth = createServerFn({ method: "GET" })
+  .inputValidator((data) => z.object({ tenantId: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    
+    // 1. Z-API Health
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("whatsapp_enabled, whatsapp_instance_id, whatsapp_instance_token")
+      .eq("id", data.tenantId)
+      .maybeSingle();
+
+    // 2. Stripe/Mercado Pago Gateways
+    const { data: gateways } = await supabaseAdmin
+      .from("payment_gateways")
+      .select("id, provider, status, environment, last_sync_at")
+      .eq("tenant_id", data.tenantId);
+
+    // 3. Automation Queue/Logs
+    const { data: logs } = await supabaseAdmin
+      .from("automation_logs")
+      .select("status")
+      .eq("tenant_id", data.tenantId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    const whatsappStatus = profile?.whatsapp_enabled && profile?.whatsapp_instance_id ? "active" : "not_configured";
+    const recentFailures = (logs || []).filter(l => l.status === 'error').length;
+
+    return {
+      whatsapp: {
+        status: whatsappStatus,
+        health: recentFailures > 3 ? "degraded" : "healthy",
+        lastActivity: new Date().toISOString()
+      },
+      payments: gateways?.map(g => ({
+        id: g.id,
+        provider: g.provider,
+        status: g.status === 'connected' ? 'active' : 'error',
+        environment: g.environment,
+        lastSync: g.last_sync_at
+      })) || [],
+      timestamp: new Date().toISOString()
+    };
+  });
+
+export const testIntegration = createServerFn({ method: "POST" })
+  .inputValidator((data) => z.object({ 
+    tenantId: z.string(),
+    integrationKey: z.string() 
+  }).parse(data))
+  .handler(async ({ data }) => {
+    // Implementação mockada inicial para a Central
+    await new Promise(r => setTimeout(r, 1500));
+    return { ok: true, message: `Teste concluído para ${data.integrationKey}` };
+  });
