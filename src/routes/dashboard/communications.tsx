@@ -22,7 +22,7 @@ import { TemplateManager } from "@/components/communications/TemplateManager";
 import { DeliveryFailures } from "@/components/communications/DeliveryFailures";
 
 export const Route = createFileRoute("/dashboard/communications")({
-  component: withModule("communications", "Omnichannel", CommunicationsPage),
+  component: withModule("automations", "Omnichannel", CommunicationsPage),
 });
 
 function CommunicationsPage() {
