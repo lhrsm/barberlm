@@ -87,7 +87,13 @@ function MembershipDashboardRoute() {
               <div className="max-w-md mx-auto space-y-4">
                 <Users2 className="h-12 w-12 text-zinc-700 mx-auto" />
                 <h3 className="text-xl font-semibold text-white">Lista de Membros</h3>
-                <p className="text-zinc-500">Módulo de gestão de base em fase de sincronização com o motor 2.0.</p>
+                <p className="text-zinc-500 mb-6">Módulo de gestão de base em fase de sincronização com o motor 2.0.</p>
+                <Link
+                  to="/subscriptions"
+                  className="inline-flex items-center justify-center rounded-md bg-gold-500 px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-gold-400 transition-colors"
+                >
+                  Acessar Gestão Legada
+                </Link>
               </div>
             </div>
           </TabsContent>
@@ -97,7 +103,14 @@ function MembershipDashboardRoute() {
               <div className="max-w-md mx-auto space-y-4">
                 <Settings2 className="h-12 w-12 text-zinc-700 mx-auto" />
                 <h3 className="text-xl font-semibold text-white">Editor de Benefícios Granulares</h3>
-                <p className="text-zinc-500">Configure limites mensais por categoria de serviço (Corte, Barba, Combo) e regras de carência.</p>
+                <p className="text-zinc-500 mb-6">Configure limites mensais por categoria de serviço (Corte, Barba, Combo) e regras de carência.</p>
+                <Link
+                  to="/subscriptions"
+                  search={{ tab: "plans" }}
+                  className="inline-flex items-center justify-center rounded-md bg-gold-500 px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-gold-400 transition-colors"
+                >
+                  Configurar Planos
+                </Link>
               </div>
             </div>
           </TabsContent>
