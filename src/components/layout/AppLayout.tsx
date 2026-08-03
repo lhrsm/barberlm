@@ -7,6 +7,7 @@ import {
   UserRound, 
   CircleDollarSign, 
   LayoutDashboard,
+  BarChart3,
   LogOut,
   Menu,
   X,
