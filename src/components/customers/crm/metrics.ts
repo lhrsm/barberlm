@@ -55,9 +55,13 @@ export interface CustomerKpis {
   nextVisit: Date | null;
   monthlySpend: { month: string; value: number }[];
   yearlySpend: { year: string; value: number }[];
+  relationshipScore: { label: string; value: number; color: string };
+  segments: string[];
+  opportunities: { title: string; description: string; type: string }[];
+  funnelStage: "Novo" | "Recorrente" | "VIP" | "Em Risco" | "Inativo" | "Recuperado";
 }
 
-export function computeKpis(customer: any, history: any[], products: any[], crm: CustomerCrmData): CustomerKpis {
+export function computeKpis(customer: any, history: any[], products: any[], crm: CustomerCrmData, isSub: boolean = false): CustomerKpis {
   const completedList = history.filter((h) => h.status === "completed");
   const cancelled = history.filter((h) => h.status === "cancelled").length;
   const now = new Date();
@@ -80,6 +84,8 @@ export function computeKpis(customer: any, history: any[], products: any[], crm:
 
   const createdAt = toDate(customer.created_at);
   const lastVisit = dates.length ? dates[dates.length - 1] : toDate(customer.last_visit);
+  const daysSinceLast = lastVisit ? differenceInDays(now, lastVisit) : null;
+
   const nextVisit =
     history
       .filter((h) => h.status === "scheduled" && toDate(h.start_time) && toDate(h.start_time)! > now)
@@ -146,6 +152,58 @@ export function computeKpis(customer: any, history: any[], products: any[], crm:
     .map(([year, value]) => ({ year, value: Number(value.toFixed(2)) }))
     .sort((a, b) => a.year.localeCompare(b.year));
 
+  // Calculate Relationship Score (0-100)
+  let score = 0;
+  if (completedList.length >= 1) score += 20;
+  if (completedList.length >= 5) score += 20;
+  if (completedList.length >= 12) score += 20;
+  if (isSub) score += 20;
+  if (avgRating && avgRating >= 4.5) score += 20;
+  if (daysSinceLast !== null && daysSinceLast > 60) score -= 10;
+
+  const getScoreMeta = (s: number) => {
+    if (s >= 80) return { label: "Excelente", value: s, color: "text-cyan-400" };
+    if (s >= 60) return { label: "Muito Bom", value: s, color: "text-emerald-400" };
+    if (s >= 40) return { label: "Bom", value: s, color: "text-gold" };
+    if (s >= 20) return { label: "Regular", value: s, color: "text-orange-400" };
+    return { label: "Baixo", value: s, color: "text-red-400" };
+  };
+
+  // Segments
+  const segments: string[] = [];
+  if (completedList.length >= 12) segments.push("VIP");
+  if (completedList.length >= 3 && daysSinceLast !== null && daysSinceLast < 45) segments.push("Frequente");
+  if (completedList.length === 1) segments.push("Novo");
+  if (daysSinceLast !== null && daysSinceLast > 45 && daysSinceLast < 90) segments.push("Em risco");
+  if (daysSinceLast !== null && daysSinceLast >= 90) segments.push("Inativo");
+  if (isSub) segments.push("Assinante");
+  if (productsTotal > 0) segments.push("Comprador da Loia");
+  if (avgTicket > 100) segments.push("Alto Ticket");
+
+  // Funnel
+  let funnelStage: "Novo" | "Recorrente" | "VIP" | "Em Risco" | "Inativo" | "Recuperado" = "Novo";
+  if (daysSinceLast !== null && daysSinceLast >= 90) funnelStage = "Inativo";
+  else if (daysSinceLast !== null && daysSinceLast >= 45) funnelStage = "Em Risco";
+  else if (completedList.length >= 12) funnelStage = "VIP";
+  else if (completedList.length >= 3) funnelStage = "Recorrente";
+
+  // Opportunities
+  const opportunities: { title: string; description: string; type: string }[] = [];
+  if (avgFrequencyDays && daysSinceLast && daysSinceLast > avgFrequencyDays * 1.2) {
+    opportunities.push({
+      title: "Recuperação",
+      description: `Cliente está há ${daysSinceLast} dias sem voltar. A média dele é ${avgFrequencyDays} dias.`,
+      type: "churn_risk",
+    });
+  }
+  if (!isSub && completedList.length >= 3) {
+    opportunities.push({
+      title: "Upgrade de Plano",
+      description: "Cliente recorrente ainda não é assinante. Ótimo perfil para o Clube Barbex.",
+      type: "upsell",
+    });
+  }
+
   return {
     visits,
     completed: completedList.length,
@@ -154,7 +212,7 @@ export function computeKpis(customer: any, history: any[], products: any[], crm:
     avgTicket,
     daysAsCustomer: createdAt ? differenceInDays(now, createdAt) : null,
     avgFrequencyDays,
-    daysSinceLast: lastVisit ? differenceInDays(now, lastVisit) : null,
+    daysSinceLast,
     favoriteService: mostFrequent(completedList.map((h) => h.services?.name)),
     favoriteBarber: mostFrequent(completedList.map((h) => h.barbers?.name)),
     favoriteWeekday: dates.length
@@ -171,6 +229,10 @@ export function computeKpis(customer: any, history: any[], products: any[], crm:
     nextVisit,
     monthlySpend,
     yearlySpend,
+    relationshipScore: getScoreMeta(score),
+    segments,
+    opportunities,
+    funnelStage,
   };
 }
 
@@ -323,6 +385,20 @@ export function buildTimeline(
         tone: "gold",
       });
   }
+  
+  for (const i of crm.interactions) {
+    const d = toDate(i.created_at);
+    if (!d) continue;
+    push({
+      id: `i-${i.id}`,
+      date: d,
+      kind: "interacao",
+      title: i.type === "note" ? "Nota interna" : i.type === "call" ? "Registro de ligação" : "Interação",
+      description: i.content,
+      tone: "slate",
+    });
+  }
 
   return ev.sort((a, b) => b.date.getTime() - a.date.getTime());
+
 }

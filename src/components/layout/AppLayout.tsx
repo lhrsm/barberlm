@@ -69,6 +69,7 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Marketing", icon: Megaphone, to: "/marketing" },
   { label: "Agenda", icon: Calendar, to: "/calendar" },
   { label: "Clientes", icon: Users, to: "/customers" },
+  { label: "CRM 360°", icon: Sparkles, to: "/dashboard/crm" },
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
