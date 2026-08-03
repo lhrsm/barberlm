@@ -6,11 +6,6 @@ const getAdmin = async () => {
   return supabaseAdmin;
 };
 
-/**
- * Mapeamento de Saúde das Integrações
- * Este arquivo atua como o adapter para monitoramento centralizado.
- */
-
 export const getIntegrationHealth = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ tenantId: z.string() }).parse(data))
   .handler(async ({ data }) => {
