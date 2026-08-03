@@ -14,7 +14,8 @@ import {
   Terminal,
   Search,
   RefreshCw,
-  Server
+  Server,
+  Lock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -131,7 +132,7 @@ function ObservabilityCenterPage() {
             { value: "queues", label: "Filas & Jobs", icon: History },
             { value: "resilience", label: "Resiliência", icon: ShieldCheck },
             { value: "healing", label: "Auto-Healing", icon: RefreshCw },
-            { value: "database", label: "Performance DB", icon: Database },
+            { value: "governance", label: "Governança", icon: Lock },
           ]}
         />
         <PremiumTabsBody>
@@ -272,6 +273,45 @@ function ObservabilityCenterPage() {
                 <CardContent>
                   <div className="h-[200px] flex items-center justify-center text-zinc-600 italic text-sm">
                     Gráfico de auto-healing em desenvolvimento...
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </PremiumTabsContent>
+
+          <PremiumTabsContent value="governance">
+            <div className="grid grid-cols-1 gap-6">
+              <Card className="bg-[#0b0f17] border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight">Auditoria de Integridade Imutável</CardTitle>
+                  <CardDescription className="text-zinc-500 font-bold uppercase text-[10px]">Cadeia de custódia e validação de logs críticos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-6 p-6 bg-zinc-900/30 border border-zinc-800 rounded-3xl">
+                    <div className="h-20 w-20 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 grid place-items-center">
+                      <ShieldCheck className="text-indigo-400" size={40} />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-black text-white italic uppercase">Protocolo de Integridade SHA-256</h4>
+                      <p className="text-xs text-zinc-500 font-medium max-w-2xl mt-1">Todos os eventos de nível 'Audit' e 'Critical' são assinados criptograficamente na origem, garantindo que não houve manipulação de registros.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">VALIDADO</Badge>
+                        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Hash: 8f2a...9c12</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase">Verificado há 12s</span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">VALIDADO</Badge>
+                        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Hash: 4d11...e304</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase">Verificado há 1m</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
