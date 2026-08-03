@@ -332,7 +332,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
       {loading ? (
         <ErpSkeletonGrid count={8} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <ErpMetricCard
             label="Receitas"
             value={brl(totals.income)}
@@ -366,20 +366,21 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             hint="Entradas menos saídas registradas no período."
           />
           <ErpMetricCard
-            label="Ticket médio"
+            label="Ticket Médio"
             value={brl(totals.ticketAverage)}
-            icon={Receipt}
+            icon={Target}
             variation={prevTotals ? variation(totals.ticketAverage, prevTotals.ticketAverage) : null}
             hint="Receita de serviços dividida pelos atendimentos concluídos."
             footer={`${totals.servedCount} atendimentos`}
           />
           <ErpMetricCard
-            label="Receita por serviço"
+            label="Receita Serviços"
             value={brl(totals.servicesRevenue)}
             icon={Scissors}
             hint="Valor total dos atendimentos concluídos, excluindo produtos."
-            footer={bd.byService[0]?.name}
+            footer="Mão de obra"
           />
+
           <ErpMetricCard
             label="Receita por profissional"
             value={brl(bd.byBarber.reduce((a, b) => a + b.value, 0))}
@@ -416,13 +417,22 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             footer={`${brl(totals.couponsDiscount)} em descontos`}
           />
           <ErpMetricCard
+            label="Inadimplência"
+            value={brl(pendingPayments)}
+            icon={AlertTriangle}
+            tone={pendingPayments > 0 ? "negative" : "positive"}
+            hint="Valor total de atendimentos com pagamento pendente."
+            footer="Contas a receber"
+          />
+          <ErpMetricCard
             label="Assinaturas ativas"
             value={String(activeSubs)}
             icon={Crown}
             tone="gold"
-            hint="Assinaturas com status ativo."
-            footer={`${brl(totals.subscriptionsRevenue)} recorrentes`}
+            hint="Assinaturas com status ativo no Clube Barbex."
+            footer={`${brl(totals.subscriptionsRevenue)} /mês`}
           />
+
         </div>
       )}
 
