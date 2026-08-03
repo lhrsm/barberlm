@@ -284,5 +284,14 @@ function IntegrationCard({ name, description, status, health, category, icon, en
 
 export const Route = createFileRoute("/dashboard/integracoes")({
   component: withModule("integrations_center", "Central de Integrações", IntegrationsCenterPage),
+  head: () => ({
+    title: "Central de Integrações | Barbex",
+    meta: [
+      { name: "description", content: "Gerencie o ecossistema de APIs e integrações do seu negócio." },
+      { property: "og:title", content: "Central de Integrações Barbex" },
+      { property: "og:description", content: "Hub unificado para controle de pagamentos, comunicações e automações externas." }
+    ]
+  })
 });
+
 
