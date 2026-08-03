@@ -1,5 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { bxLog, bxTrace } from "./observability";
 
 /**
@@ -14,16 +12,17 @@ export const bxLock = async <T>(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   
   return bxTrace(`lock:${lockKey}`, async () => {
-    // 1. Tentar adquirir o lock (tabela operation_locks deve ser criada via migração)
-    // Se a tabela não existir, o log falhará e seguiremos (degradação graciosa para síncrono simples)
+    const anySupabase = supabaseAdmin as any;
+    
+    // 1. Tentar adquirir o lock
     try {
-      const { error: lockError } = await supabaseAdmin.from("operation_locks").insert({
+      const { error: lockError } = await anySupabase.from("operation_locks").insert({
         key: lockKey,
         expires_at: new Date(Date.now() + ttlSeconds * 1000).toISOString()
       });
 
       if (lockError) {
-        bxLog("warn", `Race condition prevented for key: ${lockKey}`, { lockKey });
+        bxLog("warn", `Race condition prevented for key: ${lockKey}`, { metadata: { lockKey } });
         throw new Error("Uma operação idêntica já está em processamento.");
       }
     } catch (e) {
@@ -36,7 +35,7 @@ export const bxLock = async <T>(
     } finally {
       // 2. Liberar o lock
       try {
-        await supabaseAdmin.from("operation_locks").delete().eq("key", lockKey);
+        await anySupabase.from("operation_locks").delete().eq("key", lockKey);
       } catch (e) {}
     }
   });
@@ -48,3 +47,4 @@ export const bxLock = async <T>(
 export const generateIdempotencyKey = (prefix: string, parts: (string | number | undefined)[]) => {
   return `${prefix}:${parts.filter(Boolean).join(':')}`;
 };
+
