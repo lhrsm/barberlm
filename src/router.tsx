@@ -4,6 +4,7 @@ import { Route as KpisRoute } from "./routes/kpis";
 import { Route as OperationalInsightsRoute } from "./routes/operational-insights";
 import { Route as AIAssistantRoute } from "./routes/dashboard.assistente";
 import { Route as CommandCenterRoute } from "./routes/dashboard.centro-de-comando";
+import { Route as BIRoute } from "./routes/dashboard.bi";
 import { Route as IntelligenceRoute } from "./routes/intelligence";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -97,6 +98,7 @@ KpisRoute.addChildren([
   AIAssistantRoute,
   OperationalInsightsRoute,
   CommandCenterRoute,
+  BIRoute,
 ]);
 
 export const getRouter = () => {

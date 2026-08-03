@@ -62,6 +62,7 @@ import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
 import { Route as DashboardCentroDeComandoRouteImport } from './routes/dashboard.centro-de-comando'
+import { Route as DashboardBiRouteImport } from './routes/dashboard.bi'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
@@ -369,6 +370,11 @@ const DashboardCentroDeComandoRoute =
     path: '/centro-de-comando',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardBiRoute = DashboardBiRouteImport.update({
+  id: '/bi',
+  path: '/bi',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAssistenteRoute = DashboardAssistenteRouteImport.update({
   id: '/assistente',
   path: '/assistente',
@@ -646,6 +652,7 @@ export interface FileRoutesByFullPath {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
+  '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
@@ -738,6 +745,7 @@ export interface FileRoutesByTo {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
+  '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
@@ -834,6 +842,7 @@ export interface FileRoutesById {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
+  '/dashboard/bi': typeof DashboardBiRoute
   '/dashboard/centro-de-comando': typeof DashboardCentroDeComandoRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
@@ -931,6 +940,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/dashboard/assistente'
+    | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
@@ -1023,6 +1033,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/dashboard/assistente'
+    | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
@@ -1118,6 +1129,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/dashboard/assistente'
+    | '/dashboard/bi'
     | '/dashboard/centro-de-comando'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
@@ -1582,6 +1594,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCentroDeComandoRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/bi': {
+      id: '/dashboard/bi'
+      path: '/bi'
+      fullPath: '/dashboard/bi'
+      preLoaderRoute: typeof DashboardBiRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/assistente': {
       id: '/dashboard/assistente'
       path: '/assistente'
@@ -1931,11 +1950,13 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardAssistenteRoute: typeof DashboardAssistenteRoute
+  DashboardBiRoute: typeof DashboardBiRoute
   DashboardCentroDeComandoRoute: typeof DashboardCentroDeComandoRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAssistenteRoute: DashboardAssistenteRoute,
+  DashboardBiRoute: DashboardBiRoute,
   DashboardCentroDeComandoRoute: DashboardCentroDeComandoRoute,
 }
 

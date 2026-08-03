@@ -33,7 +33,8 @@ import {
   ExternalLink,
   Radar,
   Sparkles,
-  Activity
+  Activity,
+  TrendingUp
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
@@ -61,6 +62,7 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Comando", icon: Activity, to: "/dashboard/centro-de-comando" },
   { label: "KPIs", icon: BarChart3, to: "/kpis" },
+  { label: "BI Executivo", icon: TrendingUp, to: "/dashboard/bi" },
   { label: "Assistente", icon: Sparkles, to: "/dashboard/assistente" },
   { label: "Radar Op.", icon: Radar, to: "/operational-insights" },
   { label: "Inteligência", icon: Radar, to: "/intelligence" },
