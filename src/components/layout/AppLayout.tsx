@@ -34,7 +34,8 @@ import {
   Radar,
   Sparkles,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Crown
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
