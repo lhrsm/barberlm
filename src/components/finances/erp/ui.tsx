@@ -98,14 +98,15 @@ export function ErpMetricCard({
       <Card
         className={cn(
           "group relative overflow-hidden bg-card shadow-sm transition-all duration-300",
-          "hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(212,175,55,0.55)]",
+          "hover:-translate-y-0.5 hover:border-gold/30 hover:shadow-[0_20px_40px_-20px_rgba(212,175,55,0.2)]",
           toneRing,
         )}
       >
+
         <CardContent className="p-4 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{label}</span>
               {hint && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -131,7 +132,7 @@ export function ErpMetricCard({
           {loading ? (
             <Skeleton className="h-7 w-28" />
           ) : (
-            <p className="text-xl font-black tabular-nums tracking-tight text-foreground sm:text-2xl">{value}</p>
+            <p className="text-2xl font-black tabular-nums tracking-tight text-white">{value}</p>
           )}
 
           <div className="flex items-center justify-between gap-2 text-[11px]">

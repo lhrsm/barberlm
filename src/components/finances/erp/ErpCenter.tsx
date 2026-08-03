@@ -255,18 +255,25 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
         </div>
       </div>
 
-      {/* Hero executivo */}
-      <div className="relative overflow-hidden rounded-3xl border border-[rgba(212,175,55,0.3)] bg-gradient-to-br from-[#0A1020] via-[#0d1426] to-[#0A1020] p-5 sm:p-6">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.22),transparent_65%)]" />
+      <div className="relative overflow-hidden rounded-3xl border border-gold/25 bg-[#0b0f17] p-5 sm:p-8 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl" />
         <div className="relative grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-          <div className="space-y-4">
-            <div>
-              <Badge className="mb-2 border-[rgba(212,175,55,0.4)] bg-[rgba(212,175,55,0.12)] text-[#F5D062]">
-                Centro Financeiro Inteligente
-              </Badge>
-              <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Resumo executivo</h2>
-              <p className="text-sm text-white/60">{range.label} · dados consolidados do módulo financeiro</p>
+          <div className="space-y-6">
+            <div className="animate-in fade-in slide-in-from-left duration-700">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 p-[1px]">
+                  <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#0b0f17]">
+                    <Sparkles className="text-gold" size={20} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Barbex Financial Center Premium</p>
+                  <h2 className="text-2xl font-black text-white md:text-3xl">Central Financeira</h2>
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-white/55">{range.label} · dados consolidados do módulo financeiro</p>
             </div>
+
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <MiniStat label="Saldo do período" value={brl(totals.result)} detail={totals.result >= 0 ? "Positivo" : "Negativo"} />
               <MiniStat label="Receita de hoje" value={brl(todayIncome)} />
@@ -418,7 +425,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
       )}
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="flex w-full flex-wrap justify-start gap-1 bg-card p-1">
+        <TabsList className="flex w-full flex-wrap justify-start gap-1 rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-1 mb-8 overflow-x-auto no-scrollbar">
           {[
             { v: "receitas", label: "Receitas", icon: TrendingUp },
             { v: "despesas", label: "Despesas", icon: TrendingDown },
