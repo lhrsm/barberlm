@@ -109,8 +109,9 @@ function IntegrationsCenterPage() {
                   name="Stripe"
                   provider="stripe"
                   description="Gateway oficial para assinaturas e infraestrutura SaaS."
-                  status={health?.payments?.find(p => p.provider === 'stripe')?.status || 'active'}
-                  environment={health?.payments?.find(p => p.provider === 'stripe')?.environment || 'live'}
+                  status={health?.payments?.find((p: any) => p.provider === 'stripe')?.status || 'active'}
+                  environment={health?.payments?.find((p: any) => p.provider === 'stripe')?.environment || 'live'}
+
                   category="Pagamentos"
                   icon={<CreditCard className="text-sky-400" />}
                 />
@@ -131,7 +132,7 @@ function IntegrationsCenterPage() {
                   name="Mercado Pago"
                   provider="mercadopago"
                   description="Recebimento de PIX e cartões para clientes finais."
-                  status={health?.payments?.find(p => p.provider === 'mercadopago')?.status || 'not_configured'}
+                  status={health?.payments?.find((p: any) => p.provider === 'mercadopago')?.status || 'not_configured'}
                   category="Pagamentos"
                   icon={<CreditCard className="text-blue-400" />}
                 />
@@ -140,7 +141,7 @@ function IntegrationsCenterPage() {
                   name="Asaas"
                   provider="asaas"
                   description="Split de pagamentos e antecipação automática de recebíveis."
-                  status={health?.payments?.find(p => p.provider === 'asaas')?.status || 'not_configured'}
+                  status={health?.payments?.find((p: any) => p.provider === 'asaas')?.status || 'not_configured'}
                   category="Pagamentos"
                   icon={<CreditCard className="text-orange-400" />}
                 />
@@ -149,7 +150,7 @@ function IntegrationsCenterPage() {
                   name="InfinitePay"
                   provider="infinitepay"
                   description="Pagamentos via Cloud POS e links de alta conversão."
-                  status={health?.payments?.find(p => p.provider === 'infinitepay')?.status || 'not_configured'}
+                  status={health?.payments?.find((p: any) => p.provider === 'infinitepay')?.status || 'not_configured'}
                   category="Pagamentos"
                   icon={<CreditCard className="text-purple-400" />}
                 />
@@ -176,7 +177,7 @@ function IntegrationsCenterPage() {
                       {isLoading ? (
                         <div className="p-8 text-center text-zinc-500 italic">Carregando telemetria...</div>
                       ) : (
-                        health?.payments?.map(p => (
+                        health?.payments?.map((p: any) => (
                           <div key={p.id} className="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl">
                             <div className="flex items-center gap-4">
                               <Badge variant="outline" className="uppercase text-[9px] font-black">{p.provider}</Badge>

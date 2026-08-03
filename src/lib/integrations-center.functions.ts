@@ -41,7 +41,7 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
     const instance = whatsappInstances?.[0];
     const whatsappStatus = profile?.whatsapp_enabled && instance ? "active" : "not_configured";
 
-    const recentFailures = (logs || []).filter(l => l.status === 'error').length;
+    const recentFailures = (logs || []).filter((l: any) => l.status === 'error').length;
 
     return {
       whatsapp: {
@@ -49,7 +49,7 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
         health: recentFailures > 3 ? "degraded" : "healthy",
         lastActivity: new Date().toISOString()
       },
-      payments: gateways?.map(g => ({
+      payments: gateways?.map((g: any) => ({
         id: g.id,
         provider: g.provider,
         status: g.status === 'connected' ? 'active' : 'error',
