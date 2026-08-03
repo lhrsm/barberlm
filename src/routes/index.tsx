@@ -53,7 +53,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
-  component: () => <div className="p-10 text-white bg-black">DEBUG: Landing Page Replaced</div>,
+  component: LandingPageComponent,
   head: () => ({
     meta: [
       { title: "Barbex — Sistema de gestão e agendamento para barbearias" },
