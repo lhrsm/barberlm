@@ -1,5 +1,5 @@
 import React from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { resolveCommandCenterContext } from "@/lib/command-center.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,13 +25,20 @@ export const Route = createFileRoute("/dashboard/centro-de-comando")({
 });
 
 function CommandCenterPage() {
-  const { data: context } = useSuspenseQuery({
+  const contextQuery = useQuery({
     queryKey: ["command-center-context"],
     queryFn: () => resolveCommandCenterContext(),
-    refetchInterval: 30000, // Realtime simulation via polling (can be upgraded to full subscriptions)
+    refetchInterval: 30000, 
   });
 
   const [isFocusMode, setIsFocusMode] = React.useState(false);
+
+  if (contextQuery.isLoading) {
+    return <div className="p-8 text-center text-gold-DEFAULT animate-pulse">Iniciando Comando...</div>;
+  }
+
+  const context = contextQuery.data;
+  if (!context) return null;
 
   return (
     <div className={`flex flex-col gap-6 p-6 min-h-screen bg-background/50 transition-all duration-300 ${isFocusMode ? 'max-w-7xl mx-auto' : ''}`}>

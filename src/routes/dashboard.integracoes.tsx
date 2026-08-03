@@ -40,15 +40,19 @@ import { getIntegrationHealth } from "@/lib/integrations-center.functions";
 import { cn } from "@/lib/utils";
 
 function IntegrationsCenterPage() {
-  const { tenantId } = useTenant();
-  const { plan } = useModules();
+  const { tenantId, isLoading: tenantLoading } = useTenant();
+  const { plan, isLoading: modulesLoading } = useModules();
 
-  const { data: health, isLoading } = useQuery({
+  const { data: health, isLoading: healthLoading } = useQuery({
     queryKey: ['integrations-health', tenantId],
     queryFn: () => getIntegrationHealth({ data: { tenantId: tenantId! } }),
     enabled: !!tenantId,
     refetchInterval: 30000 // 30s
   });
+
+  if (tenantLoading || modulesLoading) {
+    return <div className="p-8 text-center text-white/50 italic uppercase tracking-widest text-[10px]">Iniciando Telemetria...</div>;
+  }
 
   if (!tenantId) return null;
 
@@ -185,7 +189,7 @@ function IntegrationsCenterPage() {
                 </CardHeader>
                 <CardContent>
                    <div className="space-y-4">
-                      {isLoading ? (
+                      {healthLoading ? (
                         <div className="p-8 text-center text-zinc-500 italic">Carregando telemetria...</div>
                       ) : (
                         health?.payments?.map((p: any) => (

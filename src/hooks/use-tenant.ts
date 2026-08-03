@@ -15,7 +15,9 @@ export function useTenant() {
     ? null 
     : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null)))));
 
-  console.log("[useTenant] Debug:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id, professionalTenantId: session?.tenant_id });
+    if (typeof window !== 'undefined') {
+      console.log("[useTenant] Debug:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id, professionalTenantId: session?.tenant_id });
+    }
 
 
   const { data: tenantProfile, isLoading: queryLoading } = useQuery({
@@ -61,8 +63,10 @@ export function useTenant() {
   };
 
   const stopImpersonation = () => {
-    sessionStorage.removeItem("impersonated_tenant_id");
-    window.location.href = "/admin/tenants";
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem("impersonated_tenant_id");
+      window.location.href = "/admin/tenants";
+    }
   };
 
   return {

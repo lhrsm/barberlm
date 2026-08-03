@@ -173,6 +173,7 @@ function ShopPageComponent() {
   const [activeCategory, setActiveCategory] = useState<string>("Todos");
 
   const addToBookingCart = () => {
+    if (typeof window === 'undefined') return;
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
       toast.error("Por favor, selecione serviço, barbeiro, data e horário.");
       return;

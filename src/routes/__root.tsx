@@ -96,7 +96,7 @@ function RootComponent() {
     const client = new QueryClient({
       defaultOptions: { 
         queries: { 
-          staleTime: 1000, // Reduced staleTime for better realtime feel as requested
+          staleTime: 1000,
           retry: 1 
         } 
       },
@@ -106,19 +106,20 @@ function RootComponent() {
     }
     return client;
   });
+
   return (
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
         <ProfessionalAuthProvider>
-          <SkipLink />
           <div id="main-content">
             <Outlet />
           </div>
-          <AccessibilityWidget />
-          <Toaster />
-          <CookieBanner />
-        </ProfessionalAuthProvider>
-      </AccessibilityProvider>
-    </QueryClientProvider>
-  );
+        <Toaster />
+        <SkipLink />
+        <AccessibilityWidget />
+        <CookieBanner />
+      </ProfessionalAuthProvider>
+    </AccessibilityProvider>
+  </QueryClientProvider>
+);
 }

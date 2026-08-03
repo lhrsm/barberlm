@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 
 interface ProfessionalSession {
   barber_id: string;
@@ -25,6 +24,12 @@ export function ProfessionalAuthProvider({ children }: { children: React.ReactNo
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Skip localStorage on server
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+    
     const savedSession = localStorage.getItem('barber_session');
     if (savedSession) {
       try {
@@ -37,12 +42,16 @@ export function ProfessionalAuthProvider({ children }: { children: React.ReactNo
   }, []);
 
   const login = (sessionData: ProfessionalSession) => {
-    localStorage.setItem('barber_session', JSON.stringify(sessionData));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('barber_session', JSON.stringify(sessionData));
+    }
     setSession(sessionData);
   };
 
   const logout = () => {
-    localStorage.removeItem('barber_session');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('barber_session');
+    }
     setSession(null);
     navigate({ to: "/auth" });
   };

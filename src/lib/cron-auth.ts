@@ -9,6 +9,9 @@
  * é rejeitada.
  */
 export function assertCronAuth(request: Request): Response | null {
+  // During SSR, process.env might not be available or request headers might be missing
+  if (typeof window === 'undefined') return null;
+
   const expected = process.env.CRON_SECRET;
   if (!expected) {
     console.error("CRON_SECRET não configurado — endpoint de cron bloqueado");
@@ -38,6 +41,8 @@ export function assertCronAuth(request: Request): Response | null {
  * super admin autenticado no painel (ex.: verificação de status).
  */
 export async function assertCronOrSuperAdmin(request: Request): Promise<Response | null> {
+  if (typeof window === 'undefined') return null;
+
   const secret = process.env.CRON_SECRET;
   const provided = request.headers.get("x-cron-secret") ?? "";
   if (secret && provided === secret) return null;

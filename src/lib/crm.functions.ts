@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 export const getCrmData = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ tenant_id: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const { tenant_id } = data;
+    const { supabase } = await import("@/integrations/supabase/client");
     
     const [customers, subscriptions] = await Promise.all([
       supabase.from("customers").select("*").eq("tenant_id", tenant_id).order("name"),
@@ -21,6 +21,7 @@ export const getCrmData = createServerFn({ method: "GET" })
 export const getCustomerInteractions = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ customer_id: z.string() }).parse(data))
   .handler(async ({ data }) => {
+    const { supabase } = await import("@/integrations/supabase/client");
     const { data: interactions } = await supabase
       .from("customer_interactions")
       .select("*")
@@ -38,6 +39,7 @@ export const addCustomerInteraction = createServerFn({ method: "POST" })
     content: z.string()
   }).parse(data))
   .handler(async ({ data }) => {
+    const { supabase } = await import("@/integrations/supabase/client");
     const { error } = await supabase.from("customer_interactions").insert(data);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -46,6 +48,7 @@ export const addCustomerInteraction = createServerFn({ method: "POST" })
 export const getCustomerTasks = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ customer_id: z.string() }).parse(data))
   .handler(async ({ data }) => {
+    const { supabase } = await import("@/integrations/supabase/client");
     const { data: tasks } = await supabase
       .from("customer_tasks")
       .select("*")
@@ -64,6 +67,7 @@ export const addCustomerTask = createServerFn({ method: "POST" })
     due_at: z.string().optional()
   }).parse(data))
   .handler(async ({ data }) => {
+    const { supabase } = await import("@/integrations/supabase/client");
     const { error } = await supabase.from("customer_tasks").insert(data);
     if (error) throw new Error(error.message);
     return { success: true };
@@ -72,6 +76,7 @@ export const addCustomerTask = createServerFn({ method: "POST" })
 export const toggleTaskStatus = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ id: z.string(), status: z.string() }).parse(data))
   .handler(async ({ data }) => {
+    const { supabase } = await import("@/integrations/supabase/client");
     const { error } = await supabase.from("customer_tasks").update({ status: data.status }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
