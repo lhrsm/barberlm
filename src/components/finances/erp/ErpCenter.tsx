@@ -590,16 +590,16 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
         <TabsContent value="receitas" className="space-y-4 pt-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <ErpSection title="Faturamento por Profissional" icon={Users}>
-              <RankingList items={bd.byBarber.slice(0, 10)} />
+              <RankingList items={bd.byBarber.slice(0, 10)} suffix="total" />
             </ErpSection>
             <ErpSection title="Faturamento por Serviço" icon={Scissors}>
-              <RankingList items={bd.byService.slice(0, 10)} />
+              <RankingList items={bd.byService.slice(0, 10)} suffix="gerado" />
             </ErpSection>
             <ErpSection title="Faturamento por Produto" icon={Package}>
-              <RankingList items={bd.byProduct.slice(0, 10)} emptyLabel="Nenhum produto vendido no período" />
+              <RankingList items={bd.byProduct.slice(0, 10)} emptyLabel="Nenhum produto vendido no período" suffix="vendas" />
             </ErpSection>
             <ErpSection title="Faturamento por origem" description="Walk-in, online e manual" icon={Activity}>
-              <RankingList items={bd.byOrigin.slice(0, 10)} />
+              <RankingList items={bd.byOrigin.slice(0, 10)} suffix="faturado" />
             </ErpSection>
           </div>
 
@@ -617,7 +617,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <RankingList items={bd.byPayment} />
+              <RankingList items={bd.byPayment} suffix="bruto" />
             </div>
           </ErpSection>
         </TabsContent>
@@ -636,7 +636,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </div>
           <ErpSection title="Despesas por Categoria" description="Centro de custo derivado das categorias existentes" icon={Receipt}>
             <div className="grid gap-4 lg:grid-cols-2">
-              <RankingList items={bd.byCategory} emptyLabel="Nenhuma despesa lançada no período" />
+              <RankingList items={bd.byCategory} emptyLabel="Nenhuma despesa lançada no período" suffix="gasto" />
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={bd.byCategory.slice(0, 8)} layout="vertical">
@@ -737,7 +737,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <ErpSection title="Faturamento por Dia da Semana" icon={CalendarDays}>
-              <RankingList items={bd.byWeekday} />
+              <RankingList items={bd.byWeekday} suffix="total" />
             </ErpSection>
             <ErpSection title="Faturamento por Horário" icon={Activity}>
               <div className="h-[260px]">
