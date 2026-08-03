@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
         let payload: unknown = null;
         try { payload = await request.json(); } catch { payload = null; }
 
-        const provider = getProvider((gw as any).provider as ProviderKey);
+        const provider = await getProvider((gw as any).provider as ProviderKey);
 
         // Log bruto pra auditoria
         await supabaseAdmin.from("payment_gateway_logs").insert({
