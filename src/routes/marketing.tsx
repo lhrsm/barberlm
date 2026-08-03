@@ -24,6 +24,12 @@ import {
   Crown,
   Cake,
   AlertTriangle,
+  LayoutDashboard,
+  Target,
+  Filter,
+  Settings,
+  History,
+  AlertCircle,
 } from "lucide-react";
 import {
   BarChart,
@@ -42,20 +48,22 @@ import { SectionCard, CustomerList, EmptyState, SkeletonBlock } from "@/componen
 import { useMarketingData } from "@/components/marketing/useMarketingData";
 import { buildMarketing, type UnifiedCampaign } from "@/components/marketing/engine";
 
+import { MarketingOverview } from "@/components/marketing-hub/MarketingOverview";
+
 export const Route = createFileRoute("/marketing")({
   component: MarketingPage,
   head: () => ({
     meta: [
-      { title: "Central de Marketing | Barbex" },
+      { title: "Marketing Hub Enterprise | Barbex" },
       {
         name: "description",
         content:
-          "Central de Marketing do Barbex: campanhas, cashback, créditos, cupons, produtos, assinaturas, avaliações e automações em um só lugar.",
+          "Plataforma completa de marketing e crescimento para barbearias: campanhas, segmentações, automações e resultados em tempo real.",
       },
-      { property: "og:title", content: "Central de Marketing | Barbex" },
+      { property: "og:title", content: "Marketing Hub Enterprise | Barbex" },
       {
         property: "og:description",
-        content: "Todas as ferramentas de crescimento da sua barbearia centralizadas em um único ambiente.",
+        content: "Evolua o marketing da sua barbearia com inteligência de dados e automações poderosas.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -68,7 +76,7 @@ const pct = (v: number) => `${v.toFixed(1)}%`;
 const fmtDate = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" }) : "—";
 
-function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+export function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/30">
       <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{label}</p>
@@ -115,11 +123,10 @@ function MarketingPage() {
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl" aria-hidden />
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Barbex Growth</p>
-              <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">Central de Marketing</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Barbex Marketing Hub Enterprise</p>
+              <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">Marketing Hub</h1>
               <p className="mt-1 max-w-2xl text-sm text-white/55">
-                Todas as ferramentas comerciais da sua barbearia reunidas. Nada é alterado aqui — os botões apenas
-                abrem os módulos que já funcionam no sistema.
+                Centralize seu planejamento comercial, crie campanhas segmentadas e acompanhe resultados reais de crescimento.
               </p>
             </div>
             <Button
@@ -167,21 +174,19 @@ function MarketingPage() {
           )}
         </SectionCard>
 
-        <Tabs defaultValue="campanhas" className="w-full">
+        <Tabs defaultValue="visao-geral" className="w-full">
           <TabsList className="flex w-full flex-wrap justify-start gap-1 rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-1">
             {[
+              ["visao-geral", "Visão Geral", LayoutDashboard],
               ["campanhas", "Campanhas", Megaphone],
-              ["biblioteca", "Biblioteca", Sparkles],
+              ["publicos", "Públicos", Users],
+              ["segmentacoes", "Segmentações", Filter],
+              ["templates", "Templates", Target],
               ["calendario", "Calendário", CalendarDays],
-              ["clientes", "Clientes", Users],
-              ["cashback", "Cashback", Coins],
-              ["creditos", "Créditos", CreditCard],
-              ["cupons", "Cupons", Ticket],
-              ["produtos", "Produtos", ShoppingBag],
-              ["assinaturas", "Assinaturas", Crown],
-              ["avaliacoes", "Avaliações", Star],
-              ["automacoes", "Automações", Zap],
+              ["oportunidades", "Oportunidades", Lightbulb],
               ["resultados", "Resultados", BarChart3],
+              ["automacoes", "Automações", Zap],
+              ["configuracoes", "Configurações", Settings],
             ].map(([value, label, Icon]: any) => (
               <TabsTrigger
                 key={value}
@@ -193,6 +198,11 @@ function MarketingPage() {
               </TabsTrigger>
             ))}
           </TabsList>
+
+          {/* VISÃO GERAL */}
+          <TabsContent value="visao-geral" className="mt-4">
+            <MarketingOverview model={model} loading={loading} iq={iq} />
+          </TabsContent>
 
           {/* CAMPANHAS */}
           <TabsContent value="campanhas" className="mt-4">

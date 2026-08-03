@@ -4300,6 +4300,53 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_audiences: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          filters: Json | null
+          id: string
+          is_dynamic: boolean | null
+          last_count_at: string | null
+          name: string
+          tenant_id: string
+          total_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          filters?: Json | null
+          id?: string
+          is_dynamic?: boolean | null
+          last_count_at?: string | null
+          name: string
+          tenant_id: string
+          total_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          filters?: Json | null
+          id?: string
+          is_dynamic?: boolean | null
+          last_count_at?: string | null
+          name?: string
+          tenant_id?: string
+          total_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_audiences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_recipients: {
         Row: {
           barber_id: string | null
