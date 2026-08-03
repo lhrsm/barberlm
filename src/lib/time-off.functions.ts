@@ -77,22 +77,25 @@ export const createTimeOff = createServerFn({ method: "POST" })
 
     if (!professional) throw new Error("Professional not found");
 
+    const insertData: any = {
+      professional_id: data.professional_id,
+      type: data.type,
+      title: data.title,
+      description: data.description,
+      starts_at: data.starts_at,
+      ends_at: data.ends_at,
+      all_day: data.all_day,
+      approval_status: data.approval_status,
+      tenant_id: professional.tenant_id,
+      requested_by: user.id
+    };
+
     const { data: timeOff, error } = await supabase
       .from("professional_time_off")
-      .insert({
-        professional_id: data.professional_id,
-        type: data.type as TimeOffType,
-        title: data.title,
-        description: data.description,
-        starts_at: data.starts_at,
-        ends_at: data.ends_at,
-        all_day: data.all_day,
-        approval_status: data.approval_status as ApprovalStatus,
-        tenant_id: professional.tenant_id,
-        requested_by: user.id
-      })
+      .insert(insertData)
       .select()
       .single();
+
 
 
     if (error) throw error;
