@@ -57,7 +57,8 @@ import { useModules, type ModuleKey } from "@/hooks/use-modules";
 
 const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: ModuleKey }> = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
-  { label: "Central de KPIs", icon: BarChart3, to: "/kpis" },
+  { label: "KPIs", icon: BarChart3, to: "/kpis" },
+  { label: "Radar Op.", icon: Radar, to: "/operational-insights" },
   { label: "Inteligência", icon: Radar, to: "/intelligence" },
   { label: "Marketing", icon: Megaphone, to: "/marketing" },
   { label: "Agenda", icon: Calendar, to: "/calendar" },
