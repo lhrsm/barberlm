@@ -6,44 +6,27 @@ import type { Database } from './types'
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
-    console.log("[Auth Middleware] 🔐 Verificando autenticação Supabase...");
-    
     const SUPABASE_URL = process.env['SUPABASE_URL'];
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY'];
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      if (typeof window === 'undefined') {
-        console.warn("[Supabase Auth Middleware] Skipping auth check during SSR: Missing env vars");
-        return next();
-      }
-      const message = `Missing Supabase environment variable(s). Connect Supabase in Lovable Cloud.`;
-      console.error(`[Supabase Auth Middleware] ❌ ${message}`);
-      throw new Response(message, { status: 500 });
+      return next();
     }
     
     const request = getRequest();
 
     if (!request?.headers) {
-      console.error("[Supabase Auth Middleware] ❌ Sem headers na requisição");
-      if (typeof window === 'undefined') return next();
-      throw new Response('Unauthorized: No request headers available', { status: 401 });
+      return next();
     }
 
     const authHeader = request.headers.get('authorization');
-    console.log("[Supabase Auth Middleware] 📝 Authorization header presente:", !!authHeader);
-
-    if (!authHeader) {
-      if (typeof window === 'undefined') return next();
-      throw new Response('Unauthorized: No authorization header provided', { status: 401 });
-    }
-
-    if (!authHeader.startsWith('Bearer ')) {
-      throw new Response('Unauthorized: Only Bearer tokens are supported', { status: 401 });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next();
     }
 
     const token = authHeader.replace('Bearer ', '');
     if (!token) {
-      throw new Response('Unauthorized: No token provided', { status: 401 });
+      return next();
     }
 
     const supabase = createClient<Database>(
@@ -65,11 +48,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     const { data, error } = await supabase.auth.getClaims(token);
     if (error || !data?.claims) {
-      throw new Response('Unauthorized: Invalid token', { status: 401 });
-    }
-
-    if (!data.claims.sub) {
-      throw new Response('Unauthorized: No user ID found in token', { status: 401 });
+      return next();
     }
 
     return next({
