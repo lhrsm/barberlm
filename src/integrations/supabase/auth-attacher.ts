@@ -6,6 +6,9 @@ import { supabase } from './client'
 // the browser never attaches the bearer token to serverFn RPCs.
 export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
   async ({ next }) => {
+    // During SSR, supabase.auth.getSession() might trigger the proxy to throw if env vars are missing
+    if (typeof window === 'undefined') return next();
+    
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
     return next({
