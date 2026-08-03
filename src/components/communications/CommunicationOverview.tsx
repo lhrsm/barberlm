@@ -12,13 +12,14 @@ interface Props {
 export function CommunicationOverview({ tenantId }: Props) {
   const { data: messages } = useQuery({
     queryKey: ['communication-messages-summary', tenantId],
-    queryFn: () => getMessages({ tenantId, limit: 10 })
+    queryFn: () => getMessages({ data: { tenantId, limit: 10 } })
   });
 
   const { data: channels } = useQuery({
     queryKey: ['communication-channels', tenantId],
-    queryFn: () => getChannels({ tenantId })
+    queryFn: () => getChannels({ data: { tenantId } })
   });
+
 
   const stats = [
     { label: "Enviadas", value: "0", icon: CheckCircle2, color: "text-emerald-400" },
