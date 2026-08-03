@@ -9,9 +9,3 @@ export const getRouter = () => {
 
   return router;
 };
-    routeTree,
-    context: {},
-  });
-
-  return router;
-};
