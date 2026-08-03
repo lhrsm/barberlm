@@ -63,6 +63,9 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { ExecutiveSummary } from "@/components/dashboard/ExecutiveSummary";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
+import { AdminDashboardView } from "@/components/dashboard/views/AdminDashboardView";
+import { ManagerDashboardView } from "@/components/dashboard/views/ManagerDashboardView";
+import { FinanceDashboardView } from "@/components/dashboard/views/FinanceDashboardView";
 
 
 
