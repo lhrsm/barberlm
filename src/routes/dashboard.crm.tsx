@@ -49,10 +49,12 @@ function CRM360Page() {
   }, [user]);
 
   async function fetchData() {
+    if (!user) return;
     const [custRes, subRes] = await Promise.all([
-      supabase.from("customers").select("*").eq("tenant_id", user?.id).order("name"),
-      supabase.from("customer_subscriptions").select("*, subscription_plans(*)").eq("tenant_id", user?.id).eq("status", "active")
+      supabase.from("customers").select("*").eq("tenant_id", user.id).order("name"),
+      supabase.from("customer_subscriptions").select("*, subscription_plans(*)").eq("tenant_id", user.id).eq("status", "active")
     ]);
+
     setCustomers(custRes.data || []);
     setSubscriptions(subRes.data || []);
   }
