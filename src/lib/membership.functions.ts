@@ -5,7 +5,17 @@ import { z } from "zod";
 export const getMembershipStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
+
+    if (!userId || !supabase) {
+      return {
+        activeCount: 0,
+        churnCount: 0,
+        totalRevenue: 0,
+        plansCount: 0,
+        usageCount: 0
+      };
+    }
 
     const [subs, usage, plans] = await Promise.all([
       supabase.from("customer_subscriptions").select("*").eq("tenant_id", userId),

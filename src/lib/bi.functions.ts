@@ -16,7 +16,11 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => BIInputSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { userId, supabase: authSupabase } = context;
+    const { userId, supabase: authSupabase } = context as any;
+    
+    if (!userId || !authSupabase) {
+      throw new Error("Unauthorized: You must be logged in to view BI analytics");
+    }
     
     // Resolve Tenant
     const { data: profile } = await authSupabase

@@ -7,7 +7,15 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const resolveAIContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId, supabase: authSupabase } = context;
+    const { userId, supabase: authSupabase } = context as any;
+    
+    if (!userId || !authSupabase) {
+      return {
+        status: "disabled",
+        ai_assistant_enabled: "disabled",
+        context: null
+      };
+    }
     
     // 1. Fetch user role and tenant
     const { data: profile } = await authSupabase
