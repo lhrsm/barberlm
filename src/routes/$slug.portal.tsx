@@ -1283,7 +1283,7 @@ function ClientPortalComponent() {
 
 
         {(activeTab === "home" || activeTab === "club") && !mySubscription && subscriptionsEnabled && (
-          <>
+          <div className="space-y-6">
             <ClubBarbexUpgrade
               shopId={shop?.id}
               onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
@@ -1305,7 +1305,7 @@ function ClientPortalComponent() {
               shopId={shop?.id}
               onSubscribe={() => window.dispatchEvent(new CustomEvent('OPEN_SUBSCRIBE_MODAL'))}
             />
-          </>
+          </div>
         )}
 
         {activeTab === "home" && !mySubscription && !subscriptionsEnabled && (
