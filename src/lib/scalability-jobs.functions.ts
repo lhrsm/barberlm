@@ -16,7 +16,7 @@ const jobSchema = z.object({
  */
 export const enqueueJob = createServerFn({ method: "POST" })
   .validator((data: unknown) => jobSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }: any) => {
     return bxTrace(`enqueue_job:${data.queue_name}`, async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       
@@ -103,6 +103,7 @@ export const processNextJob = createServerFn({ method: "POST" })
       });
     });
   });
+
 
 
 
