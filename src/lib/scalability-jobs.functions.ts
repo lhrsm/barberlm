@@ -11,14 +11,12 @@ const jobSchema = z.object({
   next_run_at: z.string().optional(),
 });
 
-type JobInput = z.infer<typeof jobSchema>;
-
 /**
  * Agendamento de Background Job
  */
 export const enqueueJob = createServerFn({ method: "POST" })
   .validator((data: unknown) => jobSchema.parse(data))
-  .handler(async ({ data }: { data: JobInput }) => {
+  .handler(async ({ data }) => {
     return bxTrace(`enqueue_job:${data.queue_name}`, async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       
@@ -105,6 +103,7 @@ export const processNextJob = createServerFn({ method: "POST" })
       });
     });
   });
+
 
 
 
