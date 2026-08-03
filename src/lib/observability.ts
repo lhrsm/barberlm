@@ -43,17 +43,17 @@ export const bxLog = createIsomorphicFn()
   });
 
 /**
- * Middleware para gerar e propagar Correlation ID
+ * Middleware para gerar e propagar Correlation ID em Server Functions
  */
 export const correlationMiddleware = createMiddleware()
-  .server(async ({ next }) => {
+  .middleware(async ({ next }) => {
     const correlationId = `BX-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    
+    // Armazenamento temporário no escopo global do worker para este request
+    // Em Node.js usaríamos AsyncLocalStorage, aqui no Worker simplificamos ou passamos no context
     (globalThis as any).currentCorrelationId = correlationId;
     
-    const result = await next();
-    
-    // Injeção opcional no header de resposta se for uma Request
-    return result;
+    return next();
   });
 
 /**
@@ -76,4 +76,5 @@ export const bxTrace = async <T>(
     throw error;
   }
 };
+
 
