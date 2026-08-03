@@ -1,5 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
 
 export const resolveDashboardContext = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
@@ -8,13 +12,15 @@ export const resolveDashboardContext = createServerFn({ method: "GET" })
       return { role: 'guest', permissions: [] };
     }
 
+    const admin = await getAdmin();
+
     const [{ data: profile }, { data: userRole }] = await Promise.all([
-      supabaseAdmin
+      admin
         .from("profiles")
         .select("tenant_id, business_name, slug, role")
         .eq("id", userId)
         .maybeSingle(),
-      supabaseAdmin
+      admin
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
@@ -28,13 +34,13 @@ export const resolveDashboardContext = createServerFn({ method: "GET" })
     let plan = 'free';
     
     if (tenantId) {
-      const { data: tenantModules } = await supabaseAdmin
+      const { data: tenantModules } = await admin
         .from("barbershop_modules" as any)
         .select("module_key")
         .eq("tenant_id", tenantId)
         .eq("enabled", true);
       
-      const { data: subscription } = await supabaseAdmin
+      const { data: subscription } = await admin
         .from("subscriptions")
         .select("price_id, billing_status")
         .eq("user_id", tenantId)

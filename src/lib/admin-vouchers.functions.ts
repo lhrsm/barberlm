@@ -115,8 +115,8 @@ async function audit(
 
 async function getAdminClient(stage: string): Promise<Result<{ sb: any }>> {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    return { ok: true, sb: supabaseAdmin };
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    return { ok: true, sb: admin };
   } catch (e) {
     const se = extractUnknownError(e, stage, "supabase");
     console.error("[Voucher] Falha ao carregar cliente administrativo", se);
