@@ -5,7 +5,7 @@ import type { ReportPeriod } from "@/lib/finances-pdf";
 export function useFinancesFilters() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [financeTab, setFinanceTab] = useState<string>("transactions");
+  const [financeTab, setFinanceTab] = useState<string>("erp");
   const [globalPeriod, setGlobalPeriod] = useState<ReportPeriod>("month");
 
   const [barberPeriodPreset, setBarberPeriodPreset] = useState<string>("today");

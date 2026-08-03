@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import {
   Activity,
+  AlertTriangle,
   BadgePercent,
   BarChart3,
   CalendarDays,
@@ -35,12 +36,14 @@ import {
   Receipt,
   Scissors,
   Sparkles,
+  Target,
   TicketPercent,
   TrendingDown,
   TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +111,8 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
   const [period, setPeriod] = useState<ErpPeriod>("month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
-  const [tab, setTab] = useState("resumo");
+  const [tab, setTab] = useState("receitas");
+
 
   const range = useMemo(() => erpPeriodRange(period, customStart, customEnd), [period, customStart, customEnd]);
   const prevRange = useMemo(() => previousRange(range), [range]);
@@ -205,8 +209,8 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-5">
       {/* Filtros globais */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[rgba(212,175,55,0.25)] bg-card/70 p-3">
-        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Período</span>
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-2">
+        <span className="mr-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Periodo</span>
         {PERIODS.map((p) => (
           <button
             key={p.value}
@@ -216,10 +220,11 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             className={cn(
               "rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               period === p.value
-                ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D062] text-[#1a1200] shadow-[0_8px_20px_-12px_rgba(212,175,55,0.9)]"
-                : "border border-border text-muted-foreground hover:border-[rgba(212,175,55,0.5)] hover:text-foreground",
+                ? "bg-gold text-black shadow-[0_10px_20px_-10px_rgba(212,175,55,0.5)]"
+                : "border-transparent text-white/40 hover:bg-white/5 hover:text-white/80",
             )}
           >
+
             {p.label}
           </button>
         ))}
@@ -242,42 +247,51 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </div>
         )}
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCsv}>
-            <Download className="h-4 w-4" /> CSV
+          <Button variant="outline" size="sm" className="h-8 rounded-lg border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white" onClick={exportCsv}>
+            <Download className="mr-1.5 h-3.5 w-3.5" /> CSV
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={exportExcel}>
-            <FileSpreadsheet className="h-4 w-4" /> Excel
+          <Button variant="outline" size="sm" className="h-8 rounded-lg border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white" onClick={exportExcel}>
+            <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" /> Excel
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> Imprimir
+          <Button variant="outline" size="sm" className="h-8 rounded-lg border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white" onClick={() => window.print()}>
+            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imp
           </Button>
+
         </div>
       </div>
 
-      {/* Hero executivo */}
-      <div className="relative overflow-hidden rounded-3xl border border-[rgba(212,175,55,0.3)] bg-gradient-to-br from-[#0A1020] via-[#0d1426] to-[#0A1020] p-5 sm:p-6">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.22),transparent_65%)]" />
+      <div className="relative overflow-hidden rounded-3xl border border-gold/25 bg-[#0b0f17] p-5 sm:p-8 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl" />
         <div className="relative grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-          <div className="space-y-4">
-            <div>
-              <Badge className="mb-2 border-[rgba(212,175,55,0.4)] bg-[rgba(212,175,55,0.12)] text-[#F5D062]">
-                Centro Financeiro Inteligente
-              </Badge>
-              <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Resumo executivo</h2>
-              <p className="text-sm text-white/60">{range.label} · dados consolidados do módulo financeiro</p>
+          <div className="space-y-6">
+            <div className="animate-in fade-in slide-in-from-left duration-700">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 p-[1px]">
+                  <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[#0b0f17]">
+                    <Sparkles className="text-gold" size={20} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Barbex Financial Center Premium</p>
+                  <h2 className="text-2xl font-black text-white md:text-3xl">Central Financeira</h2>
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-white/55">{range.label} · dados consolidados do módulo financeiro</p>
             </div>
+
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <MiniStat label="Saldo do período" value={brl(totals.result)} detail={totals.result >= 0 ? "Positivo" : "Negativo"} />
-              <MiniStat label="Receita de hoje" value={brl(todayIncome)} />
-              <MiniStat label="Receita 7 dias" value={brl(weekIncome)} />
-              <MiniStat label="Lucro estimado" value={brl(dre.netProfit)} detail={pct(dre.margin)} />
+              <MiniStat label="Saldo Periodo" value={brl(totals.result)} detail={totals.result >= 0 ? "Positivo" : "Negativo"} />
+              <MiniStat label="Receita Hoje" value={brl(todayIncome)} />
+              <MiniStat label="Receita 7d" value={brl(weekIncome)} />
+              <MiniStat label="Lucro Estimado" value={brl(dre.netProfit)} detail={pct(dre.margin)} />
+
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <MiniStat label="Entradas" value={brl(totals.income)} />
               <MiniStat label="Saídas" value={brl(totals.expense)} />
               <MiniStat label="Comissões" value={brl(totals.commissionsTotal)} detail={`${brl(totals.commissionsPending)} pendentes`} />
               <MiniStat
-                label="vs período anterior"
+                label="vs Anterior"
                 value={
                   prevTotals
                     ? `${(variation(totals.income, prevTotals.income) ?? 0) >= 0 ? "+" : ""}${(variation(totals.income, prevTotals.income) ?? 0).toFixed(1)}%`
@@ -289,10 +303,10 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </div>
 
           {/* Saúde financeira */}
-          <div className="rounded-2xl border border-[rgba(212,175,55,0.25)] bg-black/25 p-4">
+          <div className="rounded-[24px] border border-gold/15 bg-black/40 p-5">
             <div className="flex items-center gap-2">
               <Gauge className="h-4 w-4 text-[#D4AF37]" />
-              <h3 className="text-sm font-bold text-white">Saúde financeira da barbearia</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-gold">Financial Health Index</h3>
             </div>
             <div className="mt-3 flex items-end gap-3">
               <span className="text-4xl font-black text-[#F5D062]">{health.score}</span>
@@ -322,7 +336,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
       {loading ? (
         <ErpSkeletonGrid count={8} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <ErpMetricCard
             label="Receitas"
             value={brl(totals.income)}
@@ -356,20 +370,21 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             hint="Entradas menos saídas registradas no período."
           />
           <ErpMetricCard
-            label="Ticket médio"
+            label="Ticket Médio"
             value={brl(totals.ticketAverage)}
-            icon={Receipt}
+            icon={Target}
             variation={prevTotals ? variation(totals.ticketAverage, prevTotals.ticketAverage) : null}
             hint="Receita de serviços dividida pelos atendimentos concluídos."
             footer={`${totals.servedCount} atendimentos`}
           />
           <ErpMetricCard
-            label="Receita por serviço"
+            label="Receita Serviços"
             value={brl(totals.servicesRevenue)}
             icon={Scissors}
             hint="Valor total dos atendimentos concluídos, excluindo produtos."
-            footer={bd.byService[0]?.name}
+            footer="Mão de obra"
           />
+
           <ErpMetricCard
             label="Receita por profissional"
             value={brl(bd.byBarber.reduce((a, b) => a + b.value, 0))}
@@ -406,37 +421,51 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             footer={`${brl(totals.couponsDiscount)} em descontos`}
           />
           <ErpMetricCard
+            label="Inadimplência"
+            value={brl(pendingPayments)}
+            icon={AlertTriangle}
+            tone={pendingPayments > 0 ? "negative" : "positive"}
+            hint="Valor total de atendimentos com pagamento pendente."
+            footer="Contas a receber"
+          />
+          <ErpMetricCard
             label="Assinaturas ativas"
             value={String(activeSubs)}
             icon={Crown}
             tone="gold"
-            hint="Assinaturas com status ativo."
-            footer={`${brl(totals.subscriptionsRevenue)} recorrentes`}
+            hint="Assinaturas com status ativo no Clube Barbex."
+            footer={`${brl(totals.subscriptionsRevenue)} /mês`}
           />
+
         </div>
       )}
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="flex w-full flex-wrap justify-start gap-1 bg-card p-1">
+        <TabsList className="flex w-full flex-wrap justify-start gap-1 rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-1 mb-8 overflow-x-auto no-scrollbar">
           {[
-            { v: "resumo", label: "Inteligência", icon: Sparkles },
-            { v: "fluxo", label: "Fluxo de caixa", icon: Activity },
             { v: "receitas", label: "Receitas", icon: TrendingUp },
             { v: "despesas", label: "Despesas", icon: TrendingDown },
+            { v: "fluxo", label: "Fluxo de Caixa", icon: Activity },
             { v: "dre", label: "DRE", icon: FileText },
             { v: "indicadores", label: "Indicadores", icon: BarChart3 },
             { v: "beneficios", label: "Benefícios", icon: BadgePercent },
             { v: "calendario", label: "Calendário", icon: CalendarDays },
+            { v: "resumo", label: "Insights", icon: Sparkles },
           ].map(({ v, label, icon: Icon }) => (
-            <TabsTrigger key={v} value={v} className="gap-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger 
+              key={v} 
+              value={v} 
+              className="gap-1.5 text-xs font-black uppercase tracking-widest transition-all data-[state=active]:bg-gold data-[state=active]:text-black hover:text-white/80"
+            >
               <Icon className="h-3.5 w-3.5" /> {label}
             </TabsTrigger>
           ))}
+
         </TabsList>
 
         {/* Inteligência */}
         <TabsContent value="resumo" className="space-y-4 pt-4">
-          <ErpSection title="Centro Financeiro Inteligente" description="Destaques automáticos do período" icon={Sparkles}>
+          <ErpSection title="Destaques Automáticos" description="Resumo inteligente do período" icon={Sparkles}>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {spotlights.map((s) => (
                 <MiniStat key={s.label} label={s.label} value={s.value} detail={s.detail} />
@@ -445,7 +474,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </ErpSection>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <ErpSection title="Análises automáticas" description="Leitura objetiva dos números" icon={Lightbulb}>
+            <ErpSection title="Smart Insights" description="Análises automáticas dos números" icon={Lightbulb}>
               {insights.length === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">Sem dados suficientes no período.</p>
               ) : (
@@ -470,7 +499,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
               )}
             </ErpSection>
 
-            <ErpSection title="Previsão financeira" description="Projeção linear pelo ritmo atual (sem IA)" icon={TrendingUp}>
+            <ErpSection title="Previsão Financeira" description="Projeção linear baseada no ritmo atual" icon={TrendingUp}>
               {!fc ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">Sem movimentações para projetar.</p>
               ) : (
@@ -512,7 +541,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             />
           </div>
 
-          <ErpSection title="Evolução diária" description="Entradas, saídas e saldo acumulado" icon={Activity}>
+          <ErpSection title="Evolução Diária" description="Entradas, saídas e saldo acumulado" icon={Activity}>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={series}>
@@ -539,7 +568,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             </div>
           </ErpSection>
 
-          <ErpSection title="Evolução mensal" description="Histórico consolidado por mês" icon={BarChart3}>
+          <ErpSection title="Evolução Mensal" description="Histórico consolidado por mês" icon={BarChart3}>
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={months}>
@@ -560,21 +589,21 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
         {/* Receitas */}
         <TabsContent value="receitas" className="space-y-4 pt-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <ErpSection title="Receita por profissional" icon={Users}>
-              <RankingList items={bd.byBarber.slice(0, 10)} />
+            <ErpSection title="Faturamento por Profissional" icon={Users}>
+              <RankingList items={bd.byBarber.slice(0, 10)} suffix="total" />
             </ErpSection>
-            <ErpSection title="Receita por serviço" icon={Scissors}>
-              <RankingList items={bd.byService.slice(0, 10)} />
+            <ErpSection title="Faturamento por Serviço" icon={Scissors}>
+              <RankingList items={bd.byService.slice(0, 10)} suffix="gerado" />
             </ErpSection>
-            <ErpSection title="Receita por produto" icon={Package}>
-              <RankingList items={bd.byProduct.slice(0, 10)} emptyLabel="Nenhum produto vendido no período" />
+            <ErpSection title="Faturamento por Produto" icon={Package}>
+              <RankingList items={bd.byProduct.slice(0, 10)} emptyLabel="Nenhum produto vendido no período" suffix="vendas" />
             </ErpSection>
-            <ErpSection title="Receita por origem" description="Walk-in, online e manual" icon={Activity}>
-              <RankingList items={bd.byOrigin.slice(0, 10)} />
+            <ErpSection title="Faturamento por origem" description="Walk-in, online e manual" icon={Activity}>
+              <RankingList items={bd.byOrigin.slice(0, 10)} suffix="faturado" />
             </ErpSection>
           </div>
 
-          <ErpSection title="Receita por forma de pagamento" icon={CreditCard}>
+          <ErpSection title="Faturamento por Forma de Pagamento" icon={CreditCard}>
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -588,7 +617,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <RankingList items={bd.byPayment} />
+              <RankingList items={bd.byPayment} suffix="bruto" />
             </div>
           </ErpSection>
         </TabsContent>
@@ -605,9 +634,9 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
               footer={bd.byCategory[0] ? brl(bd.byCategory[0].value) : undefined}
             />
           </div>
-          <ErpSection title="Despesas por categoria" description="Centro de custo derivado das categorias existentes" icon={Receipt}>
+          <ErpSection title="Despesas por Categoria" description="Centro de custo derivado das categorias existentes" icon={Receipt}>
             <div className="grid gap-4 lg:grid-cols-2">
-              <RankingList items={bd.byCategory} emptyLabel="Nenhuma despesa lançada no período" />
+              <RankingList items={bd.byCategory} emptyLabel="Nenhuma despesa lançada no período" suffix="gasto" />
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={bd.byCategory.slice(0, 8)} layout="vertical">
@@ -626,7 +655,8 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
         {/* DRE */}
         <TabsContent value="dre" className="space-y-4 pt-4">
           <ErpSection
-            title="DRE simplificada"
+            title="DRE Estruturada"
+
             description={`Demonstração de resultado — ${range.label}`}
             icon={FileText}
             actions={
@@ -706,10 +736,10 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             ))}
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            <ErpSection title="Receita por dia da semana" icon={CalendarDays}>
-              <RankingList items={bd.byWeekday} />
+            <ErpSection title="Faturamento por Dia da Semana" icon={CalendarDays}>
+              <RankingList items={bd.byWeekday} suffix="total" />
             </ErpSection>
-            <ErpSection title="Receita por horário" icon={Activity}>
+            <ErpSection title="Faturamento por Horário" icon={Activity}>
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={bd.byHour}>
@@ -827,7 +857,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
 
         {/* Calendário */}
         <TabsContent value="calendario" className="pt-4">
-          <ErpSection title="Calendário financeiro" description="Entradas, saídas, previsões e renovações" icon={CalendarDays}>
+          <ErpSection title="Calendário Financeiro" description="Entradas, saídas, previsões e renovações" icon={CalendarDays}>
             <ErpFinancialCalendar
               transactions={data.transactions}
               appointments={data.appointments}
