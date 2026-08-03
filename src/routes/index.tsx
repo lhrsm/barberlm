@@ -91,6 +91,8 @@ function LandingPageComponent() {
   const prices = planPrices[billingCycle];
   const priceSuffix = billingCycle === "annual" ? "/mês · cobrado anualmente" : "/mês";
 
+
+
   useEffect(() => {
     if (!loading && user && role) {
       if (role === 'super_admin') {
@@ -108,6 +110,10 @@ function LandingPageComponent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
+      <div className="bg-primary/10 border-b border-primary/20 py-2 text-center text-xs font-black uppercase tracking-widest text-primary animate-pulse">
+        Utilize o cupom <span className="text-white bg-primary px-2 py-0.5 rounded">ANIVERSARIO10</span> para 10% de desconto!
+      </div>
+
       {/* Navigation */}
       <motion.nav 
         initial={{ y: -100 }}
