@@ -30,7 +30,7 @@ export const logSecurityEvent = createServerFn({ method: "POST" })
     severity: z.enum(["info", "low", "medium", "high", "critical"]),
     metadata: z.record(z.any())
   }).parse(data))
-  .handler(async ({ data, request }) => {
+  .handler(async ({ data }) => {
     // Registro em auditoria (audit_logs)
     console.log("[SECURITY EVENT]", data);
     return { success: true };
