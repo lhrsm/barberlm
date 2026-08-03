@@ -353,17 +353,6 @@ export function CustomerCrmDialog({
               </TabsContent>
 
 
-                            className="text-[10px] font-bold uppercase px-2 py-1 rounded-lg bg-green-600/10 border border-green-600/30 text-green-400 hover:bg-green-600/20 focus-visible:ring-2 focus-visible:ring-gold flex items-center gap-1"
-                          >
-                            <MessageCircle size={11} /> Mensagem
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
               {/* FINANCEIRO */}
               <TabsContent value="financeiro" className="mt-4 space-y-4 animate-in fade-in duration-300">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
