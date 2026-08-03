@@ -11,8 +11,9 @@ interface FinancesTabsListProps {
 export function FinancesTabsList({ role, financeTab, setFinanceTab }: FinancesTabsListProps) {
   const items = [
     ...(role !== 'barber' ? [
-      { v: "erp", icon: Sparkles, label: "Centro Financeiro" },
+      { v: "erp", icon: Sparkles, label: "Central Financeira" },
       { v: "managerial", icon: BarChart3, label: "Visão Gerencial" },
+
     ] : []),
     { v: "transactions", icon: FileText, label: "Lançamentos" },
     { v: "pending", icon: Clock, label: "Pendentes" },
@@ -28,11 +29,11 @@ export function FinancesTabsList({ role, financeTab, setFinanceTab }: FinancesTa
   return (
     <>
       {/* Desktop tabs */}
-      <TabsList className={cn("hidden md:grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-9 max-w-[1480px]" : "grid-cols-3 max-w-[600px]")}>
+      <TabsList className={cn("hidden md:grid w-full bg-[#0b0f17] border border-white/[0.07] text-white/40", role !== 'barber' ? "grid-cols-9 max-w-[1480px]" : "grid-cols-3 max-w-[600px]")}>
 
 
         {items.map(({ v, icon: Icon, label }) => (
-          <TabsTrigger key={v} value={v} className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger key={v} value={v} className="gap-2 text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-gold data-[state=active]:text-black hover:text-white/80">
             <Icon size={16} /> {label}
           </TabsTrigger>
         ))}

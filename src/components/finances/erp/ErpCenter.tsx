@@ -108,7 +108,8 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
   const [period, setPeriod] = useState<ErpPeriod>("month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
-  const [tab, setTab] = useState("resumo");
+  const [tab, setTab] = useState("receitas");
+
 
   const range = useMemo(() => erpPeriodRange(period, customStart, customEnd), [period, customStart, customEnd]);
   const prevRange = useMemo(() => previousRange(range), [range]);
@@ -419,19 +420,24 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="flex w-full flex-wrap justify-start gap-1 bg-card p-1">
           {[
-            { v: "resumo", label: "Inteligência", icon: Sparkles },
-            { v: "fluxo", label: "Fluxo de caixa", icon: Activity },
             { v: "receitas", label: "Receitas", icon: TrendingUp },
             { v: "despesas", label: "Despesas", icon: TrendingDown },
+            { v: "fluxo", label: "Fluxo de Caixa", icon: Activity },
             { v: "dre", label: "DRE", icon: FileText },
             { v: "indicadores", label: "Indicadores", icon: BarChart3 },
             { v: "beneficios", label: "Benefícios", icon: BadgePercent },
             { v: "calendario", label: "Calendário", icon: CalendarDays },
+            { v: "resumo", label: "Insights", icon: Sparkles },
           ].map(({ v, label, icon: Icon }) => (
-            <TabsTrigger key={v} value={v} className="gap-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger 
+              key={v} 
+              value={v} 
+              className="gap-1.5 text-xs font-black uppercase tracking-widest transition-all data-[state=active]:bg-gold data-[state=active]:text-black hover:text-white/80"
+            >
               <Icon className="h-3.5 w-3.5" /> {label}
             </TabsTrigger>
           ))}
+
         </TabsList>
 
         {/* Inteligência */}
