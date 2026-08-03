@@ -88,21 +88,37 @@ export function getSubscriptionUsage(
 
   const total_uses_allowed = Number(plan?.max_uses_per_month ?? 0);
 
-  // Per-category allowance — derive from plan services if possible
+  // Per-category allowance: priorities are subscription_plan_benefits (2.0) then legacy fallback
   let haircut_allowed = 0;
   let beard_allowed = 0;
-  for (const ps of planServices) {
-    const cat = categorizeService(ps?.services?.name);
-    const lim = Number(ps?.max_uses_per_period ?? 0);
-    if (cat === "haircut") haircut_allowed = Math.max(haircut_allowed, lim);
-    else if (cat === "beard") beard_allowed = Math.max(beard_allowed, lim);
-    else if (cat === "both") {
-      haircut_allowed = Math.max(haircut_allowed, lim);
-      beard_allowed = Math.max(beard_allowed, lim);
+  
+  // Try to find benefits mapping in the new structure if available in the subscription object
+  const benefits = subscription?.benefits || plan?.benefits_list || [];
+  if (Array.isArray(benefits) && benefits.length > 0) {
+    for (const b of benefits) {
+      if (b.benefit_key === 'haircut') haircut_allowed = Number(b.monthly_limit);
+      if (b.benefit_key === 'beard') beard_allowed = Number(b.monthly_limit);
+      if (b.benefit_key === 'combo') {
+        haircut_allowed = Math.max(haircut_allowed, Number(b.monthly_limit));
+        beard_allowed = Math.max(beard_allowed, Number(b.monthly_limit));
+      }
     }
   }
-  if (total_uses_allowed > 0) {
-    if (haircut_allowed === 0 && beard_allowed === 0) {
+
+  // Legacy fallback if no 2.0 benefits found
+  if (haircut_allowed === 0 && beard_allowed === 0) {
+    for (const ps of planServices) {
+      const cat = categorizeService(ps?.services?.name);
+      const lim = Number(ps?.max_uses_per_period ?? 0);
+      if (cat === "haircut") haircut_allowed = Math.max(haircut_allowed, lim);
+      else if (cat === "beard") beard_allowed = Math.max(beard_allowed, lim);
+      else if (cat === "both") {
+        haircut_allowed = Math.max(haircut_allowed, lim);
+        beard_allowed = Math.max(beard_allowed, lim);
+      }
+    }
+    
+    if (total_uses_allowed > 0 && haircut_allowed === 0 && beard_allowed === 0) {
       // Even split fallback
       haircut_allowed = Math.ceil(total_uses_allowed / 2);
       beard_allowed = Math.floor(total_uses_allowed / 2);
