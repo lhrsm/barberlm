@@ -33,7 +33,6 @@ import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CommissionsRouteImport } from './routes/commissions'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
@@ -217,11 +216,6 @@ const FinancesRoute = FinancesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CustomersRoute = CustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookiesRoute = CookiesRouteImport.update({
@@ -569,7 +563,6 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRoute
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
-  '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
@@ -659,7 +652,6 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRoute
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
-  '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
@@ -749,7 +741,6 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRoute
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
-  '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
@@ -842,7 +833,6 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/commissions'
     | '/cookies'
-    | '/customers'
     | '/dashboard'
     | '/finances'
     | '/history'
@@ -932,7 +922,6 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/commissions'
     | '/cookies'
-    | '/customers'
     | '/dashboard'
     | '/finances'
     | '/history'
@@ -1021,7 +1010,6 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/commissions'
     | '/cookies'
-    | '/customers'
     | '/dashboard'
     | '/finances'
     | '/history'
@@ -1113,7 +1101,6 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRoute
   CommissionsRoute: typeof CommissionsRoute
   CookiesRoute: typeof CookiesRoute
-  CustomersRoute: typeof CustomersRoute
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
   HistoryRoute: typeof HistoryRoute
@@ -1326,13 +1313,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/customers': {
-      id: '/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookies': {
@@ -1922,7 +1902,6 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRoute,
   CommissionsRoute: CommissionsRoute,
   CookiesRoute: CookiesRoute,
-  CustomersRoute: CustomersRoute,
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
   HistoryRoute: HistoryRoute,
