@@ -43,7 +43,7 @@ function BusinessIntelligencePage() {
     end: format(endOfMonth(new Date()), "yyyy-MM-dd")
   });
 
-  const { data: analytics } = useSuspenseQuery({
+  const analyticsQuery = useQuery({
     queryKey: ["bi-analytics", dateRange],
     queryFn: () => getBIAnalytics({ 
       data: {
@@ -54,6 +54,18 @@ function BusinessIntelligencePage() {
       }
     }),
   });
+
+  const analytics = analyticsQuery.data;
+
+  if (analyticsQuery.isLoading) {
+    return (
+      <div className="flex flex-col gap-8 p-6 bg-background/50 min-h-screen items-center justify-center">
+        <p className="text-gold-DEFAULT animate-pulse font-black uppercase tracking-tighter">Processando BI...</p>
+      </div>
+    );
+  }
+
+  if (!analytics) return null;
 
   const brl = (v: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);

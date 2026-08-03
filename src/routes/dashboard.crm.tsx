@@ -32,7 +32,7 @@ export const Route = createFileRoute("/dashboard/crm")({
 });
 
 function CRM360Page() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [customers, setCustomers] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -119,6 +119,8 @@ function CRM360Page() {
     setProducts(prodRes.data || []);
     setLoadingProfile(false);
   }
+
+  if (authLoading) return <AppLayout><div className="p-8 text-center text-white/50">Carregando CRM...</div></AppLayout>;
 
   return (
     <AppLayout>
