@@ -206,7 +206,7 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-5">
       {/* Filtros globais */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[rgba(212,175,55,0.25)] bg-card/70 p-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-2">
         <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Período</span>
         {PERIODS.map((p) => (
           <button
@@ -217,10 +217,11 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
             className={cn(
               "rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               period === p.value
-                ? "bg-gradient-to-r from-[#D4AF37] to-[#F5D062] text-[#1a1200] shadow-[0_8px_20px_-12px_rgba(212,175,55,0.9)]"
-                : "border border-border text-muted-foreground hover:border-[rgba(212,175,55,0.5)] hover:text-foreground",
+                ? "bg-gold text-black shadow-[0_10px_20px_-10px_rgba(212,175,55,0.5)]"
+                : "border-transparent text-white/40 hover:bg-white/5 hover:text-white/80",
             )}
           >
+
             {p.label}
           </button>
         ))}
@@ -243,15 +244,16 @@ export function ErpCenter({ tenantId }: { tenantId: string }) {
           </div>
         )}
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCsv}>
-            <Download className="h-4 w-4" /> CSV
+          <Button variant="outline" size="sm" className="h-8 rounded-lg border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white" onClick={exportCsv}>
+            <Download className="mr-1.5 h-3.5 w-3.5" /> CSV
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={exportExcel}>
-            <FileSpreadsheet className="h-4 w-4" /> Excel
+          <Button variant="outline" size="sm" className="h-8 rounded-lg border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white" onClick={exportExcel}>
+            <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" /> Excel
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> Imprimir
+          <Button variant="outline" size="sm" className="h-8 rounded-lg border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white" onClick={() => window.print()}>
+            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imp
           </Button>
+
         </div>
       </div>
 
