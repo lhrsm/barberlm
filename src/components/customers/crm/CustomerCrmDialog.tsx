@@ -704,32 +704,87 @@ export function CustomerCrmDialog({
                 )}
               </TabsContent>
 
-              {/* OBSERVAÇÕES */}
-              <TabsContent value="observacoes" className="mt-4 space-y-3 animate-in fade-in duration-300">
-                <p className="text-xs text-slate-400">
-                  Anotações internas — visíveis apenas para a equipe da barbearia.
-                </p>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={7}
-                  aria-label="Observações internas do cliente"
-                  placeholder="Preferências, alergias, histórico de conversas, combinados..."
-                  className="bg-[#111827] border-[#1f2937] text-white focus-visible:ring-gold"
-                />
-                <Button
-                  disabled={savingNotes || !onSaveNotes}
-                  onClick={async () => {
-                    if (!onSaveNotes) return;
-                    setSavingNotes(true);
-                    await onSaveNotes(notes);
-                    setSavingNotes(false);
-                  }}
-                  className="bg-gradient-to-r from-gold to-[#F5C842] text-black font-bold hover:brightness-110"
-                >
-                  {savingNotes ? "Salvando..." : "Salvar observações"}
-                </Button>
+              {/* TAREFAS */}
+              <TabsContent value="tarefas" className="mt-4 animate-in fade-in duration-300">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-black text-white uppercase text-xs tracking-wider">Tarefas e Lembretes</h4>
+                    <Button size="sm" className="bg-gold text-black hover:bg-gold/80 h-8 text-[10px] font-black uppercase">
+                      <Target size={12} className="mr-1" /> Nova Tarefa
+                    </Button>
+                  </div>
+                  {crm.tasks.length === 0 ? (
+                    <Empty text="Nenhuma tarefa pendente" />
+                  ) : (
+                    <div className="space-y-2">
+                      {crm.tasks.map((task: any) => (
+                        <div key={task.id} className="p-3 bg-[#111827] border border-[#1f2937] rounded-xl flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-bold text-sm text-white">{task.title}</p>
+                            {task.due_at && (
+                              <p className="text-[10px] text-slate-500 mt-0.5">
+                                Prazo: {format(new Date(task.due_at), "dd/MM/yyyy")}
+                              </p>
+                            )}
+                          </div>
+                          <Badge className={cn(
+                            "text-[9px] uppercase font-black",
+                            task.status === "completed" ? "bg-emerald-500/10 text-emerald-400" : "bg-orange-500/10 text-orange-400"
+                          )}>
+                            {task.status === "completed" ? "Concluída" : "Pendente"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </TabsContent>
+
+              {/* OBSERVAÇÕES / NOTAS */}
+              <TabsContent value="observacoes" className="mt-4 animate-in fade-in duration-300">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase text-slate-400">Nova Observação</Label>
+                    <Textarea 
+                      placeholder="Preferências, alergias, histórico de conversas, combinados..."
+                      className="bg-[#111827] border-[#1f2937] text-white min-h-[100px] focus-visible:ring-gold"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                    <Button 
+                      disabled={savingNotes || !onSaveNotes}
+                      onClick={async () => {
+                        if (!onSaveNotes) return;
+                        setSavingNotes(true);
+                        await onSaveNotes(notes);
+                        setSavingNotes(false);
+                      }}
+                      className="bg-gold text-black hover:bg-gold/80 font-black uppercase text-[10px]"
+                    >
+                      {savingNotes ? "Salvando..." : "Registrar Observação"}
+                    </Button>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-white/5">
+                    <h4 className="font-black text-white uppercase text-xs tracking-wider mb-3">Histórico de Notas</h4>
+                    {crm.interactions.filter((i: any) => i.type === 'note').length === 0 ? (
+                      <Empty text="Nenhuma nota registrada anteriormente" />
+                    ) : (
+                      <div className="space-y-3">
+                        {crm.interactions.filter((i: any) => i.type === 'note').map((note: any) => (
+                          <div key={note.id} className="p-3 bg-[#111827]/50 border border-[#1f2937] rounded-xl">
+                            <p className="text-sm text-slate-200">{note.content}</p>
+                            <p className="text-[9px] text-slate-500 mt-2 font-bold uppercase">
+                              {format(new Date(note.created_at), "dd/MM/yyyy HH:mm")}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
             </Tabs>
           </div>
         </ScrollArea>
