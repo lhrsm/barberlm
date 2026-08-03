@@ -84,6 +84,8 @@ export function computeKpis(customer: any, history: any[], products: any[], crm:
 
   const createdAt = toDate(customer.created_at);
   const lastVisit = dates.length ? dates[dates.length - 1] : toDate(customer.last_visit);
+  const daysSinceLast = lastVisit ? differenceInDays(now, lastVisit) : null;
+
   const nextVisit =
     history
       .filter((h) => h.status === "scheduled" && toDate(h.start_time) && toDate(h.start_time)! > now)
