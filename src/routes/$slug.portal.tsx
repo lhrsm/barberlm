@@ -85,6 +85,8 @@ import { LoyaltyTierProgress } from "@/components/portal/premium/LoyaltyTierProg
 import { WhySubscribeCard } from "@/components/portal/premium/WhySubscribeCard";
 import { FloatingUpgradeCTA } from "@/components/portal/premium/FloatingUpgradeCTA";
 import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
+import { FinancesTab } from "@/components/portal/premium/tabs/FinancesTab";
+import { ProfileTab } from "@/components/portal/premium/tabs/ProfileTab";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
