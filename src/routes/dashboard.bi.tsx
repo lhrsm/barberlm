@@ -46,10 +46,12 @@ function BusinessIntelligencePage() {
   const { data: analytics } = useSuspenseQuery({
     queryKey: ["bi-analytics", dateRange],
     queryFn: () => getBIAnalytics({ 
-      start_date: dateRange.start, 
-      end_date: dateRange.end,
-      compare_start_date: format(subDays(new Date(dateRange.start), 30), "yyyy-MM-dd"),
-      compare_end_date: format(subDays(new Date(dateRange.end), 30), "yyyy-MM-dd")
+      data: {
+        start_date: dateRange.start, 
+        end_date: dateRange.end,
+        compare_start_date: format(subDays(new Date(dateRange.start), 30), "yyyy-MM-dd"),
+        compare_end_date: format(subDays(new Date(dateRange.end), 30), "yyyy-MM-dd")
+      }
     }),
   });
 
@@ -101,26 +103,26 @@ function BusinessIntelligencePage() {
           {/* Executive Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard 
-              title="Receita Bruta" 
-              value={brl(analytics.current.totalRevenue)} 
+              title="Receita Líquida" 
+              value={brl(analytics.current.totals.income)} 
               trend={12.5} 
               icon={TrendingUp}
             />
             <MetricCard 
               title="Ticket Médio" 
-              value={brl(analytics.current.ticketAverage)} 
+              value={brl(analytics.current.totals.ticketAverage)} 
               trend={-2.4} 
               icon={PieChart}
             />
             <MetricCard 
               title="Atendimentos" 
-              value={analytics.current.completedCount} 
+              value={analytics.current.totals.servedCount} 
               trend={8.1} 
               icon={Calendar}
             />
             <MetricCard 
               title="Venda de Produtos" 
-              value={brl(analytics.current.totalProductRevenue)} 
+              value={brl(analytics.current.totals.productsRevenue)} 
               trend={15.2} 
               icon={Package}
             />
@@ -135,7 +137,7 @@ function BusinessIntelligencePage() {
               </CardHeader>
               <CardContent className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={analytics.current.transactionsChartData || []}>
+                  <AreaChart data={analytics.current.series || []}>
                     <defs>
                       <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3}/>
@@ -156,7 +158,7 @@ function BusinessIntelligencePage() {
                       fontSize={12} 
                       tickLine={false} 
                       axisLine={false} 
-                      tickFormatter={(v) => `R$ ${v}`}
+                      tickFormatter={(v: number) => `R$ ${v}`}
                     />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#111', border: '1px solid #D4AF37', borderRadius: '8px' }}
@@ -165,7 +167,7 @@ function BusinessIntelligencePage() {
                     />
                     <Area 
                       type="monotone" 
-                      dataKey="amount" 
+                      dataKey="income" 
                       stroke="#D4AF37" 
                       fillOpacity={1} 
                       fill="url(#colorRev)" 
@@ -183,7 +185,7 @@ function BusinessIntelligencePage() {
               </CardHeader>
               <CardContent className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics.current.professionalRevenue || []}>
+                  <BarChart data={analytics.current.breakdowns.byBarber || []}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#D4AF37" opacity={0.1} vertical={false} />
                     <XAxis dataKey="name" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
@@ -192,8 +194,8 @@ function BusinessIntelligencePage() {
                       contentStyle={{ backgroundColor: '#111', border: '1px solid #D4AF37', borderRadius: '8px' }}
                       formatter={(v: any) => [brl(v), "Receita"]}
                     />
-                    <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
-                      {analytics.current.professionalRevenue?.map((entry: any, index: number) => (
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                      {analytics.current.breakdowns.byBarber?.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#D4AF37" : "#B08D26"} />
                       ))}
                     </Bar>

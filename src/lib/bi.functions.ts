@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { computeTotals } from "@/components/finances/erp/engine";
+import { computeTotals, computeDre, breakdowns, dailySeries } from "@/components/finances/erp/engine";
 
 const BIInputSchema = z.object({
   start_date: z.string(),
@@ -28,7 +28,7 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
     if (!profile?.tenant_id) throw new Error("Tenant not found");
     const tenantId = profile.tenant_id;
 
-    // Fetch primary data for the selected period
+    // Fetch primary data for a period
     const fetchPeriodData = async (start: string, end: string) => {
       const [
         transactions,
@@ -37,38 +37,63 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
         cashback,
         credits,
         subscriptions,
-        commissions
+        commissions,
+        barbers
       ] = await Promise.all([
         authSupabase.from("transactions").select("*").eq("tenant_id", tenantId).gte("date", start).lte("date", end),
-        authSupabase.from("appointments").select("*").eq("tenant_id", tenantId).gte("start_time", start).lte("start_time", end),
+        authSupabase.from("appointments").select("*, services:service_id(name), customers:customer_id(name)").eq("tenant_id", tenantId).gte("start_time", start).lte("start_time", end),
         authSupabase.from("product_sales").select("*").eq("tenant_id", tenantId).gte("created_at", start).lte("created_at", end),
         authSupabase.from("cashback_transactions").select("*").eq("tenant_id", tenantId).gte("created_at", start).lte("created_at", end),
         authSupabase.from("credit_transactions").select("*").eq("tenant_id", tenantId).gte("created_at", start).lte("created_at", end),
         authSupabase.from("customer_subscriptions").select("*").eq("tenant_id", tenantId),
-        authSupabase.from("barber_commissions").select("*").eq("tenant_id", tenantId).gte("created_at", start).lte("created_at", end)
+        authSupabase.from("barber_commissions").select("*").eq("tenant_id", tenantId).gte("created_at", start).lte("created_at", end),
+        authSupabase.from("profiles").select("id, full_name").eq("tenant_id", tenantId).eq("role", "barber")
       ]);
 
-      return computeTotals({
-        transactions: transactions.data || [],
-        appointments: (appointments.data as any[]) || [],
-        commissions: (commissions.data as any[])?.map(c => ({ ...c, commission_amount: c.commission_amount || 0 })) || [],
-        productSales: productSales.data || [],
+      const t = transactions.data || [];
+      const app = (appointments.data as any[]) || [];
+      const ps = productSales.data || [];
+      const comm = (commissions.data as any[]) || [];
+
+      const totals = computeTotals({
+        transactions: t,
+        appointments: app,
+        commissions: comm.map(c => ({ ...c, commission_amount: c.commission_amount || 0 })),
+        productSales: ps,
         cashback: cashback.data || [],
         credits: credits.data || [],
         subscriptions: subscriptions.data || []
       });
+
+      const dre = computeDre(totals);
+      const b = breakdowns({
+        transactions: t,
+        appointments: app,
+        productSales: ps,
+        commissions: comm
+      });
+
+      const series = dailySeries(t, { start: new Date(start), end: new Date(end) });
+
+      return {
+        totals,
+        dre,
+        breakdowns: b,
+        series,
+        barbersCount: barbers.data?.length || 0
+      };
     };
 
-    const currentTotals = await fetchPeriodData(data.start_date, data.end_date);
-    let comparisonTotals = null;
+    const current = await fetchPeriodData(data.start_date, data.end_date);
+    let comparison = null;
 
     if (data.compare_start_date && data.compare_end_date) {
-      comparisonTotals = await fetchPeriodData(data.compare_start_date, data.compare_end_date);
+      comparison = await fetchPeriodData(data.compare_start_date, data.compare_end_date);
     }
 
     return {
-      current: currentTotals,
-      comparison: comparisonTotals,
+      current,
+      comparison,
       period: { start: data.start_date, end: data.end_date },
       metadata: {
         last_sync: new Date().toISOString(),
