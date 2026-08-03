@@ -134,9 +134,6 @@ export const pagseguroProvider: PaymentProvider = {
     const p = payload as any;
     if (!p) return null;
 
-    // SEGURANÇA: aceitamos dois formatos:
-    // 1) header `x-authenticity-token` = token do webhook configurado no PagBank
-    // 2) header `x-pagseguro-token` batendo webhook_secret
     const auth =
       hdrs["x-authenticity-token"] ??
       hdrs["X-Authenticity-Token"] ??
