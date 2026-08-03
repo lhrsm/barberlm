@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { AITool, AIContext } from "./types";
+import { AIInternalServices } from "./services.server";
 
 /**
  * Registry of authorized tools for the AI Assistant.
@@ -17,9 +18,7 @@ export const AIToolRegistry: Record<string, AITool> = {
       professional_id: z.string().uuid().optional().describe("ID do profissional para filtrar")
     }),
     handler: async (input, context) => {
-      // Logic would be implemented here in the future turn, 
-      // reusing src/components/finances/erp/engine.ts
-      return { status: "ready_for_implementation", params: input };
+      return AIInternalServices.getFinancialSummary(input, context);
     }
   },
   get_occupancy_summary: {
@@ -32,7 +31,7 @@ export const AIToolRegistry: Record<string, AITool> = {
       end_date: z.string()
     }),
     handler: async (input, context) => {
-      return { status: "ready_for_implementation", params: input };
+      return AIInternalServices.getAppointmentSummary(input, context);
     }
   },
   get_customer_insights: {
