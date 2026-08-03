@@ -17,15 +17,15 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
       POST: async ({ request }) => {
         const rl = await enforceRateLimit(request, "subs_webhook", { max: 120, windowSeconds: 60 });
         if (rl) return rl;
-        const url = new URL(request.url);
-        const gatewayId = url.searchParams.get("gateway");
+        const reqUrl = new URL(request.url);
+        const gatewayId = reqUrl.searchParams.get("gateway");
         if (!gatewayId) return new Response("Missing gateway id", { status: 400 });
         
-        const url = process.env.SUPABASE_URL;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (!url || !key) return new Response("Missing env", { status: 500 });
+        const sbUrl = process.env.SUPABASE_URL;
+        const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!sbUrl || !sbKey) return new Response("Missing env", { status: 500 });
         
-        const supabaseAdmin = createClient(url, key, {
+        const supabaseAdmin = createClient(sbUrl, sbKey, {
           auth: { persistSession: false, autoRefreshToken: false },
         });
 
