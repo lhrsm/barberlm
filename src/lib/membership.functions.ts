@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const getMembershipStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }: { context: any }) => {
+  .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
     const [subs, usage, plans] = await Promise.all([

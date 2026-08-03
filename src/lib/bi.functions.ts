@@ -15,7 +15,7 @@ const BIInputSchema = z.object({
 export const getBIAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => BIInputSchema.parse(data))
-  .handler(async ({ data, context }: { data: any, context: any }) => {
+  .handler(async ({ data, context }) => {
     const { userId, supabase: authSupabase } = context;
     
     // Resolve Tenant
