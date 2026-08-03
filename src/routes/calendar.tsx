@@ -1,4 +1,5 @@
 import * as React from "react";
+import { memo } from "react";
 import { format, addMinutes, startOfHour, parseISO, isSameDay, startOfWeek, endOfWeek, eachDayOfInterval, addDays, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -57,10 +58,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
-
-export const Route = createFileRoute("/calendar")({
-  component: CalendarComponent,
-});
 
 function getCalendarStatusConfig(status: string) {
   const normalized = String(status || '').toLowerCase();
@@ -121,7 +118,6 @@ function getCalendarStatusConfig(status: string) {
       dot: 'bg-amber-500',
     };
   }
-  // Agendado / pending default
   return {
     label: 'Agendado',
     badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
@@ -130,10 +126,9 @@ function getCalendarStatusConfig(status: string) {
   };
 }
 
+const HOURS = Array.from({ length: 13 }, (_, i) => i + 8);
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
-
-function CalendarComponent() {
+const CalendarComponent = memo(() => {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
@@ -173,46 +168,6 @@ function CalendarComponent() {
     }
   }, [user, loading, role, navigate]);
 
-  useEffect(() => {
-    if (user && role !== 'super_admin') {
-      fetchData();
-
-      const tenantId = user.id;
-      
-      const channel = supabase
-        .channel(`appointments-calendar-${tenantId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'appointments',
-            filter: `tenant_id=eq.${tenantId}`
-          },
-          (payload: any) => {
-            console.log('REALTIME APPOINTMENT CHANGE', payload);
-            
-            fetchData();
-            refreshLimits();
-            
-            // Invalida todas as queries relacionadas
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-            queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
-            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user, currentDate, view]);
-
   async function fetchData() {
     if (!user) return;
 
@@ -240,34 +195,41 @@ function CalendarComponent() {
       supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
     ]);
 
-    if (appRes.data) {
-      console.log('CALENDAR APPOINTMENTS', appRes.data);
-      setAppointments(appRes.data);
-    }
+    if (appRes.data) setAppointments(appRes.data);
     if (barbRes.data) setBarbers(barbRes.data);
     if (custRes.data) setCustomers(custRes.data);
     if (servRes.data) setServices(servRes.data);
   }
 
+  useEffect(() => {
+    if (!user || role === 'super_admin') return;
+
+    fetchData();
+
+    const tenantId = user.id;
+    const channel = supabase
+      .channel(`appointments-calendar-${tenantId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${tenantId}` },
+        () => {
+          fetchData();
+          refreshLimits();
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, currentDate, view]);
+
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 0 });
     return eachDayOfInterval({ start, end: addDays(start, 6) });
   }, [currentDate]);
-
-  const getAppointmentsForTime = (date: Date, hour: number) => {
-    return appointments.filter((app: any) => {
-      const appDate = new Date(app.start_time);
-      const startOfHourDate = new Date(date);
-      startOfHourDate.setHours(hour, 0, 0, 0);
-      const endOfHourDate = new Date(date);
-      endOfHourDate.setHours(hour + 1, 0, 0, 0);
-      const appStartMs = appDate.getTime();
-      const appEndMs = new Date(app.end_time).getTime();
-      const slotStartMs = startOfHourDate.getTime();
-      const slotEndMs = endOfHourDate.getTime();
-      return appStartMs < slotEndMs && appEndMs > slotStartMs;
-    });
-  };
 
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
   const todayRevenue = useMemo(() => todayApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0), [todayApps]);
@@ -287,14 +249,9 @@ function CalendarComponent() {
     setIsDialogOpen(true);
   };
 
-  const openDetails = (id: string) => {
-    setSelectedAppointmentId(id);
-    setDetailsModalOpen(true);
-  };
-
   return (
     <AppLayout>
-      <div className="flex flex-col h-full space-y-4 sm:space-y-5 bg-[#05070d] p-3 sm:p-4 md:p-8 min-h-screen text-white max-w-full overflow-x-hidden">
+      <div className="flex flex-col h-full space-y-4 bg-[#05070d] p-3 md:p-8 min-h-screen text-white max-w-full overflow-x-hidden">
         {!canAddAppointment && (
           <Alert className="bg-amber-950/30 border-amber-900/50 rounded-2xl">
             <Crown className="h-4 w-4 text-[#F5C542]" />
@@ -308,418 +265,80 @@ function CalendarComponent() {
           </Alert>
         )}
 
-        {/* ============ HEADER CARD ============ */}
-        <div
-          className="relative overflow-hidden rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(245,158,11,0.25)]"
-        >
-          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[#F5C542]/10 blur-3xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-5 shadow-[0_10px_40px_-10px_rgba(245,158,11,0.25)]">
           <div className="relative flex items-start gap-4">
-            <div className="grid h-12 w-12 sm:h-14 sm:w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-black shadow-[0_0_20px_rgba(245,197,66,0.35)]">
-              <CalendarIcon className="h-6 w-6 sm:h-7 sm:w-7" />
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-black shadow-[0_0_20px_rgba(245,197,66,0.35)]">
+              <CalendarIcon className="h-6 w-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">Agenda</h2>
-              <p className="text-gray-400 text-xs sm:text-sm font-medium mt-2">
-                <span className="text-white font-bold">{todayApps.length}</span> atendimentos
-                <span className="mx-2 text-[#F59E0B]/40">•</span>
-                <span className="text-[#F5C542] font-bold">{todayOnline}</span> online
-                <span className="mx-2 text-[#F59E0B]/40">•</span>
-                <span className="text-emerald-400 font-bold">{todayWalkins}</span> presencial
-                <span className="mx-2 text-[#F59E0B]/40">•</span>
-                <span className="text-[#F5C542] font-black">R$ {todayRevenue.toFixed(2)}</span>
+              <h2 className="text-2xl font-black text-white tracking-tight">Agenda</h2>
+              <p className="text-gray-400 text-xs font-medium mt-2">
+                <span className="text-white font-bold">{todayApps.length}</span> atendimentos • R$ {todayRevenue.toFixed(2)}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ============ DAY / WEEK SELECTOR + CTA ============ */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex items-center bg-[#05070D] p-1 rounded-[18px] h-14 border border-white/5 w-full sm:w-auto">
             {(["day", "week"] as const).map(v => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={cn(
-                  "group relative flex-1 sm:flex-initial sm:px-10 h-full rounded-[14px] overflow-hidden text-xs font-black uppercase tracking-widest transition-all duration-300",
-                  view === v
-                    ? "bg-gradient-to-b from-[#F5C542] via-[#E6B22E] to-[#D4A017] text-black border border-[#F5C542]/70 shadow-[0_8px_24px_-8px_rgba(245,197,66,0.65)]"
-                    : "text-slate-400 border border-transparent hover:border-[#F5C542]/30 hover:bg-[#F5C542]/10 hover:text-[#F5C542]"
-                )}
-              >
-                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <span className="relative">{v === "day" ? "Dia" : "Semana"}</span>
+              <button key={v} onClick={() => setView(v)} className={cn("flex-1 sm:px-10 h-full rounded-[14px] text-xs font-black uppercase tracking-widest transition-all", view === v ? "bg-gold text-black shadow-lg" : "text-slate-400")}>
+                {v === "day" ? "Dia" : "Semana"}
               </button>
             ))}
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <AppointmentModal
-              open={isDialogOpen}
-              onOpenChange={(open) => {
-                setIsDialogOpen(open);
-                if (!open) setModalInitialData({});
-              }}
-              initialDate={modalInitialData.date}
-              initialTime={modalInitialData.time}
-              initialStep={modalInitialData.step}
-              editingAppointmentId={modalInitialData.editingId}
-              onSuccess={() => fetchData()}
-              trigger={
-                <Button
-                  onClick={() => openNewAppointment()}
-                  className="gap-2 w-full sm:w-auto sm:px-8 h-[60px] rounded-[18px] bg-gradient-to-b from-[#F5C542] to-[#D4A017] text-black font-black text-base sm:text-lg shadow-[0_10px_30px_rgba(245,197,66,0.25)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all"
-                >
-                  <Plus size={22} strokeWidth={3} /> Novo Agendamento
-                </Button>
-              }
-            />
-
-            <Button
-              onClick={() => setIsWalkinOpen(true)}
-              className="gap-2 w-full sm:w-auto sm:px-6 h-[60px] rounded-[18px] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base shadow-[0_10px_30px_rgba(16,185,129,0.25)] hover:-translate-y-0.5 transition-all"
-            >
-              <UserPlus size={20} strokeWidth={2.5} /> Atendimento Presencial
+          <div className="flex gap-2">
+            <Button onClick={() => openNewAppointment()} className="flex-1 h-[60px] rounded-[18px] bg-gold text-black font-black">
+              <Plus className="mr-2" /> Novo Agendamento
+            </Button>
+            <Button onClick={() => setIsWalkinOpen(true)} className="flex-1 h-[60px] rounded-[18px] bg-emerald-600 text-white font-black">
+              <UserPlus className="mr-2" /> Walk-in
             </Button>
           </div>
         </div>
 
-        {isToday && view === 'day' && (
-          <WalkinQueuePanel
-            tenantId={user.id}
-            date={currentDate}
-            refreshKey={appointments.length}
-            onChange={() => fetchData()}
-          />
-        )}
+        {isToday && view === 'day' && <WalkinQueuePanel tenantId={user.id} date={currentDate} refreshKey={appointments.length} onChange={() => fetchData()} />}
 
-
-        {/* ============ CALENDAR HEADER ============ */}
-        <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4 sm:p-6">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:gap-6">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}
-              className="rounded-2xl border-white/10 bg-[#05070D] text-[#F5C542] hover:bg-[#F5C542]/10 hover:border-[#F5C542]/40 h-11 w-11 shrink-0"
-            >
-              <ChevronLeft size={22} />
-            </Button>
-
-            <div className="min-w-0 text-center">
-              <div className="flex items-center justify-center gap-2 text-white">
-                <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#F5C542] shrink-0" />
-                <h3 className="font-black capitalize tracking-tight text-[17px] sm:text-[22px] leading-tight break-words">
-                  {format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}
-                </h3>
-              </div>
-              <div className="mt-2 flex justify-center">
-                {isToday ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F5C542]/50 bg-transparent px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#F5C542]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#F5C542] animate-pulse" /> Hoje
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setCurrentDate(new Date())}
-                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#F5C542] transition-colors"
-                  >
-                    Voltar para hoje
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}
-              className="rounded-2xl border-white/10 bg-[#05070D] text-[#F5C542] hover:bg-[#F5C542]/10 hover:border-[#F5C542]/40 h-11 w-11 shrink-0"
-            >
-              <ChevronRight size={22} />
-            </Button>
+        <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <Button variant="outline" size="icon" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))} className="rounded-2xl border-white/10 text-gold h-11 w-11"><ChevronLeft /></Button>
+            <h3 className="font-black capitalize tracking-tight text-lg">{format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}</h3>
+            <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))} className="rounded-2xl border-white/10 text-gold h-11 w-11"><ChevronRight /></Button>
           </div>
         </div>
 
-        {/* ============ MOBILE LIST (DAY) ============ */}
-        {view === 'day' && (
-          <div className="md:hidden flex flex-col gap-3 animate-fade-in">
-            {HOURS.map(hour => {
-              const slotApps = getAppointmentsForTime(currentDate, hour);
-              return (
-                <div key={hour} className="flex gap-3">
-                  <div className="w-14 shrink-0 pt-3 text-right">
-                    <span className="text-[#F5C542] font-black text-base tracking-tight">
-                      {hour.toString().padStart(2, '0')}:00
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0 flex flex-col gap-2">
-                    {slotApps.length === 0 ? (
-                      <button
-                        onClick={() => openNewAppointment(currentDate, hour)}
-                        className="flex items-center gap-2 text-left text-xs text-slate-500 italic py-4 px-4 rounded-2xl border border-dashed border-white/8 bg-white/[0.02] hover:border-[#F5C542]/30 hover:bg-[#F5C542]/[0.03] transition-all"
-                      >
-                        <CalendarIcon size={14} className="opacity-60" />
-                        Nenhum atendimento
-                      </button>
-                    ) : (
-                      slotApps.map(app => {
-                        const sc = getCalendarStatusConfig(app.status);
-                        return (
-                          <div
-                            key={app.id}
-                            onClick={() => openDetails(app.id)}
-                            className={cn(
-                              "relative p-4 rounded-2xl border bg-[#0B1220] cursor-pointer flex flex-col gap-3 active:scale-[0.98] hover:-translate-y-0.5 transition-all shadow-lg overflow-hidden",
-                              sc.ring
-                            )}
-                          >
-                            <span className={cn("absolute left-0 top-3 bottom-3 w-1 rounded-r-full", sc.dot)} />
-                            <div className="flex items-start justify-between gap-2 pl-2">
-                              <div className="min-w-0">
-                                <p className="font-black text-base text-white truncate">{app.customers?.name || "Cliente"}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate mt-0.5">
-                                  {app.services?.name || "Serviço"}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                {app.appointment_type === 'walk_in' && (
-                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-300">
-                                    <UserPlus size={9} /> Presencial
-                                  </span>
-                                )}
-                                <span className={cn("rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
-                                  {sc.label}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between gap-2 pl-2 pt-2 border-t border-white/5">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <User size={12} className="text-[#F5C542] shrink-0" />
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 truncate">
-                                  {app.barbers?.name || "Barbeiro"}
-                                </span>
-                              </div>
-                              <span className="text-sm font-black text-[#F5C542] shrink-0">
-                                R$ {Number(app.total_price || 0).toFixed(2)}
-                              </span>
-                            </div>
-                            {app.payment_method && (
-                              <div className="pl-2 -mt-1">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                  {app.payment_method}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ============ MOBILE LIST (WEEK) ============ */}
-        {view === 'week' && (
-          <div className="md:hidden flex flex-col gap-5 animate-fade-in">
-            {weekDays.map(day => {
-              const dayApps = appointments.filter(a => isSameDay(new Date(a.start_time), day));
-              const dayIsToday = isSameDay(day, new Date());
-              return (
-                <div key={day.toString()} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <p className={cn("font-black text-sm capitalize", dayIsToday ? "text-[#F5C542]" : "text-white")}>
-                      {format(day, "EEEE, d 'de' MMM", { locale: ptBR })}
-                    </p>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                      {dayApps.length} agend.
-                    </span>
-                  </div>
-                  {dayApps.length === 0 ? (
-                    <div className="flex items-center gap-2 text-xs text-slate-500 italic py-3 px-4 rounded-2xl border border-dashed border-white/8 bg-white/[0.02]">
-                      <CalendarIcon size={14} className="opacity-60" />
-                      Nenhum atendimento
+        <ScrollArea className="flex-1">
+          <div className="space-y-4 pb-10">
+            {appointments.length === 0 ? (
+              <Card className="glass border-white/5 bg-[#0B1220] rounded-[32px] overflow-hidden"><CardContent className="flex flex-col items-center justify-center py-20"><CalendarIcon className="h-16 w-16 text-[#F59E0B]/20 mb-4" /><p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">Nenhum atendimento</p></CardContent></Card>
+            ) : (
+              <div className="grid gap-4">
+                {appointments.map(appt => (
+                  <div key={appt.id} onClick={() => { setSelectedAppointmentId(appt.id); setDetailsModalOpen(true); }} className="group relative flex items-center gap-4 p-4 rounded-3xl border border-white/5 bg-[#0B1220] hover:bg-white/[0.04] transition-all cursor-pointer">
+                    <div className="w-16 flex flex-col items-center">
+                      <span className="text-sm font-black text-white">{format(new Date(appt.start_time), 'HH:mm')}</span>
+                      <span className="text-[10px] text-slate-500 font-bold">{format(new Date(appt.end_time), 'HH:mm')}</span>
                     </div>
-                  ) : (
-                    dayApps.map(app => {
-                      const sc = getCalendarStatusConfig(app.status);
-                      return (
-                        <div
-                          key={app.id}
-                          onClick={() => openDetails(app.id)}
-                          className={cn("relative p-3 pl-4 rounded-2xl border bg-[#0B1220] cursor-pointer flex items-center justify-between gap-3 active:scale-[0.98] transition-all overflow-hidden", sc.ring)}
-                        >
-                          <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-r-full", sc.dot)} />
-                          <div className="min-w-0">
-                            <p className="font-black text-sm text-white truncate">{format(parseISO(app.start_time), "HH:mm")} • {app.customers?.name || "Cliente"}</p>
-                            <p className="text-[10px] uppercase tracking-wider text-slate-400 truncate">{app.services?.name || "Serviço"}</p>
-                          </div>
-                          <span className="text-sm font-black text-[#F5C542] shrink-0">R$ {Number(app.total_price || 0).toFixed(2)}</span>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ============ DESKTOP VIEW ============ */}
-        <Card className="hidden md:flex flex-1 overflow-hidden flex-col bg-[#0B1220] border border-[#F59E0B]/15 rounded-3xl shadow-2xl">
-          <ScrollArea className="flex-1 overflow-x-auto">
-            <div className="min-w-full">
-              {view === 'day' ? (
-                <div className="flex flex-col divide-y divide-white/5">
-                  {HOURS.map(hour => {
-                    const slotApps = getAppointmentsForTime(currentDate, hour);
-                    return (
-                      <div key={hour} className="flex group min-h-[110px]">
-                        <div className="w-24 py-6 px-4 text-right text-sm text-slate-500 font-black border-r border-white/5 bg-[#05070D]/40">
-                          {hour.toString().padStart(2, '0')}:00
-                        </div>
-                        <div
-                          className="flex-1 p-3 relative flex flex-wrap gap-3 content-start bg-transparent transition-all cursor-pointer hover:bg-white/[0.02]"
-                          onClick={() => openNewAppointment(currentDate, hour)}
-                        >
-                          {slotApps.length === 0 && (
-                            <span className="text-xs text-slate-600 italic self-center">Clique para criar agendamento</span>
-                          )}
-                          {slotApps.map(app => {
-                            const sc = getCalendarStatusConfig(app.status);
-                            return (
-                              <div
-                                key={app.id}
-                                onClick={(e) => { e.stopPropagation(); openDetails(app.id); }}
-                                className={cn(
-                                  "relative px-4 py-3 rounded-2xl border bg-[#0B1220] cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:-translate-y-0.5 flex flex-col gap-2 min-w-[220px] shadow-lg overflow-hidden",
-                                  sc.ring
-                                )}
-                              >
-                                <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-r-full", app.appointment_type === 'walk_in' ? 'bg-emerald-500' : sc.dot)} />
-                                <div className="flex items-center justify-between gap-2 pl-2">
-                                  <span className="font-black tracking-tight text-xs text-white">
-                                    {format(parseISO(app.start_time), "HH:mm")}
-                                  </span>
-                                  <div className="flex items-center gap-1">
-                                    {app.appointment_type === 'walk_in' && (
-                                      <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-300">
-                                        <UserPlus size={8} /> Presencial
-                                      </span>
-                                    )}
-                                    <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", sc.badge)}>
-                                      {sc.label}
-                                    </span>
-                                  </div>
-                                </div>
-                                <span className="font-black truncate text-sm leading-tight text-white pl-2">{app.customers?.name || "Cliente"}</span>
-                                <div className="flex items-center gap-2 pl-2 text-slate-400">
-                                  <Scissors size={12} />
-                                  <span className="text-[10px] truncate font-bold uppercase tracking-wider">{app.services?.name || "Serviço"}</span>
-                                </div>
-                                <div className="mt-1 pt-2 pl-2 border-t border-white/5 flex items-center justify-between">
-                                  <span className="text-[10px] font-black uppercase text-slate-400 truncate">{app.barbers?.name || "Barbeiro"}</span>
-                                  <span className="text-xs font-black text-[#F5C542]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="grid grid-cols-7 divide-x divide-white/5">
-                  {weekDays.map(day => (
-                    <div key={day.toString()} className="flex flex-col">
-                      <div className={cn("p-4 text-center border-b border-white/5", isSameDay(day, new Date()) ? "bg-[#F5C542]/10" : "bg-[#05070D]/40")}>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{format(day, "EEE", { locale: ptBR })}</p>
-                        <p className={cn("text-xl font-black", isSameDay(day, new Date()) ? "text-[#F5C542]" : "text-white")}>{format(day, "d")}</p>
-                      </div>
-                      <div className="flex-1 divide-y divide-white/5 min-h-[700px]">
-                        {HOURS.map(hour => (
-                          <div
-                            key={hour}
-                            className="h-[80px] p-1.5 cursor-pointer hover:bg-[#F5C542]/5 transition-all"
-                            onClick={() => openNewAppointment(day, hour)}
-                          >
-                            {getAppointmentsForTime(day, hour).map(app => {
-                              const sc = getCalendarStatusConfig(app.status);
-                              return (
-                                <div
-                                  key={app.id}
-                                  onClick={(e) => { e.stopPropagation(); openDetails(app.id); }}
-                                  className={cn(
-                                    "relative p-2 pl-3 rounded-lg border bg-[#0B1220] cursor-pointer transition-all duration-300 hover:scale-[1.05] flex flex-col gap-0.5 mb-1 overflow-hidden",
-                                    sc.ring
-                                  )}
-                                >
-                                  <span className={cn("absolute left-0 top-1 bottom-1 w-0.5 rounded-r-full", sc.dot)} />
-                                  <span className="font-black text-[10px] leading-tight text-white truncate">{app.customers?.name || "Cliente"}</span>
-                                  <span className="opacity-70 text-[9px] truncate font-bold uppercase tracking-tighter text-slate-400">{app.services?.name || "Serviço"}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
+                    <div className="flex-1">
+                      <p className="font-black text-white italic uppercase tracking-tight">{appt.customers?.name || 'Cliente Final'}</p>
+                      <p className="text-xs text-slate-400 font-bold">{appt.services?.name} • {appt.barbers?.name}</p>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        </Card>
+                    <Badge className={cn("font-black uppercase text-[9px]", getCalendarStatusConfig(appt.status).badge)}>{getCalendarStatusConfig(appt.status).label}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        <AppointmentModal open={isDialogOpen} onOpenChange={setIsDialogOpen} initialDate={modalInitialData.date} initialTime={modalInitialData.time} onSuccess={fetchData} />
+        <AppointmentDetailsModal open={detailsModalOpen} onOpenChange={setDetailsModalOpen} appointmentId={selectedAppointmentId} onSuccess={fetchData} onReschedule={(appt) => { setRescheduleAppt(appt); setRescheduleOpen(true); }} />
+        <WalkinModal open={isWalkinOpen} onOpenChange={setIsWalkinOpen} onSuccess={fetchData} />
+        <RescheduleWizard open={rescheduleOpen} onOpenChange={setRescheduleOpen} appointment={rescheduleAppt} onSuccess={fetchData} actor={role === "barber" ? "barber" : "admin"} actorId={user?.id} source="admin_calendar" />
       </div>
-
-      <WalkinModal
-        open={isWalkinOpen}
-        onOpenChange={setIsWalkinOpen}
-        onSuccess={() => fetchData()}
-      />
-
-      <AppointmentDetailsModal
-        open={detailsModalOpen}
-        onOpenChange={setDetailsModalOpen}
-        appointmentId={selectedAppointmentId}
-        onSuccess={() => fetchData()}
-        onReschedule={(app) => {
-          setRescheduleAppt(app);
-          setRescheduleOpen(true);
-        }}
-      />
-
-      <RescheduleWizard
-        open={rescheduleOpen}
-        onOpenChange={setRescheduleOpen}
-        appointment={
-          rescheduleAppt
-            ? {
-                id: rescheduleAppt.id,
-                tenant_id: rescheduleAppt.tenant_id || rescheduleAppt.user_id,
-                customer_id: rescheduleAppt.customer_id,
-                customer_name: rescheduleAppt.customer_name || rescheduleAppt.customers?.name,
-                customer_phone: rescheduleAppt.customer_phone || rescheduleAppt.customers?.phone,
-                service_id: rescheduleAppt.service_id,
-                service_name: rescheduleAppt.service_name || rescheduleAppt.services?.name,
-                service_price: rescheduleAppt.total_price || rescheduleAppt.services?.price,
-                payment_method: rescheduleAppt.payment_method,
-                barber_id: rescheduleAppt.barber_id,
-                barber_name: rescheduleAppt.barber_name || rescheduleAppt.barbers?.name,
-                start_time: rescheduleAppt.start_time,
-                end_time: rescheduleAppt.end_time,
-                management_token: rescheduleAppt.management_token,
-                appointment_group_id: rescheduleAppt.appointment_group_id,
-              }
-            : null
-        }
-        actor={role === "barber" ? "barber" : "admin"}
-        actorId={user?.id}
-        source="admin_calendar"
-        onSuccess={() => fetchData()}
-      />
     </AppLayout>
   );
-}
+});
+
+export const Route = createFileRoute("/calendar")({
+  component: CalendarComponent,
+});

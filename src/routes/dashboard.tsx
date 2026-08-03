@@ -101,30 +101,31 @@ function DashboardComponent() {
   }, [user, role, loading, navigate]);
 
   useEffect(() => {
-    if (tenantId) {
-      fetchStats();
-      fetchTodayAppointments();
-      fetchBirthdayCustomers();
+    if (!tenantId) return;
 
-      const channel = supabase
-        .channel(`dashboard-realtime-${tenantId}`)
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'appointments', 
-          filter: `tenant_id=eq.${tenantId}`
-        }, () => {
-          fetchTodayAppointments();
-          fetchStats();
-          refreshLimits();
-          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-        })
-        .subscribe();
+    fetchStats();
+    fetchTodayAppointments();
+    fetchBirthdayCustomers();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+    const channel = supabase
+      .channel(`dashboard-realtime-${tenantId}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'appointments', 
+        filter: `tenant_id=eq.${tenantId}`
+      }, () => {
+        // Debounce or at least only refresh what's needed
+        fetchTodayAppointments();
+        fetchStats();
+        refreshLimits();
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [tenantId, selectedDate]);
 
   async function fetchBirthdayCustomers() {

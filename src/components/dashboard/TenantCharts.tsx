@@ -32,7 +32,9 @@ interface TenantChartsProps {
   tenantId: string;
 }
 
-export function TenantCharts({ tenantId }: TenantChartsProps) {
+import { memo } from "react";
+
+export const TenantCharts = memo(({ tenantId }: TenantChartsProps) => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["tenant-charts-data", tenantId],
     queryFn: async () => {
@@ -251,4 +253,4 @@ export function TenantCharts({ tenantId }: TenantChartsProps) {
       </div>
     </div>
   );
-}
+});

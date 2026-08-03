@@ -81,19 +81,23 @@ export function usePlanLimits() {
     const monthEnd = endOfMonth(new Date()).toISOString();
 
     try {
-      const [profileRes, subRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
+      const [profileRes, subRes, countsRes] = await Promise.all([
         supabase.from("profiles").select("plan, effective_plan, selected_plan, created_at, trial_end, status").eq("id", tenantId).maybeSingle(),
         supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-        supabase.from("barbers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
-        supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
-        supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
-        supabase.from("appointments").select("*", { count: "exact", head: true })
-          .eq("tenant_id", tenantId)
-          .neq("status", "cancelled")
-          .gte("start_time", monthStart)
-          .lte("start_time", monthEnd),
-        supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        Promise.all([
+          supabase.from("barbers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
+          supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
+          supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
+          supabase.from("appointments").select("*", { count: "exact", head: true })
+            .eq("tenant_id", tenantId)
+            .neq("status", "cancelled")
+            .gte("start_time", monthStart)
+            .lte("start_time", monthEnd),
+          supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        ])
       ]);
+
+      const [barbRes, servRes, prodRes, appRes, whatsappRes] = countsRes;
 
       if (profileRes.data) {
         console.log("[usePlanLimits] Profile data:", profileRes.data);

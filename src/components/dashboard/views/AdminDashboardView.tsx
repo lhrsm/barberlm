@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { DashboardShell, DashboardHeader, KPIGrid } from "../DashboardShell";
 import { MetricCard } from "../MetricCard";
 import { ExecutiveSummary } from "../ExecutiveSummary";
@@ -34,7 +34,7 @@ interface AdminDashboardViewProps {
   setDashboardTab: (tab: string) => void;
 }
 
-export function AdminDashboardView({
+export const AdminDashboardView = memo(({
   stats,
   todayAppointments,
   barbers,
@@ -44,7 +44,7 @@ export function AdminDashboardView({
   setIsWalkinOpen,
   dashboardTab,
   setDashboardTab
-}: AdminDashboardViewProps) {
+}: AdminDashboardViewProps) => {
   return (
     <DashboardShell
       header={
@@ -259,4 +259,4 @@ export function AdminDashboardView({
       </Card>
     </DashboardShell>
   );
-}
+});
