@@ -136,6 +136,7 @@ function SecurityCenterPage() {
             { value: "audit", label: "Auditoria", icon: History },
             { value: "lgpd", label: "LGPD & Privacidade", icon: FileLock },
             { value: "infra", label: "Infra & Backup", icon: Database },
+            { value: "resilience", label: "Resiliência", icon: Activity },
           ]}
         />
         <PremiumTabsBody>
@@ -340,6 +341,52 @@ function SecurityCenterPage() {
                   <p className="text-[9px] text-zinc-500 font-bold uppercase italic leading-tight">
                     * Dados sensíveis são automaticamente anonimizados após 24 meses de inatividade conforme política interna.
                   </p>
+                </CardContent>
+              </Card>
+            </div>
+          </PremiumTabsContent>
+          
+          <PremiumTabsContent value="resilience">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
+              <Card className="bg-[#0b0f17] border-zinc-800/80">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <Activity className="text-indigo-400" size={18} />
+                    Disponibilidade & Uptime
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Monitoramento em tempo real do ecossistema.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-center">
+                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Uptime (30d)</p>
+                      <p className="text-xl font-black text-emerald-500 italic">99.98%</p>
+                    </div>
+                    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-center">
+                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Latência Média</p>
+                      <p className="text-xl font-black text-indigo-400 italic">112ms</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border-zinc-800/80">
+                <CardHeader>
+                  <CardTitle className="text-white font-black italic uppercase tracking-tight flex items-center gap-2">
+                    <ShieldAlert className="text-indigo-400" size={18} />
+                    Plano de Continuidade (BCP)
+                  </CardTitle>
+                  <CardDescription className="text-zinc-500 font-medium italic">Estratégias de recuperação de desastres.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                    <span className="text-[10px] font-black text-white uppercase italic tracking-tight">DR Failover Test</span>
+                    <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] uppercase italic tracking-widest">Validado</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                    <span className="text-[10px] font-black text-white uppercase italic tracking-tight">RTO Definido</span>
+                    <span className="text-[10px] font-black text-indigo-400 uppercase italic tracking-tight">4 HORAS</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
