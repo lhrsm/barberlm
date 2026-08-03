@@ -106,7 +106,7 @@ function LandingPageComponent() {
   }, [user, loading, role, navigate]);
 
   if (loading) return null;
-  // REMOVIDO: if (user) return null; // Permite que a landing carregue enquanto o useEffect processa o redirecionamento
+  if (user) return null;
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
