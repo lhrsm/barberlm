@@ -4730,6 +4730,53 @@ export type Database = {
           },
         ]
       }
+      observability_logs: {
+        Row: {
+          correlation_id: string | null
+          created_at: string | null
+          duration_ms: number | null
+          error: Json | null
+          id: string
+          level: string
+          message: string
+          metadata: Json | null
+          operation: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error?: Json | null
+          id?: string
+          level: string
+          message: string
+          metadata?: Json | null
+          operation?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error?: Json | null
+          id?: string
+          level?: string
+          message?: string
+          metadata?: Json | null
+          operation?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observability_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_settings: {
         Row: {
           id: string
@@ -4751,6 +4798,24 @@ export type Database = {
           message?: string | null
           updated_at?: string | null
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      operation_locks: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          key: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          key: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          key?: string
         }
         Relationships: []
       }
