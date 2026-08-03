@@ -51,7 +51,9 @@ export const DEFAULT_MODULES: Record<string, boolean> = {
   whatsapp: false,
   pix_key: false,
   subscription_rewards: false,
+  communications: true,
 };
+
 
 export interface PlanInfo {
   id: string;
