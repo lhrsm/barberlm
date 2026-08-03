@@ -9,42 +9,44 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const SUPABASE_URL = process.env['SUPABASE_URL']
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY']
 
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      console.warn('Supabase env vars missing in middleware')
+      return next()
+    }
+    
     const request = getRequest()
     const authHeader = request?.headers?.get('authorization')
 
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next()
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient<Database>(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-        auth: {
-          storage: undefined,
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    )
+    try {
+      const supabase = createClient<Database>(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+          global: { headers: { Authorization: `Bearer ${token}` } },
+          auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        }
+      )
 
-    const { data, error } = await supabase.auth.getClaims(token)
-    if (error || !data?.claims) {
+      const { data, error } = await supabase.auth.getClaims(token)
+      if (error || !data?.claims) {
+        return next()
+      }
+
+      return next({
+        context: {
+          supabase: supabase as any,
+          userId: data.claims.sub as string,
+          claims: data.claims as any,
+        },
+      })
+    } catch (e) {
+      console.error('Middleware auth error:', e)
       return next()
     }
-
-    return next({
-      context: {
-        supabase: supabase as any,
-        userId: data.claims.sub as string,
-        claims: data.claims as any,
-      },
-    })
   }
 )
