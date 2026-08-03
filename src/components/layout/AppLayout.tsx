@@ -80,7 +80,7 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Integrações", icon: Share2, to: "/integrations", module: "integrations" },
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials", module: "tutorials" },
   { label: "Suporte", icon: Headset, to: "/support", module: "support" },
-  { label: "Assinaturas", icon: CreditCard, to: "/subscriptions", module: "subscriptions" },
+  { label: "Clube Barbex", icon: Crown, to: "/dashboard/membership", module: "subscriptions" },
   { label: "Fidelidade", icon: Gift, to: "/loyalty" },
   { label: "Avaliações", icon: MessageSquare, to: "/reviews" },
 
