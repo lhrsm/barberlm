@@ -11,12 +11,18 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    // 1. Z-API Health
+    // 1. Z-API Health (via whatsapp_instances)
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("whatsapp_enabled, whatsapp_instance_id, whatsapp_instance_token")
+      .select("whatsapp_enabled")
       .eq("id", data.tenantId)
       .maybeSingle();
+
+    const { data: whatsappInstances } = await supabaseAdmin
+      .from("whatsapp_instances")
+      .select("id, status, last_activity_at")
+      .eq("tenant_id", data.tenantId)
+      .limit(1);
 
     // 2. Stripe/Mercado Pago Gateways
     const { data: gateways } = await supabaseAdmin
@@ -32,7 +38,9 @@ export const getIntegrationHealth = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(10);
 
-    const whatsappStatus = profile?.whatsapp_enabled && profile?.whatsapp_instance_id ? "active" : "not_configured";
+    const instance = whatsappInstances?.[0];
+    const whatsappStatus = profile?.whatsapp_enabled && instance ? "active" : "not_configured";
+
     const recentFailures = (logs || []).filter(l => l.status === 'error').length;
 
     return {
