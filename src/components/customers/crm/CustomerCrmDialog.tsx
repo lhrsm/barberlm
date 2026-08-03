@@ -92,7 +92,7 @@ export function CustomerCrmDialog({
   const plan = subscription?.subscription_plans;
 
   const kpis = useMemo(
-    () => (customer ? computeKpis(customer, history, products, crm) : null),
+    () => (customer ? computeKpis(customer, history, products, crm, isSub) : null),
     [customer, history, products, crm],
   );
   const timeline = useMemo(
