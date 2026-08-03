@@ -136,7 +136,24 @@ function IntegrationsCenterPage() {
                   icon={<CreditCard className="text-blue-400" />}
                 />
 
-                {/* Futuros */}
+                <IntegrationCard 
+                  name="Asaas"
+                  provider="asaas"
+                  description="Split de pagamentos e antecipação automática de recebíveis."
+                  status={health?.payments?.find(p => p.provider === 'asaas')?.status || 'not_configured'}
+                  category="Pagamentos"
+                  icon={<CreditCard className="text-orange-400" />}
+                />
+
+                <IntegrationCard 
+                  name="InfinitePay"
+                  provider="infinitepay"
+                  description="Pagamentos via Cloud POS e links de alta conversão."
+                  status={health?.payments?.find(p => p.provider === 'infinitepay')?.status || 'not_configured'}
+                  category="Pagamentos"
+                  icon={<CreditCard className="text-purple-400" />}
+                />
+
                 <IntegrationCard 
                   name="Google Calendar"
                   provider="google"
