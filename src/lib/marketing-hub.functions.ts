@@ -97,11 +97,11 @@ export const scheduleCampaignDispatch = createServerFn({ method: "POST" })
     
     // Cria um job para o "Dispatcher" da campanha
     // Este job irá, por sua vez, fragmentar os envios individuais para não travar o worker
-    const job = await enqueueJob({
+    const job = await (enqueueJob as any)({
       data: {
         tenant_id: data.tenantId,
         queue_name: "marketing",
-        priority: 10, // Campanhas têm prioridade menor que confirmações de agendamento
+        priority: 10,
         payload: {
           type: "MARKETING_CAMPAIGN_DISPATCH",
           campaignId: data.campaignId,
@@ -112,5 +112,5 @@ export const scheduleCampaignDispatch = createServerFn({ method: "POST" })
       }
     });
 
-    return { success: true, jobId: job.id };
+    return { success: true, jobId: job?.id };
   });
