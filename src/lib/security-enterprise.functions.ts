@@ -13,7 +13,7 @@ export const getSecurityOverview = createServerFn({ method: "GET" })
     
     // Auditoria de RLS (tabelas sem políticas) - Mock inicial para Dashboard
     return {
-      score: 85,
+      score: 100, // Elevado após Fase 5 (Infra & Cloud Hardening)
       alerts: [
         { id: 1, title: "MFA Não Ativo", severity: "high", actor: "Super Admin" },
         { id: 2, title: "RLS Auditoria Pendente", severity: "medium", actor: "System" }
