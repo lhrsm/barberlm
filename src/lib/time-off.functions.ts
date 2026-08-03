@@ -80,12 +80,20 @@ export const createTimeOff = createServerFn({ method: "POST" })
     const { data: timeOff, error } = await supabase
       .from("professional_time_off")
       .insert({
-        ...data,
+        professional_id: data.professional_id,
+        type: data.type as TimeOffType,
+        title: data.title,
+        description: data.description,
+        starts_at: data.starts_at,
+        ends_at: data.ends_at,
+        all_day: data.all_day,
+        approval_status: data.approval_status as ApprovalStatus,
         tenant_id: professional.tenant_id,
         requested_by: user.id
       })
       .select()
       .single();
+
 
     if (error) throw error;
     return timeOff as TimeOff;
@@ -110,7 +118,7 @@ export const updateTimeOff = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { data: timeOff, error } = await supabase
       .from("professional_time_off")
-      .update(data.updates)
+      .update(data.updates as any)
       .eq("id", data.id)
       .select()
       .single();
