@@ -31,7 +31,8 @@ import {
   Layout,
   Gift,
   ExternalLink,
-  Radar
+  Radar,
+  Sparkles
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";

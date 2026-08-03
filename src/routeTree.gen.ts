@@ -61,6 +61,7 @@ import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
+import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
@@ -361,6 +362,11 @@ const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => LoyaltyRoute,
 } as any)
+const DashboardAssistenteRoute = DashboardAssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -582,7 +588,7 @@ export interface FileRoutesByFullPath {
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
@@ -632,6 +638,7 @@ export interface FileRoutesByFullPath {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -674,7 +681,7 @@ export interface FileRoutesByTo {
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
@@ -722,6 +729,7 @@ export interface FileRoutesByTo {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -766,7 +774,7 @@ export interface FileRoutesById {
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
@@ -816,6 +824,7 @@ export interface FileRoutesById {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -911,6 +920,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/dashboard/assistente'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1001,6 +1011,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/dashboard/assistente'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1094,6 +1105,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/agendamento/$token'
     | '/checkout/return'
+    | '/dashboard/assistente'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1138,7 +1150,7 @@ export interface RootRouteChildren {
   CommissionsRoute: typeof CommissionsRoute
   CookiesRoute: typeof CookiesRoute
   CustomersRoute: typeof CustomersRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   FinancesRoute: typeof FinancesRoute
   HistoryRoute: typeof HistoryRoute
   IntegrationsRoute: typeof IntegrationsRoute
@@ -1550,6 +1562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoyaltyCampaignsRouteImport
       parentRoute: typeof LoyaltyRoute
     }
+    '/dashboard/assistente': {
+      id: '/dashboard/assistente'
+      path: '/assistente'
+      fullPath: '/dashboard/assistente'
+      preLoaderRoute: typeof DashboardAssistenteRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/checkout/return': {
       id: '/checkout/return'
       path: '/checkout/return'
@@ -1890,6 +1909,18 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface DashboardRouteChildren {
+  DashboardAssistenteRoute: typeof DashboardAssistenteRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAssistenteRoute: DashboardAssistenteRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 interface LoyaltyCampaignsRouteChildren {
   LoyaltyCampaignsIdRoute: typeof LoyaltyCampaignsIdRoute
 }
@@ -1963,7 +1994,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommissionsRoute: CommissionsRoute,
   CookiesRoute: CookiesRoute,
   CustomersRoute: CustomersRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   FinancesRoute: FinancesRoute,
   HistoryRoute: HistoryRoute,
   IntegrationsRoute: IntegrationsRoute,
