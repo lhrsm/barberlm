@@ -21,11 +21,13 @@ export const Route = createFileRoute("/api/public/hooks/admin-digest")({
         const period = (url.searchParams.get("period") ?? "daily") as "daily" | "weekly";
         const hours = period === "weekly" ? 168 : 24;
 
-        const supabase = createClient(
-          process.env.SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          { auth: { persistSession: false, autoRefreshToken: false } }
-        );
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!SUPABASE_URL || !KEY) return new Response("Missing env", { status: 500 });
+
+        const supabase = createClient(SUPABASE_URL, KEY, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
 
         const { data: digestJson, error } = await supabase.rpc("generate_admin_digest", { _hours: hours });
         if (error) {

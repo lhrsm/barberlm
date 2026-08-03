@@ -1,11 +1,7 @@
 import { createIsomorphicFn, createMiddleware } from "@tanstack/react-start";
 
-async function getCrypto() {
-  if (typeof window === 'undefined') {
-    return await import("node:crypto");
-  }
-  return null;
-}
+// Removido getCrypto para evitar problemas de bundle no cliente.
+// node:crypto só deve ser usado via import dinâmico dentro de handlers server-only.
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "critical" | "audit";
 
@@ -28,7 +24,7 @@ interface LogPayload {
  * Integridade Imutável (Fase 7): Gera um hash para auditoria de logs críticos.
  */
 export const bxLog = createIsomorphicFn()
-  .server((level: LogLevel, message: string, data: Partial<LogPayload> = {}) => {
+  .server(async (level: LogLevel, message: string, data: Partial<LogPayload> = {}) => {
     const payload: LogPayload = {
       timestamp: new Date().toISOString(),
       level,
@@ -40,14 +36,17 @@ export const bxLog = createIsomorphicFn()
     // Auditoria Imutável (Fase 7): Para logs de nível 'audit' ou 'critical'
     if (level === 'audit' || level === 'critical') {
       const logString = `${payload.timestamp}|${payload.level}|${payload.message}|${payload.correlation_id}`;
-      getCrypto().then(crypto => {
+      try {
+        const crypto = await import("node:crypto");
         if (crypto) {
           payload.integrity_hash = crypto.createHash('sha256').update(logString).digest('hex');
         }
-      });
+      } catch (e) {
+        // Silently fail hashing if crypto is not available
+      }
     }
 
-    if (process.env.NODE_ENV === "production") {
+    if ((globalThis as any).process?.env?.NODE_ENV === "production") {
       console.log(JSON.stringify(payload));
     } else {
       const color = level === 'error' || level === 'critical' ? '\x1b[31m' : 

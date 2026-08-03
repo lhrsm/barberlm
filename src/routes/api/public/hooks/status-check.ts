@@ -11,8 +11,10 @@ export const Route = createFileRoute("/api/public/hooks/status-check")({
         const denied = await assertCronOrSuperAdmin(request);
         if (denied) return denied;
 
-        const url = process.env.SUPABASE_URL!;
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        const url = process.env.SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!url || !serviceKey) return new Response("Missing env", { status: 500 });
+        
         const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 
         const { data: services } = await admin.from("status_services").select("id, slug").eq("enabled", true);

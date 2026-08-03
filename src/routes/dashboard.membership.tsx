@@ -18,8 +18,10 @@ import { withModule } from "@/components/modules/withModule";
 
 export const Route = createFileRoute("/dashboard/membership")({
   loader: async ({ context }) => {
-    // context matches the generic record in the start template
-    // using queryClient from context if provided by the router instance
+    // If we're on the server, we might want to avoid pre-fetching during SSR
+    // because it might hit the requireSupabaseAuth check without a session
+    if (typeof window === 'undefined') return;
+
     const queryClient = (context as any).queryClient;
     if (queryClient) {
       await queryClient.ensureQueryData({
