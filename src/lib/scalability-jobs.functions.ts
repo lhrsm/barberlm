@@ -3,23 +3,19 @@ import { z } from "zod";
 import { bxLog, bxTrace } from "./observability";
 import { bxLock } from "./scalability-resilience";
 
+const jobSchema = z.object({
+  tenant_id: z.string().uuid(),
+  queue_name: z.string().default("default"),
+  payload: z.any(),
+  priority: z.number().default(0),
+  next_run_at: z.string().optional(),
+});
+
 /**
  * Agendamento de Background Job
  */
 export const enqueueJob = createServerFn({ method: "POST" })
-  .validator((data: {
-    tenant_id: string;
-    queue_name?: string;
-    payload: any;
-    priority?: number;
-    next_run_at?: string;
-  }) => z.object({
-    tenant_id: z.string().uuid(),
-    queue_name: z.string().default("default"),
-    payload: z.any(),
-    priority: z.number().default(0),
-    next_run_at: z.string().optional(),
-  }).parse(data))
+  .validator((data: unknown) => jobSchema.parse(data))
   .handler(async ({ data }) => {
     return bxTrace(`enqueue_job:${data.queue_name}`, async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -108,4 +104,5 @@ export const processNextJob = createServerFn({ method: "POST" })
       });
     });
   });
+
 
