@@ -4,16 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { computeTotals } from "@/components/finances/erp/engine";
 
+const BIInputSchema = z.object({
+  start_date: z.string(),
+  end_date: z.string(),
+  compare_start_date: z.string().optional(),
+  compare_end_date: z.string().optional(),
+  filters: z.record(z.any()).optional()
+});
+
 export const getBIAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((data: any) => z.object({
-    start_date: z.string(),
-    end_date: z.string(),
-    compare_start_date: z.string().optional(),
-    compare_end_date: z.string().optional(),
-    filters: z.record(z.any()).optional()
-  }).parse(data))
-  .handler(async ({ data, context }) => {
+  .inputValidator((data: unknown) => BIInputSchema.parse(data))
+  .handler(async ({ input, context }) => {
     const { userId, supabase: authSupabase } = context;
     
     // Resolve Tenant
@@ -57,17 +59,17 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
       });
     };
 
-    const currentTotals = await fetchPeriodData(data.start_date, data.end_date);
+    const currentTotals = await fetchPeriodData(input.start_date, input.end_date);
     let comparisonTotals = null;
 
-    if (data.compare_start_date && data.compare_end_date) {
-      comparisonTotals = await fetchPeriodData(data.compare_start_date, data.compare_end_date);
+    if (input.compare_start_date && input.compare_end_date) {
+      comparisonTotals = await fetchPeriodData(input.compare_start_date, input.compare_end_date);
     }
 
     return {
       current: currentTotals,
       comparison: comparisonTotals,
-      period: { start: data.start_date, end: data.end_date },
+      period: { start: input.start_date, end: input.end_date },
       metadata: {
         last_sync: new Date().toISOString(),
         currency: "BRL"
