@@ -20,8 +20,10 @@ export type ModuleKey =
   | "subscription_rewards"
   | "multi_units"
   | "white_label"
-  | "api_access"
-  | "corporate_reports";
+    | "api_access"
+    | "corporate_reports"
+    | "communications";
+
 
 // Módulos sempre habilitados (essenciais do core)
 const ALWAYS_ON: string[] = [

@@ -84,6 +84,8 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Clube Barbex", icon: Crown, to: "/dashboard/membership", module: "subscriptions" },
   { label: "Fidelidade", icon: Gift, to: "/loyalty" },
   { label: "Avaliações", icon: MessageSquare, to: "/reviews" },
+  { label: "Omnichannel", icon: MessageSquare, to: "/dashboard/communications", module: "communications" },
+
 
   { label: "Minha Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
