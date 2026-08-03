@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/tooltip";
 import { PayCommissionDialog } from "@/components/commissions/PayCommissionDialog";
 import { BarberPerformanceDialog } from "@/components/barbers/BarberPerformanceDialog";
+import { ProfessionalTimeOffDialog } from "@/components/barbers/ProfessionalTimeOffDialog";
+
 
 
 export const Route = createFileRoute("/barbers")({
@@ -110,6 +112,9 @@ function BarbersComponent() {
   });
   const [uploading, setUploading] = useState(false);
   const [performanceBarber, setPerformanceBarber] = useState<any>(null);
+  const [timeOffBarber, setTimeOffBarber] = useState<any>(null);
+  const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
+
 
   const canAddBarber = checkLimit("barbers");
 
@@ -1008,6 +1013,27 @@ function BarbersComponent() {
                       </Tooltip>
                     </TooltipProvider>
                     
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
+                            onClick={() => {
+                              setTimeOffBarber(barber);
+                              setIsTimeOffDialogOpen(true);
+                            }}
+                          >
+                            <Clock size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Gerenciar folgas e ausências</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
                     {plan !== 'free' && (
                       <TooltipProvider>
                         <Tooltip>
@@ -1027,6 +1053,7 @@ function BarbersComponent() {
                         </Tooltip>
                       </TooltipProvider>
                     )}
+
                     
                     <TooltipProvider>
                       <Tooltip>
@@ -1390,6 +1417,13 @@ function BarbersComponent() {
           barber={performanceBarber}
           tenantId={user?.id}
         />
+
+        <ProfessionalTimeOffDialog
+          open={isTimeOffDialogOpen}
+          onOpenChange={setIsTimeOffDialogOpen}
+          professional={timeOffBarber}
+        />
+
 
       </div>
     </AppLayout>

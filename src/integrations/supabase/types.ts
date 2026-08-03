@@ -5064,6 +5064,93 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_time_off: {
+        Row: {
+          all_day: boolean | null
+          approval_status: Database["public"]["Enums"]["approval_status"]
+          approved_at: string | null
+          approved_by: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          description: string | null
+          ends_at: string
+          id: string
+          metadata: Json | null
+          professional_id: string
+          recurrence_rule: string | null
+          requested_by: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["time_off_status"]
+          tenant_id: string
+          title: string | null
+          type: Database["public"]["Enums"]["time_off_type"]
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          id?: string
+          metadata?: Json | null
+          professional_id: string
+          recurrence_rule?: string | null
+          requested_by?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["time_off_status"]
+          tenant_id: string
+          title?: string | null
+          type?: Database["public"]["Enums"]["time_off_type"]
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          id?: string
+          metadata?: Json | null
+          professional_id?: string
+          recurrence_rule?: string | null
+          requested_by?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["time_off_status"]
+          tenant_id?: string
+          title?: string | null
+          type?: Database["public"]["Enums"]["time_off_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_time_off_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_time_off_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -8841,6 +8928,21 @@ export type Database = {
         }
         Returns: Json
       }
+      check_time_off_conflicts: {
+        Args: {
+          p_ends_at: string
+          p_professional_id: string
+          p_starts_at: string
+        }
+        Returns: {
+          appointment_id: string
+          customer_name: string
+          end_time: string
+          service_name: string
+          start_time: string
+          status: string
+        }[]
+      }
       cleanup_invalid_cashback: { Args: { p_tenant_id: string }; Returns: Json }
       clear_barbershop_financial_data: {
         Args: { p_tenant_id: string }
@@ -9670,8 +9772,21 @@ export type Database = {
         | "barber"
         | "client"
         | "reception"
+      approval_status: "not_required" | "pending" | "approved" | "rejected"
       automation_flow_type: "single" | "multi"
       product_sale_status: "completed" | "cancelled" | "refunded"
+      time_off_status: "scheduled" | "active" | "completed" | "cancelled"
+      time_off_type:
+        | "day_off"
+        | "personal_block"
+        | "break"
+        | "meeting"
+        | "training"
+        | "vacation"
+        | "medical_leave"
+        | "personal_leave"
+        | "suspension"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -9809,8 +9924,22 @@ export const Constants = {
         "client",
         "reception",
       ],
+      approval_status: ["not_required", "pending", "approved", "rejected"],
       automation_flow_type: ["single", "multi"],
       product_sale_status: ["completed", "cancelled", "refunded"],
+      time_off_status: ["scheduled", "active", "completed", "cancelled"],
+      time_off_type: [
+        "day_off",
+        "personal_block",
+        "break",
+        "meeting",
+        "training",
+        "vacation",
+        "medical_leave",
+        "personal_leave",
+        "suspension",
+        "other",
+      ],
     },
   },
 } as const
