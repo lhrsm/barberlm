@@ -20,8 +20,14 @@ export const Route = createFileRoute("/api/public/subscriptions/webhook")({
         const url = new URL(request.url);
         const gatewayId = url.searchParams.get("gateway");
         if (!gatewayId) return new Response("Missing gateway id", { status: 400 });
-
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        
+        const url = process.env.SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!url || !key) return new Response("Missing env", { status: 500 });
+        
+        const supabaseAdmin = createClient(url, key, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
 
         const { data: gw, error: gwErr } = await supabaseAdmin
           .from("payment_gateways")
