@@ -86,6 +86,7 @@ export const triggerAutomation = async ({
     // 5. Initial Audit Log: appointment_created / automation_trigger_started
     // Wrapped in its own try/catch to ensure it doesn't block the rest of the logic
     try {
+      // Insert into old log table
       await anySupabase.from("automation_logs").insert({
         tenant_id,
         automation_id: automationId, 
@@ -107,6 +108,21 @@ export const triggerAutomation = async ({
           template_id: templateId
         }
       });
+
+      // Insert into NEW omnichannel message table
+      await anySupabase.from("communication_messages").insert({
+        tenant_id,
+        channel_type: 'whatsapp',
+        category: workflowKey === 'cancellation' ? 'operational' : 'transactional',
+        direction: 'outbound',
+        customer_id: customerId,
+        recipient_address: customerPhone,
+        content: `Gatilho: ${event_name}`,
+        template_id: templateId,
+        status: 'pending',
+        correlation_id: appointment_id
+      });
+
     } catch (logErr) {
       console.warn("[Automation] ⚠️ Failed to record initial audit log:", logErr);
     }
