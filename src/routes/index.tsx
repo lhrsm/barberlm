@@ -115,7 +115,7 @@ function LandingPage() {
           
           <div className="hidden md:flex gap-4">
             <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
-              <Link to="/auth">Entrar</Link>
+              <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
             </Button>
             <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
               Testar Grátis
