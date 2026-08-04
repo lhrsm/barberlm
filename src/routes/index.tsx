@@ -418,24 +418,77 @@ function LandingPage() {
       <PortalFaq shop={{ business_name: "Barbex" }} productsEnabled subscriptionsEnabled loyaltyEnabled cashbackEnabled />
 
 
+      {/* Final CTA */}
+      <section className="py-32 px-6 relative overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-gold/5" />
+        <div className="max-w-5xl mx-auto relative z-10 text-center space-y-12">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} className="mx-auto w-24 h-24 rounded-3xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+            <BarbexLogo variant="symbol" size="lg" />
+          </motion.div>
+          <div className="space-y-6">
+            <h2 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white leading-none">
+              Sua barbearia pode <br /> operar em <span className="text-gold">outro nível</span>
+            </h2>
+            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+              Comece gratuitamente e descubra como o Barbex pode simplificar sua rotina e apoiar o crescimento do seu negócio.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" asChild>
+              <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
+            </Button>
+            <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
+              <Link to="/auth">Entrar no Sistema</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer Final */}
-      <footer className="py-20 px-6 border-t border-white/5 bg-black">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
-          <div className="space-y-4 text-center md:text-left">
-            <div className="text-2xl font-black tracking-tighter">BARBEX</div>
-            <p className="text-slate-500 text-sm max-w-xs uppercase tracking-widest font-bold">Plataforma SaaS Enterprise para gestão de barbearias.</p>
+      <footer className="py-24 px-6 border-t border-white/5 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <div className="space-y-6">
+              <BarbexLogo size="md" />
+              <p className="text-slate-500 text-[11px] leading-relaxed max-w-xs uppercase tracking-widest font-bold">
+                A plataforma completa de gestão, fidelização e inteligência para barbearias de alto nível.
+              </p>
+            </div>
+            <div>
+              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Produto</h6>
+              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <li><a href="#solucoes" className="hover:text-gold transition-colors">Recursos</a></li>
+                <li><a href="#planos" className="hover:text-gold transition-colors">Planos</a></li>
+                <li><Link to="/updates" className="hover:text-gold transition-colors">Novidades</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Suporte</h6>
+              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <li><Link to="/tutorials" className="hover:text-gold transition-colors">Central de Ajuda</Link></li>
+                <li><Link to="/academy" className="hover:text-gold transition-colors">Academia Barbex</Link></li>
+                <li><a href="#faq" className="hover:text-gold transition-colors">FAQ</a></li>
+              </ul>
+            </div>
+            <div>
+              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Legal</h6>
+              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <li><a href="#" className="hover:text-gold transition-colors">Termos de Uso</a></li>
+                <li><a href="#" className="hover:text-gold transition-colors">Privacidade</a></li>
+              </ul>
+            </div>
           </div>
-          <div className="flex gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            <Link to="/auth" className="hover:text-gold transition-colors">Entrar</Link>
-            <Link to="/tutorials" className="hover:text-gold transition-colors">Ajuda</Link>
-            <a href="#" className="hover:text-gold transition-colors">Termos</a>
-            <a href="#" className="hover:text-gold transition-colors">Privacidade</a>
-          </div>
-          <div className="text-slate-600 text-[10px] font-black uppercase tracking-widest">
-            © {new Date().getFullYear()} BARBEX ENTERPRISE. TODOS OS DIREITOS RESERVADOS.
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-slate-600 text-[10px] font-black uppercase tracking-widest">
+              © {new Date().getFullYear()} BARBEX ENTERPRISE. TODOS OS DIREITOS RESERVADOS.
+            </div>
+            <div className="flex gap-6">
+              {/* Social placeholders if needed */}
+            </div>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
