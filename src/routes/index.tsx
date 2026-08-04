@@ -432,13 +432,7 @@ function LandingPage() {
           ))}
         </div>
       </CTASection>
-          <LandingImage 
-            src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop" 
-            alt="Equipe de barbearia moderna colaborando com tablets e notebooks"
-            className="md:h-[600px]"
-          />
-        </div>
-      </section>
+    
 
       {/* CTA 1 */}
       <CTASection
