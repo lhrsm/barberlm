@@ -204,6 +204,9 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <div className="flex justify-end mb-2">
+          <HelpDrawer config={financesHelpConfig} />
+        </div>
         <FinancesHeader
           role={role}
           globalPeriod={globalPeriod}

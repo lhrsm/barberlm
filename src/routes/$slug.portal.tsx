@@ -1179,14 +1179,17 @@ function ClientPortalComponent() {
 
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black relative">
+      <OnboardingChecklist config={clientPortalOnboardingConfig} />
       <header className="bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-[60]">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="font-bold text-lg flex items-center gap-3 text-gold">
             <img src={barbexLogo.url} alt="Barbex" className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
             <span className="hidden sm:inline">Portal do Cliente</span>
           </h1>
-          <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <div className="flex items-center gap-3">
+            <HelpDrawer config={clientPortalHelpConfig} />
+            <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
             <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
