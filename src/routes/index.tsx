@@ -32,20 +32,25 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-[#05070d] text-white">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#05070d]/80 backdrop-blur-md border-b border-gold/10">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <header className={cn(
+        "fixed top-0 w-full z-50 transition-all duration-300 border-b",
+        isScrolled ? "bg-black/80 backdrop-blur-md border-gold/20 py-4" : "bg-transparent border-transparent py-6"
+      )}>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="p-1.5 bg-gold/10 rounded-lg shrink-0">
               <Scissors className="text-gold h-6 w-6" />
             </div>
-            <div className="text-2xl font-black tracking-tighter">BARBEX</div>
+            <span className="text-xl font-black tracking-tighter">BARBEX</span>
           </Link>
+          
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
-            <a href="#recursos" className="hover:text-gold transition-colors">Recursos</a>
-            <a href="#planos" className="hover:text-gold transition-colors">Planos</a>
-            <a href="#faq" className="hover:text-gold transition-colors">FAQ</a>
+            {["Recursos", "Planos", "FAQ"].map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-gold transition-colors">{item}</a>
+            ))}
           </nav>
-          <div className="flex gap-4">
+          
+          <div className="hidden md:flex gap-4">
             <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
               <Link to="/auth">Entrar</Link>
             </Button>
@@ -53,6 +58,10 @@ function LandingPage() {
               <Link to="/auth" search={{ tab: "register" }}>Testar Grátis</Link>
             </Button>
           </div>
+          
+          <Button variant="ghost" className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(true)}>
+            <Menu size={24} />
+          </Button>
         </div>
       </header>
 
