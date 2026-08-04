@@ -78,7 +78,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
-    const { userId, supabase: supabaseClient } = context;
+    const { userId, supabase: supabaseClient } = context as any;
     const startTime = Date.now();
     console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession", {
       priceId: data.priceId,
@@ -213,7 +213,7 @@ export const createPlanCheckout = createServerFn({ method: "POST" })
     customerEmail?: string;
   }) => data)
   .handler(async ({ data, context }) => {
-    const { userId, supabase: sb } = context;
+    const { userId, supabase: sb } = context as any;
     console.log("[createPlanCheckout] 🚀", { planKey: data.planKey, env: data.environment, userId });
 
     // 1. Resolve price_id from plans table
@@ -312,7 +312,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { returnUrl?: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
 
     const { data: sub, error: subError } = await supabase
       .from("subscriptions")

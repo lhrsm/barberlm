@@ -193,7 +193,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
     } finally {
       localStorage.clear();
       sessionStorage.clear();
-      navigate({ to: "/auth", search: { redirect: pathname } as any });
+      navigate({ to: "/auth", search: { redirect: pathname } as any as any });
     }
   }, [session, profLogout, navigate, pathname]);
 
