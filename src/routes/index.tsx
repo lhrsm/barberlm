@@ -341,78 +341,97 @@ function LandingPage() {
       </section>
 
 
-      {/* Planos Section */}
-      <section id="planos" className="py-24 px-6 relative overflow-hidden">
+      {/* Pricing Section */}
+      <section id="planos" className="py-32 px-6 relative overflow-hidden bg-[#05070d]">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full -mr-64 -mt-64" />
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center space-y-4 mb-16">
-            <span className="text-gold font-black uppercase tracking-[0.3em] text-xs">Investimento</span>
-            <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Planos que acompanham você</h3>
-            <p className="text-slate-400 max-w-xl mx-auto">
-              Comece agora com 15 dias de teste grátis. Sem cartão de crédito necessário.
+          <div className="text-center space-y-4 mb-20">
+            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Investimento Transparente</span>
+            <h3 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white">Planos que acompanham você</h3>
+            <p className="text-slate-400 max-w-xl mx-auto text-lg">
+              Comece agora com 15 dias de teste grátis. <br className="hidden md:block" /> Sem necessidade de cartão de crédito.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
             {Object.entries(PLAN_LIMITS).filter(([key]) => key !== 'free').map(([key, plan]) => (
-              <div 
+              <motion.div 
                 key={key} 
+                whileHover={{ y: -10 }}
                 className={cn(
-                  "relative p-8 rounded-[2.5rem] border transition-all duration-300",
-                  key === 'pro' ? "bg-gold/5 border-gold shadow-gold scale-105 z-10" : "bg-zinc-950 border-white/10 hover:border-gold/30"
+                  "relative p-10 rounded-[3rem] border transition-all duration-500",
+                  key === 'pro' 
+                    ? "bg-gradient-to-b from-gold/10 to-zinc-950 border-gold shadow-[0_20px_80px_-20px_rgba(212,175,55,0.25)] scale-105 z-10" 
+                    : "bg-zinc-950 border-white/5 hover:border-gold/30"
                 )}
               >
                 {key === 'pro' && (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Recomendado</span>
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-black px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl">Mais Popular</span>
                 )}
-                <div className="mb-8">
-                  <h4 className="text-xl font-black uppercase italic tracking-tight text-white mb-2">{key}</h4>
+                <div className="mb-10">
+                  <h4 className="text-2xl font-black uppercase italic tracking-tight text-white mb-6">{key}</h4>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-bold text-slate-400 italic">R$</span>
-                    <span className="text-5xl font-black tracking-tighter text-white">
+                    <span className="text-sm font-bold text-slate-500 italic">R$</span>
+                    <span className="text-6xl font-black tracking-tighter text-white">
                       {/* @ts-ignore */}
                       {plan.price?.toFixed(2).split('.')[0]}
                     </span>
-                    <span className="text-lg font-black text-gold">
+                    <span className="text-2xl font-black text-gold">
                       {/* @ts-ignore */}
                       ,{plan.price?.toFixed(2).split('.')[1]}
                     </span>
-                    <span className="text-slate-400 text-xs uppercase tracking-widest ml-2">/mês</span>
+                    <span className="text-slate-500 text-xs uppercase tracking-widest ml-3 font-bold">/mês</span>
                   </div>
                 </div>
 
-                <ul className="space-y-4 mb-10">
-                  {/* @ts-ignore */}
-                  {[
-                    // @ts-ignore
-                    { label: plan.barbers === Infinity ? "Barbeiros ilimitados" : `${plan.barbers} Barbeiros`, ok: true },
-                    // @ts-ignore
-                    { label: plan.whatsappConnections === Infinity ? "WhatsApp ilimitado" : `${plan.whatsappConnections} Conexão WhatsApp`, ok: true },
-                    { label: "Agenda & Financeiro", ok: true },
-                    { label: "CRM & Fidelização", ok: true },
-                    { label: "Marketplace & Loja", ok: true },
-                    { label: "Relatórios de BI", ok: key !== 'starter' },
-                  ].map((feature, idx) => (
-                    <li key={idx} className={cn("flex items-center gap-3 text-sm", feature.ok ? "text-slate-200" : "text-slate-500 opacity-50")}>
-                      <CheckCircle2 size={16} className={feature.ok ? "text-gold" : "text-slate-700"} />
-                      {feature.label}
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-6 mb-12">
+                  <div className="h-px bg-white/5 w-full" />
+                  <ul className="space-y-5">
+                    {/* @ts-ignore */}
+                    {[
+                      // @ts-ignore
+                      { label: plan.barbers === Infinity ? "Barbeiros ilimitados" : `${plan.barbers} Barbeiros`, ok: true },
+                      // @ts-ignore
+                      { label: plan.whatsappConnections === Infinity ? "Conexões ilimitadas" : `${plan.whatsappConnections} Conexão WhatsApp`, ok: true },
+                      { label: "Agenda & Financeiro", ok: true },
+                      { label: "CRM & Fidelização", ok: true },
+                      { label: "Marketplace & Loja", ok: true },
+                      { label: "BI Executivo & KPIs", ok: key !== 'starter' },
+                      { label: "Automações Avançadas", ok: key === 'elite' },
+                    ].map((feature, idx) => (
+                      <li key={idx} className={cn("flex items-center gap-4 text-xs font-bold uppercase tracking-widest", feature.ok ? "text-slate-200" : "text-slate-600")}>
+                        <div className={cn("p-1 rounded-full", feature.ok ? "bg-gold/10 text-gold" : "bg-white/5 text-slate-800")}>
+                          <CheckCircle2 size={12} />
+                        </div>
+                        {feature.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <Button 
                   className={cn(
-                    "w-full h-12 rounded-2xl font-black uppercase tracking-widest text-xs",
-                    key === 'pro' ? "bg-gold text-black hover:bg-gold/90" : "bg-white/5 text-white hover:bg-white/10"
+                    "w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs transition-all duration-300",
+                    key === 'pro' 
+                      ? "bg-gold text-black hover:bg-gold/90 shadow-lg" 
+                      : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
                   )}
                   asChild
                 >
-                  <Link to="/auth" search={{ tab: "register", plan: key }}>Selecionar Plano</Link>
+                  <Link to="/auth" search={{ tab: "register", plan: key }}>Selecionar {key}</Link>
                 </Button>
-              </div>
+              </motion.div>
             ))}
+          </div>
+
+          <div className="mt-20 p-8 rounded-[2.5rem] border border-white/5 bg-zinc-950/50 backdrop-blur-sm text-center">
+             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
+               * As automações via WhatsApp requerem provedor externo (Z-API) não incluso na mensalidade.
+             </p>
           </div>
         </div>
       </section>
+
 
       {/* FAQ Final */}
       <PortalFaq shop={{ business_name: "Barbex" }} productsEnabled subscriptionsEnabled loyaltyEnabled cashbackEnabled />
