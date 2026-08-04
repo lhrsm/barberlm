@@ -144,20 +144,22 @@ export function SystemMockup({ className }: SystemMockupProps) {
           </div>
         </motion.div>
 
-        {/* Smartphone Mockup (Client Portal) */}
         <motion.div
           initial={{ opacity: 0, x: -50, rotate: -10 }}
           whileInView={{ opacity: 1, x: 0, rotate: -10 }}
           viewport={{ once: true }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="absolute -left-12 bottom-0 z-40 w-1/5 aspect-[9/19] rounded-[2.5rem] border-8 border-zinc-800 bg-black shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
+          className="absolute -left-12 bottom-0 z-40 w-1/5 aspect-[9/19] rounded-[2.5rem] border-8 border-zinc-900 bg-[#050b18] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
         >
-          <div className="h-full w-full bg-black p-4 flex flex-col gap-6">
-            <div className="w-16 h-4 bg-zinc-800 rounded-full mx-auto mb-4" /> {/* Speaker/Sensors */}
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-gold to-yellow-600 p-1">
-                <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                   <Smartphone className="text-gold" size={24} />
+          <div className="h-full w-full bg-[#050b18]/90 p-4 flex flex-col gap-6 relative">
+            <div className="absolute inset-0 opacity-30 pointer-events-none"
+                 style={{ background: "radial-gradient(circle at 50% 50%, rgba(245,158,11,0.2), transparent 70%)" }}
+            />
+            <div className="w-16 h-4 bg-zinc-800 rounded-full mx-auto mb-4 relative z-10" /> 
+            <div className="flex flex-col items-center gap-4 text-center relative z-10">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#F59E0B] to-[#D97706] p-0.5">
+                <div className="w-full h-full rounded-full bg-[#050b18] flex items-center justify-center">
+                   <Smartphone className="text-[#F59E0B]" size={24} />
                 </div>
               </div>
               <div>
@@ -165,11 +167,11 @@ export function SystemMockup({ className }: SystemMockupProps) {
                 <div className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Portal do Cliente</div>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="h-10 w-full rounded-lg bg-gold text-black flex items-center justify-center text-[10px] font-black uppercase">Marcar Horário</div>
-              <div className="h-10 w-full rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase text-white">Ver Serviços</div>
+            <div className="space-y-2 relative z-10">
+              <div className="h-10 w-full rounded-lg bg-[#F59E0B] text-black flex items-center justify-center text-[10px] font-black uppercase shadow-[0_10px_20px_-5px_rgba(245,158,11,0.3)]">Marcar Horário</div>
+              <div className="h-10 w-full rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase text-white backdrop-blur-sm">Ver Serviços</div>
             </div>
-            <div className="mt-auto grid grid-cols-4 gap-2">
+            <div className="mt-auto grid grid-cols-4 gap-2 relative z-10">
                {[LayoutDashboard, Calendar, ShoppingBag, Users].map((Icon, i) => (
                  <div key={i} className="flex items-center justify-center text-slate-600">
                    <Icon size={14} />
