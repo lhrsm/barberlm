@@ -8218,7 +8218,12 @@ export type Database = {
           is_featured: boolean | null
           level: string | null
           long_description: string | null
+          module_key: string | null
           order: number | null
+          profile_target: string[] | null
+          related_route: string | null
+          slug: string | null
+          status: string | null
           thumbnail_url: string | null
           title: string
           type: string
@@ -8235,7 +8240,12 @@ export type Database = {
           is_featured?: boolean | null
           level?: string | null
           long_description?: string | null
+          module_key?: string | null
           order?: number | null
+          profile_target?: string[] | null
+          related_route?: string | null
+          slug?: string | null
+          status?: string | null
           thumbnail_url?: string | null
           title: string
           type: string
@@ -8252,7 +8262,12 @@ export type Database = {
           is_featured?: boolean | null
           level?: string | null
           long_description?: string | null
+          module_key?: string | null
           order?: number | null
+          profile_target?: string[] | null
+          related_route?: string | null
+          slug?: string | null
+          status?: string | null
           thumbnail_url?: string | null
           title?: string
           type?: string
