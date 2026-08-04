@@ -162,10 +162,12 @@ function LandingPage() {
         </div>
       </section>
 
+
       {/* System Mockup Visual */}
-      <section className="relative px-6 overflow-hidden">
+      <section className="relative w-full px-6 max-w-7xl mx-auto overflow-hidden">
         <SystemMockup />
       </section>
+
 
 
       {/* Trust Bar / Benefits */}
