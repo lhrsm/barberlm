@@ -21,12 +21,28 @@ import {
   ArrowRight,
   ChevronDown,
   Menu,
-  X
+  X,
+  Smartphone,
+  LayoutDashboard,
+  Layers,
+  Award,
+  Globe,
+  Bell,
+  Cpu,
+  Lock,
+  ArrowUpRight,
+  Play
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { PLAN_LIMITS } from "@/hooks/use-plan-limits";
+import { BarbexLogo } from "@/components/ui/barbex-logo";
+import { WhyChooseUs } from "@/components/public/WhyChooseUs";
+import { PortalFaq } from "@/components/public/PortalFaq";
+import { SubscriptionValueProps } from "@/components/public/SubscriptionValueProps";
+import { AboutShop } from "@/components/public/AboutShop";
+
 
 function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
