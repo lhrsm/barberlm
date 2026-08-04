@@ -116,6 +116,29 @@ export const Route = createFileRoute("/$slug/portal")({
 
 
 
+
+
+
+const portalHelpConfig = {
+  moduleKey: 'customer_portal',
+  routePath: '/$slug/portal',
+  title: 'Portal do Cliente',
+  summary: 'Aqui você gerencia toda sua jornada na barbearia: agendamentos, assinaturas, cashback e compras.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como cancelo um horário?', answer: 'Vá em Agendamentos, selecione o horário e clique em Cancelar.' },
+    { question: 'Como uso meu cashback?', answer: 'Ao finalizar um pagamento na barbearia, informe que deseja usar seu saldo.' }
+  ],
+  relatedArticles: [
+    { title: 'Política de Cancelamento', href: '#' },
+    { title: 'Regras do Clube Barbex', href: '#' }
+  ]
+};
+
+function ClientPortalComponent() {
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
+
   const clientPortalHelpConfig = {
     moduleKey: 'client-portal',
     routePath: `/${slug}/portal`,
@@ -130,6 +153,11 @@ export const Route = createFileRoute("/$slug/portal")({
       { issue: 'Não consigo fazer login', solution: 'Certifique-se de usar o mesmo número de WhatsApp cadastrado no momento do agendamento.' }
     ]
   };
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [shop, setShop] = useState<any>(null);
+  const [client, setClient] = useState<any>(null);
 
   const clientPortalOnboardingConfig = {
     key: 'portal-onboarding',
@@ -161,27 +189,6 @@ export const Route = createFileRoute("/$slug/portal")({
     ]
   };
 
-
-
-const portalHelpConfig = {
-  moduleKey: 'customer_portal',
-  routePath: '/$slug/portal',
-  title: 'Portal do Cliente',
-  summary: 'Aqui você gerencia toda sua jornada na barbearia: agendamentos, assinaturas, cashback e compras.',
-  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-  faqs: [
-    { question: 'Como cancelo um horário?', answer: 'Vá em Agendamentos, selecione o horário e clique em Cancelar.' },
-    { question: 'Como uso meu cashback?', answer: 'Ao finalizar um pagamento na barbearia, informe que deseja usar seu saldo.' }
-  ],
-  relatedArticles: [
-    { title: 'Política de Cancelamento', href: '#' },
-    { title: 'Regras do Clube Barbex', href: '#' }
-  ]
-};
-
-function ClientPortalComponent() {
-  const { slug } = Route.useParams();
-  const navigate = useNavigate();
   // DEBUG LOGS
   console.log('SLUG', slug);
   const [loading, setLoading] = useState(true);
