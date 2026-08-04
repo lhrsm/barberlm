@@ -207,20 +207,29 @@ function LandingPage() {
 
 
       {/* Features Grid */}
-      <section id="recursos" className="py-24 bg-black">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="recursos" className="py-24 bg-black relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+          <img src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=1000&auto=format&fit=crop" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black via-black/80 to-black" />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { icon: Calendar, title: "Gestão de Agenda", desc: "Online, manual, walk-in e fila." },
-              { icon: Users, title: "CRM & Clientes", desc: "Perfil 360°, histórico e fidelização." },
-              { icon: CircleDollarSign, title: "Financeiro & BI", desc: "Caixa, comissões e DRE Executivo." },
-              { icon: MessageSquare, title: "Automações", desc: "WhatsApp, lembretes e marketing." },
+              { icon: Calendar, title: "Gestão de Agenda", desc: "Online, manual, walk-in e lista de espera inteligente." },
+              { icon: Users, title: "CRM & Clientes", desc: "Perfil 360°, histórico de consumo e fidelização ativa." },
+              { icon: CircleDollarSign, title: "Financeiro & BI", desc: "Fluxo de caixa, comissões e DRE Executivo em tempo real." },
+              { icon: MessageSquare, title: "Automações", desc: "WhatsApp, lembretes, aniversários e marketing segmentado." },
             ].map((f, i) => (
-              <div key={i} className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all">
+              <motion.div 
+                key={i} 
+                whileHover={{ y: -5 }}
+                className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all backdrop-blur-sm"
+              >
                 <f.icon className="text-gold mb-6" size={32} />
                 <h4 className="text-white font-black uppercase tracking-tight mb-2">{f.title}</h4>
-                <p className="text-slate-400 text-sm">{f.desc}</p>
-              </div>
+                <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
