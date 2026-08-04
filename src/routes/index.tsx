@@ -358,7 +358,7 @@ function LandingPage() {
               className="relative rounded-[2.5rem] border border-white/5 bg-zinc-900/20 overflow-hidden aspect-square md:aspect-auto md:h-[500px]"
             >
               <img 
-                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop" 
                 alt="Ambiente Barbex" 
                 className="w-full h-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700"
               />
