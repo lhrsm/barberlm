@@ -186,6 +186,7 @@ function LandingPage() {
 
 
 
+
       {/* Trust Bar / Benefits */}
       <section className="py-12 border-y border-white/5 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
@@ -303,7 +304,7 @@ function LandingPage() {
             <div className="relative group">
               <LandingImage 
                 src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop"
-                alt="Equipe trabalhando em uma barbearia moderna com apoio de tecnologia."
+                alt="Equipe de uma barbearia moderna trabalhando com apoio de tecnologia."
                 className="border-gold/10 shadow-[0_20px_50px_-15px_rgba(212,175,55,0.15)]"
               />
               {/* Floating Cards */}
@@ -318,7 +319,15 @@ function LandingPage() {
               <div className="absolute -bottom-6 -left-6 hidden md:block animate-bounce-slow" style={{ animationDelay: '1s' }}>
                 <div className="bg-black/80 backdrop-blur-md border border-gold/20 p-4 rounded-2xl shadow-2xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Próximo atendimento: 14:30</span>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute top-1/2 -left-10 hidden md:block animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
+                <div className="bg-black/80 backdrop-blur-md border border-gold/20 p-4 rounded-2xl shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-white">Ocupação do dia: 92%</span>
                   </div>
                 </div>
@@ -341,6 +350,7 @@ function LandingPage() {
         </div>
       </section>
 
+
       {/* Prova Visual (Mockup Contextual) */}
       <section className="py-24 px-6 overflow-hidden bg-[#05070d] relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
@@ -355,17 +365,17 @@ function LandingPage() {
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-[2.5rem] border border-white/5 bg-zinc-900/20 overflow-hidden aspect-square md:aspect-auto md:h-[500px]"
+              className="relative"
             >
-              <img 
-                src="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop" 
-                alt="Ambiente Barbex" 
-                className="w-full h-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-              <div className="absolute bottom-10 left-10 right-10">
-                <div className="text-gold font-black uppercase tracking-widest text-xs mb-2">Design Sophistication</div>
-                <div className="text-2xl font-black italic uppercase text-white">Ambiente Premium</div>
+              <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-4">
+                <SystemMockup className="py-0" />
+              </div>
+              
+              <div className="absolute -top-6 -left-6 bg-black/80 backdrop-blur-md border border-gold/20 p-4 rounded-2xl shadow-2xl z-50 animate-bounce-slow">
+                 <div className="flex items-center gap-3">
+                    <Cpu size={16} className="text-gold" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Tecnologia Integrada</span>
+                 </div>
               </div>
             </motion.div>
 
@@ -395,16 +405,32 @@ function LandingPage() {
           </div>
         </div>
 
-        {/* Separator Image with Parallax-ready background */}
-        <div className="mt-24 h-[400px] w-full rounded-[3rem] overflow-hidden relative">
-          <img 
-            src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop" 
-            alt="Barbeiro profissional em ação"
-            className="w-full h-full object-cover opacity-50 mix-blend-luminosity"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center space-y-4 px-6">
+
+        {/* Separator Image with Blended Background (Tradição & Futuro) */}
+        <div className="mt-24 w-full rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
+            <div className="relative h-full overflow-hidden border-r border-white/5">
+              <img 
+                src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop" 
+                alt="Instrumentos tradicionais de barbearia integrados a dispositivos digitais."
+                className="w-full h-full object-cover opacity-40 mix-blend-luminosity"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black/80" />
+            </div>
+            <div className="relative h-full overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop" 
+                alt="Tecnologia na barbearia"
+                className="w-full h-full object-cover opacity-30 mix-blend-luminosity"
+              />
+              <div className="absolute inset-0 bg-gradient-to-l from-black via-transparent to-black/80" />
+            </div>
+          </div>
+          
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+          
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center space-y-4 px-6 z-10">
               <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Elegância & Precisão</span>
               <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Onde a tradição encontra o futuro</h3>
             </div>
@@ -530,33 +556,52 @@ function LandingPage() {
               </Button>
             </div>
           </div>
+          
           <div className="relative group">
-            <LandingImage 
-              src="https://images.unsplash.com/photo-1583912267550-d44d4a3c5a61?q=80&w=2000&auto=format&fit=crop"
-              alt="Administrador analisando indicadores financeiros do Barbex em um notebook."
-              className="border-gold/10 shadow-[0_20px_50px_-15px_rgba(212,175,55,0.1)]"
-            />
-            {/* Dashboard Mockup Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center p-8 pointer-events-none">
-              <div className="w-full h-full border border-gold/20 rounded-2xl bg-black/40 backdrop-blur-[2px] p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: "Receita", val: "R$ 42.850" },
-                    { label: "Ticket Médio", val: "R$ 85,00" },
-                    { label: "Crescimento", val: "+15%" },
-                    { label: "Assinaturas", val: "128 ativas" }
-                  ].map((stat, i) => (
-                    <div key={i} className="bg-zinc-900/80 border border-white/5 p-3 rounded-xl">
-                      <div className="text-[8px] font-black uppercase tracking-widest text-slate-500">{stat.label}</div>
-                      <div className="text-gold font-black text-sm">{stat.val}</div>
+            <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {[
+                  { label: "Receita Mensal", val: "R$ 42.850", icon: TrendingUp, color: "text-green-400" },
+                  { label: "Ticket Médio", val: "R$ 85,00", icon: Target, color: "text-blue-400" },
+                  { label: "Crescimento", val: "+15%", icon: Activity, color: "text-gold" },
+                  { label: "Assinaturas", val: "128 ativas", icon: ShoppingBag, color: "text-purple-400" }
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
+                    <div className="flex justify-between items-start mb-2">
+                       <stat.icon size={16} className={stat.color} />
+                       <span className="text-[8px] font-black text-green-500 uppercase tracking-tighter">+12%</span>
                     </div>
-                  ))}
+                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">{stat.label}</div>
+                    <div className="text-lg font-black text-white italic">{stat.val}</div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-6 space-y-4">
+                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white italic">
+                    <span>Fluxo de Caixa Mensal</span>
+                    <BarChart3 size={14} className="text-gold" />
+                 </div>
+                 <div className="h-32 w-full flex items-end gap-2">
+                    {[40, 60, 45, 90, 75, 85, 100].map((h, i) => (
+                      <div key={i} className="flex-1 bg-gold/20 hover:bg-gold transition-colors rounded-t-lg" style={{ height: `${h}%` }} />
+                    ))}
+                 </div>
+              </div>
+            </div>
+
+            <div className="absolute -bottom-6 -right-6 hidden md:block animate-bounce-slow">
+              <div className="bg-black/80 backdrop-blur-md border border-gold/20 p-4 rounded-2xl shadow-2xl">
+                <div className="flex items-center gap-3">
+                  <BarChart3 size={16} className="text-gold" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white italic">Dashboard Financeiro Barbex</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* CTA 4 - Loja e Automações */}
       <CTASection
