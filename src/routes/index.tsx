@@ -32,7 +32,8 @@ import {
   Lock,
   ArrowUpRight,
   Play,
-  Heart
+  Heart,
+  Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
