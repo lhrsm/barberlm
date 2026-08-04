@@ -87,6 +87,7 @@ import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminObservabilityRouteImport } from './routes/admin.observability'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminLgpdRouteImport } from './routes/admin.lgpd'
+import { Route as AdminKnowledgeBaseRouteImport } from './routes/admin.knowledge-base'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
@@ -505,6 +506,11 @@ const AdminLgpdRoute = AdminLgpdRouteImport.update({
   path: '/lgpd',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminKnowledgeBaseRoute = AdminKnowledgeBaseRouteImport.update({
+  id: '/knowledge-base',
+  path: '/knowledge-base',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFinanceRoute = AdminFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
@@ -692,6 +698,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/knowledge-base': typeof AdminKnowledgeBaseRoute
   '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/observability': typeof AdminObservabilityRoute
@@ -794,6 +801,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/knowledge-base': typeof AdminKnowledgeBaseRoute
   '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/observability': typeof AdminObservabilityRoute
@@ -900,6 +908,7 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/knowledge-base': typeof AdminKnowledgeBaseRoute
   '/admin/lgpd': typeof AdminLgpdRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/observability': typeof AdminObservabilityRoute
@@ -1007,6 +1016,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/errors'
     | '/admin/finance'
+    | '/admin/knowledge-base'
     | '/admin/lgpd'
     | '/admin/notifications'
     | '/admin/observability'
@@ -1109,6 +1119,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/errors'
     | '/admin/finance'
+    | '/admin/knowledge-base'
     | '/admin/lgpd'
     | '/admin/notifications'
     | '/admin/observability'
@@ -1214,6 +1225,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/errors'
     | '/admin/finance'
+    | '/admin/knowledge-base'
     | '/admin/lgpd'
     | '/admin/notifications'
     | '/admin/observability'
@@ -1879,6 +1891,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLgpdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/knowledge-base': {
+      id: '/admin/knowledge-base'
+      path: '/knowledge-base'
+      fullPath: '/admin/knowledge-base'
+      preLoaderRoute: typeof AdminKnowledgeBaseRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/finance': {
       id: '/admin/finance'
       path: '/finance'
@@ -2102,6 +2121,7 @@ interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminErrorsRoute: typeof AdminErrorsRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
+  AdminKnowledgeBaseRoute: typeof AdminKnowledgeBaseRoute
   AdminLgpdRoute: typeof AdminLgpdRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminObservabilityRoute: typeof AdminObservabilityRoute
@@ -2127,6 +2147,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminErrorsRoute: AdminErrorsRoute,
   AdminFinanceRoute: AdminFinanceRoute,
+  AdminKnowledgeBaseRoute: AdminKnowledgeBaseRoute,
   AdminLgpdRoute: AdminLgpdRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminObservabilityRoute: AdminObservabilityRoute,
