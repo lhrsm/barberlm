@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Scissors, Calendar, BarChart3, Users, MessageSquare, Zap, ShieldCheck, ChevronRight, CheckCircle2, Star, Clock } from "lucide-react";
+import { Scissors, Calendar, BarChart3, Users, MessageSquare, Zap, ShieldCheck, ChevronRight, CheckCircle2, Star, Clock, Sparkles, CircleDollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
