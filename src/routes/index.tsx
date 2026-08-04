@@ -186,6 +186,7 @@ function LandingPage() {
 
 
 
+
       {/* Trust Bar / Benefits */}
       <section className="py-12 border-y border-white/5 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
