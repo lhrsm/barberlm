@@ -298,12 +298,32 @@ function LandingPage() {
             </motion.div>
           </div>
 
-          {/* New Image Feature Section */}
+          {/* Imagem 01: Operação sem fricção */}
           <div className="grid md:grid-cols-2 gap-20 items-center">
-            <LandingImage 
-              src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop"
-              alt="Barbeiro profissional trabalhando com precisão"
-            />
+            <div className="relative group">
+              <LandingImage 
+                src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop"
+                alt="Equipe trabalhando em uma barbearia moderna com apoio de tecnologia."
+                className="border-gold/10 shadow-[0_20px_50px_-15px_rgba(212,175,55,0.15)]"
+              />
+              {/* Floating Cards */}
+              <div className="absolute -top-6 -right-6 hidden md:block animate-bounce-slow">
+                <div className="bg-black/80 backdrop-blur-md border border-gold/20 p-4 rounded-2xl shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Agenda organizada</span>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-6 -left-6 hidden md:block animate-bounce-slow" style={{ animationDelay: '1s' }}>
+                <div className="bg-black/80 backdrop-blur-md border border-gold/20 p-4 rounded-2xl shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Ocupação do dia: 92%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="space-y-6">
               <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
                 Operação sem fricção. <br /> Lucratividade máxima.
@@ -338,7 +358,7 @@ function LandingPage() {
               className="relative rounded-[2.5rem] border border-white/5 bg-zinc-900/20 overflow-hidden aspect-square md:aspect-auto md:h-[500px]"
             >
               <img 
-                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop" 
                 alt="Ambiente Barbex" 
                 className="w-full h-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700"
               />
@@ -410,14 +430,48 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* About Shop Integration (Recuperando componente visual anterior) */}
-      <AboutShop 
-        shop={{ business_name: "Barbex Enterprise" }} 
-        barbers={[{}, {}, {}]} 
-        services={[{}, {}, {}, {}]} 
-        products={[{}, {}]}
-        testimonials={[{}, {}, {}]}
-      />
+      {/* Imagem 02: Tradição e cuidado */}
+      <section className="py-32 bg-zinc-950/50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Sobre Nós</span>
+              <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">
+                Tradição e cuidado <br /> em cada detalhe
+              </h2>
+            </div>
+            <p className="text-slate-400 text-lg leading-relaxed">
+              Elevamos o padrão da sua barbearia unindo a precisão da barbearia clássica com a inteligência da gestão moderna Enterprise.
+            </p>
+            
+            {/* Cards de profissionais/serviços/produtos */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="text-gold font-black text-xl">12+</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Profissionais</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="text-gold font-black text-xl">450+</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Agendamentos/mês</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative group">
+            <LandingImage 
+              src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2000&auto=format&fit=crop"
+              alt="Barbeiro realizando acabamento cuidadoso na barba de um cliente."
+              aspectRatio="portrait"
+              className="border-gold/10 shadow-2xl"
+            />
+            <div className="absolute top-8 right-8">
+              <div className="bg-gold text-black font-black uppercase tracking-widest text-[9px] px-3 py-1 rounded-full shadow-lg">
+                Experiência Premium
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA 1 - Antecipando Recursos */}
       <CTASection
@@ -459,10 +513,10 @@ function LandingPage() {
         </Button>
       </CTASection>
 
-      {/* CTA 3 - Financeiro */}
-      <section className="py-24 px-6 bg-black relative">
+      {/* Imagem 03: Financeiro & BI */}
+      <section className="py-32 px-6 bg-black relative">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
-          <div className="order-2 md:order-1 space-y-8">
+          <div className="space-y-8">
             <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Financeiro & BI</span>
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
               Dados reais para decisões inteligentes
@@ -476,11 +530,30 @@ function LandingPage() {
               </Button>
             </div>
           </div>
-          <div className="order-1 md:order-2">
+          <div className="relative group">
             <LandingImage 
               src="https://images.unsplash.com/photo-1583912267550-d44d4a3c5a61?q=80&w=2000&auto=format&fit=crop"
-              alt="Administrador analisando dados em um ambiente premium"
+              alt="Administrador analisando indicadores financeiros do Barbex em um notebook."
+              className="border-gold/10 shadow-[0_20px_50px_-15px_rgba(212,175,55,0.1)]"
             />
+            {/* Dashboard Mockup Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center p-8 pointer-events-none">
+              <div className="w-full h-full border border-gold/20 rounded-2xl bg-black/40 backdrop-blur-[2px] p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "Receita", val: "R$ 42.850" },
+                    { label: "Ticket Médio", val: "R$ 85,00" },
+                    { label: "Crescimento", val: "+15%" },
+                    { label: "Assinaturas", val: "128 ativas" }
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-zinc-900/80 border border-white/5 p-3 rounded-xl">
+                      <div className="text-[8px] font-black uppercase tracking-widest text-slate-500">{stat.label}</div>
+                      <div className="text-gold font-black text-sm">{stat.val}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -505,23 +578,31 @@ function LandingPage() {
       {/* Botão Voltar ao Topo */}
       <ScrollToTopButton />
 
-      {/* Final CTA */}
+      {/* Final CTA: Imagem 04 */}
       <CTASection
         title="Sua barbearia pode operar em outro nível"
         description="Comece seu teste gratuito e centralize toda a gestão da sua barbearia em uma única plataforma."
-        backgroundImage="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop"
-        className="py-40"
+        backgroundImage="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2000&auto=format&fit=crop"
+        className="py-48"
       >
-        <div className="w-full space-y-8">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+        <div className="w-full space-y-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Button 
+              className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" 
+              onClick={() => setShowRegisterWizard(true)}
+            >
               Começar teste grátis
             </Button>
-            <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
-              <Link to="/auth">Entrar no Sistema</Link>
+            <Button 
+              variant="outline" 
+              className="h-16 px-12 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" 
+              asChild
+            >
+              <Link to="/auth" search={{ tab: "login" }}>Entrar no Sistema</Link>
             </Button>
           </div>
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          
+          <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> 15 dias grátis</div>
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Sem cartão de crédito</div>
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Cancele quando quiser</div>

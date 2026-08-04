@@ -113,15 +113,15 @@ export function CTASection({
             <img 
               src={backgroundImage} 
               alt="" 
-              className="w-full h-full object-cover opacity-40 mix-blend-luminosity"
+              className="w-full h-full object-cover opacity-85 mix-blend-normal"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05),transparent_70%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.15),transparent_70%)]" />
           </div>
           <motion.div 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            className="absolute inset-0 z-[1] bg-black/40 backdrop-blur-[2px]"
+            className="absolute inset-0 z-[1] bg-black/60 backdrop-blur-[1px]"
           />
         </>
       )}
