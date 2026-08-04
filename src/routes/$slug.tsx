@@ -1062,7 +1062,7 @@ function ShopPageComponent() {
       if (resolvedCustomerId) {
         const name = customerName || (currentCustomer as any)?.name;
         if (name) setCustomerName(name);
-        if ((currentCustomer as any)?.id) setCustomerId(currentCustomer.id);
+        if ((currentCustomer as any)?.id) setCustomerId((currentCustomer as any).id);
 
         // CRITICAL: check active subscription BEFORE advancing to step 2
         // so the premium chooser renders instead of the regular service list.
