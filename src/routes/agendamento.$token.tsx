@@ -20,7 +20,8 @@ import {
   CalendarDays,
   Trash2,
   DollarSign,
-  LayoutDashboard
+  LayoutDashboard,
+  HelpCircle
 } from "lucide-react";
 import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -44,6 +45,24 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useCustomerCancellation, type CancellationStep, type FinancialStatus } from "@/hooks/use-customer-cancellation";
 import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { HelpTooltip, ContextualTip } from "@/components/help-center/HelpContext";
+
+const appointmentHelpConfig = {
+  moduleKey: 'appointment-management',
+  routePath: '/agendamento/$token',
+  title: 'Gerenciar seu Agendamento',
+  summary: 'Aqui você pode confirmar presença, reagendar para outro horário ou solicitar o cancelamento.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como reagendar?', answer: 'Clique no botão "Reagendar" e escolha uma nova data e horário disponível.' },
+    { question: 'Vou receber reembolso ao cancelar?', answer: 'Depende da política da barbearia. O sistema informará se haverá estorno, crédito ou perda do valor pago.' }
+  ],
+  commonIssues: [
+    { issue: 'Não aparecem horários para reagendar', solution: 'Isso acontece quando o profissional não tem mais vagas no dia selecionado.' }
+  ]
+};
+
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
@@ -508,12 +527,16 @@ function AppointmentManagementPage() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
+      <div className="w-full max-w-md flex justify-end mb-4">
+        <HelpDrawer config={appointmentHelpConfig} />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="text-center mb-10 mt-6">
+        <div className="text-center mb-10">
           <h1 className="text-3xl font-black text-primary uppercase italic tracking-tighter mb-1">
             {appointment.business_name}
           </h1>
@@ -625,30 +648,34 @@ function AppointmentManagementPage() {
 
                   <div className="pt-8 border-t border-zinc-800/50 flex flex-col gap-4">
                     {canReschedule && (
-                      <Button 
-                        onClick={async () => {
-                          const actorEvt = await detectActor();
-                          const mapped = actorEvt === 'by_barber' ? 'barber' : actorEvt === 'by_shop' ? 'shop' : 'customer';
-                          setRescheduleActor(mapped);
-                          setShowRescheduleWizard(true);
-                        }}
-                        className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden"
-                        style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
-                      >
-                        <RefreshCcw className="mr-3 h-6 w-6 shrink-0" /> 
-                        <span>Reagendar Atendimento</span>
-                      </Button>
+                      <HelpTooltip content="Você pode alterar a data e o horário do seu serviço sem custo extra, desde que haja disponibilidade.">
+                        <Button 
+                          onClick={async () => {
+                            const actorEvt = await detectActor();
+                            const mapped = actorEvt === 'by_barber' ? 'barber' : actorEvt === 'by_shop' ? 'shop' : 'customer';
+                            setRescheduleActor(mapped);
+                            setShowRescheduleWizard(true);
+                          }}
+                          className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden"
+                          style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
+                        >
+                          <RefreshCcw className="mr-3 h-6 w-6 shrink-0" /> 
+                          <span>Reagendar Atendimento</span>
+                        </Button>
+                      </HelpTooltip>
                     )}
                     
                     {canCancel && (
-                      <Button 
-                        onClick={handleInitialCancelClick}
-                        className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden shadow-lg shadow-red-900/20"
-                        style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
-                      >
-                        <Trash2 className="mr-3 h-6 w-6 shrink-0" /> 
-                        <span>Cancelar Agendamento</span>
-                      </Button>
+                      <HelpTooltip content="O cancelamento está sujeito à política da barbearia. Clique para ver as opções disponíveis.">
+                        <Button 
+                          onClick={handleInitialCancelClick}
+                          className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden shadow-lg shadow-red-900/20"
+                          style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
+                        >
+                          <Trash2 className="mr-3 h-6 w-6 shrink-0" /> 
+                          <span>Cancelar Agendamento</span>
+                        </Button>
+                      </HelpTooltip>
                     )}
 
                     <Button 
