@@ -32,7 +32,8 @@ import {
   Lock,
   ArrowUpRight,
   Play,
-  Heart
+  Heart,
+  Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ import { BarbexLogo } from "@/components/ui/barbex-logo";
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
+import { RegisterWizard } from "@/components/auth/RegisterWizard";
 import { 
   Instagram, 
   Facebook, 
@@ -54,6 +56,7 @@ import {
 function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showRegisterWizard, setShowRegisterWizard] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -83,8 +86,8 @@ function LandingPage() {
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-4">
-              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" asChild>
-                <Link to="/auth" search={{ tab: "register" }} onClick={() => setIsMobileMenuOpen(false)}>Testar Grátis</Link>
+              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" onClick={() => { setIsMobileMenuOpen(false); setShowRegisterWizard(true); }}>
+                Testar Grátis
               </Button>
               <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black uppercase tracking-widest" asChild>
                 <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Entrar no Sistema</Link>
@@ -112,10 +115,10 @@ function LandingPage() {
           
           <div className="hidden md:flex gap-4">
             <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
-              <Link to="/auth">Entrar</Link>
+              <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
             </Button>
-            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" asChild>
-              <Link to="/auth" search={{ tab: "register" }}>Testar Grátis</Link>
+            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+              Testar Grátis
             </Button>
           </div>
           
@@ -139,8 +142,8 @@ function LandingPage() {
             Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" asChild>
-              <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
+            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+              Começar teste grátis
             </Button>
             <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
               <a href="#demo" className="flex items-center gap-2">
@@ -156,6 +159,52 @@ function LandingPage() {
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Configuração simples</div>
           </motion.div>
         </div>
+      </section>
+
+      {/* System Mockup Visual */}
+      <section className="relative -mt-10 mb-20 px-6 max-w-7xl mx-auto overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          className="relative rounded-[3rem] overflow-hidden border border-white/10 bg-zinc-900/50 backdrop-blur-3xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
+          <img 
+            src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000" 
+            alt="Barbex Dashboard" 
+            className="w-full h-auto opacity-40 mix-blend-overlay grayscale hover:grayscale-0 transition-all duration-700"
+          />
+          
+          {/* Floating UI Elements */}
+          <div className="absolute top-10 left-10 p-6 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl hidden lg:block">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
+                <Scissors className="text-gold" size={20} />
+              </div>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Próximo Agendamento</div>
+                <div className="text-sm font-bold text-white uppercase italic">Corte Degrade • 14:30</div>
+              </div>
+            </div>
+            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="h-full w-2/3 bg-gold" />
+            </div>
+          </div>
+
+          <div className="absolute bottom-10 right-10 p-6 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl hidden lg:block">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                <Check size={20} className="text-green-500" />
+              </div>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Faturamento Hoje</div>
+                <div className="text-xl font-black text-white italic">R$ 1.250,00</div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Trust Bar / Benefits */}
@@ -428,9 +477,9 @@ function LandingPage() {
                       ? "bg-gold text-black hover:bg-gold/90 shadow-lg" 
                       : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
                   )}
-                  asChild
+                  onClick={() => setShowRegisterWizard(true)}
                 >
-                  <Link to="/auth" search={{ tab: "register", plan: key }}>Selecionar {key}</Link>
+                  Selecionar {key}
                 </Button>
               </motion.div>
             ))}
@@ -465,8 +514,8 @@ function LandingPage() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" asChild>
-              <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
+            <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+              Começar teste grátis
             </Button>
             <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
               <Link to="/auth">Entrar no Sistema</Link>
@@ -524,6 +573,9 @@ function LandingPage() {
         </div>
       </footer>
 
+      {showRegisterWizard && (
+        <RegisterWizard onClose={() => setShowRegisterWizard(false)} />
+      )}
     </div>
   );
 }
@@ -531,9 +583,12 @@ function LandingPage() {
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
+    title: "Barbex | Gestão Premium para Barbearias Enterprise",
     meta: [
-      { title: "Barbex | Gestão completa para barbearias" },
-      { name: "description", content: "Gerencie agenda, clientes, profissionais, financeiro, loja, assinaturas, automações e muito mais com o Barbex." }
+      { name: "description", content: "O ecossistema completo para elevar o nível da sua barbearia. Agenda inteligente, CRM 360°, Financeiro & BI e Automações WhatsApp." },
+      { property: "og:title", content: "Barbex | Gestão Premium para Barbearias Enterprise" },
+      { property: "og:description", content: "Transforme sua barbearia em um negócio de alto nível com tecnologia de ponta." },
+      { name: "twitter:card", content: "summary_large_image" }
     ]
   })
 });

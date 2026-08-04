@@ -15,10 +15,10 @@ export function BarbexLogo({
   size = "md" 
 }: BarbexLogoProps) {
   const sizes = {
-    sm: variant === "symbol" ? "h-6 w-6" : "h-6",
-    md: variant === "symbol" ? "h-10 w-10" : "h-10",
-    lg: variant === "symbol" ? "h-16 w-16" : "h-16",
-    xl: variant === "symbol" ? "h-24 w-24" : "h-24",
+    sm: variant === "symbol" ? "h-10 w-10" : "h-10",
+    md: variant === "symbol" ? "h-16 w-16" : "h-16",
+    lg: variant === "symbol" ? "h-24 w-24" : "h-24",
+    xl: variant === "symbol" ? "h-40 w-40" : "h-40",
   };
 
   return (
