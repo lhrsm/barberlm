@@ -648,30 +648,34 @@ function AppointmentManagementPage() {
 
                   <div className="pt-8 border-t border-zinc-800/50 flex flex-col gap-4">
                     {canReschedule && (
-                      <Button 
-                        onClick={async () => {
-                          const actorEvt = await detectActor();
-                          const mapped = actorEvt === 'by_barber' ? 'barber' : actorEvt === 'by_shop' ? 'shop' : 'customer';
-                          setRescheduleActor(mapped);
-                          setShowRescheduleWizard(true);
-                        }}
-                        className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden"
-                        style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
-                      >
-                        <RefreshCcw className="mr-3 h-6 w-6 shrink-0" /> 
-                        <span>Reagendar Atendimento</span>
-                      </Button>
+                      <HelpTooltip content="Você pode alterar a data e o horário do seu serviço sem custo extra, desde que haja disponibilidade.">
+                        <Button 
+                          onClick={async () => {
+                            const actorEvt = await detectActor();
+                            const mapped = actorEvt === 'by_barber' ? 'barber' : actorEvt === 'by_shop' ? 'shop' : 'customer';
+                            setRescheduleActor(mapped);
+                            setShowRescheduleWizard(true);
+                          }}
+                          className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden"
+                          style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
+                        >
+                          <RefreshCcw className="mr-3 h-6 w-6 shrink-0" /> 
+                          <span>Reagendar Atendimento</span>
+                        </Button>
+                      </HelpTooltip>
                     )}
                     
                     {canCancel && (
-                      <Button 
-                        onClick={handleInitialCancelClick}
-                        className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden shadow-lg shadow-red-900/20"
-                        style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
-                      >
-                        <Trash2 className="mr-3 h-6 w-6 shrink-0" /> 
-                        <span>Cancelar Agendamento</span>
-                      </Button>
+                      <HelpTooltip content="O cancelamento está sujeito à política da barbearia. Clique para ver as opções disponíveis.">
+                        <Button 
+                          onClick={handleInitialCancelClick}
+                          className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden shadow-lg shadow-red-900/20"
+                          style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
+                        >
+                          <Trash2 className="mr-3 h-6 w-6 shrink-0" /> 
+                          <span>Cancelar Agendamento</span>
+                        </Button>
+                      </HelpTooltip>
                     )}
 
                     <Button 
