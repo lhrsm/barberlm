@@ -224,7 +224,7 @@ function LandingPage() {
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Um único sistema para toda a operação</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-auto md:grid-rows-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-auto md:grid-rows-2 gap-6 mb-20">
             {/* Main Feature */}
             <motion.div 
               whileHover={{ y: -5 }}
@@ -274,6 +274,27 @@ function LandingPage() {
                 <p className="text-slate-400 text-sm leading-relaxed">Fluxo de caixa, DRE gerencial, comissões automáticas e indicadores de saúde do negócio.</p>
               </div>
             </motion.div>
+          </div>
+
+          {/* New Image Feature Section */}
+          <div className="grid md:grid-cols-2 gap-20 items-center">
+            <LandingImage 
+              src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop"
+              alt="Barbeiro profissional trabalhando com precisão"
+            />
+            <div className="space-y-6">
+              <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
+                Operação sem fricção. <br /> Lucratividade máxima.
+              </h3>
+              <p className="text-slate-400 text-lg">
+                O Barbex foi desenhado para eliminar gargalos operacionais e permitir que você foque no que realmente importa: a arte e a experiência do cliente.
+              </p>
+              <div className="flex items-center gap-4 pt-4">
+                <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+                  Conhecer todos os recursos
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
