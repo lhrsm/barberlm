@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as TutorialsRouteImport } from './routes/tutorials'
 import { Route as TrustRouteImport } from './routes/trust'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -114,6 +115,11 @@ import { Route as ApiPublicHooksAddonsReconcileRouteImport } from './routes/api/
 import { Route as ApiPublicHooksAddonsCleanupRouteImport } from './routes/api/public/hooks/addons-cleanup'
 import { Route as AcademyPathIdLessonsLessonIdRouteImport } from './routes/academy.$pathId.lessons.$lessonId'
 
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
   path: '/tutorials',
@@ -689,6 +695,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
+  '/updates': typeof UpdatesRoute
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -792,6 +799,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
+  '/updates': typeof UpdatesRoute
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -899,6 +907,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
   '/tutorials': typeof TutorialsRoute
+  '/updates': typeof UpdatesRoute
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
@@ -1007,6 +1016,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trust'
     | '/tutorials'
+    | '/updates'
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -1110,6 +1120,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trust'
     | '/tutorials'
+    | '/updates'
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -1216,6 +1227,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trust'
     | '/tutorials'
+    | '/updates'
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
@@ -1323,6 +1335,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrustRoute: typeof TrustRoute
   TutorialsRoute: typeof TutorialsRoute
+  UpdatesRoute: typeof UpdatesRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
@@ -1345,6 +1358,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tutorials': {
       id: '/tutorials'
       path: '/tutorials'
@@ -2293,6 +2313,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrustRoute: TrustRoute,
   TutorialsRoute: TutorialsRoute,
+  UpdatesRoute: UpdatesRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ReviewTokenRoute: ReviewTokenRoute,
