@@ -547,7 +547,7 @@ function ClientPortalComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
-      const times = [];
+      const times: string[] = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;

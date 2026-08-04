@@ -817,8 +817,8 @@ function ShopPageComponent() {
         const statsMap = new Map((stats || []).map((s: any) => [s.barber_id, s]));
         barbersWithStats = barberList.map((b: any) => ({
           ...b,
-          avg_rating: statsMap.get(b.id)?.avg_rating ?? null,
-          total_ratings: statsMap.get(b.id)?.total_ratings ?? 0,
+          avg_rating: (statsMap.get(b.id) as any)?.avg_rating ?? null,
+          total_ratings: (statsMap.get(b.id) as any)?.total_ratings ?? 0,
         }));
       }
       setBarbers(barbersWithStats);
@@ -1057,12 +1057,12 @@ function ShopPageComponent() {
         currentCustomer = data;
       }
 
-      const resolvedCustomerId = customerId || currentCustomer?.id || null;
+      const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
 
       if (resolvedCustomerId) {
-        const name = customerName || currentCustomer?.name;
+        const name = customerName || (currentCustomer as any)?.name;
         if (name) setCustomerName(name);
-        if (currentCustomer?.id) setCustomerId(currentCustomer.id);
+        if ((currentCustomer as any)?.id) setCustomerId(currentCustomer.id);
 
         // CRITICAL: check active subscription BEFORE advancing to step 2
         // so the premium chooser renders instead of the regular service list.

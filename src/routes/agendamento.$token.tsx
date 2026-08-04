@@ -239,7 +239,7 @@ function AppointmentManagementPage() {
         return;
       }
 
-      const times = [];
+      const times: string[] = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const [y, m, d] = selectedDate.split('-').map(Number);
