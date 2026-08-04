@@ -44,6 +44,7 @@ import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
 import { RegisterWizard } from "@/components/auth/RegisterWizard";
+import { SystemMockup } from "@/components/public/SystemMockup";
 import { 
   Instagram, 
   Facebook, 
@@ -161,51 +162,13 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* System Mockup Visual */}
-      <section className="relative -mt-10 mb-20 px-6 max-w-7xl mx-auto overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-          className="relative rounded-[3rem] overflow-hidden border border-white/10 bg-zinc-900/50 backdrop-blur-3xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]"
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
-          <img 
-            src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000" 
-            alt="Barbex Dashboard" 
-            className="w-full h-auto opacity-40 mix-blend-overlay grayscale hover:grayscale-0 transition-all duration-700"
-          />
-          
-          {/* Floating UI Elements */}
-          <div className="absolute top-10 left-10 p-6 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl hidden lg:block">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
-                <Scissors className="text-gold" size={20} />
-              </div>
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Próximo Agendamento</div>
-                <div className="text-sm font-bold text-white uppercase italic">Corte Degrade • 14:30</div>
-              </div>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full w-2/3 bg-gold" />
-            </div>
-          </div>
 
-          <div className="absolute bottom-10 right-10 p-6 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl hidden lg:block">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                <Check size={20} className="text-green-500" />
-              </div>
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Faturamento Hoje</div>
-                <div className="text-xl font-black text-white italic">R$ 1.250,00</div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+      {/* System Mockup Visual */}
+      <section className="relative w-full px-6 max-w-7xl mx-auto overflow-hidden">
+        <SystemMockup />
       </section>
+
+
 
       {/* Trust Bar / Benefits */}
       <section className="py-12 border-y border-white/5 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
