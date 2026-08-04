@@ -263,6 +263,10 @@ function ProductsComponent() {
     <AppLayout>
       <div className="min-h-screen bg-[#05070d] text-white">
         <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+          <div className="flex justify-end -mb-4">
+            <HelpDrawer config={productsHelpConfig} />
+          </div>
+
           {/* HEADER */}
           <header className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
