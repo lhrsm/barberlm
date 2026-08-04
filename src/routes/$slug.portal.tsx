@@ -116,9 +116,50 @@ export const Route = createFileRoute("/$slug/portal")({
 
 
 
-const customerOnboardingConfig = {
-  key: 'customer-portal-onboarding',
-  title: 'Bem-vindo à Barbex',
+  const clientPortalHelpConfig = {
+    moduleKey: 'client-portal',
+    routePath: `/${slug}/portal`,
+    title: 'Portal do Cliente',
+    summary: 'Gerencie seus agendamentos, visualize seu histórico e aproveite seus benefícios exclusivos.',
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    faqs: [
+      { question: 'Como desmarcar um horário?', answer: 'Na aba Início, localize o agendamento e clique no ícone de lixeira ou "Cancelar".' },
+      { question: 'Como ver meus pontos de fidelidade?', answer: 'Seus pontos e benefícios aparecem logo no topo da página inicial do portal.' }
+    ],
+    commonIssues: [
+      { issue: 'Não consigo fazer login', solution: 'Certifique-se de usar o mesmo número de WhatsApp cadastrado no momento do agendamento.' }
+    ]
+  };
+
+  const clientPortalOnboardingConfig = {
+    userId: client?.customer_id || 'guest',
+    tenantId: shop.user_id,
+    steps: [
+      {
+        key: 'check-appointments',
+        title: 'Ver Agendamentos',
+        description: 'Confirme seus próximos horários marcados.',
+        target: '[data-tour="portal-appointments"]'
+      },
+      {
+        key: 'check-benefits',
+        title: 'Meus Benefícios',
+        description: 'Veja seus pontos e cupons disponíveis.',
+        target: '[data-tour="portal-benefits"]'
+      },
+      {
+        key: 'update-profile',
+        title: 'Completar Perfil',
+        description: 'Mantenha seus dados atualizados para agilizar o atendimento.',
+        target: '[data-tour="portal-profile"]'
+      }
+    ]
+  };
+
+  const customerOnboardingConfig = {
+    key: 'customer-portal-onboarding',
+    title: 'Bem-vindo à Barbex',
+
   steps: [
     {
       key: 'next-appointment',
