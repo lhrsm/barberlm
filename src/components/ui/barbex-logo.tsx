@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import logoData from "@/assets/logo-barbex.png.asset.json";
 
 interface BarbexLogoProps {
   className?: string;
@@ -20,14 +21,10 @@ export function BarbexLogo({
     xl: variant === "symbol" ? "h-24 w-24" : "h-24",
   };
 
-  // Note: Using the official logo asset found in the project.
-  // The symbol variant uses the same image but might be clipped or styled differently if needed.
-  // For now, both use the main logo-barbex image which is the source of truth.
-  
   return (
     <div className={cn("relative flex items-center select-none", className)}>
       <img 
-        src="/src/assets/logo-barbex.png" 
+        src={logoData.url} 
         alt="Barbex Logo" 
         className={cn(
           "object-contain transition-all duration-300",
@@ -41,3 +38,4 @@ export function BarbexLogo({
     </div>
   );
 }
+
