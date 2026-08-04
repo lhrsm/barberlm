@@ -3,7 +3,23 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function PortalFaq() {
+type Props = {
+  shop?: any;
+  productsEnabled?: boolean;
+  subscriptionsEnabled?: boolean;
+  cashbackEnabled?: boolean;
+  couponsEnabled?: boolean;
+  loyaltyEnabled?: boolean;
+};
+
+export function PortalFaq({
+  shop,
+  productsEnabled = true,
+  subscriptionsEnabled = true,
+  cashbackEnabled = true,
+  couponsEnabled = true,
+  loyaltyEnabled = true,
+}: Props) {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   const faqs = [
