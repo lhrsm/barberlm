@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { BarbexLogo } from "@/components/ui/barbex-logo";
 
 interface LandingImageProps {
   src: string;
   alt: string;
   className?: string;
   overlayClassName?: string;
-  aspectRatio?: "video" | "square" | "portrait" | "auto";
+  aspectRatio?: "video" | "square" | "portrait" | "auto" | "full";
   priority?: boolean;
 }
 
@@ -18,11 +20,15 @@ export function LandingImage({
   aspectRatio = "video",
   priority = false
 }: LandingImageProps) {
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
   const aspectClasses = {
     video: "aspect-video",
     square: "aspect-square",
     portrait: "aspect-[3/4]",
-    auto: "aspect-auto"
+    auto: "aspect-auto",
+    full: "h-full w-full"
   };
 
   return (
@@ -36,16 +42,42 @@ export function LandingImage({
         className
       )}
     >
-      <img
-        src={src}
-        alt={alt}
-        loading={priority ? "eager" : "lazy"}
-        className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-      />
-      <div className={cn(
-        "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent",
-        overlayClassName
-      )} />
+      {isLoading && !isError && (
+        <div className="absolute inset-0 bg-zinc-800 animate-pulse flex items-center justify-center">
+          <BarbexLogo size="sm" className="opacity-20" />
+        </div>
+      )}
+
+      {isError ? (
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center text-gold mb-4">
+            <BarbexLogo size="sm" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Asset indisponível</span>
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsError(true);
+            setIsLoading(false);
+          }}
+          className={cn(
+            "h-full w-full object-cover transition-transform duration-700 hover:scale-105",
+            isLoading ? "opacity-0" : "opacity-100"
+          )}
+        />
+      )}
+      
+      {!isError && (
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent",
+          overlayClassName
+        )} />
+      )}
     </motion.div>
   );
 }
