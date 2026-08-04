@@ -45,7 +45,10 @@ import {
   ShieldCheck,
   Download,
   Trash2,
+  HelpCircle
 } from "lucide-react";
+import { OnboardingChecklist } from "@/components/help-center/OnboardingChecklist";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
 import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -113,15 +116,81 @@ export const Route = createFileRoute("/$slug/portal")({
 
 
 
+
+
+
+const portalHelpConfig = {
+  moduleKey: 'customer_portal',
+  routePath: '/$slug/portal',
+  title: 'Portal do Cliente',
+  summary: 'Aqui você gerencia toda sua jornada na barbearia: agendamentos, assinaturas, cashback e compras.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como cancelo um horário?', answer: 'Vá em Agendamentos, selecione o horário e clique em Cancelar.' },
+    { question: 'Como uso meu cashback?', answer: 'Ao finalizar um pagamento na barbearia, informe que deseja usar seu saldo.' }
+  ],
+  relatedArticles: [
+    { title: 'Política de Cancelamento', href: '#' },
+    { title: 'Regras do Clube Barbex', href: '#' }
+  ]
+};
+
 function ClientPortalComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
-  // DEBUG LOGS
-  console.log('SLUG', slug);
+
+  const clientPortalHelpConfig = {
+    moduleKey: 'client-portal',
+    routePath: `/${slug}/portal`,
+    title: 'Portal do Cliente',
+    summary: 'Gerencie seus agendamentos, visualize seu histórico e aproveite seus benefícios exclusivos.',
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    faqs: [
+      { question: 'Como desmarcar um horário?', answer: 'Na aba Início, localize o agendamento e clique no ícone de lixeira ou "Cancelar".' },
+      { question: 'Como ver meus pontos de fidelidade?', answer: 'Seus pontos e benefícios aparecem logo no topo da página inicial do portal.' }
+    ],
+    commonIssues: [
+      { issue: 'Não consigo fazer login', solution: 'Certifique-se de usar o mesmo número de WhatsApp cadastrado no momento do agendamento.' }
+    ]
+  };
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
+
+  const clientPortalOnboardingConfig = {
+    key: 'portal-onboarding',
+    title: 'Explore seu Portal',
+    userId: client?.customer_id || 'guest',
+    tenantId: shop?.user_id,
+    steps: [
+      {
+        key: 'next-appointment',
+        title: 'Ver Agendamentos',
+        description: 'Aqui você acompanha seus próximos horários marcados.',
+        target: '[data-tour="portal-appointments"]',
+        actionLabel: 'Ver Agendamentos'
+      },
+      {
+        key: 'loyalty-points',
+        title: 'Meus Benefícios',
+        description: 'Veja seus pontos de fidelidade e cupons disponíveis.',
+        target: '[data-tour="portal-benefits"]',
+        actionLabel: 'Meus Pontos'
+      },
+      {
+        key: 'profile-settings',
+        title: 'Completar Perfil',
+        description: 'Mantenha seus dados atualizados para agilizar seu check-in.',
+        target: '[data-tour="portal-profile"]',
+        actionLabel: 'Editar Perfil'
+      }
+    ]
+  };
+
+  // DEBUG LOGS
+  console.log('SLUG', slug);
   const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
   const loyaltyEnabled = isModuleEnabled("loyalty");
   const cashbackEnabled = isModuleEnabled("cashback");
@@ -1135,14 +1204,17 @@ function ClientPortalComponent() {
 
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black relative">
+      <OnboardingChecklist config={clientPortalOnboardingConfig} />
       <header className="bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-[60]">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="font-bold text-lg flex items-center gap-3 text-gold">
             <img src={barbexLogo.url} alt="Barbex" className="h-12 sm:h-14 md:h-16 w-auto drop-shadow-[0_0_10px_rgba(212,175,55,0.35)]" />
             <span className="hidden sm:inline">Portal do Cliente</span>
           </h1>
-          <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <div className="flex items-center gap-3">
+            <HelpDrawer config={clientPortalHelpConfig} />
+            <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
             <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
@@ -1153,7 +1225,6 @@ function ClientPortalComponent() {
               >
                 <LogOut size={14} className="transition-transform group-hover:-translate-x-0.5" />
               </Button>
-
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">
               <AlertDialogHeader>
@@ -1178,8 +1249,10 @@ function ClientPortalComponent() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          </div>
         </div>
       </header>
+
 
       <PortalNavigation 
         activeTab={activeTab}

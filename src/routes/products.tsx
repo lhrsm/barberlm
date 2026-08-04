@@ -36,7 +36,8 @@ import {
   Tag,
   Star,
   Layers,
-  LayoutGrid
+  LayoutGrid,
+  HelpCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,12 +49,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { withModule } from "@/components/modules/withModule";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { HelpTooltip, ContextualTip } from "@/components/help-center/HelpContext";
+
 
 export const Route = createFileRoute("/products")({
   component: withModule("products", "Loja / Produtos", ProductsComponent),
 });
 
+
+const productsHelpConfig = {
+  moduleKey: 'products',
+  routePath: '/products',
+  title: 'Catálogo de Produtos & Estoque',
+  summary: 'Gerencie seu inventário, crie combos promocionais e monitore suas vendas de varejo.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como cadastrar um produto com variação?', answer: 'No momento, o Barbex suporta cadastros individuais. Para variações, recomendamos incluir o tamanho/tipo no nome do produto.' },
+    { question: 'O estoque é atualizado automaticamente?', answer: 'Sim, a cada venda realizada no checkout ou comanda digital, o sistema abate a quantidade do estoque.' }
+  ],
+  commonIssues: [
+    { issue: 'Produto não aparece na comanda', solution: 'Certifique-se de que a categoria do produto está ativa e o status do produto é "Disponível".' }
+  ]
+};
+
 function ProductsComponent() {
+
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
@@ -263,6 +284,10 @@ function ProductsComponent() {
     <AppLayout>
       <div className="min-h-screen bg-[#05070d] text-white">
         <div className="p-4 md:p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
+          <div className="flex justify-end -mb-4">
+            <HelpDrawer config={productsHelpConfig} />
+          </div>
+
           {/* HEADER */}
           <header className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">

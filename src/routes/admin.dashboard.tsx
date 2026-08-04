@@ -38,12 +38,57 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+import { OnboardingChecklist } from "@/components/help-center/OnboardingChecklist";
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
   errorComponent: DefaultRouteError,
   notFoundComponent: DefaultRouteNotFound,
 });
+
+const adminOnboardingConfig = {
+  key: 'admin-onboarding',
+  title: 'Guia de Ativação Barbex',
+  steps: [
+    {
+      key: 'shop-data',
+      title: 'Dados da Barbearia',
+      description: 'Complete o perfil público com endereço e links sociais.',
+      actionLabel: 'Configurar'
+    },
+    {
+      key: 'logo',
+      title: 'Inserir Logotipo',
+      description: 'Personalize sua marca no portal e nos vouchers.',
+      actionLabel: 'Upload'
+    },
+    {
+      key: 'services',
+      title: 'Cadastrar Serviços',
+      description: 'Adicione seus cortes, barbas e tratamentos.',
+      actionLabel: 'Cadastrar'
+    },
+    {
+      key: 'barbers',
+      title: 'Equipe Técnica',
+      description: 'Cadastre seus profissionais e vincule aos serviços.',
+      actionLabel: 'Cadastrar'
+    },
+    {
+      key: 'whatsapp',
+      title: 'Configurar WhatsApp',
+      description: 'Ative as notificações automáticas via Z-API.',
+      actionLabel: 'Conectar'
+    },
+    {
+      key: 'publish',
+      title: 'Publicar Loja',
+      description: 'Torne sua página visível para agendamentos online.',
+      actionLabel: 'Publicar'
+    }
+  ]
+};
+
 
 function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -209,8 +254,11 @@ function AdminDashboard() {
         </motion.div>
       </section>
 
+      <OnboardingChecklist config={adminOnboardingConfig} />
+
       {/* Anomaly Alerts — top priority visibility */}
       <AnomalyAlerts />
+
 
       {/* SaaS Metrics (MRR/ARR/Churn/Conversion) */}
       <SaasMetricsCards />

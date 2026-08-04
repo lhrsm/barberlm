@@ -31,6 +31,8 @@ import { useTransactionMutations } from "@/hooks/use-transaction-mutations";
 import { useFinancesSummary } from "@/hooks/use-finances-summary";
 import { useFinancesActions } from "@/hooks/use-finances-actions";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { HelpCircle } from "lucide-react";
 
 
 export const Route = createFileRoute("/finances")({
@@ -38,6 +40,21 @@ export const Route = createFileRoute("/finances")({
   errorComponent: DefaultRouteError,
   notFoundComponent: DefaultRouteNotFound,
 });
+
+const financesHelpConfig = {
+  moduleKey: 'finances',
+  routePath: '/finances',
+  title: 'Gestão Financeira ERP',
+  summary: 'Tenha controle total sobre suas receitas, despesas, comissões e fluxo de caixa com análise preditiva.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como exportar DRE?', answer: 'Acesse a aba Visão Gerencial e utilize o botão Exportar no topo da página.' },
+    { question: 'Como funciona o cálculo de comissão?', answer: 'As comissões são calculadas automaticamente com base no percentual definido no perfil do barbeiro.' }
+  ],
+  commonIssues: [
+    { issue: 'Valor incorreto no fechamento', solution: 'Verifique se existem agendamentos pendentes de pagamento no dia anterior.' }
+  ]
+};
 
 function FinancesComponent() {
   const queryClient = useQueryClient();
@@ -187,6 +204,9 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <div className="flex justify-end mb-2">
+          <HelpDrawer config={financesHelpConfig} />
+        </div>
         <FinancesHeader
           role={role}
           globalPeriod={globalPeriod}

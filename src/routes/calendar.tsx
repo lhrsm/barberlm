@@ -15,7 +15,8 @@ import {
   Crown,
   CheckCircle2,
   RefreshCcw,
-  UserPlus
+  UserPlus,
+  HelpCircle
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
@@ -29,15 +30,16 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate, Link, createFileRoute } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { GuidedTour } from "@/components/help-center/GuidedTour";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +60,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+
+const calendarHelpConfig = {
+  moduleKey: 'calendar',
+  routePath: '/calendar',
+  title: 'Gestão da Agenda',
+  summary: 'Visualize e gerencie todos os agendamentos da sua barbearia em tempo real.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como marcar um Walk-in?', answer: 'Clique no botão "+" no topo e escolha "Adicionar Fila de Espera".' },
+    { question: 'Posso bloquear horários?', answer: 'Sim, clique no horário desejado e selecione "Bloquear Horário" para folgas ou manutenções.' }
+  ],
+  commonIssues: [
+    { issue: 'Horário indisponível mas aparece livre', solution: 'Verifique se o profissional vinculado ao serviço possui escala definida para este dia.' }
+  ]
+};
 
 function getCalendarStatusConfig(status: string) {
   const normalized = String(status || '').toLowerCase();
@@ -126,7 +143,25 @@ function getCalendarStatusConfig(status: string) {
   };
 }
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8);
+
+const calendarTourConfig = {
+  key: 'calendar-tour',
+  version: '1.0.0',
+  steps: [
+    {
+      target: '[data-tour="calendar-view"]',
+      title: 'A Agenda Principal',
+      description: 'Aqui você vê todos os agendamentos organizados por profissional e horário.',
+      position: 'bottom' as const
+    },
+    {
+      target: '[data-tour="calendar-actions"]',
+      title: 'Ações Rápidas',
+      description: 'Use estes botões para criar agendamentos, check-ins ou gerenciar a fila de espera.',
+      position: 'bottom' as const
+    }
+  ]
+};
 
 const CalendarComponent = memo(() => {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
@@ -226,16 +261,9 @@ const CalendarComponent = memo(() => {
     };
   }, [user, currentDate, view]);
 
-  const weekDays = useMemo(() => {
-    const start = startOfWeek(currentDate, { weekStartsOn: 0 });
-    return eachDayOfInterval({ start, end: addDays(start, 6) });
-  }, [currentDate]);
-
+  const isToday = isSameDay(currentDate, new Date());
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
   const todayRevenue = useMemo(() => todayApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0), [todayApps]);
-  const todayWalkins = useMemo(() => todayApps.filter(a => a.appointment_type === 'walk_in').length, [todayApps]);
-  const todayOnline = todayApps.length - todayWalkins;
-  const isToday = isSameDay(currentDate, new Date());
 
   if (loading || !user) return null;
 
@@ -251,7 +279,15 @@ const CalendarComponent = memo(() => {
 
   return (
     <AppLayout>
+      <GuidedTour config={calendarTourConfig} />
       <div className="flex flex-col h-full space-y-4 bg-[#05070d] p-3 md:p-8 min-h-screen text-white max-w-full overflow-x-hidden">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gold">Agenda</h1>
+          </div>
+          <HelpDrawer config={calendarHelpConfig} />
+        </div>
+
         {!canAddAppointment && (
           <Alert className="bg-amber-950/30 border-amber-900/50 rounded-2xl">
             <Crown className="h-4 w-4 text-[#F5C542]" />
@@ -340,5 +376,5 @@ const CalendarComponent = memo(() => {
 });
 
 export const Route = createFileRoute("/calendar")({
-  component: CalendarComponent,
+  component: () => <CalendarComponent />,
 });
