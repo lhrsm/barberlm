@@ -404,6 +404,7 @@ function LandingPage() {
           </div>
         </div>
 
+
         {/* Separator Image with Blended Background (Tradição & Futuro) */}
         <div className="mt-24 w-full rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
