@@ -527,12 +527,16 @@ function AppointmentManagementPage() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
+      <div className="w-full max-w-md flex justify-end mb-4">
+        <HelpDrawer config={appointmentHelpConfig} />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="text-center mb-10 mt-6">
+        <div className="text-center mb-10">
           <h1 className="text-3xl font-black text-primary uppercase italic tracking-tighter mb-1">
             {appointment.business_name}
           </h1>
