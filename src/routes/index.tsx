@@ -346,22 +346,6 @@ function LandingPage() {
               </div>
             </div>
           </div>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
-                Operação sem fricção. <br /> Lucratividade máxima.
-              </h3>
-              <p className="text-slate-400 text-lg">
-                O Barbex foi desenhado para eliminar gargalos operacionais e permitir que você foque no que realmente importa: a arte e a experiência do cliente.
-              </p>
-              <div className="flex items-center gap-4 pt-4">
-                <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
-                  Conhecer todos os recursos
-                </Button>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
