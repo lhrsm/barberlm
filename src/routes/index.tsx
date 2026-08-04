@@ -33,7 +33,9 @@ import {
   ArrowUpRight,
   Play,
   Heart,
-  Check
+  Check,
+  CreditCard,
+  Briefcase
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,7 @@ import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
 import { RegisterWizard } from "@/components/auth/RegisterWizard";
 import { SystemMockup } from "@/components/public/SystemMockup";
+import { LandingImage, CTASection } from "@/components/public/LandingUI";
 import { 
   Instagram, 
   Facebook, 
@@ -130,8 +133,19 @@ function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="pt-32 pb-24 px-6 text-center">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+        {/* Hero Background Image with Parallax-ready setup */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
+            alt="" 
+            className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#05070d] via-transparent to-[#05070d]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.15),transparent_45%)]" />
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-8 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[10px] font-black uppercase tracking-widest">
             <Sparkles size={12} />
             Gestão Premium de Barbearias
@@ -193,20 +207,29 @@ function LandingPage() {
 
 
       {/* Features Grid */}
-      <section id="recursos" className="py-24 bg-black">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="recursos" className="py-24 bg-black relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+          <img src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=1000&auto=format&fit=crop" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black via-black/80 to-black" />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { icon: Calendar, title: "Gestão de Agenda", desc: "Online, manual, walk-in e fila." },
-              { icon: Users, title: "CRM & Clientes", desc: "Perfil 360°, histórico e fidelização." },
-              { icon: CircleDollarSign, title: "Financeiro & BI", desc: "Caixa, comissões e DRE Executivo." },
-              { icon: MessageSquare, title: "Automações", desc: "WhatsApp, lembretes e marketing." },
+              { icon: Calendar, title: "Gestão de Agenda", desc: "Online, manual, walk-in e lista de espera inteligente." },
+              { icon: Users, title: "CRM & Clientes", desc: "Perfil 360°, histórico de consumo e fidelização ativa." },
+              { icon: CircleDollarSign, title: "Financeiro & BI", desc: "Fluxo de caixa, comissões e DRE Executivo em tempo real." },
+              { icon: MessageSquare, title: "Automações", desc: "WhatsApp, lembretes, aniversários e marketing segmentado." },
             ].map((f, i) => (
-              <div key={i} className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all">
+              <motion.div 
+                key={i} 
+                whileHover={{ y: -5 }}
+                className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all backdrop-blur-sm"
+              >
                 <f.icon className="text-gold mb-6" size={32} />
                 <h4 className="text-white font-black uppercase tracking-tight mb-2">{f.title}</h4>
-                <p className="text-slate-400 text-sm">{f.desc}</p>
-              </div>
+                <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -221,7 +244,7 @@ function LandingPage() {
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Um único sistema para toda a operação</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-auto md:grid-rows-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-auto md:grid-rows-2 gap-6 mb-20">
             {/* Main Feature */}
             <motion.div 
               whileHover={{ y: -5 }}
@@ -271,6 +294,27 @@ function LandingPage() {
                 <p className="text-slate-400 text-sm leading-relaxed">Fluxo de caixa, DRE gerencial, comissões automáticas e indicadores de saúde do negócio.</p>
               </div>
             </motion.div>
+          </div>
+
+          {/* New Image Feature Section */}
+          <div className="grid md:grid-cols-2 gap-20 items-center">
+            <LandingImage 
+              src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop"
+              alt="Barbeiro profissional trabalhando com precisão"
+            />
+            <div className="space-y-6">
+              <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
+                Operação sem fricção. <br /> Lucratividade máxima.
+              </h3>
+              <p className="text-slate-400 text-lg">
+                O Barbex foi desenhado para eliminar gargalos operacionais e permitir que você foque no que realmente importa: a arte e a experiência do cliente.
+              </p>
+              <div className="flex items-center gap-4 pt-4">
+                <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+                  Conhecer todos os recursos
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -328,6 +372,40 @@ function LandingPage() {
             </motion.div>
           </div>
         </div>
+
+        {/* Separator Image with Parallax-ready background */}
+        <div className="mt-24 h-[400px] w-full rounded-[3rem] overflow-hidden relative">
+          <img 
+            src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop" 
+            alt="Barbeiro profissional em ação"
+            className="w-full h-full object-cover opacity-50 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center space-y-4 px-6">
+              <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Elegância & Precisão</span>
+              <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Onde a tradição encontra o futuro</h3>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Separador Visual Premium */}
+      <section className="py-24 bg-black overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-6 h-[400px]">
+             <LandingImage 
+               src="https://images.unsplash.com/photo-1590540179852-2110a54f813a?q=80&w=1000&auto=format&fit=crop" 
+               alt="Ferramentas de barbearia clássica" 
+               className="h-full"
+             />
+             <LandingImage 
+               src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1000&auto=format&fit=crop" 
+               alt="Barbeiro atendendo cliente com foco" 
+               className="h-full"
+             />
+          </div>
+        </div>
       </section>
 
       {/* About Shop Integration (Recuperando componente visual anterior) */}
@@ -339,163 +417,94 @@ function LandingPage() {
         testimonials={[{}, {}, {}]}
       />
 
-      {/* Role Experience */}
-      <section className="py-32 px-6 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-20 items-center">
-            <div className="flex-1 space-y-8">
-              <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Experiência Multi-Perfil</span>
-              <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
-                Uma visão <span className="text-gold underline decoration-gold/30 underline-offset-8">personalizada</span> para cada usuário
-              </h2>
-              <p className="text-slate-400 text-lg leading-relaxed max-w-xl">
-                Do administrador ao cliente final, cada perfil tem uma interface otimizada para suas necessidades específicas.
-              </p>
-              
-              <div className="space-y-4">
-                {[
-                  { title: "Gestor (Admin)", desc: "Controle total da operação, financeiro e KPIs em tempo real.", icon: LayoutDashboard },
-                  { title: "Profissional", desc: "Agenda própria, metas, comissões e histórico de atendimentos.", icon: Scissors },
-                  { title: "Cliente", desc: "Self-service total: agendamentos, planos, cashback e loja.", icon: Heart }
-                ].map((item, idx) => (
-                  <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-zinc-950 hover:border-gold/30 transition-all cursor-default group flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-white/5 text-slate-500 group-hover:bg-gold/10 group-hover:text-gold transition-all">
-                      <item.icon size={20} />
-                    </div>
-                    <div>
-                      <h5 className="font-black uppercase tracking-tight text-white group-hover:text-gold transition-colors">{item.title}</h5>
-                      <p className="text-sm text-slate-500 mt-1">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 relative">
-              <div className="absolute -inset-10 bg-gold/10 blur-[100px] rounded-full" />
-              <div className="relative rounded-[2.5rem] border border-white/10 bg-zinc-900 p-2 shadow-2xl">
-                 <img 
-                  src="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0ce0d0ed-5497-443c-a203-78d6752261b7/id-preview-67ef2cc9--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app-1777896732289.png" 
-                  alt="Interface por Perfil" 
-                  className="rounded-[2rem] w-full"
-                />
-              </div>
-            </div>
-          </div>
+      {/* CTA 1 - Antecipando Recursos */}
+      <CTASection
+        title="Experiência Multi-Perfil"
+        description="Gestão sob medida para cada papel: Administrador, Recepção, Profissional e Cliente."
+        backgroundImage="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop"
+        align="left"
+      >
+        <div className="flex flex-wrap gap-3">
+          {["Admin", "Recepção", "Profissional", "Cliente"].map(role => (
+            <span key={role} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gold backdrop-blur-sm">
+              {role}
+            </span>
+          ))}
         </div>
-      </section>
+      </CTASection>
+    
+
+      {/* CTA 1 */}
+      <CTASection
+        title="Menos tarefas manuais. Mais tempo para atender e crescer."
+        backgroundImage="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2000&auto=format&fit=crop"
+      >
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+          Começar teste grátis
+        </Button>
+      </CTASection>
 
 
-      {/* Pricing Section */}
-      <section id="planos" className="py-32 px-6 relative overflow-hidden bg-[#05070d]">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full -mr-64 -mt-64" />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center space-y-4 mb-20">
-            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Investimento Transparente</span>
-            <h3 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white">Planos que acompanham você</h3>
-            <p className="text-slate-400 max-w-xl mx-auto text-lg">
-              Comece agora com 15 dias de teste grátis. <br className="hidden md:block" /> Sem necessidade de cartão de crédito.
+      {/* CTA 2 - Antes dos Planos */}
+      <CTASection
+        title="Gestão de Profissionais"
+        description="Controle de agenda individual, comissões automáticas, metas e avaliações por profissional."
+        backgroundImage="https://images.unsplash.com/photo-1590540179852-2110a54f813a?q=80&w=2000&auto=format&fit=crop"
+        align="left"
+      >
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+          Ver recursos para equipe
+        </Button>
+      </CTASection>
+
+      {/* CTA 3 - Financeiro */}
+      <section className="py-24 px-6 bg-black relative">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+          <div className="order-2 md:order-1 space-y-8">
+            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Financeiro & BI</span>
+            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
+              Dados reais para decisões inteligentes
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Fluxo de caixa, DRE gerencial, indicadores de ticket médio e recorrência. Saiba exatamente quanto sua barbearia lucra, sem planilhas complexas.
             </p>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+                Testar Financeiro
+              </Button>
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            {Object.entries(PLAN_LIMITS).filter(([key]) => key !== 'free').map(([key, plan]) => (
-              <motion.div 
-                key={key} 
-                whileHover={{ y: -10 }}
-                className={cn(
-                  "relative p-10 rounded-[3rem] border transition-all duration-500",
-                  key === 'pro' 
-                    ? "bg-gradient-to-b from-gold/10 to-zinc-950 border-gold shadow-[0_20px_80px_-20px_rgba(212,175,55,0.25)] scale-105 z-10" 
-                    : "bg-zinc-950 border-white/5 hover:border-gold/30"
-                )}
-              >
-                {key === 'pro' && (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-black px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl">Mais Popular</span>
-                )}
-                <div className="mb-10">
-                  <h4 className="text-2xl font-black uppercase italic tracking-tight text-white mb-6">{key}</h4>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-bold text-slate-500 italic">R$</span>
-                    <span className="text-6xl font-black tracking-tighter text-white">
-                      {/* @ts-ignore */}
-                      {plan.price?.toFixed(2).split('.')[0]}
-                    </span>
-                    <span className="text-2xl font-black text-gold">
-                      {/* @ts-ignore */}
-                      ,{plan.price?.toFixed(2).split('.')[1]}
-                    </span>
-                    <span className="text-slate-500 text-xs uppercase tracking-widest ml-3 font-bold">/mês</span>
-                  </div>
-                </div>
-
-                <div className="space-y-6 mb-12">
-                  <div className="h-px bg-white/5 w-full" />
-                  <ul className="space-y-5">
-                    {/* @ts-ignore */}
-                    {[
-                      // @ts-ignore
-                      { label: plan.barbers === Infinity ? "Barbeiros ilimitados" : `${plan.barbers} Barbeiros`, ok: true },
-                      // @ts-ignore
-                      { label: plan.whatsappConnections === Infinity ? "Conexões ilimitadas" : `${plan.whatsappConnections} Conexão WhatsApp`, ok: true },
-                      { label: "Agenda & Financeiro", ok: true },
-                      { label: "CRM & Fidelização", ok: true },
-                      { label: "Marketplace & Loja", ok: true },
-                      { label: "BI Executivo & KPIs", ok: key !== 'starter' },
-                      { label: "Automações Avançadas", ok: key === 'elite' },
-                    ].map((feature, idx) => (
-                      <li key={idx} className={cn("flex items-center gap-4 text-xs font-bold uppercase tracking-widest", feature.ok ? "text-slate-200" : "text-slate-600")}>
-                        <div className={cn("p-1 rounded-full", feature.ok ? "bg-gold/10 text-gold" : "bg-white/5 text-slate-800")}>
-                          <CheckCircle2 size={12} />
-                        </div>
-                        {feature.label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Button 
-                  className={cn(
-                    "w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs transition-all duration-300",
-                    key === 'pro' 
-                      ? "bg-gold text-black hover:bg-gold/90 shadow-lg" 
-                      : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
-                  )}
-                  onClick={() => setShowRegisterWizard(true)}
-                >
-                  Selecionar {key}
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-20 p-8 rounded-[2.5rem] border border-white/5 bg-zinc-950/50 backdrop-blur-sm text-center">
-             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
-               * As automações via WhatsApp requerem provedor externo (Z-API) não incluso na mensalidade.
-             </p>
+          <div className="order-1 md:order-2">
+            <LandingImage 
+              src="https://images.unsplash.com/photo-1583912267550-d44d4a3c5a61?q=80&w=2000&auto=format&fit=crop"
+              alt="Administrador analisando dados em um ambiente premium"
+            />
           </div>
         </div>
       </section>
 
+      {/* CTA 4 - Loja e Automações */}
+      <CTASection
+        title="Loja Virtual & Automações WhatsApp"
+        description="Venda produtos 24h por dia e deixe que o Barbex lembre seus clientes de agendar através de lembretes automáticos."
+        backgroundImage="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop"
+      >
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+          Automatizar minha barbearia
+        </Button>
+      </CTASection>
 
       {/* FAQ Final */}
       <PortalFaq />
 
-
       {/* Final CTA */}
-      <section className="py-32 px-6 relative overflow-hidden bg-black">
-        <div className="absolute inset-0 bg-gold/5" />
-        <div className="max-w-5xl mx-auto relative z-10 text-center space-y-12">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} className="mx-auto w-24 h-24 rounded-3xl bg-gold/10 border border-gold/20 flex items-center justify-center">
-            <BarbexLogo variant="symbol" size="lg" />
-          </motion.div>
-          <div className="space-y-6">
-            <h2 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white leading-none">
-              Sua barbearia pode <br /> operar em <span className="text-gold">outro nível</span>
-            </h2>
-            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-              Comece gratuitamente e descubra como o Barbex pode simplificar sua rotina e apoiar o crescimento do seu negócio.
-            </p>
-          </div>
+      <CTASection
+        title="Sua barbearia pode operar em outro nível"
+        description="Comece seu teste gratuito e centralize toda a gestão da sua barbearia em uma única plataforma."
+        backgroundImage="https://images.unsplash.com/photo-1517832606299-7ae9b720a186?q=80&w=2000&auto=format&fit=crop"
+        className="py-32"
+      >
+        <div className="w-full space-y-8">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
               Começar teste grátis
@@ -504,8 +513,13 @@ function LandingPage() {
               <Link to="/auth">Entrar no Sistema</Link>
             </Button>
           </div>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> 15 dias grátis</div>
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Sem cartão de crédito</div>
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Cancele quando quiser</div>
+          </div>
         </div>
-      </section>
+      </CTASection>
 
       {/* Footer Final */}
       <footer className="py-24 px-6 border-t border-white/5 bg-black">
