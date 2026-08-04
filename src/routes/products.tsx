@@ -58,6 +58,21 @@ export const Route = createFileRoute("/products")({
 });
 
 
+const productsHelpConfig = {
+  moduleKey: 'products',
+  routePath: '/products',
+  title: 'Catálogo de Produtos & Estoque',
+  summary: 'Gerencie seu inventário, crie combos promocionais e monitore suas vendas de varejo.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como cadastrar um produto com variação?', answer: 'No momento, o Barbex suporta cadastros individuais. Para variações, recomendamos incluir o tamanho/tipo no nome do produto.' },
+    { question: 'O estoque é atualizado automaticamente?', answer: 'Sim, a cada venda realizada no checkout ou comanda digital, o sistema abate a quantidade do estoque.' }
+  ],
+  commonIssues: [
+    { issue: 'Produto não aparece na comanda', solution: 'Certifique-se de que a categoria do produto está ativa e o status do produto é "Disponível".' }
+  ]
+};
+
 function ProductsComponent() {
 
   const { user, loading, role } = useAuth();
