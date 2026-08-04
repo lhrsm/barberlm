@@ -8516,6 +8516,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          step_key: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          step_key: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          step_key?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -8534,6 +8558,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_tour_states: {
+        Row: {
+          id: string
+          last_step_index: number | null
+          status: Database["public"]["Enums"]["tour_status"]
+          tenant_id: string
+          tour_key: string
+          updated_at: string | null
+          user_id: string
+          version: string
+        }
+        Insert: {
+          id?: string
+          last_step_index?: number | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          tenant_id: string
+          tour_key: string
+          updated_at?: string | null
+          user_id: string
+          version: string
+        }
+        Update: {
+          id?: string
+          last_step_index?: number | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          tenant_id?: string
+          tour_key?: string
+          updated_at?: string | null
+          user_id?: string
+          version?: string
         }
         Relationships: []
       }
@@ -10380,6 +10437,7 @@ export type Database = {
         | "personal_leave"
         | "suspension"
         | "other"
+      tour_status: "not_started" | "in_progress" | "completed" | "skipped"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -10563,6 +10621,7 @@ export const Constants = {
         "suspension",
         "other",
       ],
+      tour_status: ["not_started", "in_progress", "completed", "skipped"],
     },
   },
 } as const
