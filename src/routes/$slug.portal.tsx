@@ -116,6 +116,31 @@ export const Route = createFileRoute("/$slug/portal")({
 
 
 
+  const customerOnboardingConfig = {
+    key: 'customer-portal-onboarding',
+    title: 'Bem-vindo à Barbex',
+    steps: [
+      {
+        key: 'next-appointment',
+        title: 'Ver Agendamentos',
+        description: 'Aqui você acompanha seus próximos horários marcados.',
+        target: '[data-tour="portal-appointments"]'
+      },
+      {
+        key: 'loyalty-points',
+        title: 'Meus Benefícios',
+        description: 'Veja seus pontos de fidelidade e cupons disponíveis.',
+        target: '[data-tour="portal-benefits"]'
+      },
+      {
+        key: 'profile-settings',
+        title: 'Completar Perfil',
+        description: 'Mantenha seus dados atualizados para agilizar seu check-in.',
+        target: '[data-tour="portal-profile"]'
+      }
+    ]
+  };
+
   const clientPortalHelpConfig = {
     moduleKey: 'client-portal',
     routePath: `/${slug}/portal`,
@@ -132,33 +157,13 @@ export const Route = createFileRoute("/$slug/portal")({
   };
 
   const clientPortalOnboardingConfig = {
+    key: 'portal-onboarding',
+    title: 'Explore seu Portal',
     userId: client?.customer_id || 'guest',
-    tenantId: shop.user_id,
-    steps: [
-      {
-        key: 'check-appointments',
-        title: 'Ver Agendamentos',
-        description: 'Confirme seus próximos horários marcados.',
-        target: '[data-tour="portal-appointments"]'
-      },
-      {
-        key: 'check-benefits',
-        title: 'Meus Benefícios',
-        description: 'Veja seus pontos e cupons disponíveis.',
-        target: '[data-tour="portal-benefits"]'
-      },
-      {
-        key: 'update-profile',
-        title: 'Completar Perfil',
-        description: 'Mantenha seus dados atualizados para agilizar o atendimento.',
-        target: '[data-tour="portal-profile"]'
-      }
-    ]
+    tenantId: shop?.user_id,
+    steps: customerOnboardingConfig.steps
   };
 
-  const customerOnboardingConfig = {
-    key: 'customer-portal-onboarding',
-    title: 'Bem-vindo à Barbex',
 
   steps: [
     {
