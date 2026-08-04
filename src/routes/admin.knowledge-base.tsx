@@ -25,6 +25,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { adminSaveTutorial, adminSaveAcademyLesson } from "@/lib/knowledge-base.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 
 export const Route = createFileRoute("/admin/knowledge-base")({
   component: KnowledgeBaseAdmin,
@@ -231,13 +235,16 @@ function KnowledgeBaseAdmin() {
             try {
               if (contentType === 'tutorial') {
                 await saveTutorial({ 
-                  id: editingItem?.id, 
-                  ...data,
-                  status: data.status || 'draft',
-                  is_featured: formData.get("is_featured") === "on"
+                  data: {
+                    id: editingItem?.id, 
+                    ...data,
+                    status: data.status || 'draft',
+                    is_featured: formData.get("is_featured") === "on"
+                  }
                 });
               }
               toast.success("Conteúdo salvo com sucesso!");
+
               setIsEditorOpen(false);
               queryClient.invalidateQueries({ queryKey: ["admin-tutorials-full"] });
             } catch (err: any) {
