@@ -219,7 +219,7 @@ function LessonContentPage() {
                 Concluir Aula
               </Button>
             )}
-          </div>
+            </aside>
         </div>
       </div>
     </AcademyLayout>
