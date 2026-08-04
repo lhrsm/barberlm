@@ -407,25 +407,66 @@ function LandingPage() {
       </CTASection>
 
 
+      {/* CTA 2 - Antes dos Planos */}
+      <CTASection
+        title="Gestão de Profissionais"
+        description="Controle de agenda individual, comissões automáticas, metas e avaliações por profissional."
+        backgroundImage="https://images.unsplash.com/photo-1590540179852-2110a54f813a?q=80&w=2000&auto=format&fit=crop"
+        align="left"
+      >
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+          Ver recursos para equipe
+        </Button>
+      </CTASection>
+
+      {/* CTA 3 - Financeiro */}
+      <section className="py-24 px-6 bg-black relative">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+          <div className="order-2 md:order-1 space-y-8">
+            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Financeiro & BI</span>
+            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
+              Dados reais para decisões inteligentes
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Fluxo de caixa, DRE gerencial, indicadores de ticket médio e recorrência. Saiba exatamente quanto sua barbearia lucra, sem planilhas complexas.
+            </p>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+                Testar Financeiro
+              </Button>
+            </div>
+          </div>
+          <div className="order-1 md:order-2">
+            <LandingImage 
+              src="https://images.unsplash.com/photo-1583912267550-d44d4a3c5a61?q=80&w=2000&auto=format&fit=crop"
+              alt="Administrador analisando dados em um ambiente premium"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA 4 - Loja e Automações */}
+      <CTASection
+        title="Loja Virtual & Automações WhatsApp"
+        description="Venda produtos 24h por dia e deixe que o Barbex lembre seus clientes de agendar através de lembretes automáticos."
+        backgroundImage="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop"
+      >
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+          Automatizar minha barbearia
+        </Button>
+      </CTASection>
+
       {/* FAQ Final */}
       <PortalFaq />
 
-
       {/* Final CTA */}
-      <section className="py-32 px-6 relative overflow-hidden bg-black">
-        <div className="absolute inset-0 bg-gold/5" />
-        <div className="max-w-5xl mx-auto relative z-10 text-center space-y-12">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} className="mx-auto w-24 h-24 rounded-3xl bg-gold/10 border border-gold/20 flex items-center justify-center">
-            <BarbexLogo variant="symbol" size="lg" />
-          </motion.div>
-          <div className="space-y-6">
-            <h2 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white leading-none">
-              Sua barbearia pode <br /> operar em <span className="text-gold">outro nível</span>
-            </h2>
-            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-              Comece gratuitamente e descubra como o Barbex pode simplificar sua rotina e apoiar o crescimento do seu negócio.
-            </p>
-          </div>
+      <CTASection
+        title="Sua barbearia pode operar em outro nível"
+        description="Comece seu teste gratuito e centralize toda a gestão da sua barbearia em uma única plataforma."
+        backgroundImage="https://images.unsplash.com/photo-1517832606299-7ae9b720a186?q=80&w=2000&auto=format&fit=crop"
+        className="py-32"
+      >
+        <div className="w-full space-y-8">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
               Começar teste grátis
@@ -434,8 +475,13 @@ function LandingPage() {
               <Link to="/auth">Entrar no Sistema</Link>
             </Button>
           </div>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> 15 dias grátis</div>
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Sem cartão de crédito</div>
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Cancele quando quiser</div>
+          </div>
         </div>
-      </section>
+      </CTASection>
 
       {/* Footer Final */}
       <footer className="py-24 px-6 border-t border-white/5 bg-black">
