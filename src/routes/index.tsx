@@ -44,6 +44,8 @@ import { PLAN_LIMITS } from "@/hooks/use-plan-limits";
 import { BarbexLogo } from "@/components/ui/barbex-logo";
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
+import { PrivacyAndLGPDSection } from "@/components/public/PrivacyAndLGPDSection";
+import { ScrollToTopButton } from "@/components/public/ScrollToTopButton";
 import { AboutShop } from "@/components/public/AboutShop";
 import { RegisterWizard } from "@/components/auth/RegisterWizard";
 import { SystemMockup } from "@/components/public/SystemMockup";
@@ -494,15 +496,21 @@ function LandingPage() {
         </Button>
       </CTASection>
 
+      {/* LGPD */}
+      <PrivacyAndLGPDSection />
+
       {/* FAQ Final */}
       <PortalFaq />
+
+      {/* Botão Voltar ao Topo */}
+      <ScrollToTopButton />
 
       {/* Final CTA */}
       <CTASection
         title="Sua barbearia pode operar em outro nível"
         description="Comece seu teste gratuito e centralize toda a gestão da sua barbearia em uma única plataforma."
-        backgroundImage="https://images.unsplash.com/photo-1517832606299-7ae9b720a186?q=80&w=2000&auto=format&fit=crop"
-        className="py-32"
+        backgroundImage="https://images.unsplash.com/photo-1512690196236-d44d3204003d?q=80&w=2000&auto=format&fit=crop"
+        className="py-40"
       >
         <div className="w-full space-y-8">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -550,8 +558,8 @@ function LandingPage() {
             <div>
               <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Legal</h6>
               <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <li><a href="#" className="hover:text-gold transition-colors">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-gold transition-colors">Privacidade</a></li>
+                <li><Link to="/terms" className="hover:text-gold transition-colors">Termos de Uso</Link></li>
+                <li><Link to="/privacy" className="hover:text-gold transition-colors">Privacidade</Link></li>
               </ul>
             </div>
           </div>
