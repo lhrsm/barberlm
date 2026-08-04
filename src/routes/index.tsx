@@ -583,9 +583,12 @@ function LandingPage() {
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
+    title: "Barbex | Gestão Premium para Barbearias Enterprise",
     meta: [
-      { title: "Barbex | Gestão completa para barbearias" },
-      { name: "description", content: "Gerencie agenda, clientes, profissionais, financeiro, loja, assinaturas, automações e muito mais com o Barbex." }
+      { name: "description", content: "O ecossistema completo para elevar o nível da sua barbearia. Agenda inteligente, CRM 360°, Financeiro & BI e Automações WhatsApp." },
+      { property: "og:title", content: "Barbex | Gestão Premium para Barbearias Enterprise" },
+      { property: "og:description", content: "Transforme sua barbearia em um negócio de alto nível com tecnologia de ponta." },
+      { name: "twitter:card", content: "summary_large_image" }
     ]
   })
 });
