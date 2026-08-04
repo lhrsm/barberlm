@@ -390,6 +390,24 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* Separador Visual Premium */}
+      <section className="py-24 bg-black overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-6 h-[400px]">
+             <LandingImage 
+               src="https://images.unsplash.com/photo-1590540179852-2110a54f813a?q=80&w=1000&auto=format&fit=crop" 
+               alt="Ferramentas de barbearia clássica" 
+               className="h-full"
+             />
+             <LandingImage 
+               src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1000&auto=format&fit=crop" 
+               alt="Barbeiro atendendo cliente com foco" 
+               className="h-full"
+             />
+          </div>
+        </div>
+      </section>
+
       {/* About Shop Integration (Recuperando componente visual anterior) */}
       <AboutShop 
         shop={{ business_name: "Barbex Enterprise" }} 
