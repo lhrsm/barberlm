@@ -29,8 +29,48 @@ import { useState, useEffect } from "react";
 import { PLAN_LIMITS } from "@/hooks/use-plan-limits";
 
 function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#05070d] text-white">
+    <div className="min-h-screen bg-[#05070d] text-white selection:bg-gold selection:text-black">
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            className="fixed inset-0 z-[60] bg-black p-6 flex flex-col md:hidden"
+          >
+            <div className="flex justify-between items-center mb-12">
+              <span className="text-xl font-black italic">BARBEX</span>
+              <Button variant="ghost" className="text-white" onClick={() => setIsMobileMenuOpen(false)}>
+                <X size={24} />
+              </Button>
+            </div>
+            <nav className="flex flex-col gap-6 text-2xl font-black uppercase italic tracking-tighter">
+              {["Recursos", "Planos", "FAQ"].map(item => (
+                <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-gold transition-colors">{item}</a>
+              ))}
+            </nav>
+            <div className="mt-auto flex flex-col gap-4">
+              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" asChild>
+                <Link to="/auth" search={{ tab: "register" }} onClick={() => setIsMobileMenuOpen(false)}>Testar Grátis</Link>
+              </Button>
+              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black uppercase tracking-widest" asChild>
+                <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Entrar no Sistema</Link>
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className={cn(
         "fixed top-0 w-full z-50 transition-all duration-300 border-b",
