@@ -39,7 +39,7 @@ export function CheckinQRCard() {
   };
 
   const download = () => {
-    const svg = document.getElementById("checkin-qr-svg") as SVGElement | null;
+    const svg = document.getElementById("checkin-qr-svg") as unknown as SVGElement | null;
     if (!svg) return;
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement("canvas");

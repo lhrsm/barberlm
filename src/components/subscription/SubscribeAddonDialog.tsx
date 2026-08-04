@@ -31,7 +31,7 @@ export function SubscribeAddonDialog({ open, onOpenChange, addon, onSuccess }: P
     queryFn: async () => {
       if (!addon) return null;
       const r = await previewAddon({ data: { addonId: addon.id, environment: env } });
-      if (!r.ok) throw new Error(r.error);
+      if (!(r as any).ok) throw new Error((r as any).error);
       return r;
     },
     enabled: !!addon && open,
@@ -43,7 +43,7 @@ export function SubscribeAddonDialog({ open, onOpenChange, addon, onSuccess }: P
     setSubmitting(true);
     try {
       const r = await subscribeToAddon({ data: { addonId: addon.id, environment: env } });
-      if (!r.ok) throw new Error(r.error);
+      if (!(r as any).ok) throw new Error((r as any).error);
       toast.success(`${addon.name} contratado com sucesso!`);
       qc.invalidateQueries({ queryKey: ["tenant-addons"] });
       qc.invalidateQueries({ queryKey: ["my-addons"] });
