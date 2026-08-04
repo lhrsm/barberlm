@@ -133,8 +133,19 @@ function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="pt-32 pb-24 px-6 text-center">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+        {/* Hero Background Image with Parallax-ready setup */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
+            alt="" 
+            className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#05070d] via-transparent to-[#05070d]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.15),transparent_45%)]" />
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-8 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[10px] font-black uppercase tracking-widest">
             <Sparkles size={12} />
             Gestão Premium de Barbearias
