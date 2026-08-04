@@ -40,29 +40,28 @@ export function SystemMockup({ className }: SystemMockupProps) {
           />
 
           
-          {/* Mockup Content - Dashboard Header */}
-          <div className="h-full w-full bg-[#05070d] p-6 md:p-10 flex flex-col gap-8">
+          <div className="h-full w-full bg-[#050b18]/40 p-6 md:p-10 flex flex-col gap-8 relative z-10">
             <div className="flex justify-between items-center">
               <div className="space-y-1">
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gold">Visão Geral do Negócio</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#F59E0B]">Visão Geral do Negócio</div>
                 <h3 className="text-2xl font-black italic uppercase text-white">Dashboard Executivo</h3>
               </div>
               <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/30" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/30" />
-                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/30" />
+                <div className="w-3 h-3 rounded-full bg-red-500/40 border border-red-500/50" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/40 border border-yellow-500/50" />
+                <div className="w-3 h-3 rounded-full bg-green-500/40 border border-green-500/50" />
               </div>
             </div>
 
             {/* Mockup Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Receita Mensal", value: "R$ 42.850", icon: TrendingUp, color: "text-green-500" },
-                { label: "Novos Clientes", value: "+124", icon: Users, color: "text-blue-500" },
-                { label: "Agendamentos", value: "1.240", icon: Calendar, color: "text-gold" },
-                { label: "Taxa de Retenção", value: "88%", icon: Activity, color: "text-purple-500" },
+                { label: "Receita Mensal", value: "R$ 42.850", icon: TrendingUp, color: "text-green-400" },
+                { label: "Novos Clientes", value: "+124", icon: Users, color: "text-blue-400" },
+                { label: "Agendamentos", value: "1.240", icon: Calendar, color: "text-[#F59E0B]" },
+                { label: "Taxa de Retenção", value: "88%", icon: Activity, color: "text-purple-400" },
               ].map((stat, i) => (
-                <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2 backdrop-blur-sm">
                   <div className="flex justify-between items-start">
                     <stat.icon size={16} className={stat.color} />
                     <span className="text-[10px] font-bold text-green-500">+12%</span>
@@ -76,7 +75,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
             </div>
 
             {/* Mockup Agenda Preview */}
-            <div className="flex-1 rounded-2xl bg-white/5 border border-white/5 p-6 flex flex-col gap-4 overflow-hidden">
+            <div className="flex-1 rounded-2xl bg-white/[0.02] border border-white/5 p-6 flex flex-col gap-4 overflow-hidden backdrop-blur-sm">
               <div className="flex justify-between items-center">
                 <div className="text-xs font-black uppercase tracking-widest text-white">Próximos Atendimentos</div>
                 <ChevronRight size={16} className="text-slate-500" />
@@ -89,7 +88,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-[10px] font-black text-gold">
+                      <div className="w-8 h-8 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[10px] font-black text-[#F59E0B]">
                         {row.name.charAt(0)}
                       </div>
                       <div>
@@ -98,7 +97,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs font-black text-gold italic">{row.time}</div>
+                      <div className="text-xs font-black text-[#F59E0B] italic">{row.time}</div>
                       <div className="text-[10px] text-slate-500 font-bold">{row.price}</div>
                     </div>
                   </div>
@@ -114,27 +113,30 @@ export function SystemMockup({ className }: SystemMockupProps) {
           whileInView={{ opacity: 1, x: 0, rotate: 5 }}
           viewport={{ once: true }}
           transition={{ duration: 1, delay: 0.2 }}
-          className="absolute -right-12 top-1/2 -translate-y-1/2 z-30 w-1/3 aspect-[3/4] rounded-[2rem] border border-white/10 bg-zinc-900 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
+          className="absolute -right-12 top-1/2 -translate-y-1/2 z-30 w-1/3 aspect-[3/4] rounded-[2rem] border border-[#F59E0B]/15 bg-[#050b18] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
         >
-          <div className="h-full w-full bg-zinc-950 p-6 flex flex-col gap-6">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-gold" />
+          <div className="h-full w-full bg-[#050b18]/60 p-6 flex flex-col gap-6 relative">
+            <div className="absolute inset-0 opacity-20 pointer-events-none"
+                 style={{ background: "radial-gradient(circle at 50% 50%, rgba(245,158,11,0.15), transparent 70%)" }}
+            />
+            <div className="flex items-center gap-2 relative z-10">
+              <Users size={16} className="text-[#F59E0B]" />
               <div className="text-[10px] font-black uppercase tracking-widest text-white italic">Gestão CRM</div>
             </div>
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+            <div className="space-y-4 relative z-10">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
                 <div className="text-[9px] font-bold text-slate-500 uppercase mb-2">Segmento VIP</div>
                 <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full w-3/4 bg-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]" />
+                  <div className="h-full w-3/4 bg-gradient-to-r from-[#F59E0B] to-[#D97706] shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="aspect-square rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center gap-2">
+                <div className="aspect-square rounded-xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center gap-2">
                   <ShieldCheck size={20} className="text-green-500" />
                   <span className="text-[8px] font-black uppercase text-slate-400">Verificado</span>
                 </div>
-                <div className="aspect-square rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center gap-2">
-                  <Zap size={20} className="text-gold" />
+                <div className="aspect-square rounded-xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center gap-2">
+                  <Zap size={20} className="text-[#F59E0B]" />
                   <span className="text-[8px] font-black uppercase text-slate-400">Automação</span>
                 </div>
               </div>
