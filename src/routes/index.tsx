@@ -149,16 +149,144 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Footer CTA */}
-      <section className="py-24 text-center">
-        <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Pronto para transformar sua barbearia?</h3>
-        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" asChild>
-          <Link to="/auth" search={{ tab: "register" }}>Começar agora</Link>
-        </Button>
+      {/* Prova Visual (Screenshots / Mockups) */}
+      <section className="py-24 px-6 overflow-hidden bg-gradient-to-b from-black to-[#05070d]">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 p-2 shadow-gold overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <img 
+              src="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0ce0d0ed-5497-443c-a203-78d6752261b7/id-preview-67ef2cc9--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app-1777896732289.png" 
+              alt="Barbex Enterprise Dashboard" 
+              className="rounded-[2rem] border border-white/5 w-full shadow-2xl transition-transform duration-1000 group-hover:scale-[1.01]"
+            />
+          </motion.div>
+        </div>
       </section>
-    </div>
-  );
-}
+
+      {/* Planos Section */}
+      <section id="planos" className="py-24 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center space-y-4 mb-16">
+            <span className="text-gold font-black uppercase tracking-[0.3em] text-xs">Investimento</span>
+            <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Planos que acompanham você</h3>
+            <p className="text-slate-400 max-w-xl mx-auto">
+              Comece agora com 15 dias de teste grátis. Sem cartão de crédito necessário.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {Object.entries(PLAN_LIMITS).filter(([key]) => key !== 'free').map(([key, plan]) => (
+              <div 
+                key={key} 
+                className={cn(
+                  "relative p-8 rounded-[2.5rem] border transition-all duration-300",
+                  key === 'pro' ? "bg-gold/5 border-gold shadow-gold scale-105 z-10" : "bg-zinc-950 border-white/10 hover:border-gold/30"
+                )}
+              >
+                {key === 'pro' && (
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-black px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Recomendado</span>
+                )}
+                <div className="mb-8">
+                  <h4 className="text-xl font-black uppercase italic tracking-tight text-white mb-2">{key}</h4>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-sm font-bold text-slate-400 italic">R$</span>
+                    <span className="text-5xl font-black tracking-tighter text-white">
+                      {/* @ts-ignore */}
+                      {plan.price?.toFixed(2).split('.')[0]}
+                    </span>
+                    <span className="text-lg font-black text-gold">
+                      {/* @ts-ignore */}
+                      ,{plan.price?.toFixed(2).split('.')[1]}
+                    </span>
+                    <span className="text-slate-400 text-xs uppercase tracking-widest ml-2">/mês</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-4 mb-10">
+                  {/* @ts-ignore */}
+                  {[
+                    // @ts-ignore
+                    { label: plan.barbers === Infinity ? "Barbeiros ilimitados" : `${plan.barbers} Barbeiros`, ok: true },
+                    // @ts-ignore
+                    { label: plan.whatsappConnections === Infinity ? "WhatsApp ilimitado" : `${plan.whatsappConnections} Conexão WhatsApp`, ok: true },
+                    { label: "Agenda & Financeiro", ok: true },
+                    { label: "CRM & Fidelização", ok: true },
+                    { label: "Marketplace & Loja", ok: true },
+                    { label: "Relatórios de BI", ok: key !== 'starter' },
+                  ].map((feature, idx) => (
+                    <li key={idx} className={cn("flex items-center gap-3 text-sm", feature.ok ? "text-slate-200" : "text-slate-500 opacity-50")}>
+                      <CheckCircle2 size={16} className={feature.ok ? "text-gold" : "text-slate-700"} />
+                      {feature.label}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button 
+                  className={cn(
+                    "w-full h-12 rounded-2xl font-black uppercase tracking-widest text-xs",
+                    key === 'pro' ? "bg-gold text-black hover:bg-gold/90" : "bg-white/5 text-white hover:bg-white/10"
+                  )}
+                  asChild
+                >
+                  <Link to="/auth" search={{ tab: "register", plan: key }}>Selecionar Plano</Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Final */}
+      <section id="faq" className="py-24 px-6 bg-black/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h3 className="text-4xl font-black uppercase italic tracking-tighter text-white">Dúvidas Frequentes</h3>
+          </div>
+          <div className="space-y-4">
+            {[
+              { q: "Preciso de cartão de crédito para testar?", a: "Não. Você pode criar sua conta agora e usar todos os recursos por 15 dias sem compromisso." },
+              { q: "O Barbex funciona em qualquer barbearia?", a: "Sim. Desde barbeiros autônomos até redes com múltiplas unidades e profissionais." },
+              { q: "Consigo cancelar quando quiser?", a: "Com certeza. Não temos fidelidade. Você paga pelo mês de uso e pode cancelar a qualquer momento." },
+              { q: "Tem suporte em português?", a: "Sim, suporte especializado via ticket e WhatsApp para assinantes de planos Pro e Elite." },
+            ].map((item, idx) => (
+              <details key={idx} className="group rounded-3xl border border-white/5 bg-zinc-950 overflow-hidden">
+                <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-bold text-white group-open:text-gold transition-colors">
+                  {item.q}
+                  <ChevronDown size={20} className="group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="px-6 pb-6 text-slate-400 text-sm leading-relaxed">
+                  {item.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer Final */}
+      <footer className="py-20 px-6 border-t border-white/5 bg-black">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+          <div className="space-y-4 text-center md:text-left">
+            <div className="text-2xl font-black tracking-tighter">BARBEX</div>
+            <p className="text-slate-500 text-sm max-w-xs uppercase tracking-widest font-bold">Plataforma SaaS Enterprise para gestão de barbearias.</p>
+          </div>
+          <div className="flex gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Link to="/auth" className="hover:text-gold transition-colors">Entrar</Link>
+            <Link to="/tutorials" className="hover:text-gold transition-colors">Ajuda</Link>
+            <a href="#" className="hover:text-gold transition-colors">Termos</a>
+            <a href="#" className="hover:text-gold transition-colors">Privacidade</a>
+          </div>
+          <div className="text-slate-600 text-[10px] font-black uppercase tracking-widest">
+            © {new Date().getFullYear()} BARBEX ENTERPRISE. TODOS OS DIREITOS RESERVADOS.
+          </div>
+        </div>
+      </footer>
+
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
