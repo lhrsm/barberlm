@@ -478,7 +478,7 @@ function LandingPage() {
 
 
       {/* FAQ Final */}
-      <PortalFaq shop={{ business_name: "Barbex" }} productsEnabled subscriptionsEnabled loyaltyEnabled cashbackEnabled />
+      <PortalFaq />
 
 
       {/* Final CTA */}
