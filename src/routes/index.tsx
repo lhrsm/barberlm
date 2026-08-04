@@ -322,13 +322,18 @@ function LandingPage() {
               
               <div className="space-y-4">
                 {[
-                  { title: "Gestor (Admin)", desc: "Controle total da operação, financeiro e KPIs em tempo real." },
-                  { title: "Profissional", desc: "Agenda própria, metas, comissões e histórico de atendimentos." },
-                  { title: "Cliente", desc: "Self-service total: agendamentos, planos, cashback e loja." }
+                  { title: "Gestor (Admin)", desc: "Controle total da operação, financeiro e KPIs em tempo real.", icon: LayoutDashboard },
+                  { title: "Profissional", desc: "Agenda própria, metas, comissões e histórico de atendimentos.", icon: Scissors },
+                  { title: "Cliente", desc: "Self-service total: agendamentos, planos, cashback e loja.", icon: Heart }
                 ].map((item, idx) => (
-                  <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-zinc-950 hover:border-gold/30 transition-all cursor-default group">
-                    <h5 className="font-black uppercase tracking-tight text-white group-hover:text-gold transition-colors">{item.title}</h5>
-                    <p className="text-sm text-slate-500 mt-1">{item.desc}</p>
+                  <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-zinc-950 hover:border-gold/30 transition-all cursor-default group flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-white/5 text-slate-500 group-hover:bg-gold/10 group-hover:text-gold transition-all">
+                      <item.icon size={20} />
+                    </div>
+                    <div>
+                      <h5 className="font-black uppercase tracking-tight text-white group-hover:text-gold transition-colors">{item.title}</h5>
+                      <p className="text-sm text-slate-500 mt-1">{item.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
