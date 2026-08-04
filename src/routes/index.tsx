@@ -417,31 +417,21 @@ function LandingPage() {
         testimonials={[{}, {}, {}]}
       />
 
-      {/* Role Experience */}
-      <section className="py-24 px-6 bg-black">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
-          <div className="space-y-8">
-            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Experiência Multi-Perfil</span>
-            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
-              Gestão sob medida para cada papel
-            </h2>
-            <div className="space-y-6">
-              {[
-                { title: "Administrador", desc: "Visão estratégica, BI e controle total da operação.", icon: LayoutDashboard },
-                { title: "Recepção", desc: "Agendamento ágil, fluxos de caixa e check-in rápido.", icon: Calendar },
-                { title: "Profissional", desc: "Agenda pessoal, metas, comissões e histórico.", icon: Users },
-                { title: "Cliente", desc: "Agendamento autônomo, histórico e Clube Barbex.", icon: Smartphone }
-              ].map((role, i) => (
-                <div key={i} className="flex gap-4 p-4 border border-white/5 rounded-2xl bg-zinc-900/20">
-                  <role.icon className="text-gold shrink-0 mt-1" size={20} />
-                  <div>
-                    <h4 className="font-black uppercase text-white tracking-tight">{role.title}</h4>
-                    <p className="text-slate-400 text-xs">{role.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* CTA 1 - Antecipando Recursos */}
+      <CTASection
+        title="Experiência Multi-Perfil"
+        description="Gestão sob medida para cada papel: Administrador, Recepção, Profissional e Cliente."
+        backgroundImage="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop"
+        align="left"
+      >
+        <div className="flex flex-wrap gap-3">
+          {["Admin", "Recepção", "Profissional", "Cliente"].map(role => (
+            <span key={role} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gold backdrop-blur-sm">
+              {role}
+            </span>
+          ))}
+        </div>
+      </CTASection>
           <LandingImage 
             src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop" 
             alt="Equipe de barbearia moderna colaborando com tablets e notebooks"
