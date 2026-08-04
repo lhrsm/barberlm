@@ -116,9 +116,26 @@ export const Route = createFileRoute("/$slug/portal")({
 
 
 
-  const customerOnboardingConfig = {
-    key: 'customer-portal-onboarding',
-    title: 'Bem-vindo à Barbex',
+  const clientPortalHelpConfig = {
+    moduleKey: 'client-portal',
+    routePath: `/${slug}/portal`,
+    title: 'Portal do Cliente',
+    summary: 'Gerencie seus agendamentos, visualize seu histórico e aproveite seus benefícios exclusivos.',
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    faqs: [
+      { question: 'Como desmarcar um horário?', answer: 'Na aba Início, localize o agendamento e clique no ícone de lixeira ou "Cancelar".' },
+      { question: 'Como ver meus pontos de fidelidade?', answer: 'Seus pontos e benefícios aparecem logo no topo da página inicial do portal.' }
+    ],
+    commonIssues: [
+      { issue: 'Não consigo fazer login', solution: 'Certifique-se de usar o mesmo número de WhatsApp cadastrado no momento do agendamento.' }
+    ]
+  };
+
+  const clientPortalOnboardingConfig = {
+    key: 'portal-onboarding',
+    title: 'Explore seu Portal',
+    userId: client?.customer_id || 'guest',
+    tenantId: shop?.user_id,
     steps: [
       {
         key: 'next-appointment',
@@ -141,51 +158,6 @@ export const Route = createFileRoute("/$slug/portal")({
     ]
   };
 
-  const clientPortalHelpConfig = {
-    moduleKey: 'client-portal',
-    routePath: `/${slug}/portal`,
-    title: 'Portal do Cliente',
-    summary: 'Gerencie seus agendamentos, visualize seu histórico e aproveite seus benefícios exclusivos.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    faqs: [
-      { question: 'Como desmarcar um horário?', answer: 'Na aba Início, localize o agendamento e clique no ícone de lixeira ou "Cancelar".' },
-      { question: 'Como ver meus pontos de fidelidade?', answer: 'Seus pontos e benefícios aparecem logo no topo da página inicial do portal.' }
-    ],
-    commonIssues: [
-      { issue: 'Não consigo fazer login', solution: 'Certifique-se de usar o mesmo número de WhatsApp cadastrado no momento do agendamento.' }
-    ]
-  };
-
-  const clientPortalOnboardingConfig = {
-    key: 'portal-onboarding',
-    title: 'Explore seu Portal',
-    userId: client?.customer_id || 'guest',
-    tenantId: shop?.user_id,
-    steps: customerOnboardingConfig.steps
-  };
-
-
-  steps: [
-    {
-      key: 'next-appointment',
-      title: 'Ver Agendamentos',
-      description: 'Confira a data e hora do seu próximo serviço.',
-      actionLabel: 'Ver Agenda'
-    },
-    {
-      key: 'benefits',
-      title: 'Conhecer Benefícios',
-      description: 'Veja seu saldo de cashback e pontos de fidelidade.',
-      actionLabel: 'Ver Benefícios'
-    },
-    {
-      key: 'profile',
-      title: 'Completar Perfil',
-      description: 'Mantenha seus dados atualizados para notificações.',
-      actionLabel: 'Editar Perfil'
-    }
-  ]
-};
 
 const portalHelpConfig = {
   moduleKey: 'customer_portal',
