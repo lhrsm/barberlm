@@ -31,9 +31,14 @@ export function SystemMockup({ className }: SystemMockupProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="absolute inset-0 z-20 rounded-[2rem] border border-white/10 bg-zinc-900/50 backdrop-blur-3xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden group"
+          className="absolute inset-0 z-20 rounded-[2rem] border border-[#F59E0B]/15 bg-[#050b18]/95 backdrop-blur-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden group"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+          <div className="absolute inset-0 opacity-40 pointer-events-none"
+               style={{
+                 background: "radial-gradient(circle at 15% 20%, rgba(245,158,11,0.25), transparent 45%), radial-gradient(circle at 85% 80%, rgba(217,119,6,0.18), transparent 50%)"
+               }}
+          />
+
           
           {/* Mockup Content - Dashboard Header */}
           <div className="h-full w-full bg-[#05070d] p-6 md:p-10 flex flex-col gap-8">
