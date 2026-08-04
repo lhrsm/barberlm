@@ -343,141 +343,47 @@ function LandingPage() {
       />
 
       {/* Role Experience */}
-      <section className="py-32 px-6 bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-20 items-center">
-            <div className="flex-1 space-y-8">
-              <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Experiência Multi-Perfil</span>
-              <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
-                Uma visão <span className="text-gold underline decoration-gold/30 underline-offset-8">personalizada</span> para cada usuário
-              </h2>
-              <p className="text-slate-400 text-lg leading-relaxed max-w-xl">
-                Do administrador ao cliente final, cada perfil tem uma interface otimizada para suas necessidades específicas.
-              </p>
-              
-              <div className="space-y-4">
-                {[
-                  { title: "Gestor (Admin)", desc: "Controle total da operação, financeiro e KPIs em tempo real.", icon: LayoutDashboard },
-                  { title: "Profissional", desc: "Agenda própria, metas, comissões e histórico de atendimentos.", icon: Scissors },
-                  { title: "Cliente", desc: "Self-service total: agendamentos, planos, cashback e loja.", icon: Heart }
-                ].map((item, idx) => (
-                  <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-zinc-950 hover:border-gold/30 transition-all cursor-default group flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-white/5 text-slate-500 group-hover:bg-gold/10 group-hover:text-gold transition-all">
-                      <item.icon size={20} />
-                    </div>
-                    <div>
-                      <h5 className="font-black uppercase tracking-tight text-white group-hover:text-gold transition-colors">{item.title}</h5>
-                      <p className="text-sm text-slate-500 mt-1">{item.desc}</p>
-                    </div>
+      <section className="py-24 px-6 bg-black">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+          <div className="space-y-8">
+            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Experiência Multi-Perfil</span>
+            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
+              Gestão sob medida para cada papel
+            </h2>
+            <div className="space-y-6">
+              {[
+                { title: "Administrador", desc: "Visão estratégica, BI e controle total da operação.", icon: LayoutDashboard },
+                { title: "Recepção", desc: "Agendamento ágil, fluxos de caixa e check-in rápido.", icon: Calendar },
+                { title: "Profissional", desc: "Agenda pessoal, metas, comissões e histórico.", icon: Users },
+                { title: "Cliente", desc: "Agendamento autônomo, histórico e Clube Barbex.", icon: Smartphone }
+              ].map((role, i) => (
+                <div key={i} className="flex gap-4 p-4 border border-white/5 rounded-2xl bg-zinc-900/20">
+                  <role.icon className="text-gold shrink-0 mt-1" size={20} />
+                  <div>
+                    <h4 className="font-black uppercase text-white tracking-tight">{role.title}</h4>
+                    <p className="text-slate-400 text-xs">{role.desc}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 relative">
-              <div className="absolute -inset-10 bg-gold/10 blur-[100px] rounded-full" />
-              <div className="relative rounded-[2.5rem] border border-white/10 bg-zinc-900 p-2 shadow-2xl">
-                 <img 
-                  src="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0ce0d0ed-5497-443c-a203-78d6752261b7/id-preview-67ef2cc9--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app-1777896732289.png" 
-                  alt="Interface por Perfil" 
-                  className="rounded-[2rem] w-full"
-                />
-              </div>
+                </div>
+              ))}
             </div>
           </div>
+          <LandingImage 
+            src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop" 
+            alt="Equipe de barbearia moderna colaborando com tablets e notebooks"
+            className="md:h-[600px]"
+          />
         </div>
       </section>
 
-
-      {/* Pricing Section */}
-      <section id="planos" className="py-32 px-6 relative overflow-hidden bg-[#05070d]">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full -mr-64 -mt-64" />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center space-y-4 mb-20">
-            <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Investimento Transparente</span>
-            <h3 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white">Planos que acompanham você</h3>
-            <p className="text-slate-400 max-w-xl mx-auto text-lg">
-              Comece agora com 15 dias de teste grátis. <br className="hidden md:block" /> Sem necessidade de cartão de crédito.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            {Object.entries(PLAN_LIMITS).filter(([key]) => key !== 'free').map(([key, plan]) => (
-              <motion.div 
-                key={key} 
-                whileHover={{ y: -10 }}
-                className={cn(
-                  "relative p-10 rounded-[3rem] border transition-all duration-500",
-                  key === 'pro' 
-                    ? "bg-gradient-to-b from-gold/10 to-zinc-950 border-gold shadow-[0_20px_80px_-20px_rgba(212,175,55,0.25)] scale-105 z-10" 
-                    : "bg-zinc-950 border-white/5 hover:border-gold/30"
-                )}
-              >
-                {key === 'pro' && (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-black px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl">Mais Popular</span>
-                )}
-                <div className="mb-10">
-                  <h4 className="text-2xl font-black uppercase italic tracking-tight text-white mb-6">{key}</h4>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-bold text-slate-500 italic">R$</span>
-                    <span className="text-6xl font-black tracking-tighter text-white">
-                      {/* @ts-ignore */}
-                      {plan.price?.toFixed(2).split('.')[0]}
-                    </span>
-                    <span className="text-2xl font-black text-gold">
-                      {/* @ts-ignore */}
-                      ,{plan.price?.toFixed(2).split('.')[1]}
-                    </span>
-                    <span className="text-slate-500 text-xs uppercase tracking-widest ml-3 font-bold">/mês</span>
-                  </div>
-                </div>
-
-                <div className="space-y-6 mb-12">
-                  <div className="h-px bg-white/5 w-full" />
-                  <ul className="space-y-5">
-                    {/* @ts-ignore */}
-                    {[
-                      // @ts-ignore
-                      { label: plan.barbers === Infinity ? "Barbeiros ilimitados" : `${plan.barbers} Barbeiros`, ok: true },
-                      // @ts-ignore
-                      { label: plan.whatsappConnections === Infinity ? "Conexões ilimitadas" : `${plan.whatsappConnections} Conexão WhatsApp`, ok: true },
-                      { label: "Agenda & Financeiro", ok: true },
-                      { label: "CRM & Fidelização", ok: true },
-                      { label: "Marketplace & Loja", ok: true },
-                      { label: "BI Executivo & KPIs", ok: key !== 'starter' },
-                      { label: "Automações Avançadas", ok: key === 'elite' },
-                    ].map((feature, idx) => (
-                      <li key={idx} className={cn("flex items-center gap-4 text-xs font-bold uppercase tracking-widest", feature.ok ? "text-slate-200" : "text-slate-600")}>
-                        <div className={cn("p-1 rounded-full", feature.ok ? "bg-gold/10 text-gold" : "bg-white/5 text-slate-800")}>
-                          <CheckCircle2 size={12} />
-                        </div>
-                        {feature.label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Button 
-                  className={cn(
-                    "w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs transition-all duration-300",
-                    key === 'pro' 
-                      ? "bg-gold text-black hover:bg-gold/90 shadow-lg" 
-                      : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
-                  )}
-                  onClick={() => setShowRegisterWizard(true)}
-                >
-                  Selecionar {key}
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-20 p-8 rounded-[2.5rem] border border-white/5 bg-zinc-950/50 backdrop-blur-sm text-center">
-             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
-               * As automações via WhatsApp requerem provedor externo (Z-API) não incluso na mensalidade.
-             </p>
-          </div>
-        </div>
-      </section>
+      {/* CTA 1 */}
+      <CTASection
+        title="Menos tarefas manuais. Mais tempo para atender e crescer."
+        backgroundImage="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2000&auto=format&fit=crop"
+      >
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+          Começar teste grátis
+        </Button>
+      </CTASection>
 
 
       {/* FAQ Final */}
