@@ -45,7 +45,10 @@ import {
   ShieldCheck,
   Download,
   Trash2,
+  HelpCircle
 } from "lucide-react";
+import { OnboardingChecklist } from "@/components/help-center/OnboardingChecklist";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
 import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -112,6 +115,47 @@ export const Route = createFileRoute("/$slug/portal")({
 });
 
 
+
+const customerOnboardingConfig = {
+  key: 'customer-portal-onboarding',
+  title: 'Bem-vindo à Barbex',
+  steps: [
+    {
+      key: 'next-appointment',
+      title: 'Ver Agendamentos',
+      description: 'Confira a data e hora do seu próximo serviço.',
+      actionLabel: 'Ver Agenda'
+    },
+    {
+      key: 'benefits',
+      title: 'Conhecer Benefícios',
+      description: 'Veja seu saldo de cashback e pontos de fidelidade.',
+      actionLabel: 'Ver Benefícios'
+    },
+    {
+      key: 'profile',
+      title: 'Completar Perfil',
+      description: 'Mantenha seus dados atualizados para notificações.',
+      actionLabel: 'Editar Perfil'
+    }
+  ]
+};
+
+const portalHelpConfig = {
+  moduleKey: 'customer_portal',
+  routePath: '/$slug/portal',
+  title: 'Portal do Cliente',
+  summary: 'Aqui você gerencia toda sua jornada na barbearia: agendamentos, assinaturas, cashback e compras.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como cancelo um horário?', answer: 'Vá em Agendamentos, selecione o horário e clique em Cancelar.' },
+    { question: 'Como uso meu cashback?', answer: 'Ao finalizar um pagamento na barbearia, informe que deseja usar seu saldo.' }
+  ],
+  relatedArticles: [
+    { title: 'Política de Cancelamento', href: '#' },
+    { title: 'Regras do Clube Barbex', href: '#' }
+  ]
+};
 
 function ClientPortalComponent() {
   const { slug } = Route.useParams();
