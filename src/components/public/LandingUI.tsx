@@ -50,10 +50,12 @@ export function LandingImage({
 
       {isError ? (
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center text-gold mb-4">
-            <BarbexLogo size="sm" />
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gradient-to-tr from-zinc-900 to-black">
+            <div className="text-gold/20 mb-2">
+              <BarbexLogo size="lg" />
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-600">Conteúdo Premium</div>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Asset indisponível</span>
         </div>
       ) : (
         <img
