@@ -42,7 +42,7 @@ import { HelpDrawer } from "@/components/help-center/HelpDrawer";
 import { GuidedTour } from "@/components/help-center/GuidedTour";
 
 export const Route = createFileRoute("/calendar")({
-  component: CalendarPage,
+  component: CalendarComponent,
 });
 
 const calendarHelpConfig = {
@@ -381,6 +381,3 @@ const CalendarComponent = memo(() => {
   );
 });
 
-export const Route = createFileRoute("/calendar")({
-  component: CalendarComponent,
-});
