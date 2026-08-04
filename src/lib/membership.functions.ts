@@ -5,7 +5,7 @@ import { z } from "zod";
 export const getMembershipStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
 
     const [subs, usage, plans] = await Promise.all([
       supabase.from("customer_subscriptions").select("*").eq("tenant_id", userId),
@@ -31,7 +31,7 @@ export const getMembershipStats = createServerFn({ method: "GET" })
 export const getMembershipDetailedAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
     // We would do deeper time-series aggregation here
     return { data: [] };
   });
@@ -46,7 +46,7 @@ export const updatePlanBenefit = createServerFn({ method: "POST" })
     active: z.boolean().optional()
   }))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
     const { plan_id, benefit_key, ...rest } = data;
 
     const { error } = await supabase

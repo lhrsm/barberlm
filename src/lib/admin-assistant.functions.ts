@@ -10,7 +10,7 @@ export const askAdminAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { question: string; history?: Array<{ role: "user" | "assistant"; content: string }> }) => data)
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
 
     // Authorize — super admin only
     const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {

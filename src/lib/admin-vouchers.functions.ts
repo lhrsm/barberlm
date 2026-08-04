@@ -172,7 +172,7 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
     requiresPaymentMethod?: boolean;
   }) => data)
   .handler(async ({ data, context }): Promise<Result<{ voucherId: string; warnings?: string[] }>> => {
-    const { supabase: authSb, userId } = context;
+    const { supabase: authSb, userId } = context as any;
 
     console.log("[Voucher] Iniciando criação", {
       actor: userId,
@@ -302,7 +302,7 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { voucherId: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<Result<{ redemptionId: string }>> => {
-    const { supabase: authSb, userId } = context;
+    const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
 
@@ -415,7 +415,7 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { voucherId: string; reason?: string }) => data)
   .handler(async ({ data, context }): Promise<Result<{}>> => {
-    const { supabase: authSb, userId } = context;
+    const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
 
@@ -509,7 +509,7 @@ export const revokeAdminVoucher = createServerFn({ method: "POST" })
 export const listAdminVouchers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<Result<{ vouchers: any[] }>> => {
-    const { supabase: authSb, userId } = context;
+    const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
 
@@ -537,7 +537,7 @@ export const listAdminVoucherAuditLogs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { voucherId?: string; tenantId?: string; limit?: number }) => data)
   .handler(async ({ data, context }): Promise<Result<{ logs: any[] }>> => {
-    const { supabase: authSb, userId } = context;
+    const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
     if (!guard.ok) return guard;
 
