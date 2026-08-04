@@ -102,7 +102,7 @@ export const scheduleCampaignDispatch = createServerFn({ method: "POST" })
           message: data.message
         },
         priority: 5
-      })
+      } as any)
       .select()
       .single();
 

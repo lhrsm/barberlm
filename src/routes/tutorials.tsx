@@ -11,6 +11,8 @@ import { HelpHistory } from "@/components/help-center/HelpHistory";
 import { HelpSkeleton } from "@/components/help-center/HelpSkeleton";
 import { BookOpen, Search as SearchIcon } from "lucide-react";
 import { withModule } from "@/components/modules/withModule";
+import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/tutorials")({
   component: withModule("tutorials", "Tutoriais", HelpCenterPage),
