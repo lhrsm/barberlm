@@ -227,7 +227,8 @@ export const resolveModuleAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AddonAccessSnapshot | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
+
       const [plan, addons] = await Promise.all([
         loadCurrentPlan(supabase, userId),
         loadActiveAddons(supabase, userId),
@@ -260,7 +261,7 @@ export const computeProjectedTotals = createServerFn({ method: "POST" })
   .inputValidator((input: { cart: CartItem[]; cycle?: BillingCycle }) => input)
   .handler(async ({ data, context }): Promise<ProjectedTotals | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
       const cycle: BillingCycle = data.cycle ?? "monthly";
       const ids = data.cart.map((c) => c.addon_id);
       const plan = await loadCurrentPlan(supabase, userId);
@@ -335,7 +336,7 @@ export const findBestUpgradeOption = createServerFn({ method: "POST" })
   .inputValidator((input: { cart: CartItem[] }) => input)
   .handler(async ({ data, context }): Promise<UpgradeSuggestion | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
 
       // Item 13: barbearias com voucher administrativo (internal_testing)
       // não devem receber recomendação de upgrade — o benefício já cobre tudo.
@@ -466,7 +467,7 @@ export const logUpgradeRecommendationShown = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<{ id: string } | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
       const s = data.suggestion;
       if (!s.recommended || !s.target_plan) {
         return { error: "Nada a registrar (sem recomendação)" };
@@ -516,7 +517,7 @@ export const logUpgradeRecommendationAction = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; action: RecommendationAction }) => input)
   .handler(async ({ data, context }): Promise<{ ok: true } | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
       const { error } = await supabase
         .from("addon_upgrade_recommendations")
         .update({
@@ -573,7 +574,7 @@ export const listAdminUpgradeRecommendations = createServerFn({ method: "POST" }
   .inputValidator((input: { days?: number } = {}) => input)
   .handler(async ({ data, context }): Promise<AdminRecommendationsReport | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
       const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
         _user_id: userId,
         _role: "admin",

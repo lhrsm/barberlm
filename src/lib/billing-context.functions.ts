@@ -48,7 +48,7 @@ export type BillingContext = {
 export const getMyBillingContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<BillingContext | { error: string }> => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
     const { data, error } = await supabase.rpc("resolve_tenant_billing_context" as any, {
       _tenant_id: userId,
     });
@@ -67,7 +67,7 @@ export const getTenantBillingContext = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { tenantId: string }) => input)
   .handler(async ({ data, context }): Promise<BillingContext | { error: string }> => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
     // Verifica role super_admin
     const { data: isAdmin } = await supabase.rpc("has_role" as any, {
       _user_id: userId,

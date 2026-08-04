@@ -9,7 +9,7 @@ import { requireAddonAnyEnv, AddonAccessDeniedError } from "@/lib/addon-guard.se
 export const suggestLoyaltyCampaigns = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
 
     try {
       await requireAddonAnyEnv(supabase, userId, "loyalty");

@@ -24,34 +24,38 @@ const AudienceQuerySchema = z.object({
 
 type AudienceQuery = z.infer<typeof AudienceQuerySchema>;
 
+function applyFilters(query: any, filters: Filter[]) {
+  let q = query;
+  filters.forEach((f: Filter) => {
+    if (f.op === "eq") q = q.eq(f.field, f.value);
+    else if (f.op === "neq") q = q.neq(f.field, f.value);
+    else if (f.op === "gt") q = q.gt(f.field, f.value);
+    else if (f.op === "gte") q = q.gte(f.field, f.value);
+    else if (f.op === "lt") q = q.lt(f.field, f.value);
+    else if (f.op === "lte") q = q.lte(f.field, f.value);
+    else if (f.op === "like") q = q.ilike(f.field, `%${f.value}%`);
+    else if (f.op === "in") q = q.in(f.field, Array.isArray(f.value) ? f.value : [f.value]);
+  });
+  return q;
+}
+
 export const getAudienceCount = createServerFn({ method: "POST" })
   .inputValidator((data: AudienceQuery) => AudienceQuerySchema.parse(data))
   .handler(async ({ data }) => {
     const { tenantId, filters, logic } = data;
-    
     const admin = await getAdmin();
     let query = admin
       .from("customers")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
-      .eq("whatsapp_marketing_consent", true); // Default LGPD protection
+      .eq("whatsapp_marketing_consent", true);
 
     if (logic === "AND") {
-      filters.forEach((f: Filter) => {
-        if (f.op === "eq") query = query.eq(f.field as any, f.value);
-        if (f.op === "neq") query = query.neq(f.field as any, f.value);
-        if (f.op === "gt") query = query.gt(f.field as any, f.value);
-        if (f.op === "gte") query = query.gte(f.field as any, f.value);
-        if (f.op === "lt") query = query.lt(f.field as any, f.value);
-        if (f.op === "lte") query = query.lte(f.field as any, f.value);
-        if (f.op === "like") query = query.ilike(f.field as any, `%${f.value}%`);
-        if (f.op === "in") query = query.in(f.field as any, Array.isArray(f.value) ? f.value : [f.value]);
-      });
+      query = applyFilters(query, filters);
     }
 
     const { count, error } = await query;
     if (error) throw new Error(error.message);
-    
     return { count: count || 0 };
   });
 
@@ -59,7 +63,6 @@ export const getAudienceCustomers = createServerFn({ method: "POST" })
   .inputValidator((data: AudienceQuery) => AudienceQuerySchema.parse(data))
   .handler(async ({ data }) => {
     const { tenantId, filters, logic, limit, offset } = data;
-    
     const admin = await getAdmin();
     let query = admin
       .from("customers")
@@ -69,27 +72,14 @@ export const getAudienceCustomers = createServerFn({ method: "POST" })
       .range(offset, offset + limit - 1);
 
     if (logic === "AND") {
-      filters.forEach((f: Filter) => {
-        if (f.op === "eq") query = query.eq(f.field as any, f.value);
-        if (f.op === "neq") query = query.neq(f.field as any, f.value);
-        if (f.op === "gt") query = query.gt(f.field as any, f.value);
-        if (f.op === "gte") query = query.gte(f.field as any, f.value);
-        if (f.op === "lt") query = query.lt(f.field as any, f.value);
-        if (f.op === "lte") query = query.lte(f.field as any, f.value);
-        if (f.op === "like") query = query.ilike(f.field as any, `%${f.value}%`);
-        if (f.op === "in") query = query.in(f.field as any, Array.isArray(f.value) ? f.value : [f.value]);
-      });
+      query = applyFilters(query, filters);
     }
 
     const { data: customers, error } = await query;
     if (error) throw new Error(error.message);
-    
     return { customers: customers || [] };
   });
 
-/**
- * Agenda o disparo de uma campanha de marketing em background
- */
 export const scheduleCampaignDispatch = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
     tenantId: z.string(),
@@ -99,24 +89,23 @@ export const scheduleCampaignDispatch = createServerFn({ method: "POST" })
     message: z.string()
   }).parse(data))
   .handler(async ({ data }) => {
-    const { enqueueJob } = await import("./scalability-jobs.functions");
-    
-    // Cria um job para o "Dispatcher" da campanha
-    // Este job irá, por sua vez, fragmentar os envios individuais para não travar o worker
-    const job = await (enqueueJob as any)({
-      data: {
+    const admin = await getAdmin();
+    const { data: job, error } = await admin
+      .from("background_jobs")
+      .insert({
         tenant_id: data.tenantId,
-        queue_name: "marketing",
-        priority: 10,
+        type: "marketing_campaign_dispatch",
         payload: {
-          type: "MARKETING_CAMPAIGN_DISPATCH",
-          campaignId: data.campaignId,
+          campaign_id: data.campaignId,
           filters: data.filters,
           logic: data.logic,
           message: data.message
-        }
-      }
-    });
+        },
+        priority: 5
+      })
+      .select()
+      .single();
 
-    return { success: true, jobId: job?.id };
+    if (error) throw new Error(error.message);
+    return { jobId: job.id };
   });

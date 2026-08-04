@@ -51,7 +51,7 @@ export function YourAddons() {
     mutationFn: async (contractId: string) => {
       setPendingId(contractId);
       const r = await cancelAddon({ data: { contractId, environment: env } });
-      if (!r.ok) throw new Error(r.error);
+      if (!(r as any).ok) throw new Error((r as any).error);
       return r;
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export function YourAddons() {
     mutationFn: async (contractId: string) => {
       setPendingId(contractId);
       const r = await reactivateAddon({ data: { contractId, environment: env } });
-      if (!r.ok) throw new Error(r.error);
+      if (!(r as any).ok) throw new Error((r as any).error);
       return r;
     },
     onSuccess: () => {
@@ -83,7 +83,7 @@ export function YourAddons() {
     mutationFn: async (vars: { contractId: string; quantity: number }) => {
       setPendingId(vars.contractId);
       const r = await updateAddonQuantity({ data: { contractId: vars.contractId, quantity: vars.quantity, environment: env } });
-      if (!r.ok) throw new Error(r.error);
+      if (!(r as any).ok) throw new Error((r as any).error);
       return r;
     },
     onSuccess: () => {

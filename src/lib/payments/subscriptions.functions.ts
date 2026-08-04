@@ -11,7 +11,7 @@ export const testGatewayConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { gatewayId: string }) => data)
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId } = context as any;
 
     const { data: gw, error } = await supabase
       .from("payment_gateways")

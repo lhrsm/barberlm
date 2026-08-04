@@ -16,7 +16,7 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => BIInputSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { userId, supabase: authSupabase } = context;
+    const { userId, supabase: authSupabase } = context as any;
     
     // Resolve Tenant
     const { data: profile } = await authSupabase

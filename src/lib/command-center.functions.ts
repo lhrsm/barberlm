@@ -10,7 +10,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const resolveCommandCenterContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId, supabase: authSupabase } = context;
+    const { userId, supabase: authSupabase } = context as any;
     
     // 1. Resolve Profile and Tenant
     const { data: profile } = await authSupabase

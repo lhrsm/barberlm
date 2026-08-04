@@ -1,6 +1,6 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
@@ -9,18 +9,30 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY']
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      return next()
+      return next({
+        context: {
+          supabase: {} as SupabaseClient<Database>,
+          userId: '',
+          claims: {},
+        } as any,
+      })
     }
     
     const request = getRequest()
     const authHeader = request?.headers?.get('authorization')
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next()
+      return next({
+        context: {
+          supabase: {} as SupabaseClient<Database>,
+          userId: '',
+          claims: {},
+        } as any,
+      })
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient<Database>(
+    const supabaseClient = createClient<Database>(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY,
       {
@@ -37,17 +49,23 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       }
     )
 
-    const { data, error } = await supabase.auth.getClaims(token)
+    const { data, error } = await supabaseClient.auth.getClaims(token)
     if (error || !data?.claims) {
-      return next()
+      return next({
+        context: {
+          supabase: {} as SupabaseClient<Database>,
+          userId: '',
+          claims: {},
+        } as any,
+      })
     }
 
     return next({
       context: {
-        supabase: supabase as any,
+        supabase: supabaseClient,
         userId: data.claims.sub as string,
-        claims: data.claims as any,
-      },
+        claims: data.claims,
+      } as any,
     })
   }
 )

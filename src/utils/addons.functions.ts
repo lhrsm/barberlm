@@ -58,7 +58,7 @@ export const previewAddon = createServerFn({ method: "POST" })
     trialDays: number;
     trialEligible: boolean;
   }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const { data: addon } = await sb.from("saas_addons" as any)
         .select("*").eq("id", data.addonId).maybeSingle();
@@ -145,7 +145,7 @@ export const subscribeToAddon = createServerFn({ method: "POST" })
     environment: StripeEnv;
   }) => data)
   .handler(async ({ data, context }): Promise<Result<{ addonContractId: string }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const { data: addon } = await sb.from("saas_addons" as any)
         .select("*").eq("id", data.addonId).maybeSingle();
@@ -260,7 +260,7 @@ export const cancelAddon = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contractId: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<Result<{ endsAt: string | null }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const { data: contract } = await sb.from("tenant_addons" as any)
         .select("*").eq("id", data.contractId).eq("tenant_id", userId).maybeSingle();
@@ -322,7 +322,7 @@ export const reactivateAddon = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contractId: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<Result<{ reactivated: boolean }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const { data: contract } = await sb.from("tenant_addons" as any)
         .select("*").eq("id", data.contractId).eq("tenant_id", userId).maybeSingle();
@@ -357,7 +357,7 @@ export const updateAddonQuantity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contractId: string; quantity: number; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<Result<{ quantity: number }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const qty = Math.max(1, Math.floor(data.quantity));
       const { data: contract } = await sb.from("tenant_addons" as any)
@@ -408,7 +408,7 @@ export const adminCreateAddonStripePrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { addonId: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<Result<{ priceId: string; productId: string }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       // Verifica se é super admin
       const { data: isAdmin } = await sb.rpc("has_role" as any, { _user_id: userId, _role: "super_admin" as any });
@@ -487,7 +487,7 @@ export const subscribeToAddonsBatch = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<Result<{
     contracts: Array<{ addonId: string; contractId: string; billingCycle: "monthly" | "annual" }>;
   }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const { data: sub } = await sb.from("subscriptions")
         .select("stripe_subscription_id, stripe_customer_id, price_id, environment")
@@ -662,7 +662,7 @@ export const previewAddonsBatch = createServerFn({ method: "POST" })
     currency: string;
     nextInvoiceDate: string | null;
   }>> => {
-    const { supabase: sb, userId } = context;
+    const { supabase: sb, userId } = context as any;
     try {
       const { data: sub } = await sb.from("subscriptions")
         .select("stripe_subscription_id")
