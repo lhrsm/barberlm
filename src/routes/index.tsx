@@ -415,31 +415,8 @@ function LandingPage() {
       </section>
 
       {/* FAQ Final */}
-      <section id="faq" className="py-24 px-6 bg-black/50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h3 className="text-4xl font-black uppercase italic tracking-tighter text-white">Dúvidas Frequentes</h3>
-          </div>
-          <div className="space-y-4">
-            {[
-              { q: "Preciso de cartão de crédito para testar?", a: "Não. Você pode criar sua conta agora e usar todos os recursos por 15 dias sem compromisso." },
-              { q: "O Barbex funciona em qualquer barbearia?", a: "Sim. Desde barbeiros autônomos até redes com múltiplas unidades e profissionais." },
-              { q: "Consigo cancelar quando quiser?", a: "Com certeza. Não temos fidelidade. Você paga pelo mês de uso e pode cancelar a qualquer momento." },
-              { q: "Tem suporte em português?", a: "Sim, suporte especializado via ticket e WhatsApp para assinantes de planos Pro e Elite." },
-            ].map((item, idx) => (
-              <details key={idx} className="group rounded-3xl border border-white/5 bg-zinc-950 overflow-hidden">
-                <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-bold text-white group-open:text-gold transition-colors">
-                  {item.q}
-                  <ChevronDown size={20} className="group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="px-6 pb-6 text-slate-400 text-sm leading-relaxed">
-                  {item.a}
-                </div>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PortalFaq shop={{ business_name: "Barbex" }} productsEnabled subscriptionsEnabled loyaltyEnabled cashbackEnabled />
+
 
       {/* Footer Final */}
       <footer className="py-20 px-6 border-t border-white/5 bg-black">
