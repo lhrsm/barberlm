@@ -554,6 +554,7 @@ function LandingPage() {
               </Button>
             </div>
           </div>
+          
           <div className="relative group">
             <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-6">
               <div className="grid grid-cols-2 gap-4 mb-6">
@@ -598,6 +599,7 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
 
       {/* CTA 4 - Loja e Automações */}
       <CTASection
