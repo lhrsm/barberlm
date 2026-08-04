@@ -94,10 +94,7 @@ function LandingPage() {
       )}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="p-1.5 bg-gold/10 rounded-lg shrink-0">
-              <Scissors className="text-gold h-6 w-6" />
-            </div>
-            <span className="text-xl font-black tracking-tighter">BARBEX</span>
+            <BarbexLogo size="md" />
           </Link>
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
