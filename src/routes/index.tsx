@@ -42,6 +42,7 @@ import { BarbexLogo } from "@/components/ui/barbex-logo";
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
+import { RegisterWizard } from "@/components/auth/RegisterWizard";
 import { 
   Instagram, 
   Facebook, 
@@ -54,6 +55,7 @@ import {
 function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showRegisterWizard, setShowRegisterWizard] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -83,8 +85,8 @@ function LandingPage() {
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-4">
-              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" asChild>
-                <Link to="/auth" search={{ tab: "register" }} onClick={() => setIsMobileMenuOpen(false)}>Testar Grátis</Link>
+              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" onClick={() => { setIsMobileMenuOpen(false); setShowRegisterWizard(true); }}>
+                Testar Grátis
               </Button>
               <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black uppercase tracking-widest" asChild>
                 <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Entrar no Sistema</Link>
@@ -114,8 +116,8 @@ function LandingPage() {
             <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
               <Link to="/auth">Entrar</Link>
             </Button>
-            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" asChild>
-              <Link to="/auth" search={{ tab: "register" }}>Testar Grátis</Link>
+            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+              Testar Grátis
             </Button>
           </div>
           
@@ -139,8 +141,8 @@ function LandingPage() {
             Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" asChild>
-              <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
+            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+              Começar teste grátis
             </Button>
             <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
               <a href="#demo" className="flex items-center gap-2">
@@ -428,9 +430,9 @@ function LandingPage() {
                       ? "bg-gold text-black hover:bg-gold/90 shadow-lg" 
                       : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
                   )}
-                  asChild
+                  onClick={() => setShowRegisterWizard(true)}
                 >
-                  <Link to="/auth" search={{ tab: "register", plan: key }}>Selecionar {key}</Link>
+                  Selecionar {key}
                 </Button>
               </motion.div>
             ))}
@@ -465,8 +467,8 @@ function LandingPage() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" asChild>
-              <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
+            <Button className="h-16 px-12 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+              Começar teste grátis
             </Button>
             <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
               <Link to="/auth">Entrar no Sistema</Link>
@@ -524,6 +526,9 @@ function LandingPage() {
         </div>
       </footer>
 
+      {showRegisterWizard && (
+        <RegisterWizard onClose={() => setShowRegisterWizard(false)} />
+      )}
     </div>
   );
 }
