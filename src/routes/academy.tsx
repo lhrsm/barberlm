@@ -13,12 +13,12 @@ export const Route = createFileRoute("/academy")({
 function AcademyDashboard() {
   const paths = useQuery({
     queryKey: ["academy-paths"],
-    queryFn: () => getAcademyPaths({ data: {} })
+    queryFn: () => getAcademyPaths({ data: {} as any })
   });
 
   const recommendations = useQuery({
     queryKey: ["academy-recommended"],
-    queryFn: () => getRecommendedPaths({ data: {} })
+    queryFn: () => getRecommendedPaths({ data: undefined as any })
   });
 
   return (
