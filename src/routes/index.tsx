@@ -44,6 +44,7 @@ import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
 import { RegisterWizard } from "@/components/auth/RegisterWizard";
+import { SystemMockup } from "@/components/public/SystemMockup";
 import { 
   Instagram, 
   Facebook, 
