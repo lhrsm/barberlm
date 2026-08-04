@@ -171,6 +171,8 @@ function CRM360Page() {
 
   return (
     <AppLayout>
+      <GuidedTour config={crmTourConfig} />
+      
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -179,10 +181,11 @@ function CRM360Page() {
             </h1>
             <p className="text-slate-400 mt-1 font-medium">Análise profunda e inteligência de relacionamento com seus clientes.</p>
           </div>
+          <HelpDrawer config={crmHelpConfig} />
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="crm-kpis">
           <StatCard title="Total de Clientes" value={stats.total} icon={Users} color="blue" />
           <StatCard title="Clientes VIP" value={stats.vip} icon={Crown} color="gold" />
           <StatCard title="Em Risco" value={stats.atRisk} icon={UserMinus} color="red" />
@@ -191,7 +194,7 @@ function CRM360Page() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
-          <Card className="lg:col-span-1 bg-[#0b0f17] border-[#1f2937]">
+          <Card className="lg:col-span-1 bg-[#0b0f17] border-[#1f2937]" data-tour="crm-segments">
             <CardHeader>
               <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Filter size={16} /> Segmentação
@@ -208,9 +211,10 @@ function CRM360Page() {
           </Card>
 
           {/* Customer List */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-4" data-tour="crm-list">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+
               <Input 
                 placeholder="Buscar por nome ou telefone..." 
                 className="pl-10 bg-[#0b0f17] border-[#1f2937] text-white h-12 rounded-xl"
