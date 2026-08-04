@@ -349,6 +349,7 @@ function LandingPage() {
         </div>
       </section>
 
+
       {/* Prova Visual (Mockup Contextual) */}
       <section className="py-24 px-6 overflow-hidden bg-[#05070d] relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
