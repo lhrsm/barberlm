@@ -1,76 +1,93 @@
-import { createFileRoute, useNavigate, Outlet, useLocation, Link } from "@tanstack/react-router";
-import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
-import { useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, CalendarDays, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, ArrowRight, ArrowUp, Plus, Minus, Tag, TicketPercent, X, Crown, Menu, Lock as LockIcon, ExternalLink, Ban, Loader2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { toast } from "sonner";
-import { createNotification } from "@/utils/notifications";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { PixReceiptStep } from "@/components/calendar/appointment/PixReceiptStep";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { format, addMinutes, parseISO, isSameDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Scissors, Calendar, BarChart3, Users, MessageSquare, Zap, ShieldCheck, ChevronRight, CheckCircle2, Star, Clock } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
-import { triggerWhatsAppMessage } from "@/utils/whatsapp";
-import { triggerAutomation } from "@/utils/automation";
-import { emitAutomationEvent } from "@/utils/emit-event";
-import { normalizePhone } from "@/utils/phone";
-import { usePublicModules } from "@/hooks/use-public-modules";
-import { getSubscriptionUsage } from "@/hooks/use-subscription-usage";
-import { ExhaustedUsesModal } from "@/components/portal/ExhaustedUsesModal";
-import { ChangePlanModal } from "@/components/portal/ChangePlanModal";
-import { SubscribePlanModal } from "@/components/portal/SubscribePlanModal";
-import { fetchAvailability, hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
-import { WhyChooseUs } from "@/components/public/WhyChooseUs";
-import { PortalFaq } from "@/components/public/PortalFaq";
-import { AboutShop } from "@/components/public/AboutShop";
-import { StoreHighlights } from "@/components/public/StoreHighlights";
-import { SubscriptionValueProps } from "@/components/public/SubscriptionValueProps";
-import { LoyaltySteps } from "@/components/public/LoyaltySteps";
-import { BeforeAfterShowcase } from "@/components/public/BeforeAfterShowcase";
-import { PortalEvents } from "@/components/public/PortalEvents";
-import { PortalPartners } from "@/components/public/PortalPartners";
-import { PortalStickyCta } from "@/components/public/PortalStickyCta";
-import { PortalStructuredData } from "@/components/public/PortalStructuredData";
-import { PhoneInput } from 'react-international-phone';
-import 'react-international-phone/style.css';
 
-// Minimal component for debugging
-function LandingPageComponent() {
+function LandingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white p-4">
-      <div className="text-center space-y-4">
-        <div className="h-16 w-16 bg-gold/20 border border-gold/30 rounded-2xl mx-auto grid place-items-center">
-          <Scissors className="text-gold h-8 w-8" />
+    <div className="min-h-screen bg-[#05070d] text-white">
+      {/* Header */}
+      <header className="fixed top-0 w-full z-50 bg-[#05070d]/80 backdrop-blur-md border-b border-gold/10">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="text-2xl font-black tracking-tighter">BARBEX</div>
+          <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
+            <a href="#recursos" className="hover:text-gold transition-colors">Recursos</a>
+            <a href="#planos" className="hover:text-gold transition-colors">Planos</a>
+            <a href="#faq" className="hover:text-gold transition-colors">FAQ</a>
+          </nav>
+          <div className="flex gap-4">
+            <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
+              <Link to="/auth">Entrar</Link>
+            </Button>
+            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" asChild>
+              <Link to="/auth" search={{ tab: "register" }}>Testar Grátis</Link>
+            </Button>
+          </div>
         </div>
-        <h1 className="text-4xl font-black uppercase italic tracking-tighter">Barbex <span className="text-gold">Enterprise</span></h1>
-        <p className="text-zinc-400 max-w-md mx-auto">Plataforma premium de gestão para barbearias. O sistema está sendo preparado para produção.</p>
-        <div className="flex gap-4 justify-center">
-          <Button variant="gold" className="rounded-xl font-black" asChild>
-            <Link to="/auth">Entrar no Sistema</Link>
-          </Button>
-          <Button variant="outline" className="rounded-xl border-zinc-800" asChild>
-            <Link to="/tutorials">Saiba Mais</Link>
-          </Button>
+      </header>
+
+      {/* Hero */}
+      <section className="pt-32 pb-24 px-6 text-center">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[10px] font-black uppercase tracking-widest">
+            <Sparkles size={12} />
+            Gestão Premium de Barbearias
+          </motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-[0.9]">
+            Gestão completa para <span className="text-gold">barbearias</span> que querem crescer
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            Agenda, clientes, profissionais, financeiro, loja, assinaturas, automações e inteligência operacional em uma única plataforma Enterprise.
+          </motion.p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-4 justify-center pt-4">
+            <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm" asChild>
+              <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
+            </Button>
+            <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/10 bg-transparent hover:bg-white/5 font-black uppercase tracking-widest text-sm" asChild>
+              <a href="#recursos">Ver recursos</a>
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </section>
+
+      {/* Features Grid */}
+      <section id="recursos" className="py-24 bg-black">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              { icon: Calendar, title: "Gestão de Agenda", desc: "Online, manual, walk-in e fila." },
+              { icon: Users, title: "CRM & Clientes", desc: "Perfil 360°, histórico e fidelização." },
+              { icon: CircleDollarSign, title: "Financeiro & BI", desc: "Caixa, comissões e DRE Executivo." },
+              { icon: MessageSquare, title: "Automações", desc: "WhatsApp, lembretes e marketing." },
+            ].map((f, i) => (
+              <div key={i} className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all">
+                <f.icon className="text-gold mb-6" size={32} />
+                <h4 className="text-white font-black uppercase tracking-tight mb-2">{f.title}</h4>
+                <p className="text-slate-400 text-sm">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer CTA */}
+      <section className="py-24 text-center">
+        <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Pronto para transformar sua barbearia?</h3>
+        <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90" asChild>
+          <Link to="/auth" search={{ tab: "register" }}>Começar agora</Link>
+        </Button>
+      </section>
     </div>
   );
 }
 
 export const Route = createFileRoute("/")({
-  component: LandingPageComponent,
+  component: LandingPage,
   head: () => ({
     meta: [
-      { title: "Barbex Enterprise — Plataforma Premium para Barbearias" },
-      { name: "description", content: "A solução definitiva em gestão, marketing e fidelização para barbearias de alto padrão." }
+      { title: "Barbex | Gestão completa para barbearias" },
+      { name: "description", content: "Gerencie agenda, clientes, profissionais, financeiro, loja, assinaturas, automações e muito mais com o Barbex." }
     ]
   })
 });
