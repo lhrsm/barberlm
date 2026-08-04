@@ -1,8 +1,32 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Scissors, Calendar, BarChart3, Users, MessageSquare, Zap, ShieldCheck, ChevronRight, CheckCircle2, Star, Clock, Sparkles, CircleDollarSign } from "lucide-react";
-import { motion } from "framer-motion";
+import { 
+  Scissors, 
+  Calendar, 
+  BarChart3, 
+  Users, 
+  MessageSquare, 
+  Zap, 
+  ShieldCheck, 
+  ChevronRight, 
+  CheckCircle2, 
+  Star, 
+  Clock, 
+  Sparkles, 
+  CircleDollarSign,
+  TrendingUp,
+  Activity,
+  ShoppingBag,
+  Target,
+  ArrowRight,
+  ChevronDown,
+  Menu,
+  X
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { PLAN_LIMITS } from "@/hooks/use-plan-limits";
 
 function LandingPage() {
   return (
