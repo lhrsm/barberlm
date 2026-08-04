@@ -92,6 +92,7 @@ import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAddonsRouteImport } from './routes/admin.addons'
+import { Route as AcademyPathIdRouteImport } from './routes/academy.$pathId'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SlugCheckinRouteImport } from './routes/$slug.checkin'
@@ -528,6 +529,11 @@ const AdminAddonsRoute = AdminAddonsRouteImport.update({
   path: '/addons',
   getParentRoute: () => AdminRoute,
 } as any)
+const AcademyPathIdRoute = AcademyPathIdRouteImport.update({
+  id: '/$pathId',
+  path: '/$pathId',
+  getParentRoute: () => AcademyRoute,
+} as any)
 const SlugProfissionalRoute = SlugProfissionalRouteImport.update({
   id: '/profissional',
   path: '/profissional',
@@ -633,7 +639,7 @@ const ApiPublicHooksAddonsCleanupRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
-  '/academy': typeof AcademyRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -673,6 +679,7 @@ export interface FileRoutesByFullPath {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/academy/$pathId': typeof AcademyPathIdRoute
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -736,7 +743,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
-  '/academy': typeof AcademyRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/auth': typeof AuthRoute
   '/automations': typeof AutomationsRoute
@@ -773,6 +780,7 @@ export interface FileRoutesByTo {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/academy/$pathId': typeof AcademyPathIdRoute
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -837,7 +845,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
-  '/academy': typeof AcademyRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -877,6 +885,7 @@ export interface FileRoutesById {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/academy/$pathId': typeof AcademyPathIdRoute
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -982,6 +991,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/academy/$pathId'
     | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -1082,6 +1092,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/academy/$pathId'
     | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -1185,6 +1196,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/academy/$pathId'
     | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -1249,7 +1261,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRouteWithChildren
-  AcademyRoute: typeof AcademyRoute
+  AcademyRoute: typeof AcademyRouteWithChildren
   AccessibilityRoute: typeof AccessibilityRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
@@ -1889,6 +1901,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAddonsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/academy/$pathId': {
+      id: '/academy/$pathId'
+      path: '/$pathId'
+      fullPath: '/academy/$pathId'
+      preLoaderRoute: typeof AcademyPathIdRouteImport
+      parentRoute: typeof AcademyRoute
+    }
     '/$slug/profissional': {
       id: '/$slug/profissional'
       path: '/profissional'
@@ -2034,6 +2053,17 @@ const SlugRouteChildren: SlugRouteChildren = {
 
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
+interface AcademyRouteChildren {
+  AcademyPathIdRoute: typeof AcademyPathIdRoute
+}
+
+const AcademyRouteChildren: AcademyRouteChildren = {
+  AcademyPathIdRoute: AcademyPathIdRoute,
+}
+
+const AcademyRouteWithChildren =
+  AcademyRoute._addFileChildren(AcademyRouteChildren)
+
 interface AdminRouteChildren {
   AdminAddonsRoute: typeof AdminAddonsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
@@ -2173,7 +2203,7 @@ const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
-  AcademyRoute: AcademyRoute,
+  AcademyRoute: AcademyRouteWithChildren,
   AccessibilityRoute: AccessibilityRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
