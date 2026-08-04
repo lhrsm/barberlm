@@ -9,14 +9,14 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY']
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      return next()
+      throw new Error('Supabase configuration missing')
     }
     
     const request = getRequest()
     const authHeader = request?.headers?.get('authorization')
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next()
+      throw new Error('Unauthorized')
     }
 
     const token = authHeader.replace('Bearer ', '')
@@ -39,7 +39,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     const { data, error } = await supabaseClient.auth.getClaims(token)
     if (error || !data?.claims) {
-      return next()
+      throw new Error('Invalid session')
     }
 
     return next({
@@ -51,6 +51,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     })
   }
 )
+
 
 
 
