@@ -45,6 +45,24 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useCustomerCancellation, type CancellationStep, type FinancialStatus } from "@/hooks/use-customer-cancellation";
 import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { HelpTooltip, ContextualTip } from "@/components/help-center/HelpContext";
+
+const appointmentHelpConfig = {
+  moduleKey: 'appointment-management',
+  routePath: '/agendamento/$token',
+  title: 'Gerenciar seu Agendamento',
+  summary: 'Aqui você pode confirmar presença, reagendar para outro horário ou solicitar o cancelamento.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como reagendar?', answer: 'Clique no botão "Reagendar" e escolha uma nova data e horário disponível.' },
+    { question: 'Vou receber reembolso ao cancelar?', answer: 'Depende da política da barbearia. O sistema informará se haverá estorno, crédito ou perda do valor pago.' }
+  ],
+  commonIssues: [
+    { issue: 'Não aparecem horários para reagendar', solution: 'Isso acontece quando o profissional não tem mais vagas no dia selecionado.' }
+  ]
+};
+
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
