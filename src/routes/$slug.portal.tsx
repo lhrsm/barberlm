@@ -1241,7 +1241,6 @@ function ClientPortalComponent() {
               >
                 <LogOut size={14} className="transition-transform group-hover:-translate-x-0.5" />
               </Button>
-
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">
               <AlertDialogHeader>
