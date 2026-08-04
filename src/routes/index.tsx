@@ -33,7 +33,9 @@ import {
   ArrowUpRight,
   Play,
   Heart,
-  Check
+  Check,
+  CreditCard,
+  Briefcase
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,7 @@ import { PortalFaq } from "@/components/public/PortalFaq";
 import { AboutShop } from "@/components/public/AboutShop";
 import { RegisterWizard } from "@/components/auth/RegisterWizard";
 import { SystemMockup } from "@/components/public/SystemMockup";
+import { LandingImage, CTASection } from "@/components/public/LandingUI";
 import { 
   Instagram, 
   Facebook, 
