@@ -44,6 +44,8 @@ import { PLAN_LIMITS } from "@/hooks/use-plan-limits";
 import { BarbexLogo } from "@/components/ui/barbex-logo";
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
+import { PrivacyAndLGPDSection } from "@/components/public/PrivacyAndLGPDSection";
+import { ScrollToTopButton } from "@/components/public/ScrollToTopButton";
 import { AboutShop } from "@/components/public/AboutShop";
 import { RegisterWizard } from "@/components/auth/RegisterWizard";
 import { SystemMockup } from "@/components/public/SystemMockup";
@@ -494,8 +496,14 @@ function LandingPage() {
         </Button>
       </CTASection>
 
+      {/* LGPD */}
+      <PrivacyAndLGPDSection />
+
       {/* FAQ Final */}
       <PortalFaq />
+
+      {/* Botão Voltar ao Topo */}
+      <ScrollToTopButton />
 
       {/* Final CTA */}
       <CTASection
