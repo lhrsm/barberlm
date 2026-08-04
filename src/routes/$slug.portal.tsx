@@ -141,22 +141,26 @@ export const Route = createFileRoute("/$slug/portal")({
         key: 'next-appointment',
         title: 'Ver Agendamentos',
         description: 'Aqui você acompanha seus próximos horários marcados.',
-        target: '[data-tour="portal-appointments"]'
+        target: '[data-tour="portal-appointments"]',
+        actionLabel: 'Ver Agendamentos'
       },
       {
         key: 'loyalty-points',
         title: 'Meus Benefícios',
         description: 'Veja seus pontos de fidelidade e cupons disponíveis.',
-        target: '[data-tour="portal-benefits"]'
+        target: '[data-tour="portal-benefits"]',
+        actionLabel: 'Meus Pontos'
       },
       {
         key: 'profile-settings',
         title: 'Completar Perfil',
         description: 'Mantenha seus dados atualizados para agilizar seu check-in.',
-        target: '[data-tour="portal-profile"]'
+        target: '[data-tour="portal-profile"]',
+        actionLabel: 'Editar Perfil'
       }
     ]
   };
+
 
 
 const portalHelpConfig = {

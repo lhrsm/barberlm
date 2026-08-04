@@ -36,7 +36,8 @@ import {
   Tag,
   Star,
   Layers,
-  LayoutGrid
+  LayoutGrid,
+  HelpCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,6 +49,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { withModule } from "@/components/modules/withModule";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { HelpTooltip, ContextualTip } from "@/components/help-center/HelpContext";
+
 
 export const Route = createFileRoute("/products")({
   component: withModule("products", "Loja / Produtos", ProductsComponent),
