@@ -1,6 +1,6 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
@@ -10,7 +10,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       return next({
-        context: {} as any
+        context: {
+          supabase: {} as SupabaseClient<Database>,
+          userId: '',
+          claims: {},
+        } as any,
       })
     }
     
@@ -19,7 +23,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next({
-        context: {} as any
+        context: {
+          supabase: {} as SupabaseClient<Database>,
+          userId: '',
+          claims: {},
+        } as any,
       })
     }
 
@@ -44,7 +52,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const { data, error } = await supabaseClient.auth.getClaims(token)
     if (error || !data?.claims) {
       return next({
-        context: {} as any
+        context: {
+          supabase: {} as SupabaseClient<Database>,
+          userId: '',
+          claims: {},
+        } as any,
       })
     }
 
@@ -53,13 +65,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         supabase: supabaseClient,
         userId: data.claims.sub as string,
         claims: data.claims,
-      },
+      } as any,
     })
   }
 )
-
-
-
-
-
-
