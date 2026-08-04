@@ -31,7 +31,12 @@ import {
   Cpu,
   Lock,
   ArrowUpRight,
-  Play
+  Play,
+  Heart,
+  Instagram,
+  Facebook,
+  Twitter,
+  Youtube
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
