@@ -227,7 +227,8 @@ export const resolveModuleAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AddonAccessSnapshot | { error: string }> => {
     try {
-      const { supabase, userId } = context;
+      const { supabase, userId } = context as any;
+
       const [plan, addons] = await Promise.all([
         loadCurrentPlan(supabase, userId),
         loadActiveAddons(supabase, userId),
