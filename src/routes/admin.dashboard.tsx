@@ -254,8 +254,11 @@ function AdminDashboard() {
         </motion.div>
       </section>
 
+      <OnboardingChecklist config={adminOnboardingConfig} />
+
       {/* Anomaly Alerts — top priority visibility */}
       <AnomalyAlerts />
+
 
       {/* SaaS Metrics (MRR/ARR/Churn/Conversion) */}
       <SaasMetricsCards />
