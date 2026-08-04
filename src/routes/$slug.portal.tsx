@@ -191,10 +191,6 @@ function ClientPortalComponent() {
 
   // DEBUG LOGS
   console.log('SLUG', slug);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [shop, setShop] = useState<any>(null);
-  const [client, setClient] = useState<any>(null);
   const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
   const loyaltyEnabled = isModuleEnabled("loyalty");
   const cashbackEnabled = isModuleEnabled("cashback");
