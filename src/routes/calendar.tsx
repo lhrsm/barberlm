@@ -15,7 +15,8 @@ import {
   Crown,
   CheckCircle2,
   RefreshCcw,
-  UserPlus
+  UserPlus,
+  HelpCircle
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
@@ -37,6 +38,47 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { GuidedTour } from "@/components/help-center/GuidedTour";
+
+export const Route = createFileRoute("/calendar")({
+  component: CalendarPage,
+});
+
+const calendarHelpConfig = {
+  moduleKey: 'calendar',
+  routePath: '/calendar',
+  title: 'Gestão da Agenda',
+  summary: 'Visualize e gerencie todos os agendamentos da sua barbearia em tempo real.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  faqs: [
+    { question: 'Como marcar um Walk-in?', answer: 'Clique no botão "+" no topo e escolha "Adicionar Fila de Espera".' },
+    { question: 'Posso bloquear horários?', answer: 'Sim, clique no horário desejado e selecione "Bloquear Horário" para folgas ou manutenções.' }
+  ],
+  commonIssues: [
+    { issue: 'Horário indisponível mas aparece livre', solution: 'Verifique se o profissional vinculado ao serviço possui escala definida para este dia.' }
+  ]
+};
+
+const calendarTourConfig = {
+  key: 'calendar-tour',
+  version: '1.0.0',
+  steps: [
+    {
+      target: '[data-tour="calendar-view"]',
+      title: 'A Agenda Principal',
+      description: 'Aqui você vê todos os agendamentos organizados por profissional e horário.',
+      position: 'bottom' as const
+    },
+    {
+      target: '[data-tour="calendar-actions"]',
+      title: 'Ações Rápidas',
+      description: 'Use estes botões para criar agendamentos, check-ins ou gerenciar a fila de espera.',
+      position: 'bottom' as const
+    }
+  ]
+};
+
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
