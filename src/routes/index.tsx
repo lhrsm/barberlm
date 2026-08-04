@@ -286,7 +286,9 @@ function LandingPage() {
           </div>
         </div>
       </footer>
-
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
