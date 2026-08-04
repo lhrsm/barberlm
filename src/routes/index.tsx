@@ -372,6 +372,22 @@ function LandingPage() {
             </motion.div>
           </div>
         </div>
+
+        {/* Separator Image with Parallax-ready background */}
+        <div className="mt-24 h-[400px] w-full rounded-[3rem] overflow-hidden relative">
+          <img 
+            src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop" 
+            alt="Barbeiro profissional em ação"
+            className="w-full h-full object-cover opacity-50 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center space-y-4 px-6">
+              <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Elegância & Precisão</span>
+              <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Onde a tradição encontra o futuro</h3>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* About Shop Integration (Recuperando componente visual anterior) */}
