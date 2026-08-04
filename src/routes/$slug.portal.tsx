@@ -571,7 +571,7 @@ function ClientPortalComponent() {
             return checkTime >= appStart && checkTime < appEnd;
           });
 
-          if (!isBusy) times.push(timeStr);
+          if (!isBusy) times.push(timeStr as any);
         }
       }
       

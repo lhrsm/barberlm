@@ -670,7 +670,7 @@ function ShopPageComponent() {
    */
   const isBarberAvailableOnDate = (barber: any, _date: string, service: any) => {
     if (!service || !barber) return false;
-    const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
+    const performsService = barber.barber_services?.some((bs: any) => bs.service_id === (service as any).id);
     if (!performsService) return false;
     return availableBarberIds.includes(barber.id);
   };
@@ -2384,7 +2384,7 @@ function ShopPageComponent() {
                 )
                 .map((service, idx) => (
                 <motion.div
-                  key={service.id}
+                  key={(service as any).id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.08 }}
@@ -4980,7 +4980,7 @@ function ShopPageComponent() {
               .filter(s => modalBarber.barber_services?.some((bs: any) => bs.service_id === s.id))
               .map(service => (
                 <div 
-                  key={service.id} 
+                  key={(service as any).id} 
                   className="p-3 border rounded-lg flex justify-between items-center hover:bg-muted cursor-pointer transition-colors"
                   onClick={() => {
                     setSelectedService(service);

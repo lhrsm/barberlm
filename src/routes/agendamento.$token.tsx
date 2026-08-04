@@ -259,7 +259,7 @@ function AppointmentManagementPage() {
             const appEnd = new Date(app.end_time).getTime();
             return checkTimeMs < appEnd && serviceEndMs > appStart;
           });
-          if (!isBusy) times.push(timeStr);
+          if (!isBusy) times.push(timeStr as any);
         }
       }
       setAvailableTimes(times);

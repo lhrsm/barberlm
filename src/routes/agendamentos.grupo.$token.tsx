@@ -413,7 +413,7 @@ function AppointmentGroupPage() {
             return checkTimeMs < appEnd && serviceEndMs > appStart;
           });
 
-          if (!isBusy) times.push(timeStr);
+          if (!isBusy) times.push(timeStr as any);
         }
       }
       setAvailableTimes(times);
