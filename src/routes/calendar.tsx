@@ -293,7 +293,15 @@ const CalendarComponent = memo(() => {
 
   return (
     <AppLayout>
+      <GuidedTour config={calendarTourConfig} />
       <div className="flex flex-col h-full space-y-4 bg-[#05070d] p-3 md:p-8 min-h-screen text-white max-w-full overflow-x-hidden">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gold">Agenda</h1>
+          </div>
+          <HelpDrawer config={calendarHelpConfig} />
+        </div>
+
         {!canAddAppointment && (
           <Alert className="bg-amber-950/30 border-amber-900/50 rounded-2xl">
             <Crown className="h-4 w-4 text-[#F5C542]" />
