@@ -41,8 +41,14 @@ import { PLAN_LIMITS } from "@/hooks/use-plan-limits";
 import { BarbexLogo } from "@/components/ui/barbex-logo";
 import { WhyChooseUs } from "@/components/public/WhyChooseUs";
 import { PortalFaq } from "@/components/public/PortalFaq";
-import { SubscriptionValueProps } from "@/components/public/SubscriptionValueProps";
 import { AboutShop } from "@/components/public/AboutShop";
+import { 
+  Instagram, 
+  Facebook, 
+  Twitter, 
+  Youtube 
+} from "@/components/ui/social-icons";
+
 
 
 function LandingPage() {
@@ -503,7 +509,11 @@ function LandingPage() {
               © {new Date().getFullYear()} BARBEX ENTERPRISE. TODOS OS DIREITOS RESERVADOS.
             </div>
             <div className="flex gap-6">
-              {/* Social placeholders if needed */}
+              {[Instagram, Facebook, Twitter, Youtube].map((Icon, idx) => (
+                <a key={idx} href="#" className="text-slate-600 hover:text-gold transition-colors">
+                  <Icon size={18} />
+                </a>
+              ))}
             </div>
           </div>
         </div>
