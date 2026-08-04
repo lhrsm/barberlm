@@ -275,38 +275,58 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Prova Visual (Mockup) */}
+      {/* Prova Visual (Mockup Contextual) */}
       <section className="py-24 px-6 overflow-hidden bg-[#05070d] relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative rounded-[3rem] border border-gold/20 bg-black/40 backdrop-blur-sm p-4 shadow-[0_0_100px_-20px_rgba(212,175,55,0.2)] overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-            <img 
-              src="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0ce0d0ed-5497-443c-a203-78d6752261b7/id-preview-67ef2cc9--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app-1777896732289.png" 
-              alt="Barbex Enterprise Dashboard" 
-              className="rounded-[2.5rem] border border-white/10 w-full"
-            />
-            {/* Floating Overlays */}
-            <motion.div 
-              initial={{ x: -20, opacity: 0 }}
-              whileInView={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="absolute top-1/4 -left-10 md:left-20 p-6 rounded-3xl border border-gold/30 bg-black/80 backdrop-blur-xl shadow-2xl hidden md:block"
+        <div className="max-w-7xl mx-auto text-center mb-16">
+          <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Experiência de Uso</span>
+          <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Tecnologia que <span className="text-gold">eleva</span> o seu negócio</h2>
+        </div>
+        
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative rounded-[2.5rem] border border-white/5 bg-zinc-900/20 overflow-hidden aspect-square md:aspect-auto md:h-[500px]"
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gold/10 rounded-2xl text-gold"><TrendingUp size={24} /></div>
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Crescimento Mensal</div>
-                  <div className="text-2xl font-black text-white">+24.8%</div>
-                </div>
+              <img 
+                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
+                alt="Ambiente Barbex" 
+                className="w-full h-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+              <div className="absolute bottom-10 left-10 right-10">
+                <div className="text-gold font-black uppercase tracking-widest text-xs mb-2">Design Sophistication</div>
+                <div className="text-2xl font-black italic uppercase text-white">Ambiente Premium</div>
               </div>
             </motion.div>
-          </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              {[
+                { title: "Alta Resolução", desc: "Interfaces nítidas e otimizadas para telas Retina e 4K." },
+                { title: "Performance Edge", desc: "Carregamento instantâneo em qualquer lugar do mundo." },
+                { title: "Mobile First", desc: "Experiência nativa no celular sem precisar baixar nada." },
+                { title: "Segurança Bancária", desc: "Seus dados protegidos com criptografia de ponta a ponta." }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold shrink-0">
+                    <Check size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black uppercase italic tracking-tight text-white mb-1">{item.title}</h4>
+                    <p className="text-slate-400 text-sm">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -458,7 +478,7 @@ function LandingPage() {
 
 
       {/* FAQ Final */}
-      <PortalFaq shop={{ business_name: "Barbex" }} productsEnabled subscriptionsEnabled loyaltyEnabled cashbackEnabled />
+      <PortalFaq />
 
 
       {/* Final CTA */}

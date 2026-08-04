@@ -31,7 +31,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="absolute inset-0 z-20 rounded-[2rem] border border-[#F59E0B]/15 bg-[#050b18]/95 backdrop-blur-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden group"
+          className="absolute inset-0 z-20 rounded-[2.5rem] border border-[#F59E0B]/15 bg-[#050b18]/95 backdrop-blur-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden group"
         >
           <div className="absolute inset-0 opacity-40 pointer-events-none"
                style={{
@@ -39,8 +39,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
                }}
           />
 
-          
-          <div className="h-full w-full bg-[#050b18]/40 p-6 md:p-10 flex flex-col gap-8 relative z-10">
+          <div className="h-full w-full bg-gradient-to-br from-white/[0.02] to-transparent p-6 md:p-10 flex flex-col gap-8 relative z-10">
             <div className="flex justify-between items-center">
               <div className="space-y-1">
                 <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#F59E0B]">Visão Geral do Negócio</div>
@@ -113,7 +112,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
           whileInView={{ opacity: 1, x: 0, rotate: 5 }}
           viewport={{ once: true }}
           transition={{ duration: 1, delay: 0.2 }}
-          className="absolute -right-12 top-1/2 -translate-y-1/2 z-30 w-1/3 aspect-[3/4] rounded-[2rem] border border-[#F59E0B]/15 bg-[#050b18] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
+          className="absolute -right-12 top-1/2 -translate-y-1/2 z-30 w-1/3 aspect-[3/4] rounded-[2.5rem] border border-[#F59E0B]/15 bg-[#050b18] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
         >
           <div className="h-full w-full bg-[#050b18]/60 p-6 flex flex-col gap-6 relative">
             <div className="absolute inset-0 opacity-20 pointer-events-none"
@@ -149,7 +148,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
           whileInView={{ opacity: 1, x: 0, rotate: -10 }}
           viewport={{ once: true }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="absolute -left-12 bottom-0 z-40 w-1/5 aspect-[9/19] rounded-[2.5rem] border-8 border-zinc-900 bg-[#050b18] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
+          className="absolute -left-12 bottom-0 z-40 w-1/5 aspect-[9/19] rounded-[2.5rem] border-[10px] border-zinc-900 bg-[#050b18] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden hidden lg:block"
         >
           <div className="h-full w-full bg-[#050b18]/90 p-4 flex flex-col gap-6 relative">
             <div className="absolute inset-0 opacity-30 pointer-events-none"
