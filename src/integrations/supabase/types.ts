@@ -14,6 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_lessons: {
+        Row: {
+          checklist: Json | null
+          content: string | null
+          created_at: string | null
+          duration: string | null
+          id: string
+          module_id: string
+          order: number | null
+          route_path: string | null
+          status: string | null
+          summary: string | null
+          title: string
+          tutorial_id: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          checklist?: Json | null
+          content?: string | null
+          created_at?: string | null
+          duration?: string | null
+          id?: string
+          module_id: string
+          order?: number | null
+          route_path?: string | null
+          status?: string | null
+          summary?: string | null
+          title: string
+          tutorial_id?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          checklist?: Json | null
+          content?: string | null
+          created_at?: string | null
+          duration?: string | null
+          id?: string
+          module_id?: string
+          order?: number | null
+          route_path?: string | null
+          status?: string | null
+          summary?: string | null
+          title?: string
+          tutorial_id?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "academy_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lessons_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_modules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          order: number | null
+          path_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          order?: number | null
+          path_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          order?: number | null
+          path_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_modules_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "academy_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_paths: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          duration: string | null
+          icon: string | null
+          id: string
+          level: string | null
+          name: string
+          order: number | null
+          profile_target: Database["public"]["Enums"]["app_role"]
+          status: string
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          duration?: string | null
+          icon?: string | null
+          id?: string
+          level?: string | null
+          name: string
+          order?: number | null
+          profile_target: Database["public"]["Enums"]["app_role"]
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          duration?: string | null
+          icon?: string | null
+          id?: string
+          level?: string | null
+          name?: string
+          order?: number | null
+          profile_target?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_paths_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          lesson_id: string
+          path_id: string
+          status: string
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id: string
+          path_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id?: string
+          path_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_progress_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "academy_paths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_progress_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       addon_upgrade_recommendations: {
         Row: {
           action_taken_at: string | null
