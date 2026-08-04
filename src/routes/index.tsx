@@ -125,22 +125,53 @@ function LandingPage() {
             <Sparkles size={12} />
             Gestão Premium de Barbearias
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-[0.9]">
-            Gestão completa para <span className="text-gold">barbearias</span> que querem crescer
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-[0.85] py-2">
+            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            Agenda, clientes, profissionais, financeiro, loja, assinaturas, automações e inteligência operacional em uma única plataforma Enterprise.
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-slate-400 text-lg md:text-2xl max-w-3xl mx-auto leading-tight font-medium">
+            Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-4 justify-center pt-4">
-            <Button className="h-14 px-8 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm" asChild>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" asChild>
               <Link to="/auth" search={{ tab: "register" }}>Começar teste grátis</Link>
             </Button>
-            <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/10 bg-transparent hover:bg-white/5 font-black uppercase tracking-widest text-sm" asChild>
-              <a href="#recursos">Ver recursos</a>
+            <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
+              <a href="#demo" className="flex items-center gap-2">
+                <Play size={16} fill="currentColor" />
+                Assistir Demonstração
+              </a>
             </Button>
+          </motion.div>
+          
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-wrap justify-center gap-x-8 gap-y-4 pt-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> 15 dias grátis</div>
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Sem cartão de crédito</div>
+            <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Configuração simples</div>
           </motion.div>
         </div>
       </section>
+
+      {/* Trust Bar / Benefits */}
+      <section className="py-12 border-y border-white/5 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-wrap justify-center md:justify-between items-center gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+            {[
+              { icon: Calendar, label: "Agenda Online" },
+              { icon: Smartphone, label: "Portal do Cliente" },
+              { icon: BarChart3, label: "Financeiro Premium" },
+              { icon: MessageSquare, label: "Automações WhatsApp" },
+              { icon: ShoppingBag, label: "Loja Virtual" },
+              { icon: Award, label: "Clube de Assinaturas" }
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3 group">
+                <item.icon size={20} className="text-gold group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {/* Features Grid */}
       <section id="recursos" className="py-24 bg-black">
