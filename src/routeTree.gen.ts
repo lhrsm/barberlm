@@ -111,6 +111,7 @@ import { Route as ApiPublicHooksAdminRiskScanRouteImport } from './routes/api/pu
 import { Route as ApiPublicHooksAdminDigestRouteImport } from './routes/api/public/hooks/admin-digest'
 import { Route as ApiPublicHooksAddonsReconcileRouteImport } from './routes/api/public/hooks/addons-reconcile'
 import { Route as ApiPublicHooksAddonsCleanupRouteImport } from './routes/api/public/hooks/addons-cleanup'
+import { Route as AcademyPathIdLessonsLessonIdRouteImport } from './routes/academy.$pathId.lessons.$lessonId'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -635,6 +636,12 @@ const ApiPublicHooksAddonsCleanupRoute =
     path: '/api/public/hooks/addons-cleanup',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AcademyPathIdLessonsLessonIdRoute =
+  AcademyPathIdLessonsLessonIdRouteImport.update({
+    id: '/lessons/$lessonId',
+    path: '/lessons/$lessonId',
+    getParentRoute: () => AcademyPathIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -679,7 +686,7 @@ export interface FileRoutesByFullPath {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
-  '/academy/$pathId': typeof AcademyPathIdRoute
+  '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -729,6 +736,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
   '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
   '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
@@ -780,7 +788,7 @@ export interface FileRoutesByTo {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
-  '/academy/$pathId': typeof AcademyPathIdRoute
+  '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -830,6 +838,7 @@ export interface FileRoutesByTo {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
   '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
   '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
@@ -885,7 +894,7 @@ export interface FileRoutesById {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
-  '/academy/$pathId': typeof AcademyPathIdRoute
+  '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -935,6 +944,7 @@ export interface FileRoutesById {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
   '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
   '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
@@ -1041,6 +1051,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/academy/$pathId/lessons/$lessonId'
     | '/api/public/hooks/addons-cleanup'
     | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
@@ -1142,6 +1153,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/academy/$pathId/lessons/$lessonId'
     | '/api/public/hooks/addons-cleanup'
     | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
@@ -1246,6 +1258,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/academy/$pathId/lessons/$lessonId'
     | '/api/public/hooks/addons-cleanup'
     | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
@@ -2034,6 +2047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAddonsCleanupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/academy/$pathId/lessons/$lessonId': {
+      id: '/academy/$pathId/lessons/$lessonId'
+      path: '/lessons/$lessonId'
+      fullPath: '/academy/$pathId/lessons/$lessonId'
+      preLoaderRoute: typeof AcademyPathIdLessonsLessonIdRouteImport
+      parentRoute: typeof AcademyPathIdRoute
+    }
   }
 }
 
@@ -2053,12 +2073,24 @@ const SlugRouteChildren: SlugRouteChildren = {
 
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
+interface AcademyPathIdRouteChildren {
+  AcademyPathIdLessonsLessonIdRoute: typeof AcademyPathIdLessonsLessonIdRoute
+}
+
+const AcademyPathIdRouteChildren: AcademyPathIdRouteChildren = {
+  AcademyPathIdLessonsLessonIdRoute: AcademyPathIdLessonsLessonIdRoute,
+}
+
+const AcademyPathIdRouteWithChildren = AcademyPathIdRoute._addFileChildren(
+  AcademyPathIdRouteChildren,
+)
+
 interface AcademyRouteChildren {
-  AcademyPathIdRoute: typeof AcademyPathIdRoute
+  AcademyPathIdRoute: typeof AcademyPathIdRouteWithChildren
 }
 
 const AcademyRouteChildren: AcademyRouteChildren = {
-  AcademyPathIdRoute: AcademyPathIdRoute,
+  AcademyPathIdRoute: AcademyPathIdRouteWithChildren,
 }
 
 const AcademyRouteWithChildren =
