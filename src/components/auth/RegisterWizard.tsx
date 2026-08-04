@@ -382,7 +382,7 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
                           <h4 className="text-xl font-black uppercase italic tracking-tight text-white mb-2">{planKey}</h4>
                           <div className="flex items-baseline gap-1 mb-6">
                             <span className="text-2xl font-black text-white italic">R$</span>
-                            <span className="text-4xl font-black text-white">{plan.price?.toFixed(2)}</span>
+                            <span className="text-4xl font-black text-white">{(plan as any).price?.toFixed(2)}</span>
                             <span className="text-[10px] text-slate-500 font-bold uppercase ml-1">/mês</span>
                           </div>
                           <ul className="space-y-3 mb-4">
