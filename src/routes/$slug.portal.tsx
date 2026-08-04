@@ -1265,8 +1265,10 @@ function ClientPortalComponent() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          </div>
         </div>
       </header>
+
 
       <PortalNavigation 
         activeTab={activeTab}
