@@ -45,6 +45,7 @@ import { Route as AutomationsRouteImport } from './routes/automations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccessibilityRouteImport } from './routes/accessibility'
+import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionIndexRouteImport } from './routes/subscription.index'
@@ -288,6 +289,11 @@ const AdminRoute = AdminRouteImport.update({
 const AccessibilityRoute = AccessibilityRouteImport.update({
   id: '/accessibility',
   path: '/accessibility',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugRoute = SlugRouteImport.update({
@@ -627,6 +633,7 @@ const ApiPublicHooksAddonsCleanupRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/academy': typeof AcademyRoute
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -729,6 +736,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/academy': typeof AcademyRoute
   '/accessibility': typeof AccessibilityRoute
   '/auth': typeof AuthRoute
   '/automations': typeof AutomationsRoute
@@ -829,6 +837,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/academy': typeof AcademyRoute
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -933,6 +942,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$slug'
+    | '/academy'
     | '/accessibility'
     | '/admin'
     | '/auth'
@@ -1035,6 +1045,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$slug'
+    | '/academy'
     | '/accessibility'
     | '/auth'
     | '/automations'
@@ -1134,6 +1145,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$slug'
+    | '/academy'
     | '/accessibility'
     | '/admin'
     | '/auth'
@@ -1237,6 +1249,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRouteWithChildren
+  AcademyRoute: typeof AcademyRoute
   AccessibilityRoute: typeof AccessibilityRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
@@ -1545,6 +1558,13 @@ declare module '@tanstack/react-router' {
       path: '/accessibility'
       fullPath: '/accessibility'
       preLoaderRoute: typeof AccessibilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -2153,6 +2173,7 @@ const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
+  AcademyRoute: AcademyRoute,
   AccessibilityRoute: AccessibilityRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
