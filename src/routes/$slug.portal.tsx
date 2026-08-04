@@ -740,7 +740,7 @@ function ClientPortalComponent() {
       let avatarUrl = "";
 
       // Convert DD/MM/YYYY to YYYY-MM-DD
-      let formattedBirthDate = undefined;
+      let formattedBirthDate: string | undefined = undefined;
       if (customerBirthDate && customerBirthDate.includes("/")) {
         const [day, month, year] = customerBirthDate.split("/");
         if (day && month && year && year.length === 4) {
