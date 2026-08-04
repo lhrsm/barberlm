@@ -547,7 +547,7 @@ function ClientPortalComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
-      const times = [];
+      const times: string[] = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;
@@ -571,7 +571,7 @@ function ClientPortalComponent() {
             return checkTime >= appStart && checkTime < appEnd;
           });
 
-          if (!isBusy) times.push(timeStr);
+          if (!isBusy) times.push(timeStr as any);
         }
       }
       
@@ -740,7 +740,7 @@ function ClientPortalComponent() {
       let avatarUrl = "";
 
       // Convert DD/MM/YYYY to YYYY-MM-DD
-      let formattedBirthDate = undefined;
+      let formattedBirthDate: string | undefined = undefined;
       if (customerBirthDate && customerBirthDate.includes("/")) {
         const [day, month, year] = customerBirthDate.split("/");
         if (day && month && year && year.length === 4) {

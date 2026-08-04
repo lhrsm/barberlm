@@ -21,6 +21,7 @@ import {
   LifeBuoy,
   HelpCircle,
   GraduationCap,
+  BookOpen,
   Headset,
   Bell,
   MessageSquare,
@@ -83,7 +84,8 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
 
 
   { label: "Integrações", icon: Share2, to: "/integrations", module: "integrations" },
-  { label: "Tutoriais", icon: GraduationCap, to: "/tutorials", module: "tutorials" },
+  { label: "Academia", icon: GraduationCap, to: "/academy" },
+  { label: "Tutoriais", icon: BookOpen, to: "/tutorials", module: "tutorials" },
   { label: "Suporte", icon: Headset, to: "/support", module: "support" },
   { label: "Clube Barbex", icon: Crown, to: "/dashboard/membership", module: "subscriptions" },
   { label: "Fidelidade", icon: Gift, to: "/loyalty" },

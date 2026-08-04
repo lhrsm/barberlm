@@ -121,7 +121,7 @@ function AdminAddonsPage() {
     mutationFn: async ({ addonId, environment }: { addonId: string; environment: "sandbox" | "live" }) => {
       setCreatingStripeId(addonId);
       const r = await adminCreateAddonStripePrice({ data: { addonId, environment } });
-      if (!r.ok) throw new Error(r.error);
+      if (!r.ok) throw new Error((r as any).error);
       return r;
     },
     onSuccess: (r) => {

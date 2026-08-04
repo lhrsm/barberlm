@@ -156,7 +156,7 @@ function TemplatesPage() {
       return;
     }
     toast.success("Campanha criada como rascunho!");
-    navigate({ to: "/loyalty/campaigns/$id", params: { id: (data as any).id } });
+    navigate({ to: "/loyalty/campaigns/$id", params: { id: (data as any).id } } as any);
   }
 
   async function handleAiSuggest() {

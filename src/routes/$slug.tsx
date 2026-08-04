@@ -670,7 +670,7 @@ function ShopPageComponent() {
    */
   const isBarberAvailableOnDate = (barber: any, _date: string, service: any) => {
     if (!service || !barber) return false;
-    const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
+    const performsService = barber.barber_services?.some((bs: any) => bs.service_id === (service as any).id);
     if (!performsService) return false;
     return availableBarberIds.includes(barber.id);
   };
@@ -817,8 +817,8 @@ function ShopPageComponent() {
         const statsMap = new Map((stats || []).map((s: any) => [s.barber_id, s]));
         barbersWithStats = barberList.map((b: any) => ({
           ...b,
-          avg_rating: statsMap.get(b.id)?.avg_rating ?? null,
-          total_ratings: statsMap.get(b.id)?.total_ratings ?? 0,
+          avg_rating: (statsMap.get(b.id) as any)?.avg_rating ?? null,
+          total_ratings: (statsMap.get(b.id) as any)?.total_ratings ?? 0,
         }));
       }
       setBarbers(barbersWithStats);
@@ -1057,12 +1057,12 @@ function ShopPageComponent() {
         currentCustomer = data;
       }
 
-      const resolvedCustomerId = customerId || currentCustomer?.id || null;
+      const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
 
       if (resolvedCustomerId) {
-        const name = customerName || currentCustomer?.name;
+        const name = customerName || (currentCustomer as any)?.name;
         if (name) setCustomerName(name);
-        if (currentCustomer?.id) setCustomerId(currentCustomer.id);
+        if ((currentCustomer as any)?.id) setCustomerId((currentCustomer as any).id);
 
         // CRITICAL: check active subscription BEFORE advancing to step 2
         // so the premium chooser renders instead of the regular service list.
@@ -2384,7 +2384,7 @@ function ShopPageComponent() {
                 )
                 .map((service, idx) => (
                 <motion.div
-                  key={service.id}
+                  key={(service as any).id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.08 }}
@@ -2670,8 +2670,8 @@ function ShopPageComponent() {
                       <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
                       <div className="flex items-center gap-1.5">
                         <Star size={14} className="text-yellow-500" fill="currentColor" />
-                        <span className="text-sm font-bold text-white">{barber.avg_rating ? Number(barber.avg_rating).toFixed(1) : "—"}</span>
-                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} avaliações)</span>
+                        <span className="text-sm font-bold text-white">{(barber as any).avg_rating ? Number((barber as any).avg_rating).toFixed(1) : "—"}</span>
+                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({(barber as any).total_ratings || 0} avaliações)</span>
                       </div>
                     </div>
                   </div>
@@ -3428,8 +3428,8 @@ function ShopPageComponent() {
                   <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
                   <div className="flex items-center gap-1.5">
                     <Star size={14} className="text-yellow-500" fill="currentColor" />
-                    <span className="text-sm font-bold text-white">{barber.avg_rating ? Number(barber.avg_rating).toFixed(1) : "—"}</span>
-                    <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} avaliações)</span>
+                    <span className="text-sm font-bold text-white">{(barber as any).avg_rating ? Number((barber as any).avg_rating).toFixed(1) : "—"}</span>
+                    <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({(barber as any).total_ratings || 0} avaliações)</span>
                   </div>
                 </div>
               </div>
@@ -4980,7 +4980,7 @@ function ShopPageComponent() {
               .filter(s => modalBarber.barber_services?.some((bs: any) => bs.service_id === s.id))
               .map(service => (
                 <div 
-                  key={service.id} 
+                  key={(service as any).id} 
                   className="p-3 border rounded-lg flex justify-between items-center hover:bg-muted cursor-pointer transition-colors"
                   onClick={() => {
                     setSelectedService(service);

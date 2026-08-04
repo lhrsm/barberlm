@@ -45,6 +45,7 @@ import { Route as AutomationsRouteImport } from './routes/automations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccessibilityRouteImport } from './routes/accessibility'
+import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionIndexRouteImport } from './routes/subscription.index'
@@ -91,6 +92,7 @@ import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAddonsRouteImport } from './routes/admin.addons'
+import { Route as AcademyPathIdRouteImport } from './routes/academy.$pathId'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SlugCheckinRouteImport } from './routes/$slug.checkin'
@@ -109,6 +111,7 @@ import { Route as ApiPublicHooksAdminRiskScanRouteImport } from './routes/api/pu
 import { Route as ApiPublicHooksAdminDigestRouteImport } from './routes/api/public/hooks/admin-digest'
 import { Route as ApiPublicHooksAddonsReconcileRouteImport } from './routes/api/public/hooks/addons-reconcile'
 import { Route as ApiPublicHooksAddonsCleanupRouteImport } from './routes/api/public/hooks/addons-cleanup'
+import { Route as AcademyPathIdLessonsLessonIdRouteImport } from './routes/academy.$pathId.lessons.$lessonId'
 
 const TutorialsRoute = TutorialsRouteImport.update({
   id: '/tutorials',
@@ -288,6 +291,11 @@ const AdminRoute = AdminRouteImport.update({
 const AccessibilityRoute = AccessibilityRouteImport.update({
   id: '/accessibility',
   path: '/accessibility',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugRoute = SlugRouteImport.update({
@@ -522,6 +530,11 @@ const AdminAddonsRoute = AdminAddonsRouteImport.update({
   path: '/addons',
   getParentRoute: () => AdminRoute,
 } as any)
+const AcademyPathIdRoute = AcademyPathIdRouteImport.update({
+  id: '/$pathId',
+  path: '/$pathId',
+  getParentRoute: () => AcademyRoute,
+} as any)
 const SlugProfissionalRoute = SlugProfissionalRouteImport.update({
   id: '/profissional',
   path: '/profissional',
@@ -623,10 +636,17 @@ const ApiPublicHooksAddonsCleanupRoute =
     path: '/api/public/hooks/addons-cleanup',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AcademyPathIdLessonsLessonIdRoute =
+  AcademyPathIdLessonsLessonIdRouteImport.update({
+    id: '/lessons/$lessonId',
+    path: '/lessons/$lessonId',
+    getParentRoute: () => AcademyPathIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -666,6 +686,7 @@ export interface FileRoutesByFullPath {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -715,6 +736,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
   '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
   '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
@@ -729,6 +751,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/auth': typeof AuthRoute
   '/automations': typeof AutomationsRoute
@@ -765,6 +788,7 @@ export interface FileRoutesByTo {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -814,6 +838,7 @@ export interface FileRoutesByTo {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
   '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
   '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
@@ -829,6 +854,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -868,6 +894,7 @@ export interface FileRoutesById {
   '/$slug/checkin': typeof SlugCheckinRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
+  '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -917,6 +944,7 @@ export interface FileRoutesById {
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
+  '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
   '/api/public/hooks/addons-cleanup': typeof ApiPublicHooksAddonsCleanupRoute
   '/api/public/hooks/addons-reconcile': typeof ApiPublicHooksAddonsReconcileRoute
   '/api/public/hooks/admin-digest': typeof ApiPublicHooksAdminDigestRoute
@@ -933,6 +961,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$slug'
+    | '/academy'
     | '/accessibility'
     | '/admin'
     | '/auth'
@@ -972,6 +1001,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/academy/$pathId'
     | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -1021,6 +1051,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/academy/$pathId/lessons/$lessonId'
     | '/api/public/hooks/addons-cleanup'
     | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
@@ -1035,6 +1066,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$slug'
+    | '/academy'
     | '/accessibility'
     | '/auth'
     | '/automations'
@@ -1071,6 +1103,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/academy/$pathId'
     | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -1120,6 +1153,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/academy/$pathId/lessons/$lessonId'
     | '/api/public/hooks/addons-cleanup'
     | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
@@ -1134,6 +1168,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$slug'
+    | '/academy'
     | '/accessibility'
     | '/admin'
     | '/auth'
@@ -1173,6 +1208,7 @@ export interface FileRouteTypes {
     | '/$slug/checkin'
     | '/$slug/portal'
     | '/$slug/profissional'
+    | '/academy/$pathId'
     | '/admin/addons'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -1222,6 +1258,7 @@ export interface FileRouteTypes {
     | '/api/public/send-push'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
+    | '/academy/$pathId/lessons/$lessonId'
     | '/api/public/hooks/addons-cleanup'
     | '/api/public/hooks/addons-reconcile'
     | '/api/public/hooks/admin-digest'
@@ -1237,6 +1274,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRouteWithChildren
+  AcademyRoute: typeof AcademyRouteWithChildren
   AccessibilityRoute: typeof AccessibilityRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
@@ -1545,6 +1583,13 @@ declare module '@tanstack/react-router' {
       path: '/accessibility'
       fullPath: '/accessibility'
       preLoaderRoute: typeof AccessibilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -1869,6 +1914,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAddonsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/academy/$pathId': {
+      id: '/academy/$pathId'
+      path: '/$pathId'
+      fullPath: '/academy/$pathId'
+      preLoaderRoute: typeof AcademyPathIdRouteImport
+      parentRoute: typeof AcademyRoute
+    }
     '/$slug/profissional': {
       id: '/$slug/profissional'
       path: '/profissional'
@@ -1995,6 +2047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAddonsCleanupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/academy/$pathId/lessons/$lessonId': {
+      id: '/academy/$pathId/lessons/$lessonId'
+      path: '/lessons/$lessonId'
+      fullPath: '/academy/$pathId/lessons/$lessonId'
+      preLoaderRoute: typeof AcademyPathIdLessonsLessonIdRouteImport
+      parentRoute: typeof AcademyPathIdRoute
+    }
   }
 }
 
@@ -2013,6 +2072,29 @@ const SlugRouteChildren: SlugRouteChildren = {
 }
 
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
+
+interface AcademyPathIdRouteChildren {
+  AcademyPathIdLessonsLessonIdRoute: typeof AcademyPathIdLessonsLessonIdRoute
+}
+
+const AcademyPathIdRouteChildren: AcademyPathIdRouteChildren = {
+  AcademyPathIdLessonsLessonIdRoute: AcademyPathIdLessonsLessonIdRoute,
+}
+
+const AcademyPathIdRouteWithChildren = AcademyPathIdRoute._addFileChildren(
+  AcademyPathIdRouteChildren,
+)
+
+interface AcademyRouteChildren {
+  AcademyPathIdRoute: typeof AcademyPathIdRouteWithChildren
+}
+
+const AcademyRouteChildren: AcademyRouteChildren = {
+  AcademyPathIdRoute: AcademyPathIdRouteWithChildren,
+}
+
+const AcademyRouteWithChildren =
+  AcademyRoute._addFileChildren(AcademyRouteChildren)
 
 interface AdminRouteChildren {
   AdminAddonsRoute: typeof AdminAddonsRoute
@@ -2153,6 +2235,7 @@ const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
+  AcademyRoute: AcademyRouteWithChildren,
   AccessibilityRoute: AccessibilityRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,

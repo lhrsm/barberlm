@@ -85,7 +85,7 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
     };
 
     const current = await fetchPeriodData(data.start_date, data.end_date);
-    let comparison = null;
+    let comparison: any = null;
 
     if (data.compare_start_date && data.compare_end_date) {
       comparison = await fetchPeriodData(data.compare_start_date, data.compare_end_date);

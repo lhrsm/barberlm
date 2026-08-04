@@ -91,11 +91,11 @@ export const submitLgpdRequest = createServerFn({ method: "POST" })
 export const myLgpdHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: requests } = await (context.supabase as any).from("lgpd_requests")
+    const { data: requests } = await (context as any).supabase.from("lgpd_requests")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
-    const { data: consents } = await (context.supabase as any).from("privacy_consents")
+    const { data: consents } = await (context as any).supabase.from("privacy_consents")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
@@ -106,8 +106,8 @@ export const adminListLgpdRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { status?: string; tenant_id?: string; type?: string }) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
+    const { data: isAdmin } = await (context as any).supabase.rpc("has_role", {
+      _user_id: (context as any).userId,
       _role: "super_admin",
     });
     if (!isAdmin) throw new Error("Forbidden");
@@ -128,8 +128,8 @@ export const adminResolveLgpdRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; status: "in_progress" | "done" | "rejected"; response?: string }) => d)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
+    const { data: isAdmin } = await (context as any).supabase.rpc("has_role", {
+      _user_id: (context as any).userId,
       _role: "super_admin",
     });
     if (!isAdmin) throw new Error("Forbidden");
@@ -139,7 +139,7 @@ export const adminResolveLgpdRequest = createServerFn({ method: "POST" })
         status: data.status,
         response: data.response ? { note: data.response } : null,
         resolved_at: data.status === "done" || data.status === "rejected" ? new Date().toISOString() : null,
-        resolved_by: context.userId,
+        resolved_by: (context as any).userId,
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);

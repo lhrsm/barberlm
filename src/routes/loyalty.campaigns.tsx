@@ -176,7 +176,7 @@ function CampaignsPage() {
                         {c.status === "active" ? <><Pause className="h-3.5 w-3.5" />Pausar</> : <><Play className="h-3.5 w-3.5" />Ativar</>}
                       </button>
                       <button
-                        onClick={() => navigate({ to: "/loyalty/campaigns/$id", params: { id: c.id } })}
+                        onClick={() => navigate({ to: "/loyalty/campaigns/$id", params: { id: c.id } } as any)}
                         className="inline-flex items-center justify-center gap-1.5 h-[38px] px-[14px] rounded-[10px] text-[13px] font-bold bg-white/[0.04] border border-[#F5C542]/35 text-white hover:bg-white/[0.08] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-4px_rgba(245,197,66,0.35)] transition-all duration-200"
                       >
                         <Edit className="h-3.5 w-3.5" />Editar

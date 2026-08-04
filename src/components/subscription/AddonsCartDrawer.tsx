@@ -160,8 +160,8 @@ export function AddonsCartDrawer({
       });
       if (!(r as any).ok) throw new Error((r as any).error);
       toast.success(
-        r.contracts.length > 1
-          ? `${r.contracts.length} módulos contratados com sucesso!`
+        (r as any).contracts.length > 1
+          ? `${(r as any).contracts.length} módulos contratados com sucesso!`
           : "Módulo contratado com sucesso!",
       );
       // Fechou compra sem aceitar upgrade → dispensada

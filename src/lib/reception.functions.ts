@@ -23,7 +23,7 @@ export const listReceptionUsers = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const tenantId = await requireOwner(context);
 
-    const { data, error } = await context.supabase
+    const { data, error } = await (context as any).supabase
       .from("reception_permissions")
       .select("id, user_id, permissions, is_active, created_at")
       .eq("tenant_id", tenantId)
@@ -33,7 +33,7 @@ export const listReceptionUsers = createServerFn({ method: "POST" })
     const ids = (data || []).map((r: any) => r.user_id);
     let profiles: any[] = [];
     if (ids.length) {
-      const { data: p } = await context.supabase
+      const { data: p } = await (context as any).supabase
         .from("profiles")
         .select("id, email, responsible_name, business_name")
         .in("id", ids);
@@ -123,7 +123,7 @@ export const updateReceptionPermissions = createServerFn({ method: "POST" })
     if (data.permissions) patch.permissions = data.permissions;
     if (typeof data.is_active === "boolean") patch.is_active = data.is_active;
 
-    const { error } = await (context.supabase as any)
+    const { error } = await (context as any).supabase
       .from("reception_permissions")
       .update(patch)
       .eq("user_id", data.user_id)
@@ -140,7 +140,7 @@ export const removeReceptionUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const tenantId = await requireOwner(context);
-    const { error } = await context.supabase
+    const { error } = await (context as any).supabase
       .from("reception_permissions")
       .delete()
       .eq("user_id", data.user_id)

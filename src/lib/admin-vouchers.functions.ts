@@ -187,10 +187,10 @@ export const createAdminVoucher = createServerFn({ method: "POST" })
 
     // 0) Auth
     const guard = await assertSuperAdmin(authSb, userId);
-    if (!guard.ok) return guard;
+    if (!guard.ok) return guard as any;
 
     const admin = await getAdminClient("supabase.admin.create");
-    if (!admin.ok) return admin;
+    if (!admin.ok) return admin as any;
     const sb = admin.sb;
 
     // 1) Validação
@@ -304,10 +304,10 @@ export const applyAdminVoucher = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<Result<{ redemptionId: string }>> => {
     const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
-    if (!guard.ok) return guard;
+    if (!guard.ok) return guard as any;
 
     const admin = await getAdminClient("supabase.admin.apply");
-    if (!admin.ok) return admin;
+    if (!admin.ok) return admin as any;
     const sb = admin.sb;
 
     // Carrega voucher
@@ -511,10 +511,10 @@ export const listAdminVouchers = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<Result<{ vouchers: any[] }>> => {
     const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
-    if (!guard.ok) return guard;
+    if (!guard.ok) return guard as any;
 
     const admin = await getAdminClient("supabase.admin.list");
-    if (!admin.ok) return admin;
+    if (!admin.ok) return admin as any;
     const sb = admin.sb;
 
     const { data, error } = await sb
@@ -539,10 +539,10 @@ export const listAdminVoucherAuditLogs = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<Result<{ logs: any[] }>> => {
     const { supabase: authSb, userId } = context as any;
     const guard = await assertSuperAdmin(authSb, userId);
-    if (!guard.ok) return guard;
+    if (!guard.ok) return guard as any;
 
     const admin = await getAdminClient("supabase.admin.auditLogs");
-    if (!admin.ok) return admin;
+    if (!admin.ok) return admin as any;
     const sb = admin.sb;
 
     let q = sb

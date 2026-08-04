@@ -388,7 +388,7 @@ function AppointmentGroupPage() {
         return;
       }
 
-      const times = [];
+      const times: string[] = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const [y, m, d] = selectedDate.split('-').map(Number);
@@ -413,7 +413,7 @@ function AppointmentGroupPage() {
             return checkTimeMs < appEnd && serviceEndMs > appStart;
           });
 
-          if (!isBusy) times.push(timeStr);
+          if (!isBusy) times.push(timeStr as any);
         }
       }
       setAvailableTimes(times);

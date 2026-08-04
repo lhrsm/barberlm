@@ -143,7 +143,7 @@ function BarberProfilePage() {
           </h1>
           <p className="text-white/50 text-sm">Este perfil pode ter sido removido ou está inativo.</p>
         </div>
-        <Link to="/$slug" params={{ slug }}>
+        <Link to="/$slug" params={{ slug } as any}>
           <Button className="rounded-full bg-gold text-black font-black uppercase tracking-widest px-6">
             <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
           </Button>
@@ -162,7 +162,7 @@ function BarberProfilePage() {
         <div className="relative max-w-6xl mx-auto px-4 py-14 md:py-20">
           <Link
             to="/$slug"
-            params={{ slug }}
+            params={{ slug } as any}
             className="inline-flex items-center gap-2 text-white/60 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest mb-10"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -235,7 +235,7 @@ function BarberProfilePage() {
                 </div>
               )}
 
-              <Link to="/$slug" params={{ slug }} hash="servicos">
+              <Link to="/$slug" params={{ slug } as any} hash="servicos">
                 <Button className="h-14 px-8 rounded-full bg-gold text-black font-black uppercase tracking-widest text-xs hover:bg-white transition-all shadow-[0_12px_30px_-10px_rgba(212,175,55,0.6)]">
                   <CalendarDays className="h-4 w-4 mr-2" /> Agendar com {barber.name.split(" ")[0]}
                 </Button>
@@ -353,7 +353,7 @@ function BarberProfilePage() {
           <p className="text-white/50">
             Escolha o serviço, o dia e confirme em segundos com {barber.name.split(" ")[0]}.
           </p>
-          <Link to="/$slug" params={{ slug }} hash="servicos">
+          <Link to="/$slug" params={{ slug } as any} hash="servicos">
             <Button className="h-14 px-10 rounded-full bg-gold text-black font-black uppercase tracking-widest text-xs hover:bg-white transition-all">
               Agendar agora
             </Button>
