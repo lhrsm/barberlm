@@ -25,11 +25,58 @@ import { useModules } from "@/hooks/use-modules";
 import { CustomerCrmDialog } from "@/components/customers/crm/CustomerCrmDialog";
 import { computeKpis, formatBRL } from "@/components/customers/crm/metrics";
 import { useCustomerCrm } from "@/components/customers/crm/useCustomerCrm";
-
+import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { GuidedTour } from "@/components/help-center/GuidedTour";
 
 export const Route = createFileRoute("/dashboard/crm")({
   component: CRM360Page,
 });
+
+const crmHelpConfig = {
+  moduleKey: 'crm',
+  routePath: '/dashboard/crm',
+  title: 'CRM 360° & Segmentação',
+  summary: 'Acompanhe a saúde da sua base de clientes, identifique clientes em risco e gerencie o ciclo de vida completo através de inteligência de dados.',
+  videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder
+  tutorialId: 'crm-mastery',
+  faqs: [
+    { question: 'Como um cliente se torna "Churn"?', answer: 'O sistema marca automaticamente clientes que não retornam há mais de 60 dias como risco de Churn.' },
+    { question: 'O que é o LTV?', answer: 'Lifetime Value é o valor total que o cliente já gastou na sua barbearia desde o cadastro.' }
+  ],
+  commonIssues: [
+    { issue: 'KPIs não carregam', solution: 'Certifique-se de que os atendimentos foram concluídos corretamente no checkout.' }
+  ],
+  relatedArticles: [
+    { title: 'Guia de Segmentação RFM', href: '#' },
+    { title: 'Como criar campanhas de reconquista', href: '#' }
+  ]
+};
+
+const crmTourConfig = {
+  key: 'crm-tour',
+  version: '1.0.0',
+  steps: [
+    {
+      target: '[data-tour="crm-kpis"]',
+      title: 'Visão Geral da Saúde',
+      description: 'Aqui você vê métricas fundamentais como churn, retenção e ticket médio da sua base.',
+      position: 'bottom' as const
+    },
+    {
+      target: '[data-tour="crm-segments"]',
+      title: 'Segmentação Inteligente',
+      description: 'Filtre seus clientes por comportamento de compra: Melhores Clientes, Promissores ou Em Risco.',
+      position: 'right' as const
+    },
+    {
+      target: '[data-tour="crm-list"]',
+      title: 'Ações Individuais',
+      description: 'Clique em um cliente para abrir o CRM 360° e ver todo o histórico, cashback e tarefas pendentes.',
+      position: 'top' as const
+    }
+  ]
+};
+
 
 function CRM360Page() {
   const { user, loading: authLoading } = useAuth();
