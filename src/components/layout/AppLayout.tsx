@@ -21,6 +21,7 @@ import {
   LifeBuoy,
   HelpCircle,
   GraduationCap,
+  BookOpen,
   Headset,
   Bell,
   MessageSquare,
