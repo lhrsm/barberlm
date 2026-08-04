@@ -10,7 +10,12 @@ function LandingPage() {
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-[#05070d]/80 backdrop-blur-md border-b border-gold/10">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="text-2xl font-black tracking-tighter">BARBEX</div>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="p-1.5 bg-gold/10 rounded-lg shrink-0">
+              <Scissors className="text-gold h-6 w-6" />
+            </div>
+            <div className="text-2xl font-black tracking-tighter">BARBEX</div>
+          </Link>
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
             <a href="#recursos" className="hover:text-gold transition-colors">Recursos</a>
             <a href="#planos" className="hover:text-gold transition-colors">Planos</a>
