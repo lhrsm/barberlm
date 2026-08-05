@@ -757,7 +757,7 @@ function ShopPageComponent() {
       
       // Permitir acesso se houver assinatura ativa, trial válido, OU se for um tenant válido (currentShop)
       // Removendo restrição agressiva que causava 404 em tenants sem assinatura configurada
-      const canAccess = hasActiveSubscription || isTrialValid || (!!currentShop.id); 
+      const canAccess = true; // Liberado: Acesso concedido para visualização pública
       
       const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa detectada" : "Liberado: Acesso concedido";
 
