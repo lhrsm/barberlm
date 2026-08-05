@@ -8,8 +8,9 @@ interface LandingImageProps {
   alt: string;
   className?: string;
   overlayClassName?: string;
-  aspectRatio?: "video" | "square" | "portrait" | "auto" | "full";
+  aspectRatio?: "video" | "square" | "portrait" | "auto" | "full" | "wide";
   priority?: boolean;
+  objectPosition?: string;
 }
 
 export function LandingImage({
@@ -18,13 +19,15 @@ export function LandingImage({
   className,
   overlayClassName,
   aspectRatio = "video",
-  priority = false
+  priority = false,
+  objectPosition = "object-center"
 }: LandingImageProps) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const aspectClasses = {
     video: "aspect-video",
+    wide: "aspect-[21/9]",
     square: "aspect-square",
     portrait: "aspect-[3/4]",
     auto: "aspect-auto",
@@ -37,7 +40,7 @@ export function LandingImage({
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       className={cn(
-        "relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-zinc-900",
+        "relative overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] border border-white/5 bg-zinc-900",
         aspectClasses[aspectRatio],
         className
       )}
@@ -69,6 +72,7 @@ export function LandingImage({
           }}
           className={cn(
             "h-full w-full object-cover transition-transform duration-700 hover:scale-105",
+            objectPosition,
             isLoading ? "opacity-0" : "opacity-100"
           )}
         />
@@ -105,7 +109,7 @@ export function CTASection({
 }: CTASectionProps) {
   return (
     <section className={cn(
-      "relative py-24 px-6 overflow-hidden min-h-[400px] flex items-center",
+      "relative py-20 md:py-32 px-5 sm:px-8 overflow-hidden min-h-[400px] flex items-center",
       variant === "primary" ? "bg-black" : "bg-[#05070d]",
       className
     )}>
@@ -136,18 +140,18 @@ export function CTASection({
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-3xl mx-auto space-y-6"
+          className="max-w-3xl mx-auto space-y-4 md:space-y-6"
         >
-          <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white leading-[0.9]">
+          <h2 className="text-3xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-[0.95] text-balance">
             {title}
           </h2>
           {description && (
-            <p className="text-slate-400 text-lg md:text-xl font-medium leading-tight">
+            <p className="text-slate-400 text-base md:text-xl font-medium leading-tight text-balance">
               {description}
             </p>
           )}
           <div className={cn(
-            "flex flex-wrap gap-4 pt-4",
+            "flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 md:pt-6",
             align === "center" ? "justify-center" : "justify-start"
           )}>
             {children}
