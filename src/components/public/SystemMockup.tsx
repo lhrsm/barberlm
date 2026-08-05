@@ -20,20 +20,20 @@ interface SystemMockupProps {
 
 export function SystemMockup({ className }: SystemMockupProps) {
   return (
-    <div className={cn("relative w-full max-w-6xl mx-auto py-20", className)}>
+    <div className={cn("relative w-full max-w-6xl mx-auto py-12 md:py-20", className)}>
       {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gold/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gold/5 blur-[80px] md:blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="relative aspect-[16/9] w-full">
+      <div className="relative aspect-[4/5] md:aspect-[16/9] w-full">
         {/* Main Notebook Mockup (Dashboard) */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="absolute inset-0 z-20 rounded-[2.5rem] border border-[#F59E0B]/15 bg-[#050b18]/95 backdrop-blur-xl shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden group"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute inset-0 md:inset-0 z-20 rounded-[1.5rem] md:rounded-[2.5rem] border border-[#F59E0B]/15 bg-[#050b18]/95 backdrop-blur-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] md:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden group"
         >
-          <div className="absolute inset-0 opacity-40 pointer-events-none"
+          <div className="absolute inset-0 opacity-30 md:opacity-40 pointer-events-none"
                style={{
                  background: "radial-gradient(circle at 15% 20%, rgba(245,158,11,0.25), transparent 45%), radial-gradient(circle at 85% 80%, rgba(217,119,6,0.18), transparent 50%)"
                }}
