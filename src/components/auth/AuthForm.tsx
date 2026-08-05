@@ -79,7 +79,15 @@ export function AuthForm() {
         }, 500);
       }
     } catch (error: any) {
-      toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
+      console.error("[AuthForm] Login error:", error);
+      const errorMessage = error.message || "";
+      if (errorMessage === "Failed to fetch") {
+        toast.error("Erro de conexão: Verifique se os dados móveis estão ativos ou tente recarregar a página.");
+      } else if (errorMessage === "Invalid login credentials") {
+        toast.error("Credenciais inválidas");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
