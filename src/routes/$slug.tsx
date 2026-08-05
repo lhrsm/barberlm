@@ -754,7 +754,11 @@ function ShopPageComponent() {
         (effective_plan && effective_plan !== 'free' && effective_plan !== '');
       
       const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
-      const canAccess = hasActiveSubscription || isTrialValid || true; // Force access for debugging public pages
+      
+      // Permitir acesso se houver assinatura ativa, trial válido, OU se for um tenant válido
+      // Removendo restrição agressiva que causava 404 em tenants sem assinatura configurada
+      const canAccess = hasActiveSubscription || isTrialValid || (!!shopData.id); 
+      
       const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa detectada" : "Liberado: Acesso concedido";
 
       // Temporary logs for debugging access as requested by user
