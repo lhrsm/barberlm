@@ -106,11 +106,11 @@ function LandingPage() {
       {/* Header */}
       <header className={cn(
         "fixed top-0 w-full z-50 transition-all duration-300 border-b",
-        isScrolled ? "bg-black/80 backdrop-blur-md border-gold/20 py-4" : "bg-transparent border-transparent py-6"
+        isScrolled ? "bg-black/90 backdrop-blur-md border-gold/20 py-3" : "bg-transparent border-transparent py-5"
       )}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <BarbexLogo size="md" />
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
+          <Link to="/" className="flex items-center shrink-0">
+            <BarbexLogo size="sm" />
           </Link>
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
@@ -119,18 +119,25 @@ function LandingPage() {
             ))}
           </nav>
           
-          <div className="hidden md:flex gap-4">
-            <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
-              <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
-            </Button>
-            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
-              Testar Grátis
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex gap-4">
+              <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
+                <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
+              </Button>
+              <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+                Testar Grátis
+              </Button>
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              className="md:hidden text-white p-2 h-11 w-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10" 
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <Menu size={24} />
             </Button>
           </div>
-          
-          <Button variant="ghost" className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(true)}>
-            <Menu size={24} />
-          </Button>
         </div>
       </header>
 
