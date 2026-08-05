@@ -5,7 +5,7 @@ import type { Database } from './types';
 function createSupabaseClient() {
   const isBrowser = typeof window !== 'undefined';
   const SUPABASE_URL = isBrowser ? import.meta.env.VITE_SUPABASE_URL : process.env.SUPABASE_URL;
-  const SUPABASE_PUBLISHABLE_KEY = isBrowser ? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY : process.env.SUPABASE_PUBLISHABLE_KEY;
+  const SUPABASE_PUBLISHABLE_KEY = isBrowser ? (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) : (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY);
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     if (!isBrowser) {
