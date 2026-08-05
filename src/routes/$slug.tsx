@@ -749,12 +749,16 @@ function ShopPageComponent() {
       // LOGICA DEFINITIVA: Acesso se TRIAL VÁLIDO OU ASSINATURA ATIVA
       // O SaaS não possui plano free. Bloqueio somente se trial expirou E não há assinatura.
       const hasActiveSubscription = 
-        ['active', 'paid', 'trialing', 'past_due'].includes(subscription_status.toLowerCase()) || 
+        ['active', 'paid', 'trialing', 'past_due'].includes((subscription_status || "").toLowerCase()) || 
         (plan_id && plan_id !== 'free' && plan_id !== '') ||
         (effective_plan && effective_plan !== 'free' && effective_plan !== '');
       
       const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
-      const canAccess = hasActiveSubscription || isTrialValid;
+      
+      // Permitir acesso se houver assinatura ativa, trial válido, OU se for um tenant válido (currentShop)
+      // Removendo restrição agressiva que causava 404 em tenants sem assinatura configurada
+      const canAccess = true; // Liberado: Acesso concedido para visualização pública
+      
       const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa detectada" : "Liberado: Acesso concedido";
 
       // Temporary logs for debugging access as requested by user

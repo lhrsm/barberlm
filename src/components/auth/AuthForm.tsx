@@ -79,7 +79,22 @@ export function AuthForm() {
         }, 500);
       }
     } catch (error: any) {
-      toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
+      console.error("[AuthForm] Login error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        status: error.status,
+        code: error.code,
+        url: import.meta.env.VITE_SUPABASE_URL
+      });
+      const errorMessage = error.message || "";
+      if (errorMessage === "Failed to fetch") {
+        toast.error("Erro de conexão (Failed to fetch): Verifique seu sinal de internet ou se o servidor está acessível.");
+      } else if (errorMessage === "Invalid login credentials") {
+        toast.error("Credenciais inválidas");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
