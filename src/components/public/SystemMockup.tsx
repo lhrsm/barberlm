@@ -158,7 +158,7 @@ export function SystemMockup({ className }: SystemMockupProps) {
             <div className="flex flex-col items-center gap-3 md:gap-4 text-center relative z-10">
               <div className="w-12 md:w-16 h-12 md:h-16 rounded-full bg-gradient-to-tr from-[#F59E0B] to-[#D97706] p-0.5">
                 <div className="w-full h-full rounded-full bg-[#050b18] flex items-center justify-center">
-                   <Smartphone className="text-[#F59E0B]" size={20} md:size={24} />
+                   <Smartphone className="text-[#F59E0B] w-5 h-5 md:w-6 md:h-6" />
                 </div>
               </div>
               <div>
