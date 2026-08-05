@@ -88,9 +88,9 @@ export function AuthForm() {
         url: import.meta.env.VITE_SUPABASE_URL
       });
       const errorMessage = error.message || "";
-      if (errorMessage === "Failed to fetch") {
-        toast.error("Erro de conexão (Failed to fetch): Verifique seu sinal de internet ou se o servidor está acessível.");
-      } else if (errorMessage === "Invalid login credentials") {
+      if (errorMessage === "Failed to fetch" || errorMessage.includes("fetch")) {
+        toast.error("Erro de conexão (Failed to fetch): O servidor de autenticação não respondeu a tempo. Tente novamente em alguns segundos.");
+      } else if (errorMessage === "Invalid login credentials" || errorMessage.includes("invalid_credentials")) {
         toast.error("Credenciais inválidas");
       } else {
         toast.error(errorMessage);
