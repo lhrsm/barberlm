@@ -74,32 +74,56 @@ function LandingPage() {
     <div className="min-h-screen bg-[#05070d] text-white selection:bg-gold selection:text-black">
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            className="fixed inset-0 z-[60] bg-black p-6 flex flex-col md:hidden"
-          >
-            <div className="flex justify-between items-center mb-12">
-              <span className="text-xl font-black italic">BARBEX</span>
-              <Button variant="ghost" className="text-white" onClick={() => setIsMobileMenuOpen(false)}>
-                <X size={24} />
-              </Button>
-            </div>
-            <nav className="flex flex-col gap-6 text-2xl font-black uppercase italic tracking-tighter">
-              {["Recursos", "Planos", "FAQ"].map(item => (
-                <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-gold transition-colors">{item}</a>
-              ))}
-            </nav>
-            <div className="mt-auto flex flex-col gap-4">
-              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" onClick={() => { setIsMobileMenuOpen(false); setShowRegisterWizard(true); }}>
-                Testar Grátis
-              </Button>
-              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black uppercase tracking-widest" asChild>
-                <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Entrar no Sistema</Link>
-              </Button>
-            </div>
-          </motion.div>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 z-[70] w-[280px] sm:w-[320px] bg-[#05070d] border-l border-white/10 shadow-2xl flex flex-col md:hidden p-8 pt-[env(safe-area-inset-top,2rem)]"
+            >
+              <div className="flex justify-between items-center mb-12">
+                <BarbexLogo size="sm" />
+                <Button 
+                  variant="ghost" 
+                  className="h-10 w-10 p-0 rounded-full bg-white/5 border border-white/10 text-white" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Fechar menu"
+                >
+                  <X size={20} />
+                </Button>
+              </div>
+              
+              <nav className="flex flex-col gap-6">
+                {["Recursos", "Planos", "FAQ"].map(item => (
+                  <a 
+                    key={item} 
+                    href={`#${item.toLowerCase()}`} 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="text-2xl font-black uppercase italic tracking-tighter hover:text-gold transition-colors text-white/90"
+                  >
+                    {item}
+                  </a>
+                ))}
+              </nav>
+              
+              <div className="mt-auto flex flex-col gap-3 pb-[env(safe-area-inset-bottom,2rem)]">
+                <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest text-xs shadow-gold/20 shadow-lg" onClick={() => { setIsMobileMenuOpen(false); setShowRegisterWizard(true); }}>
+                  Testar Grátis
+                </Button>
+                <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white/70 font-black uppercase tracking-widest text-[10px]" asChild>
+                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</Link>
+                </Button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
