@@ -166,42 +166,65 @@ function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+      <section className="relative pt-32 md:pt-48 pb-16 md:pb-24 px-5 sm:px-8 overflow-hidden">
         {/* Hero Background Image with Parallax-ready setup */}
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
             alt="" 
-            className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+            className="w-full h-full object-cover opacity-15 md:opacity-20 mix-blend-luminosity"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#05070d] via-transparent to-[#05070d]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.15),transparent_45%)]" />
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-8 relative z-10 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[10px] font-black uppercase tracking-widest">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 relative z-10 text-center">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[9px] md:text-[10px] font-black uppercase tracking-widest">
             <Sparkles size={12} />
             Gestão Premium de Barbearias
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-[0.85] py-2">
-            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }} 
+            className="text-[40px] leading-[0.95] sm:text-6xl md:text-8xl font-black uppercase italic tracking-tighter py-1 md:py-2 text-balance"
+          >
+            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-slate-400 text-lg md:text-2xl max-w-3xl mx-auto leading-tight font-medium">
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.2 }} 
+            className="text-slate-400 text-base md:text-2xl max-w-3xl mx-auto leading-snug md:leading-tight font-medium"
+          >
             Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.3 }} 
+            className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center pt-6 md:pt-8"
+          >
+            <Button className="h-14 md:h-16 px-8 md:px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-xs md:text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)] w-full sm:w-auto" onClick={() => setShowRegisterWizard(true)}>
               Começar teste grátis
             </Button>
-            <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
-              <a href="#demo" className="flex items-center gap-2">
+            <Button variant="outline" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-xs md:text-sm text-white w-full sm:w-auto" asChild>
+              <a href="#solucoes" className="flex items-center gap-2 justify-center">
                 <Play size={16} fill="currentColor" />
-                Assistir Demonstração
+                Ver Funcionalidades
               </a>
             </Button>
           </motion.div>
           
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-wrap justify-center gap-x-8 gap-y-4 pt-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ delay: 0.5 }} 
+            className="flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-3 pt-8 md:pt-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"
+          >
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> 15 dias grátis</div>
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Sem cartão de crédito</div>
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Configuração simples</div>
