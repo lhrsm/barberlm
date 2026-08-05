@@ -74,43 +74,67 @@ function LandingPage() {
     <div className="min-h-screen bg-[#05070d] text-white selection:bg-gold selection:text-black">
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            className="fixed inset-0 z-[60] bg-black p-6 flex flex-col md:hidden"
-          >
-            <div className="flex justify-between items-center mb-12">
-              <span className="text-xl font-black italic">BARBEX</span>
-              <Button variant="ghost" className="text-white" onClick={() => setIsMobileMenuOpen(false)}>
-                <X size={24} />
-              </Button>
-            </div>
-            <nav className="flex flex-col gap-6 text-2xl font-black uppercase italic tracking-tighter">
-              {["Recursos", "Planos", "FAQ"].map(item => (
-                <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-gold transition-colors">{item}</a>
-              ))}
-            </nav>
-            <div className="mt-auto flex flex-col gap-4">
-              <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest" onClick={() => { setIsMobileMenuOpen(false); setShowRegisterWizard(true); }}>
-                Testar Grátis
-              </Button>
-              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black uppercase tracking-widest" asChild>
-                <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Entrar no Sistema</Link>
-              </Button>
-            </div>
-          </motion.div>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 z-[70] w-[280px] sm:w-[320px] bg-[#05070d] border-l border-white/10 shadow-2xl flex flex-col md:hidden p-8 pt-[env(safe-area-inset-top,2rem)]"
+            >
+              <div className="flex justify-between items-center mb-12">
+                <BarbexLogo size="sm" />
+                <Button 
+                  variant="ghost" 
+                  className="h-10 w-10 p-0 rounded-full bg-white/5 border border-white/10 text-white" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Fechar menu"
+                >
+                  <X size={20} />
+                </Button>
+              </div>
+              
+              <nav className="flex flex-col gap-6">
+                {["Recursos", "Planos", "FAQ"].map(item => (
+                  <a 
+                    key={item} 
+                    href={`#${item.toLowerCase()}`} 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="text-2xl font-black uppercase italic tracking-tighter hover:text-gold transition-colors text-white/90"
+                  >
+                    {item}
+                  </a>
+                ))}
+              </nav>
+              
+              <div className="mt-auto flex flex-col gap-3 pb-[env(safe-area-inset-bottom,2rem)]">
+                <Button className="h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest text-xs shadow-gold/20 shadow-lg" onClick={() => { setIsMobileMenuOpen(false); setShowRegisterWizard(true); }}>
+                  Testar Grátis
+                </Button>
+                <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white/70 font-black uppercase tracking-widest text-[10px]" asChild>
+                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</Link>
+                </Button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
       {/* Header */}
       <header className={cn(
         "fixed top-0 w-full z-50 transition-all duration-300 border-b",
-        isScrolled ? "bg-black/80 backdrop-blur-md border-gold/20 py-4" : "bg-transparent border-transparent py-6"
+        isScrolled ? "bg-black/90 backdrop-blur-md border-gold/20 py-3" : "bg-transparent border-transparent py-5"
       )}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <BarbexLogo size="md" />
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
+          <Link to="/" className="flex items-center shrink-0">
+            <BarbexLogo size="sm" />
           </Link>
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
@@ -119,58 +143,88 @@ function LandingPage() {
             ))}
           </nav>
           
-          <div className="hidden md:flex gap-4">
-            <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
-              <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
-            </Button>
-            <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
-              Testar Grátis
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex gap-4">
+              <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
+                <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
+              </Button>
+              <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
+                Testar Grátis
+              </Button>
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              className="md:hidden text-white p-2 h-11 w-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10" 
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <Menu size={24} />
             </Button>
           </div>
-          
-          <Button variant="ghost" className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(true)}>
-            <Menu size={24} />
-          </Button>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+      <section className="relative pt-32 md:pt-48 pb-16 md:pb-24 px-5 sm:px-8 overflow-hidden">
         {/* Hero Background Image with Parallax-ready setup */}
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop" 
             alt="" 
-            className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+            className="w-full h-full object-cover opacity-15 md:opacity-20 mix-blend-luminosity"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#05070d] via-transparent to-[#05070d]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.15),transparent_45%)]" />
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-8 relative z-10 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[10px] font-black uppercase tracking-widest">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 relative z-10 text-center">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold text-[9px] md:text-[10px] font-black uppercase tracking-widest">
             <Sparkles size={12} />
             Gestão Premium de Barbearias
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-[0.85] py-2">
-            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }} 
+            className="text-[40px] leading-[0.95] sm:text-6xl md:text-8xl font-black uppercase italic tracking-tighter py-1 md:py-2 text-balance"
+          >
+            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-slate-400 text-lg md:text-2xl max-w-3xl mx-auto leading-tight font-medium">
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.2 }} 
+            className="text-slate-400 text-base md:text-2xl max-w-3xl mx-auto leading-snug md:leading-tight font-medium"
+          >
             Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Button className="h-16 px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)]" onClick={() => setShowRegisterWizard(true)}>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.3 }} 
+            className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center pt-6 md:pt-8"
+          >
+            <Button className="h-14 md:h-16 px-8 md:px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-xs md:text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)] w-full sm:w-auto" onClick={() => setShowRegisterWizard(true)}>
               Começar teste grátis
             </Button>
-            <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-sm text-white" asChild>
-              <a href="#demo" className="flex items-center gap-2">
+            <Button variant="outline" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-xs md:text-sm text-white w-full sm:w-auto" asChild>
+              <a href="#solucoes" className="flex items-center gap-2 justify-center">
                 <Play size={16} fill="currentColor" />
-                Assistir Demonstração
+                Ver Funcionalidades
               </a>
             </Button>
           </motion.div>
           
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-wrap justify-center gap-x-8 gap-y-4 pt-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ delay: 0.5 }} 
+            className="flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-3 pt-8 md:pt-10 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"
+          >
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> 15 dias grátis</div>
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Sem cartão de crédito</div>
             <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-gold" /> Configuração simples</div>

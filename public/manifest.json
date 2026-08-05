@@ -1,0 +1,17 @@
+{
+  "name": "Barbex - Gestão Premium de Barbearias",
+  "short_name": "Barbex",
+  "description": "Plataforma Enterprise completa para barbearias de alto padrão.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070d",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "https://id-preview--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app/og-image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
