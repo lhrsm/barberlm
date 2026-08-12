@@ -90,7 +90,7 @@ function LandingPage() {
               className="fixed top-0 right-0 bottom-0 z-[70] w-[280px] sm:w-[320px] bg-[#05070d] border-l border-white/10 shadow-2xl flex flex-col md:hidden p-8 pt-[env(safe-area-inset-top,2rem)]"
             >
               <div className="flex justify-between items-center mb-12">
-                <BarbexLogo size="md" />
+                <BarbexLogo size="md" showText={false} />
                 <Button 
                   variant="ghost" 
                   className="h-10 w-10 p-0 rounded-full bg-white/5 border border-white/10 text-white" 
@@ -134,7 +134,7 @@ function LandingPage() {
       )}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
           <Link to="/" className="flex items-center shrink-0">
-            <BarbexLogo size="md" />
+            <BarbexLogo size="md" showText={false} />
           </Link>
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-white/90">
@@ -714,30 +714,30 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
-              <BarbexLogo size="md" />
-              <p className="text-slate-500 text-[11px] leading-relaxed max-w-xs uppercase tracking-widest font-bold">
+              <BarbexLogo size="md" showText={false} />
+              <p className="text-slate-500 text-[11px] leading-relaxed max-w-xs uppercase tracking-widest font-black italic">
                 A plataforma completa de gestão, fidelização e inteligência para barbearias de alto nível.
               </p>
             </div>
             <div>
-              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Produto</h6>
-              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6 italic">Produto</h6>
+              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
                 <li><a href="#solucoes" className="hover:text-gold transition-colors">Recursos</a></li>
                 <li><a href="#planos" className="hover:text-gold transition-colors">Planos</a></li>
                 <li><Link to="/updates" className="hover:text-gold transition-colors">Novidades</Link></li>
               </ul>
             </div>
             <div>
-              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Suporte</h6>
-              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6 italic">Suporte</h6>
+              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
                 <li><Link to="/tutorials" className="hover:text-gold transition-colors">Central de Ajuda</Link></li>
                 <li><Link to="/academy" className="hover:text-gold transition-colors">Academia Barbex</Link></li>
                 <li><a href="#faq" className="hover:text-gold transition-colors">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6">Legal</h6>
-              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <h6 className="text-white font-black uppercase tracking-widest text-xs mb-6 italic">Legal</h6>
+              <ul className="space-y-4 text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
                 <li><Link to="/terms" className="hover:text-gold transition-colors">Termos de Uso</Link></li>
                 <li><Link to="/privacy" className="hover:text-gold transition-colors">Privacidade</Link></li>
               </ul>
