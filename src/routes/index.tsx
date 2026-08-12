@@ -90,7 +90,7 @@ function LandingPage() {
               className="fixed top-0 right-0 bottom-0 z-[70] w-[280px] sm:w-[320px] bg-[#05070d] border-l border-white/10 shadow-2xl flex flex-col md:hidden p-8 pt-[env(safe-area-inset-top,2rem)]"
             >
               <div className="flex justify-between items-center mb-12">
-                <BarbexLogo size="md" showText={false} />
+                <BarbexLogo size="lg" showText={false} />
                 <Button 
                   variant="ghost" 
                   className="h-10 w-10 p-0 rounded-full bg-white/5 border border-white/10 text-white" 
@@ -134,7 +134,7 @@ function LandingPage() {
       )}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
           <Link to="/" className="flex items-center shrink-0">
-            <BarbexLogo size="md" showText={false} />
+            <BarbexLogo size="lg" showText={false} className="md:size-lg" />
           </Link>
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-white/90">
@@ -714,7 +714,7 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
-              <BarbexLogo size="md" showText={false} />
+              <BarbexLogo size="lg" showText={false} />
               <p className="text-slate-500 text-[11px] leading-relaxed max-w-xs uppercase tracking-widest font-black italic">
                 A plataforma completa de gestão, fidelização e inteligência para barbearias de alto nível.
               </p>
