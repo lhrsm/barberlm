@@ -90,7 +90,7 @@ function LandingPage() {
               className="fixed top-0 right-0 bottom-0 z-[70] w-[280px] sm:w-[320px] bg-[#05070d] border-l border-white/10 shadow-2xl flex flex-col md:hidden p-8 pt-[env(safe-area-inset-top,2rem)]"
             >
               <div className="flex justify-between items-center mb-12">
-                <BarbexLogo size="sm" />
+                <BarbexLogo size="md" />
                 <Button 
                   variant="ghost" 
                   className="h-10 w-10 p-0 rounded-full bg-white/5 border border-white/10 text-white" 
@@ -134,10 +134,10 @@ function LandingPage() {
       )}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
           <Link to="/" className="flex items-center shrink-0">
-            <BarbexLogo size="sm" />
+            <BarbexLogo size="md" />
           </Link>
           
-          <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
+          <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-white/90">
             {["Recursos", "Planos", "FAQ"].map(item => (
               <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-gold transition-colors">{item}</a>
             ))}
@@ -145,7 +145,7 @@ function LandingPage() {
           
           <div className="flex items-center gap-4">
             <div className="hidden md:flex gap-4">
-              <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" asChild>
+              <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-white/90 hover:text-white" asChild>
                 <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
               </Button>
               <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
