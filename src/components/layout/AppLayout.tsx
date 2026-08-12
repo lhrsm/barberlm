@@ -239,7 +239,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       {/* Mobile Top Header */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gold/10 bg-[#0b0f17] sticky top-0 z-40">
         <div className="flex items-center gap-3 overflow-hidden">
-          <BarbexLogo size="sm" showText={false} className="shrink-0" />
+          <BarbexLogo size="md" showText={false} className="shrink-0" />
           <p className="text-xl font-black text-white truncate tracking-tight">{businessName}</p>
         </div>
         <div className="flex items-center gap-1">
@@ -257,7 +257,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
           <div className="flex items-center justify-between p-4 border-b bg-card">
             <div className="flex items-center gap-3 overflow-hidden">
-              <BarbexLogo size="sm" showText={false} className="shrink-0" />
+              <BarbexLogo size="md" showText={false} className="shrink-0" />
               <p className="text-xl font-black text-primary truncate">{businessName}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
@@ -291,7 +291,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                       "flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-black transition-all",
                       isActive
                         ? "bg-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]"
-                        : "text-gray-400 hover:bg-white/5"
+                        : "text-white hover:bg-white/5"
                     )}
                   >
                     <item.icon size={24} className={isActive ? "text-black" : "text-gold"} />
@@ -304,7 +304,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
               <LogoutButton />
               {/* Footer logo (mobile) */}
               <div className="flex flex-col items-center gap-2 pb-6">
-                <BarbexLogo size="md" />
+                <BarbexLogo size="lg" />
                 <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                   Gestão Premium
                 </span>
@@ -318,7 +318,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-gold/10 bg-[#0b0f17] shrink-0">
           <div className="p-6 flex flex-col gap-4 border-b border-white/5 mb-2">
-            <BarbexLogo size="md" showText={false} />
+            <BarbexLogo size="lg" showText={false} />
             <p className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </p>
@@ -350,7 +350,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                     "group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 relative overflow-hidden",
                     isActive
                       ? "bg-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-[1.02]"
-                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                      : "text-white hover:bg-white/5 hover:text-white"
                   )}
                 >
                   {isActive && (
@@ -369,8 +369,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           {/* Sidebar footer */}
           <div className="p-4 border-t border-white/5 space-y-4">
             <LogoutButton />
-            <div className="flex flex-col items-center gap-1.5">
-              <BarbexLogo size="md" />
+            <div className="flex flex-col items-center gap-2">
+              <BarbexLogo size="lg" className="flex-col gap-2" textClassName="text-4xl" />
               <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                 Gestão Premium
               </span>
@@ -382,8 +382,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-20 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
-            <BarbexLogo size="md" />
+          <header className="hidden md:flex h-28 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+            <BarbexLogo size="lg" />
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
