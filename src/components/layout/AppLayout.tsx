@@ -47,6 +47,7 @@ import { AddonPaymentFailedBanner } from "@/components/subscription/AddonPayment
 import { InternalTestingBanner } from "@/components/subscription/InternalTestingBanner";
 import { useBillingContext } from "@/hooks/use-billing-context";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { BarbexLogo } from "@/components/ui/barbex-logo";
 
 
 import { Button } from "@/components/ui/button";
@@ -236,12 +237,10 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       )}
 
       {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between p-4 border-b border-gold/10 bg-[#0b0f17] sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gold/10 bg-[#0b0f17] sticky top-0 z-40">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
-            <Scissors className="text-primary h-5 w-5" />
-          </div>
-          <p className="text-lg font-bold text-white truncate">{businessName}</p>
+          <BarbexLogo size="sm" showText={false} className="shrink-0" />
+          <p className="text-xl font-black text-white truncate tracking-tight">{businessName}</p>
         </div>
         <div className="flex items-center gap-1">
           <NotificationsCenter />
@@ -257,7 +256,10 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
           <div className="flex items-center justify-between p-4 border-b bg-card">
-            <p className="text-xl font-bold text-primary truncate">{businessName}</p>
+            <div className="flex items-center gap-3 overflow-hidden">
+              <BarbexLogo size="sm" showText={false} className="shrink-0" />
+              <p className="text-xl font-black text-primary truncate">{businessName}</p>
+            </div>
             <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
               <X />
             </Button>
@@ -298,8 +300,15 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                 );
               })}
             </div>
-            <div className="pt-4 border-t border-white/10 mt-4">
+            <div className="pt-4 border-t border-white/10 mt-4 space-y-4">
               <LogoutButton />
+              {/* Footer logo (mobile) */}
+              <div className="flex flex-col items-center gap-2 pb-6">
+                <BarbexLogo size="md" />
+                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                  Gestão Premium
+                </span>
+              </div>
             </div>
           </nav>
         </div>
@@ -308,7 +317,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-gold/10 bg-[#0b0f17] shrink-0">
-          <div className="p-6 flex flex-col gap-3 border-b border-white/5 mb-2">
+          <div className="p-6 flex flex-col gap-4 border-b border-white/5 mb-2">
+            <BarbexLogo size="md" showText={false} />
             <p className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </p>
@@ -355,8 +365,16 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
               );
             })}
           </nav>
-          <div className="p-4 border-t">
+
+          {/* Sidebar footer */}
+          <div className="p-4 border-t border-white/5 space-y-4">
             <LogoutButton />
+            <div className="flex flex-col items-center gap-1.5">
+              <BarbexLogo size="md" />
+              <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                Gestão Premium
+              </span>
+            </div>
           </div>
 
         </aside>
@@ -364,7 +382,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-16 items-center justify-end px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+          <header className="hidden md:flex h-20 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+            <BarbexLogo size="md" />
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
