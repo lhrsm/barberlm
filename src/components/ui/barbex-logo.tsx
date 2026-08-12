@@ -1,27 +1,22 @@
-
-import { Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logoData from "@/assets/logo-barbex.png.asset.json";
 
 export type BarbexLogoSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
-/**
- * Escala AUMENTADA da logo existente.
- * (mesmos nomes de tamanho — apenas maiores)
- */
 const SIZES: Record<
   BarbexLogoSize,
-  { box: string; icon: number; text: string; gap: string; radius: string }
+  { box: string; text: string; gap: string }
 > = {
-  xs: { box: "h-12 w-12", icon: 24, text: "text-xl", gap: "gap-2", radius: "rounded-xl" },
-  sm: { box: "h-16 w-16", icon: 32, text: "text-3xl", gap: "gap-3", radius: "rounded-2xl" },
-  md: { box: "h-20 w-20", icon: 40, text: "text-4xl", gap: "gap-3.5", radius: "rounded-[1.25rem]" },
-  lg: { box: "h-28 w-28", icon: 56, text: "text-5xl", gap: "gap-4", radius: "rounded-[1.6rem]" },
-  xl: { box: "h-36 w-36", icon: 72, text: "text-6xl", gap: "gap-5", radius: "rounded-[2rem]" },
-  "2xl": { box: "h-48 w-48", icon: 96, text: "text-7xl", gap: "gap-6", radius: "rounded-[2.5rem]" },
+  xs: { box: "h-8", text: "text-lg", gap: "gap-2" },
+  sm: { box: "h-10", text: "text-xl", gap: "gap-2.5" },
+  md: { box: "h-12", text: "text-2xl", gap: "gap-3" },
+  lg: { box: "h-16", text: "text-4xl", gap: "gap-4" },
+  xl: { box: "h-20", text: "text-5xl", gap: "gap-5" },
+  "2xl": { box: "h-28", text: "text-7xl", gap: "gap-6" },
 };
 
 interface BarbexLogoProps {
-  /** Tamanho da logo (escala aumentada) */
+  /** Tamanho da logo */
   size?: BarbexLogoSize;
   /** Exibe o wordmark ao lado do símbolo */
   showText?: boolean;
@@ -44,25 +39,16 @@ export function BarbexLogo({
 
   return (
     <div className={cn("inline-flex items-center", s.gap, className)}>
-      <div
-        className={cn(
-          "relative shrink-0 flex items-center justify-center overflow-hidden",
-          s.box,
-          s.radius,
-          "bg-[linear-gradient(135deg,#F5D77A_0%,#D4AF37_50%,#b8860b_100%)]",
-          "ring-1 ring-inset ring-white/25 shadow-[0_14px_38px_-14px_rgba(212,175,55,0.9)]",
-          markClassName
-        )}
-      >
-        <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.45)_50%,transparent_65%)]" />
-        <Scissors size={s.icon} className="relative text-black" strokeWidth={2.4} />
-      </div>
+      <img
+        src={logoData.url}
+        alt="Barbex Logo"
+        className={cn("w-auto object-contain", s.box, markClassName)}
+      />
 
       {showText && (
         <span
           className={cn(
-            "font-black uppercase italic tracking-tighter leading-none",
-            "bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] bg-clip-text text-transparent",
+            "font-black uppercase italic tracking-tighter leading-none text-white",
             s.text,
             textClassName
           )}
