@@ -1,18 +1,23 @@
+
 import { Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type BarbexLogoSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
+/**
+ * Escala AUMENTADA da logo existente.
+ * (mesmos nomes de tamanho — apenas maiores)
+ */
 const SIZES: Record<
   BarbexLogoSize,
   { box: string; icon: number; text: string; gap: string; radius: string }
 > = {
-  xs: { box: "h-9 w-9", icon: 18, text: "text-lg", gap: "gap-2", radius: "rounded-lg" },
-  sm: { box: "h-12 w-12", icon: 24, text: "text-2xl", gap: "gap-2.5", radius: "rounded-xl" },
-  md: { box: "h-16 w-16", icon: 32, text: "text-3xl", gap: "gap-3", radius: "rounded-2xl" },
-  lg: { box: "h-24 w-24", icon: 46, text: "text-5xl", gap: "gap-4", radius: "rounded-[1.4rem]" },
-  xl: { box: "h-32 w-32", icon: 62, text: "text-6xl", gap: "gap-5", radius: "rounded-[1.75rem]" },
-  "2xl": { box: "h-40 w-40", icon: 78, text: "text-7xl", gap: "gap-6", radius: "rounded-[2rem]" },
+  xs: { box: "h-12 w-12", icon: 24, text: "text-xl", gap: "gap-2", radius: "rounded-xl" },
+  sm: { box: "h-16 w-16", icon: 32, text: "text-3xl", gap: "gap-3", radius: "rounded-2xl" },
+  md: { box: "h-20 w-20", icon: 40, text: "text-4xl", gap: "gap-3.5", radius: "rounded-[1.25rem]" },
+  lg: { box: "h-28 w-28", icon: 56, text: "text-5xl", gap: "gap-4", radius: "rounded-[1.6rem]" },
+  xl: { box: "h-36 w-36", icon: 72, text: "text-6xl", gap: "gap-5", radius: "rounded-[2rem]" },
+  "2xl": { box: "h-48 w-48", icon: 96, text: "text-7xl", gap: "gap-6", radius: "rounded-[2.5rem]" },
 };
 
 interface BarbexLogoProps {
@@ -45,7 +50,7 @@ export function BarbexLogo({
           s.box,
           s.radius,
           "bg-[linear-gradient(135deg,#F5D77A_0%,#D4AF37_50%,#b8860b_100%)]",
-          "ring-1 ring-inset ring-white/25 shadow-[0_10px_30px_-12px_rgba(212,175,55,0.85)]",
+          "ring-1 ring-inset ring-white/25 shadow-[0_14px_38px_-14px_rgba(212,175,55,0.9)]",
           markClassName
         )}
       >

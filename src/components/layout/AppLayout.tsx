@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useId, useCallback, memo } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { 
@@ -254,13 +255,13 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
-          <div className="flex items-center justify-between p-4 border-b bg-card">
+        <div className="fixed inset-0 z-50 bg-[#05070d] md:hidden overflow-auto">
+          <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#0b0f17]">
             <div className="flex items-center gap-3 overflow-hidden">
               <BarbexLogo size="md" showText={false} className="shrink-0" />
-              <p className="text-xl font-black text-primary truncate">{businessName}</p>
+              <p className="text-xl font-black text-white truncate">{businessName}</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)} className="text-white">
               <X />
             </Button>
           </div>
@@ -288,14 +289,14 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                     to={item.to}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-black transition-all",
+                      "flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-black transition-all text-white",
                       isActive
-                        ? "bg-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]"
-                        : "text-white hover:bg-white/5"
+                        ? "bg-gold/15 ring-1 ring-inset ring-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.18)]"
+                        : "hover:bg-white/5"
                     )}
                   >
-                    <item.icon size={24} className={isActive ? "text-black" : "text-gold"} />
-                    {item.label}
+                    <item.icon size={24} className="text-gold" />
+                    <span className="text-white">{item.label}</span>
                   </Link>
                 );
               })}
@@ -304,7 +305,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
               <LogoutButton />
               {/* Footer logo (mobile) */}
               <div className="flex flex-col items-center gap-2 pb-6">
-                <BarbexLogo size="lg" />
+                <BarbexLogo size="lg" className="flex-col gap-3" textClassName="text-4xl" />
                 <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                   Gestão Premium
                 </span>
@@ -317,9 +318,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-gold/10 bg-[#0b0f17] shrink-0">
-          <div className="p-6 flex flex-col gap-4 border-b border-white/5 mb-2">
-            <BarbexLogo size="lg" showText={false} />
-            <p className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+          <div className="p-6 flex flex-col items-center gap-4 border-b border-white/5 mb-2">
+            <BarbexLogo size="xl" showText={false} />
+            <p className="text-2xl font-black text-white tracking-tighter text-center drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </p>
             {slug && slug !== "general" && (
@@ -327,7 +328,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                 href={`/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-[0.16em] text-black overflow-hidden bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] ring-1 ring-inset ring-white/25 shadow-[0_8px_22px_-10px_rgba(212,175,55,0.75)] transition-all duration-300 hover:shadow-[0_12px_28px_-8px_rgba(212,175,55,0.9)] hover:brightness-[1.06] hover:-translate-y-px active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f17]"
+                className="group relative inline-flex w-full items-center justify-center gap-2 h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-[0.16em] text-black overflow-hidden bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] ring-1 ring-inset ring-white/25 shadow-[0_8px_22px_-10px_rgba(212,175,55,0.75)] transition-all duration-300 hover:shadow-[0_12px_28px_-8px_rgba(212,175,55,0.9)] hover:brightness-[1.06] hover:-translate-y-px active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f17]"
                 title="Abrir página pública da barbearia"
               >
                 <span className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.6)_50%,transparent_65%)] transition-transform duration-700 group-hover:translate-x-[120%]" />
@@ -347,20 +348,20 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 relative overflow-hidden",
+                    "group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 relative overflow-hidden text-white",
                     isActive
-                      ? "bg-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-[1.02]"
-                      : "text-white hover:bg-white/5 hover:text-white"
+                      ? "bg-gold/15 ring-1 ring-inset ring-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.18)]"
+                      : "hover:bg-white/5"
                   )}
                 >
                   {isActive && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-black rounded-r-full" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold rounded-r-full" />
                   )}
                   <item.icon size={20} className={cn(
                     "transition-transform duration-300 group-hover:scale-110",
-                    isActive ? "text-black" : "text-gold/60 group-hover:text-gold"
+                    isActive ? "text-gold" : "text-gold/60 group-hover:text-gold"
                   )} />
-                  {item.label}
+                  <span className="text-white">{item.label}</span>
                 </Link>
               );
             })}
@@ -370,7 +371,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           <div className="p-4 border-t border-white/5 space-y-4">
             <LogoutButton />
             <div className="flex flex-col items-center gap-2">
-              <BarbexLogo size="lg" className="flex-col gap-2" textClassName="text-4xl" />
+              <BarbexLogo size="lg" className="flex-col gap-3" textClassName="text-4xl" />
               <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                 Gestão Premium
               </span>
@@ -382,8 +383,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-28 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
-            <BarbexLogo size="lg" />
+          <header className="hidden md:flex h-40 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+            <BarbexLogo size="xl" textClassName="text-6xl" />
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
