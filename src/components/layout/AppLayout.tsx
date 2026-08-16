@@ -143,7 +143,6 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
     
     const rawName = 
       authProfile?.full_name || 
-      authProfile?.name || 
       (authUser?.user_metadata as any)?.display_name ||
       (authUser?.user_metadata as any)?.full_name ||
       (authUser?.user_metadata as any)?.name ||
@@ -152,7 +151,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
     if (!rawName) return "";
     
     // Clean email prefix if it contains numbers or special chars that look like an ID
-    const cleanName = rawName.split(' ')[0].toUpperCase();
+    const cleanName = String(rawName).split(' ')[0].toUpperCase();
     return cleanName;
   };
 
