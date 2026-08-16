@@ -36,8 +36,8 @@ export const Route = createFileRoute("/reception/")({
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 18) return "Boa tarde";
+  if (h >= 5 && h < 12) return "Bom dia";
+  if (h >= 12 && h < 18) return "Boa tarde";
   return "Boa noite";
 }
 
@@ -111,7 +111,7 @@ function ReceptionHome() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Central de Atendimento</h1>
         <p className="text-sm text-muted-foreground">
-          {greeting()}, {(profile as any)?.business_name || "recepção"}. Aqui está a operação de hoje.
+          {greeting()}, <span className="uppercase">{(profile as any)?.full_name?.split(' ')[0] || (profile as any)?.business_name || "recepção"}</span>. Aqui está a operação de hoje.
         </p>
       </header>
 

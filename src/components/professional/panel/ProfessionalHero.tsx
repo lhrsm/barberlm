@@ -17,8 +17,8 @@ interface Props {
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 18) return "Boa tarde";
+  if (h >= 5 && h < 12) return "Bom dia";
+  if (h >= 12 && h < 18) return "Boa tarde";
   return "Boa noite";
 }
 
@@ -55,7 +55,9 @@ export const ProfessionalHero = memo(function ProfessionalHero({
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gold">
                 {greeting()}, bom trabalho hoje
               </p>
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white truncate">{name} 👋</h1>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white truncate uppercase">
+                {name ? name.split(' ')[0] : 'Profissional'} 👋
+              </h1>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
