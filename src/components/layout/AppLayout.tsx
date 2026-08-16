@@ -451,12 +451,16 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                   <span className="text-xl font-black tracking-tighter text-white italic">
                     {getGreeting()},
                   </span>
-                  {getDisplayName() ? (
+                  {loading && !authProfile ? (
+                    <div className="h-6 w-24 bg-white/5 animate-pulse rounded-md" />
+                  ) : getDisplayName() ? (
                     <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
                       {getDisplayName()}
                     </span>
                   ) : (
-                    <div className="h-6 w-24 bg-white/5 animate-pulse rounded-md" />
+                    <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
+                      COMANDANTE
+                    </span>
                   )}
                 </div>
                 <span className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.1em] mt-0.5">
