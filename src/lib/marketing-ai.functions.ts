@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const getAdmin = async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+};
 
 /**
  * Retorna recomendações preditivas baseadas no comportamento dos clientes e saúde do negócio.
@@ -9,18 +13,19 @@ export const getPredictiveRecommendations = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ tenantId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
     const { tenantId } = data;
+    const admin = await getAdmin();
 
     // 1. Buscar dados de clientes inativos, aniversariantes, produtos sem venda
     // e profissionais com horários vagos (Mocks lógicos para a POC, mas buscando IDs reais)
     
-    const [inactives, birthdays, lowStock, idlePros] = await Promise.all([
-      supabaseAdmin.from("customers").select("id").eq("tenant_id", tenantId).is("last_visit_at", null).limit(10),
-      supabaseAdmin.from("customers").select("id").eq("tenant_id", tenantId).limit(5), // Simplificado para POC
-      supabaseAdmin.from("products").select("id, name").eq("tenant_id", tenantId).lte("stock_quantity", 5).limit(5),
-      supabaseAdmin.from("professionals").select("id, name").eq("tenant_id", tenantId).limit(3)
+    const [inactives, birthdays, lowStock, professionals] = await Promise.all([
+      admin.from("customers").select("id").eq("tenant_id", tenantId).is("last_visit_at", null).limit(10),
+      admin.from("customers").select("id").eq("tenant_id", tenantId).limit(5), // Simplificado para POC
+      admin.from("products").select("id, name").eq("user_id", tenantId).lte("stock_quantity", 5).limit(5),
+      admin.from("professionals" as any).select("id, name").eq("tenant_id", tenantId).limit(3)
     ]);
 
-    const recommendations = [];
+    const recommendations: any[] = [];
 
     if ((inactives.data?.length || 0) > 0) {
       recommendations.push({
@@ -40,7 +45,7 @@ export const getPredictiveRecommendations = createServerFn({ method: "GET" })
         id: "rec-stock",
         type: "inventory",
         title: "Queima de Estoque Inteligente",
-        description: `Os produtos ${lowStock.data?.map(p => p.name).join(", ")} estão com baixo giro.`,
+        description: `Os produtos ${lowStock.data?.map((p: any) => p.name).join(", ")} estão com baixo giro.`,
         action: "Promover no WhatsApp",
         impact: "Médio",
         score: 75,
