@@ -21,6 +21,7 @@ interface ManagerDashboardViewProps {
   birthdaysCount: number;
   tenantId: string;
   navigate: (to: { to: string }) => void;
+  name?: string | null;
 }
 
 export function ManagerDashboardView({
@@ -29,7 +30,8 @@ export function ManagerDashboardView({
   barbers,
   birthdaysCount,
   tenantId,
-  navigate
+  navigate,
+  name
 }: ManagerDashboardViewProps) {
   return (
     <DashboardShell
