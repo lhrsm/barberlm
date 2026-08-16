@@ -1,6 +1,6 @@
 import { SectionCard, SkeletonBlock, EmptyState } from "@/components/intelligence/ui";
 import { brl } from "@/components/intelligence/engine";
-import { Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, History } from "lucide-react";
+import { Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, History, Star } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
@@ -20,7 +20,7 @@ export function MarketingOverview({ model, loading, iq }) {
         { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s, b) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" },
         { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" },
         { label: "Horários vagos hoje", value: iq.idle.today.reduce((s, i) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
-        { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: Coins, color: "text-gold", to: "/customers" },
+        { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" },
         { label: "Avaliações pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
         { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" },
     ];
@@ -54,9 +54,6 @@ export function MarketingOverview({ model, loading, iq }) {
         {/* Marketing AI Advisor */}
         <MarketingAIAdvisor tenantId={tenantId || ""}/>
 
-        {/* Status das Campanhas Recentes */}
-
-        {/* Status das Campanhas Recentes */}
         <SectionCard title="Atividade Recente" subtitle="Últimas comunicações disparadas" icon={History}>
           {loading ? (<SkeletonBlock rows={3}/>) : model.campaigns.length === 0 ? (<EmptyState text="Nenhuma atividade recente encontrada."/>) : (<ul className="space-y-2">
               {model.campaigns.slice(0, 5).map((c) => (<li key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
@@ -82,10 +79,5 @@ function Coins(props) {
       <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
       <path d="M7 6h1v4"/>
       <path d="m16.71 13.88.7.71-2.82 2.82"/>
-    </svg>);
-}
-function Star(props) {
-    return (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
     </svg>);
 }
