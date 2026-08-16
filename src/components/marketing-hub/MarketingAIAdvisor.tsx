@@ -17,8 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { getPredictiveRecommendations, getRevenueProjections } from "@/lib/marketing-ai.functions";
-import { brl } from "@/components/intelligence/engine";
+import { getPredictiveRecommendations, getRevenueProjections } from "../../lib/marketing-ai.functions";
+import { brl } from "../intelligence/engine";
 
 interface MarketingAIAdvisorProps {
   tenantId: string;

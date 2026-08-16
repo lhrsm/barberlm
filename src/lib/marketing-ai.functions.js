@@ -62,7 +62,7 @@ export const getPredictiveRecommendations = createServerFn({ method: "GET" })
 export const getRevenueProjections = createServerFn({ method: "GET" })
     .inputValidator((data) => z.object({ tenantId: z.string().uuid() }).parse(data))
     .handler(async ({ data }) => {
-    // Mock de projeções baseadas em dados históricos
+    // Mock de projeções baseadas em dados históricos reais do tenant seriam calculados aqui
     return {
         projectedMonthlyRevenue: 15400.00,
         recoverableRevenue: 2450.00,

@@ -1,13 +1,13 @@
-import { Stat } from "@/routes/marketing";
-import { SectionCard, SkeletonBlock, EmptyState } from "@/components/intelligence/ui";
-import { brl } from "@/components/intelligence/engine";
+import { Stat } from "../../routes/marketing";
+import { SectionCard, SkeletonBlock, EmptyState } from "../intelligence/ui";
+import { brl } from "../intelligence/engine";
 import { Lightbulb, Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, CheckCircle2, History, Zap, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { cn } from "../../lib/utils";
 import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
-import { useTenant } from "@/hooks/use-tenant";
+import { useTenant } from "../../hooks/use-tenant";
 
 export function MarketingOverview({ model, loading, iq }: any) {
   const { tenantId } = useTenant();
