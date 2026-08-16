@@ -12,24 +12,24 @@ import { useTenant } from "../../hooks/use-tenant";
 
 export function MarketingOverview({ model, loading, iq }: any) {
   const { tenantId } = useTenant();
-  const pct = (v: number) => `${v.toFixed(1)}%`;
+  const pct = (v: number) => (v ? v.toFixed(1) : "0.0") + "%";
 
   const dashboardCards = [
-    { label: "Campanhas ativas", value: model.summary.activeCampaigns, icon: Megaphone, accent: "text-gold" },
-    { label: "Clientes impactados", value: model.summary.impactedCustomers, icon: Users, accent: "text-blue-400" },
-    { label: "Mensagens enviadas", value: model.summary.messagesSent, icon: MessageSquare, accent: "text-white" },
-    { label: "Taxa de abertura", value: pct(model.summary.openRate), icon: Target, accent: "text-emerald-400" },
-    { label: "Taxa de resposta", value: pct(model.summary.responseRate), icon: MessageSquare, accent: "text-blue-400" },
-    { label: "Receita atribuida", value: brl(model.summary.revenueGenerated), icon: ShoppingBag, accent: "text-emerald-400" },
+    { label: "Campanhas ativas", value: model?.summary?.activeCampaigns || 0, icon: Megaphone, accent: "text-gold" },
+    { label: "Clientes impactados", value: model?.summary?.impactedCustomers || 0, icon: Users, accent: "text-blue-400" },
+    { label: "Mensagens enviadas", value: model?.summary?.messagesSent || 0, icon: MessageSquare, accent: "text-white" },
+    { label: "Taxa de abertura", value: pct(model?.summary?.openRate || 0), icon: Target, accent: "text-emerald-400" },
+    { label: "Taxa de resposta", value: pct(model?.summary?.responseRate || 0), icon: MessageSquare, accent: "text-blue-400" },
+    { label: "Receita atribuida", value: brl(model?.summary?.revenueGenerated || 0), icon: ShoppingBag, accent: "text-emerald-400" },
   ];
 
   const operationalStats = [
-    { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s: number, b: any) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" as const },
-    { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" as const },
-    { label: "Horarios vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" as const },
-    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" as const },
-    { label: "Avaliacoes pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" as const },
-    { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" as const },
+    { label: "Clientes inativos", value: iq?.inactiveBuckets?.reduce((s, b) => s + (b.rows?.length || 0), 0) || 0, icon: AlertCircle, color: "text-rose-400", to: "/customers" as const },
+    { label: "Aniversariantes", value: iq?.birthdays?.month?.length || 0, icon: Users, color: "text-gold", to: "/customers" as const },
+    { label: "Horarios vagos hoje", value: iq?.idle?.today?.reduce((s, i) => s + (i.freeSlots || 0), 0) || 0, icon: Clock, color: "text-amber-400", to: "/calendar" as const },
+    { label: "Cashback sem uso", value: iq?.cashback?.withBalance?.length || 0, icon: ShoppingBag, color: "text-gold", to: "/customers" as const },
+    { label: "Avaliacoes pendentes", value: iq?.reviews?.notReviewed || 0, icon: Star, color: "text-blue-400", to: "/reviews" as const },
+    { label: "Produtos parados", value: iq?.products?.noSales?.length || 0, icon: ShoppingBag, color: "text-rose-400", to: "/products" as const },
   ];
 
   return (
@@ -72,11 +72,11 @@ export function MarketingOverview({ model, loading, iq }: any) {
         <SectionCard title="Atividade Recente" subtitle="Ultimas comunicacoes disparadas" icon={History}>
           {loading ? (
             <SkeletonBlock rows={3} />
-          ) : model.campaigns.length === 0 ? (
+          ) : !model?.campaigns?.length ? (
             <EmptyState text="Nenhuma atividade recente encontrada." />
           ) : (
             <ul className="space-y-2">
-              {model.campaigns.slice(0, 5).map((c: any) => (
+              {model.campaigns.slice(0, 5).map((c) => (
                 <li
                   key={c.id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3"
