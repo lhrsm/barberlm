@@ -49,7 +49,7 @@ export function PortalContentEditor({ userId }: { userId?: string }) {
     try {
       setUploading(true);
       const ext = file.name.split(".").pop();
-      const fileName = `${userId}-portal-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const fileName = `${userId}/${userId}-portal-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from("barber-avatars").upload(fileName, file);
       if (error) throw error;
       const { data } = supabase.storage.from("barber-avatars").getPublicUrl(fileName);
