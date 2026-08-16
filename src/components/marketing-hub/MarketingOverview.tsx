@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
+import { useTenant } from "@/hooks/use-tenant";
 
 export function MarketingOverview({ model, loading, iq }: any) {
+  const { tenantId } = useTenant();
   const pct = (v: number) => `${v.toFixed(1)}%`;
 
   const dashboardCards = [
@@ -60,36 +63,10 @@ export function MarketingOverview({ model, loading, iq }: any) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Oportunidades Priorizadas */}
-        <SectionCard title="Radar de Oportunidades" subtitle="Ações recomendadas pela inteligência Barbex" icon={Lightbulb}>
-          {loading ? (
-            <SkeletonBlock rows={3} />
-          ) : model.opportunities.length === 0 ? (
-            <EmptyState text="Nenhuma oportunidade em destaque no momento." />
-          ) : (
-            <ul className="space-y-2">
-              {model.opportunities.map((o: any) => (
-                <li
-                  key={o.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 transition-all duration-200 hover:border-gold/25"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-gold/10 flex items-center justify-center">
-                      <Zap size={14} className="text-gold" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white">{o.text}</p>
-                      <p className="text-[10px] text-white/40">Impacto comercial imediato detectado</p>
-                    </div>
-                  </div>
-                  <Button asChild size="sm" className="h-8 rounded-lg bg-gold text-xs font-black text-black hover:bg-gold/85">
-                    <Link to={o.to}>{o.label}</Link>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
+        {/* Marketing AI Advisor */}
+        <MarketingAIAdvisor tenantId={tenantId || ""} />
+
+        {/* Status das Campanhas Recentes */}
 
         {/* Status das Campanhas Recentes */}
         <SectionCard title="Atividade Recente" subtitle="Últimas comunicações disparadas" icon={History}>
