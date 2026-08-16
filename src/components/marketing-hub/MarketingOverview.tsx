@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { cn } from "../../lib/utils";
 import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
+import { PredictiveTrends } from "./PredictiveTrends";
 import { useTenant } from "../../hooks/use-tenant";
 
 export function MarketingOverview({ model, loading, iq }: any) {
@@ -62,10 +63,17 @@ export function MarketingOverview({ model, loading, iq }: any) {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Marketing AI Advisor */}
-        <MarketingAIAdvisor tenantId={tenantId || ""} />
+        <div className="lg:col-span-2">
+          <MarketingAIAdvisor tenantId={tenantId || ""} />
+        </div>
 
+        {/* Predictive Trends */}
+        <PredictiveTrends tenantId={tenantId || ""} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
         <SectionCard title="Atividade Recente" subtitle="Ultimas comunicacoes disparadas" icon={History}>
           {loading ? (
             <SkeletonBlock rows={3} />
@@ -94,6 +102,20 @@ export function MarketingOverview({ model, loading, iq }: any) {
               ))}
             </ul>
           )}
+        </SectionCard>
+
+        {/* Campaign Timing Optimizer (Placeholder) */}
+        <SectionCard title="Otimizacao de Horarios" subtitle="IA calculando melhor momento de envio" icon={Clock}>
+           <div className="flex flex-col items-center justify-center py-10 space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gold/20 blur-2xl rounded-full" />
+                <Zap className="h-12 w-12 text-gold relative animate-pulse" />
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-black text-white uppercase tracking-widest">Calculando Probabilidades</p>
+                <p className="text-[9px] font-bold text-white/40 uppercase mt-1">Horario sugerido: 14:30 (Confianca 94%)</p>
+              </div>
+           </div>
         </SectionCard>
       </div>
     </div>
