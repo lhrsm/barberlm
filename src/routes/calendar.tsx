@@ -211,7 +211,7 @@ const CalendarComponent = memo(() => {
 
     let appQuery = supabase
       .from("appointments")
-      .select("*, customers(name, phone, avatar_url), services(name, duration_minutes), barbers!appointments_barber_id_fkey(name)")
+      .select("*, customers(*), services(*), barbers(*)")
       .eq("tenant_id", user.id)
       .gte("start_time", start.toISOString())
       .lte("start_time", end.toISOString());
@@ -229,6 +229,10 @@ const CalendarComponent = memo(() => {
       supabase.from("customers").select("*").eq("user_id", user.id).order("name"),
       supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
     ]);
+
+    if (appRes.error) {
+      console.error("[Calendar] Fetch appointments error:", appRes.error);
+    }
 
     if (appRes.data) setAppointments(appRes.data);
     if (barbRes.data) setBarbers(barbRes.data);
