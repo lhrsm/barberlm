@@ -3755,6 +3755,42 @@ export type Database = {
           },
         ]
       }
+      customer_achievements: {
+        Row: {
+          achievement_id: string
+          customer_id: string
+          id: string
+          unlocked_at: string | null
+        }
+        Insert: {
+          achievement_id: string
+          customer_id: string
+          id?: string
+          unlocked_at?: string | null
+        }
+        Update: {
+          achievement_id?: string
+          customer_id?: string
+          id?: string
+          unlocked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_achievements_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_credits: {
         Row: {
           amount: number
@@ -4190,6 +4226,7 @@ export type Database = {
           id: string
           last_visit: string | null
           lifetime_value: number | null
+          loyalty_level_id: string | null
           loyalty_points: number | null
           name: string
           notes: string | null
@@ -4203,6 +4240,7 @@ export type Database = {
           user_id: string | null
           whatsapp_marketing_consent: boolean
           whatsapp_transactional_consent: boolean
+          xp: number | null
         }
         Insert: {
           allow_marketing?: boolean
@@ -4223,6 +4261,7 @@ export type Database = {
           id?: string
           last_visit?: string | null
           lifetime_value?: number | null
+          loyalty_level_id?: string | null
           loyalty_points?: number | null
           name: string
           notes?: string | null
@@ -4236,6 +4275,7 @@ export type Database = {
           user_id?: string | null
           whatsapp_marketing_consent?: boolean
           whatsapp_transactional_consent?: boolean
+          xp?: number | null
         }
         Update: {
           allow_marketing?: boolean
@@ -4256,6 +4296,7 @@ export type Database = {
           id?: string
           last_visit?: string | null
           lifetime_value?: number | null
+          loyalty_level_id?: string | null
           loyalty_points?: number | null
           name?: string
           notes?: string | null
@@ -4269,6 +4310,7 @@ export type Database = {
           user_id?: string | null
           whatsapp_marketing_consent?: boolean
           whatsapp_transactional_consent?: boolean
+          xp?: number | null
         }
         Relationships: [
           {
@@ -4276,6 +4318,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_loyalty_level_id_fkey"
+            columns: ["loyalty_level_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_levels"
             referencedColumns: ["id"]
           },
           {
@@ -4467,6 +4516,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      loyalty_achievements: {
+        Row: {
+          category: Database["public"]["Enums"]["loyalty_category"]
+          created_at: string | null
+          description: string | null
+          hidden_until_unlocked: boolean | null
+          icon: string | null
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+          xp_reward: number
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["loyalty_category"]
+          created_at?: string | null
+          description?: string | null
+          hidden_until_unlocked?: boolean | null
+          icon?: string | null
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["loyalty_category"]
+          created_at?: string | null
+          description?: string | null
+          hidden_until_unlocked?: boolean | null
+          icon?: string | null
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Relationships: []
       }
       loyalty_campaign_participations: {
         Row: {
@@ -4675,6 +4763,39 @@ export type Database = {
             referencedColumns: ["slug"]
           },
         ]
+      }
+      loyalty_levels: {
+        Row: {
+          benefits: string[] | null
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          min_xp: number
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          min_xp?: number
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          benefits?: string[] | null
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          min_xp?: number
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
       }
       loyalty_rewards: {
         Row: {
@@ -10424,6 +10545,7 @@ export type Database = {
         | "failed"
         | "cancelled"
         | "expired"
+      loyalty_category: "visit" | "spend" | "referral" | "social" | "special"
       product_sale_status: "completed" | "cancelled" | "refunded"
       time_off_status: "scheduled" | "active" | "completed" | "cancelled"
       time_off_type:
@@ -10607,6 +10729,7 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
+      loyalty_category: ["visit", "spend", "referral", "social", "special"],
       product_sale_status: ["completed", "cancelled", "refunded"],
       time_off_status: ["scheduled", "active", "completed", "cancelled"],
       time_off_type: [
