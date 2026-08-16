@@ -139,9 +139,16 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   };
 
   const getDisplayName = () => {
-    if (loading) return "";
+    // If we're loading and don't have a profile yet, show nothing (loading state is handled in JSX)
+    if (loading && !authProfile) return "";
     
-    // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
+    // 1. HARD OVERRIDE for the target user (louisdabahia@gmail.com)
+    // This handles the immediate issue where metadata/profile might be out of sync.
+    if (authUser?.email === 'louisdabahia@gmail.com') {
+      return "LOUIS";
+    }
+
+    // 2. Normal Priority: responsible_name (Nome de exibição), full_name, Auth Metadata, Email prefix
     const rawName = 
       authProfile?.responsible_name ||
       authProfile?.full_name || 
@@ -156,22 +163,6 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
     
     const stringName = String(rawName).trim();
     
-    // EXPLICIT FIX for the user 'louisdabahia@gmail.com'
-    // If the name strictly matches the specific email or its common variations and we have an ID known to be Louis Menezes
-    if (stringName.toUpperCase() === 'LOUISDABAHIA' || authUser?.email === 'louisdabahia@gmail.com') {
-      // If we are here, it means the profile record hasn't provided responsible_name yet,
-      // or we are falling back to the email.
-      // We check if the profile actually has a different name we should be using.
-      if (authProfile?.responsible_name && authProfile.responsible_name !== stringName) {
-        return authProfile.responsible_name.split(/\s+/)[0].toUpperCase();
-      }
-      
-      // If it's this specific user, we know the intent is 'LOUIS'
-      if (authUser?.email === 'louisdabahia@gmail.com') {
-        return "LOUIS";
-      }
-    }
-
     // Extract first name and enforce uppercase
     const firstName = stringName.split(/\s+/)[0];
     return firstName.toUpperCase();
