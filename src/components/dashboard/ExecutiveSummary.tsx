@@ -15,8 +15,8 @@ interface Props {
 
 function greeting(d = new Date()) {
   const h = d.getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 18) return "Boa tarde";
+  if (h >= 5 && h < 12) return "Bom dia";
+  if (h >= 12 && h < 18) return "Boa tarde";
   return "Boa noite";
 }
 
@@ -116,8 +116,8 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
             <Sparkles className="h-3 w-3 mr-2 fill-current" />
             Visão Executiva
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tightest">
-            {greeting()}, <span className="text-gradient-gold italic">{name?.split(' ')[0] || 'Comandante'}</span>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tightest uppercase">
+            {greeting()}, <span className="text-gradient-gold italic">{name ? name.split(' ')[0] : (loading ? '' : 'Comandante')}</span>
           </h1>
           <p className="text-muted-foreground font-bold flex items-center gap-2">
             <Clock className="h-4 w-4 text-gold/60" />

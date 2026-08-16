@@ -32,6 +32,7 @@ interface AdminDashboardViewProps {
   setIsWalkinOpen: (open: boolean) => void;
   dashboardTab: string;
   setDashboardTab: (tab: string) => void;
+  name?: string | null;
 }
 
 export const AdminDashboardView = memo(({
@@ -43,7 +44,8 @@ export const AdminDashboardView = memo(({
   navigate,
   setIsWalkinOpen,
   dashboardTab,
-  setDashboardTab
+  setDashboardTab,
+  name
 }: AdminDashboardViewProps) => {
   return (
     <DashboardShell
@@ -81,6 +83,7 @@ export const AdminDashboardView = memo(({
                 appointments={todayAppointments} 
                 stats={stats} 
                 birthdaysCount={birthdayCustomers.length}
+                name={name}
               />
               
               <KPIGrid>
