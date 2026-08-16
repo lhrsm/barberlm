@@ -66,16 +66,16 @@ export function ReceptionQueue({ date, barberId }: { date?: string; barberId?: s
       const end = `${day}T23:59:59`;
 
       let apptQuery = supabase
-          .from("appointments")
-          .select(
-            "id, start_time, end_time, status, payment_method, payment_status, notes, source, walkin_ticket_number, customers(id, name, phone, avatar_url), barbers!appointments_barber_id_fkey(id, name, avatar_url), services(id, name, duration)",
-          )
-          .eq("tenant_id", tenantId!)
-          .gte("start_time", start)
-          .lte("start_time", end)
-          .order("start_time", { ascending: true });
+        .from("appointments")
+        .select(
+          "*, customers(*), barbers(*), services(*)",
+        )
+        .eq("tenant_id", tenantId!)
+        .gte("start_time", start)
+        .lte("start_time", end)
+        .order("start_time", { ascending: true });
 
-      if (barberId) apptQuery = apptQuery.eq("barber_id", barberId);
+      if (barberId && barberId !== 'all') apptQuery = apptQuery.eq("barber_id", barberId);
 
       const [{ data: appts, error }, { data: checkins }] = await Promise.all([
         apptQuery,
@@ -87,7 +87,10 @@ export function ReceptionQueue({ date, barberId }: { date?: string; barberId?: s
           .lte("checked_in_at", end),
       ]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[ReceptionQueue] Fetch error:", error);
+        throw error;
+      }
 
       const checkinMap = new Map(
         (checkins || []).map((c: any) => [c.appointment_id, c.checked_in_at]),
