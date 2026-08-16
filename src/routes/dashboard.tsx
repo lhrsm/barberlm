@@ -170,14 +170,18 @@ function DashboardComponent() {
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("appointments")
-      .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers!appointments_barber_id_fkey(name)")
+      .select("*, customers(*), services(*), barbers(*)")
       .eq("tenant_id", tenantId)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd)
       .order("start_time", { ascending: false });
 
+    if (error) {
+      console.error("[Dashboard] fetchTodayAppointments error:", error);
+      return;
+    }
     if (data) setTodayAppointments(data);
   }
 
