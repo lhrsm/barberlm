@@ -690,7 +690,7 @@ function SettingsComponent() {
                             try {
                               setSaving(true);
                               const fileExt = file.name.split('.').pop();
-                              const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
+                              const fileName = `${user.id}/${user.id}-logo-${Date.now()}.${fileExt}`;
                               const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(fileName, file);
                               if (uploadError) throw uploadError;
                               const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(fileName);
@@ -1010,7 +1010,7 @@ function SettingsComponent() {
                             const uploadedUrls: string[] = [];
                             for (const file of files) {
                               const fileExt = file.name.split('.').pop();
-                              const fileName = `${user.id}-gallery-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+                              const fileName = `${user.id}/${user.id}-gallery-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
                               const { error: uploadError } = await supabase.storage
                                 .from('barber-avatars')
                                 .upload(fileName, file);
