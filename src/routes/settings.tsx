@@ -470,6 +470,10 @@ function SettingsComponent() {
     }
 
     toast.success("Configurações salvas com sucesso!");
+    // Invalidate auth and profile queries to reflect changes in the header immediately
+    await supabase.auth.refreshSession();
+    // Re-fetch local data to keep everything in sync
+    await fetchProfile();
   }
 
   if (loading || !user) return null;
