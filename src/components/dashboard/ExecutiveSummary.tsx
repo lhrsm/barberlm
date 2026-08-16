@@ -115,9 +115,9 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
           <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white italic uppercase">
             {greeting()}, <span className="text-gradient-gold">{name && name.includes('@') ? 'Comandante' : (name ? name.split(' ')[0] : (loading ? '' : 'Comandante'))}</span>
           </h1>
-          <p className="text-[13px] text-muted-foreground font-medium flex items-center gap-2">
+          <p className="text-[12px] text-muted-foreground font-medium flex items-center gap-2 mt-1">
             <Clock className="h-3.5 w-3.5 text-gold/60" />
-            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
+            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
           </p>
         </div>
 
