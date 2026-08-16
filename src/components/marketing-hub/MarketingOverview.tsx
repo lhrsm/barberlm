@@ -66,9 +66,6 @@ export function MarketingOverview({ model, loading, iq }: any) {
         {/* Marketing AI Advisor */}
         <MarketingAIAdvisor tenantId={tenantId || ""} />
 
-        {/* Status das Campanhas Recentes */}
-
-        {/* Status das Campanhas Recentes */}
         <SectionCard title="Atividade Recente" subtitle="Últimas comunicações disparadas" icon={History}>
           {loading ? (
             <SkeletonBlock rows={3} />
