@@ -155,7 +155,7 @@ export function MarketingAIAdvisor({ tenantId }: MarketingAIAdvisorProps) {
                       ? "bg-gold text-black hover:bg-gold/90 shadow-[0_0_15px_rgba(212,175,55,0.3)]" 
                       : "bg-white/5 text-white hover:bg-white/10 border border-white/10"
                   )}>
-                    <Link to={rec.to}>
+                    <Link to={rec.to as any}>
                       {rec.action}
                       <ArrowRight size={14} className="ml-2" />
                     </Link>

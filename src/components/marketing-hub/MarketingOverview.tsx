@@ -24,12 +24,12 @@ export function MarketingOverview({ model, loading, iq }: any) {
   ];
 
   const operationalStats = [
-    { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s: number, b: any) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" },
-    { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" },
-    { label: "Horarios vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
-    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" },
-    { label: "Avaliacoes pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
-    { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" },
+    { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s: number, b: any) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" as const },
+    { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" as const },
+    { label: "Horarios vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" as const },
+    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" as const },
+    { label: "Avaliacoes pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" as const },
+    { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" as const },
   ];
 
   return (
