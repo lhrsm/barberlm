@@ -139,7 +139,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   };
 
   const getDisplayName = () => {
-    if (loading) return "";
+    if (loading || !authProfile) return "";
     
     // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
     const rawName = 
@@ -153,8 +153,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
     if (!rawName) return "";
     
-    const cleanName = String(rawName).trim().toUpperCase();
-    return cleanName;
+    // Per requirement #6: Extract first name for the greeting presentation
+    const firstName = String(rawName).trim().split(/\s+/)[0];
+    return firstName.toUpperCase();
   };
 
   const { isEnabled: isModuleEnabled } = useModules();
@@ -450,12 +451,16 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                   <span className="text-xl font-black tracking-tighter text-white italic">
                     {getGreeting()},
                   </span>
-                  {getDisplayName() ? (
+                  {loading && !authProfile ? (
+                    <div className="h-6 w-24 bg-white/5 animate-pulse rounded-md" />
+                  ) : getDisplayName() ? (
                     <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
                       {getDisplayName()}
                     </span>
                   ) : (
-                    <div className="h-6 w-24 bg-white/5 animate-pulse rounded-md" />
+                    <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
+                      COMANDANTE
+                    </span>
                   )}
                 </div>
                 <span className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.1em] mt-0.5">
