@@ -81,6 +81,7 @@ export const AdminDashboardView = memo(({
                 appointments={todayAppointments} 
                 stats={stats} 
                 birthdaysCount={birthdayCustomers.length}
+                name={name}
               />
               
               <KPIGrid>

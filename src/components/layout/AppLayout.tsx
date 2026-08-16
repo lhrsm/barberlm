@@ -240,7 +240,17 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       {/* Mobile Top Header */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gold/10 bg-[#0b0f17] sticky top-0 z-40">
         <div className="flex items-center gap-3 overflow-hidden">
-          <BarbexLogo size="md" showText={false} className="shrink-0" />
+          {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
+            <div className="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0">
+              <img 
+                src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
+                alt={businessName}
+                className="max-h-full max-w-full object-contain" 
+              />
+            </div>
+          ) : (
+            <BarbexLogo size="md" showText={false} className="shrink-0" />
+          )}
           <p className="text-xl font-black text-white truncate tracking-tight">{businessName}</p>
         </div>
         <div className="flex items-center gap-1">
@@ -258,7 +268,17 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         <div className="fixed inset-0 z-50 bg-[#05070d] md:hidden overflow-auto">
           <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#0b0f17]">
             <div className="flex items-center gap-3 overflow-hidden">
-              <BarbexLogo size="md" showText={false} className="shrink-0" />
+              {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
+                <div className="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0">
+                  <img 
+                    src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
+                    alt={businessName}
+                    className="max-h-full max-w-full object-contain" 
+                  />
+                </div>
+              ) : (
+                <BarbexLogo size="md" showText={false} className="shrink-0" />
+              )}
               <p className="text-xl font-black text-white truncate">{businessName}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)} className="text-white">
@@ -319,7 +339,17 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-gold/10 bg-[#0b0f17] shrink-0">
           <div className="p-6 flex flex-col items-center gap-4 border-b border-white/5 mb-2">
-            <BarbexLogo size="xl" showText={false} />
+            <div className="h-24 w-full flex items-center justify-center mb-2 px-4 overflow-hidden">
+              {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
+                <img 
+                  src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
+                  alt={businessName}
+                  className="max-h-full max-w-full object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]" 
+                />
+              ) : (
+                <BarbexLogo size="xl" showText={false} />
+              )}
+            </div>
             <p className="text-2xl font-black text-white tracking-tighter text-center drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </p>

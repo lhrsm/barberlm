@@ -84,7 +84,8 @@ export function ManagerDashboardView({
         <div className="lg:col-span-8 space-y-8">
           <ExecutiveSummary 
             appointments={todayAppointments} 
-            stats={stats} 
+            stats={stats}
+            name={name}
           />
           
           <div className="space-y-4">
