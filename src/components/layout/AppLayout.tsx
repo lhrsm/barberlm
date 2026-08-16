@@ -148,6 +148,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       (authUser?.user_metadata as any)?.display_name ||
       (authUser?.user_metadata as any)?.full_name ||
       (authUser?.user_metadata as any)?.name ||
+      (authProfile as any)?.email?.split('@')[0] ||
       authUser?.email?.split('@')[0];
 
     if (!rawName) return "";
