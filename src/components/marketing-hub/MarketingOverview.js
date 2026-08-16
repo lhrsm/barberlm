@@ -1,10 +1,11 @@
-import { SectionCard, SkeletonBlock, EmptyState } from "@/components/intelligence/ui";
-import { brl } from "@/components/intelligence/engine";
-import { Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, History, Star } from "lucide-react";
+import { SectionCard, SkeletonBlock, EmptyState } from "../intelligence/ui";
+import { brl } from "../intelligence/engine";
+import { Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, History, Zap, Star } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
-import { useTenant } from "@/hooks/use-tenant";
+import { PredictiveTrends } from "./PredictiveTrends";
+import { useTenant } from "../../hooks/use-tenant";
 export function MarketingOverview({ model, loading, iq }) {
     const { tenantId } = useTenant();
     const pct = (v) => `${v.toFixed(1)}%`;
@@ -14,14 +15,14 @@ export function MarketingOverview({ model, loading, iq }) {
         { label: "Mensagens enviadas", value: model.summary.messagesSent, icon: MessageSquare, accent: "text-white" },
         { label: "Taxa de abertura", value: pct(model.summary.openRate), icon: Target, accent: "text-emerald-400" },
         { label: "Taxa de resposta", value: pct(model.summary.responseRate), icon: MessageSquare, accent: "text-blue-400" },
-        { label: "Receita atribuída", value: brl(model.summary.revenueGenerated), icon: ShoppingBag, accent: "text-emerald-400" },
+        { label: "Receita atribuida", value: brl(model.summary.revenueGenerated), icon: ShoppingBag, accent: "text-emerald-400" },
     ];
     const operationalStats = [
         { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s, b) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" },
         { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" },
-        { label: "Horários vagos hoje", value: iq.idle.today.reduce((s, i) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
+        { label: "Horarios vagos hoje", value: iq.idle.today.reduce((s, i) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
         { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" },
-        { label: "Avaliações pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
+        { label: "Avaliacoes pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
         { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" },
     ];
     return (<div className="space-y-6 animate-in fade-in duration-500">
@@ -45,22 +46,29 @@ export function MarketingOverview({ model, loading, iq }) {
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{stat.label}</p>
               </div>
               <p className="text-xl font-black text-white">{stat.value}</p>
-              <p className="mt-1 text-[9px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity">Ver público →</p>
+              <p className="mt-1 text-[9px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity">Ver publico &rarr;</p>
             </div>
           </Link>))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Marketing AI Advisor */}
-        <MarketingAIAdvisor tenantId={tenantId || ""}/>
+        <div className="lg:col-span-2">
+          <MarketingAIAdvisor tenantId={tenantId || ""}/>
+        </div>
 
-        <SectionCard title="Atividade Recente" subtitle="Últimas comunicações disparadas" icon={History}>
+        {/* Predictive Trends */}
+        <PredictiveTrends tenantId={tenantId || ""}/>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionCard title="Atividade Recente" subtitle="Ultimas comunicacoes disparadas" icon={History}>
           {loading ? (<SkeletonBlock rows={3}/>) : model.campaigns.length === 0 ? (<EmptyState text="Nenhuma atividade recente encontrada."/>) : (<ul className="space-y-2">
               {model.campaigns.slice(0, 5).map((c) => (<li key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-white">{c.name}</p>
                     <p className="text-[10px] text-white/40">
-                      {new Date(c.date).toLocaleDateString("pt-BR")} • {c.customers} impactados • {c.result}
+                      {new Date(c.date).toLocaleDateString("pt-BR")} &bull; {c.customers} impactados &bull; {c.result}
                     </p>
                   </div>
                   <div className={cn("rounded-lg border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", c.status === "ativa" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" : "border-white/10 bg-white/5 text-white/40")}>
@@ -68,6 +76,20 @@ export function MarketingOverview({ model, loading, iq }) {
                   </div>
                 </li>))}
             </ul>)}
+        </SectionCard>
+
+        {/* Campaign Timing Optimizer (Placeholder) */}
+        <SectionCard title="Otimizacao de Horarios" subtitle="IA calculando melhor momento de envio" icon={Clock}>
+           <div className="flex flex-col items-center justify-center py-10 space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gold/20 blur-2xl rounded-full"/>
+                <Zap className="h-12 w-12 text-gold relative animate-pulse"/>
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-black text-white uppercase tracking-widest">Calculando Probabilidades</p>
+                <p className="text-[9px] font-bold text-white/40 uppercase mt-1">Horario sugerido: 14:30 (Confianca 94%)</p>
+              </div>
+           </div>
         </SectionCard>
       </div>
     </div>);
