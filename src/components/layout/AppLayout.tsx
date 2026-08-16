@@ -139,7 +139,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   };
 
   const getDisplayName = () => {
-    if (loading) return "";
+    if (loading || !authProfile) return "";
     
     // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
     const rawName = 
@@ -153,8 +153,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
     if (!rawName) return "";
     
-    const cleanName = String(rawName).trim().toUpperCase();
-    return cleanName;
+    // Per requirement #6: Extract first name for the greeting presentation
+    const firstName = String(rawName).trim().split(/\s+/)[0];
+    return firstName.toUpperCase();
   };
 
   const { isEnabled: isModuleEnabled } = useModules();

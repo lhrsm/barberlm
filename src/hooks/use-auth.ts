@@ -116,6 +116,16 @@ function initializeAuth() {
     }
   });
 
+  // Listen for custom profile update events
+  if (typeof window !== 'undefined') {
+    window.addEventListener('profile-updated', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await fetchProfileData(session.user.id);
+      }
+    });
+  }
+
 
   // 2. Then hydrate the existing session from storage.
   supabase.auth

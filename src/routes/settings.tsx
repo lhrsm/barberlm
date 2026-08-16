@@ -474,6 +474,8 @@ function SettingsComponent() {
     await supabase.auth.refreshSession();
     // Re-fetch local data to keep everything in sync
     await fetchProfile();
+    // Ensure the global auth state is also refreshed for the header
+    window.dispatchEvent(new CustomEvent('profile-updated'));
   }
 
   if (loading || !user) return null;
