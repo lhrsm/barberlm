@@ -33,13 +33,15 @@ export function DashboardHeader({
   actions?: React.ReactNode 
 }) {
   return (
-    <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between w-full">
+    <div className="flex flex-col gap-1 md:flex-row md:items-start md:justify-between w-full">
       <div className="space-y-1">
-        <h1 className="text-3xl font-black tracking-tighter text-white md:text-4xl italic uppercase">
-          {title}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white italic uppercase">
+            {title}
+          </h1>
+        </div>
         {subtitle && (
-          <p className="text-sm text-gray-400 font-medium">
+          <p className="text-[13px] text-gray-500 font-medium max-w-lg">
             {subtitle}
           </p>
         )}

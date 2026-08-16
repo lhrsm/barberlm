@@ -48,7 +48,7 @@ export function BarbexLogo({
       {showText && (
         <span
           className={cn(
-            "font-black uppercase italic tracking-tighter leading-none text-white",
+            "font-black uppercase italic tracking-tighter leading-none text-white transition-opacity duration-300",
             s.text,
             textClassName
           )}

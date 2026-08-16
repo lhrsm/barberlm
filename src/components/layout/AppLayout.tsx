@@ -249,7 +249,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
               />
             </div>
           ) : (
-            <BarbexLogo size="md" showText={false} className="shrink-0" />
+            <BarbexLogo size="sm" showText={false} className="shrink-0" />
           )}
           <p className="text-xl font-black text-white truncate tracking-tight">{businessName}</p>
         </div>
@@ -277,7 +277,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                   />
                 </div>
               ) : (
-                <BarbexLogo size="md" showText={false} className="shrink-0" />
+                <BarbexLogo size="sm" showText={false} className="shrink-0" />
               )}
               <p className="text-xl font-black text-white truncate">{businessName}</p>
             </div>
@@ -323,11 +323,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
             </div>
             <div className="pt-4 border-t border-white/10 mt-4 space-y-4">
               <LogoutButton />
-              {/* Footer logo (mobile) */}
-              <div className="flex flex-col items-center gap-2 pb-6">
-                <BarbexLogo size="lg" className="flex-col gap-3" textClassName="text-4xl" />
+              <div className="pb-6">
                 <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
-                  Gestão Premium
+                  BARBEX
                 </span>
               </div>
             </div>
@@ -339,34 +337,33 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-gold/10 bg-[#0b0f17] shrink-0">
           <div className="p-6 flex flex-col items-center gap-4 border-b border-white/5 mb-2">
-            <div className="h-24 w-full flex items-center justify-center mb-2 px-4 overflow-hidden">
+            <div className="h-20 w-20 flex items-center justify-center mb-2 overflow-hidden">
               {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
                 <img 
                   src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
                   alt={businessName}
-                  className="max-h-full max-w-full object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]" 
+                  className="h-full w-full object-contain" 
                 />
               ) : (
                 <BarbexLogo size="xl" showText={false} />
               )}
             </div>
-            <p className="text-2xl font-black text-white tracking-tighter text-center drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
-              {businessName}
-            </p>
-            {slug && slug !== "general" && (
-              <a
-                href={`/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative inline-flex w-full items-center justify-center gap-2 h-10 px-4 rounded-xl text-[11px] font-black uppercase tracking-[0.16em] text-black overflow-hidden bg-[linear-gradient(110deg,#F5D77A_0%,#D4AF37_45%,#ea580c_100%)] ring-1 ring-inset ring-white/25 shadow-[0_8px_22px_-10px_rgba(212,175,55,0.75)] transition-all duration-300 hover:shadow-[0_12px_28px_-8px_rgba(212,175,55,0.9)] hover:brightness-[1.06] hover:-translate-y-px active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0f17]"
-                title="Abrir página pública da barbearia"
-              >
-                <span className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.6)_50%,transparent_65%)] transition-transform duration-700 group-hover:translate-x-[120%]" />
-                <ExternalLink size={13} className="relative transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                <span className="relative">Ver Página Pública</span>
-
-              </a>
-            )}
+            <div className="text-center space-y-1">
+              <p className="text-xl font-bold text-white tracking-tight leading-none truncate max-w-[180px]">
+                {businessName}
+              </p>
+              {slug && slug !== "general" && (
+                <a
+                  href={`/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-black uppercase tracking-widest text-gold hover:text-gold/80 transition-colors"
+                  title="Ver página pública"
+                >
+                  Ver página pública
+                </a>
+              )}
+            </div>
           </div>
 
 
@@ -400,10 +397,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           {/* Sidebar footer */}
           <div className="p-4 border-t border-white/5 space-y-4">
             <LogoutButton />
-            <div className="flex flex-col items-center gap-2">
-              <BarbexLogo size="lg" className="flex-col gap-3" textClassName="text-4xl" />
+            <div className="flex flex-col items-center gap-2 pb-6">
               <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
-                Gestão Premium
+                Powered by BARBEX
               </span>
             </div>
           </div>
@@ -413,8 +409,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-40 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
-            <BarbexLogo size="xl" textClassName="text-6xl" />
+          <header className="hidden md:flex h-20 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+            <BarbexLogo size="sm" showText={false} />
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
