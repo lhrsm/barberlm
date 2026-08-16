@@ -141,17 +141,19 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const getDisplayName = () => {
     if (loading) return "";
     
+    // Attempt to get a clean first name
     const rawName = 
-      authProfile?.full_name || 
-      (authUser?.user_metadata as any)?.display_name ||
-      (authUser?.user_metadata as any)?.full_name ||
-      (authUser?.user_metadata as any)?.name ||
-      authUser?.email?.split('@')[0];
+      (authProfile as any)?.first_name ||
+      authProfile?.full_name?.split(' ')[0] || 
+      (authUser?.user_metadata as any)?.display_name?.split(' ')[0] ||
+      (authUser?.user_metadata as any)?.full_name?.split(' ')[0] ||
+      (authUser?.user_metadata as any)?.name?.split(' ')[0] ||
+      authUser?.email?.split('@')[0].split('.')[0].split('_')[0];
 
     if (!rawName) return "";
     
-    // Clean email prefix if it contains numbers or special chars that look like an ID
-    const cleanName = String(rawName).split(' ')[0].toUpperCase();
+    // Clean name: uppercase and only first word, removing common email separators
+    const cleanName = String(rawName).split(/[\s.@_]/)[0].toUpperCase();
     return cleanName;
   };
 
@@ -271,11 +273,11 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gold/10 bg-[#0b0f17] sticky top-0 z-40">
         <div className="flex items-center gap-3 overflow-hidden">
           {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
-            <div className="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0">
+            <div className="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0 rounded-full border border-gold/20 bg-black/20">
               <img 
                 src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
                 alt={businessName}
-                className="max-h-full max-w-full object-contain" 
+                className="h-full w-full object-cover rounded-full" 
               />
             </div>
           ) : (
@@ -299,11 +301,11 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#0b0f17]">
             <div className="flex items-center gap-3 overflow-hidden">
               {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
-                <div className="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="h-10 w-10 flex items-center justify-center overflow-hidden shrink-0 rounded-full border border-gold/20 bg-black/20">
                   <img 
                     src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
                     alt={businessName}
-                    className="max-h-full max-w-full object-contain" 
+                    className="h-full w-full object-cover rounded-full" 
                   />
                 </div>
               ) : (
@@ -367,12 +369,12 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r border-gold/10 bg-[#0b0f17] shrink-0">
           <div className="p-6 flex flex-col items-center gap-4 border-b border-white/5 mb-2">
-            <div className="h-20 w-20 flex items-center justify-center mb-2 overflow-hidden">
+            <div className="h-20 w-20 flex items-center justify-center mb-2 overflow-hidden rounded-full border-2 border-gold/20 bg-black/40 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
               {tenantProfile?.logo_url || tenantProfile?.barbershop_logo_url ? (
                 <img 
                   src={tenantProfile.logo_url || tenantProfile.barbershop_logo_url} 
                   alt={businessName}
-                  className="h-full w-full object-contain" 
+                  className="h-full w-full object-cover rounded-full" 
                 />
               ) : (
                 <BarbexLogo size="xl" showText={false} />
