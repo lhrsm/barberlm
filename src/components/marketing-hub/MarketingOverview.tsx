@@ -1,13 +1,13 @@
-import { Stat } from "@/routes/marketing";
-import { SectionCard, SkeletonBlock, EmptyState } from "@/components/intelligence/ui";
-import { brl } from "@/components/intelligence/engine";
-import { Lightbulb, Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, CheckCircle2, History, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Stat } from "../../routes/marketing";
+import { SectionCard, SkeletonBlock, EmptyState } from "../intelligence/ui";
+import { brl } from "../intelligence/engine";
+import { Lightbulb, Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, CheckCircle2, History, Zap, Star } from "lucide-react";
+import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { cn } from "../../lib/utils";
 import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
-import { useTenant } from "@/hooks/use-tenant";
+import { useTenant } from "../../hooks/use-tenant";
 
 export function MarketingOverview({ model, loading, iq }: any) {
   const { tenantId } = useTenant();
@@ -26,7 +26,7 @@ export function MarketingOverview({ model, loading, iq }: any) {
     { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s: number, b: any) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" },
     { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" },
     { label: "Horários vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
-    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: Coins, color: "text-gold", to: "/customers" },
+    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" },
     { label: "Avaliações pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
     { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" },
   ];
@@ -97,47 +97,5 @@ export function MarketingOverview({ model, loading, iq }: any) {
         </SectionCard>
       </div>
     </div>
-  );
-}
-
-// Helper icons for the dashboard
-function Coins(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="8" cy="8" r="6" />
-      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
-      <path d="M7 6h1v4" />
-      <path d="m16.71 13.88.7.71-2.82 2.82" />
-    </svg>
-  );
-}
-
-function Star(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
   );
 }
