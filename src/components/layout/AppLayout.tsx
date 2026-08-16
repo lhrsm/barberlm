@@ -397,10 +397,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           {/* Sidebar footer */}
           <div className="p-4 border-t border-white/5 space-y-4">
             <LogoutButton />
-            <div className="flex flex-col items-center gap-2">
-              <BarbexLogo size="lg" className="flex-col gap-3" textClassName="text-4xl" />
+            <div className="flex flex-col items-center gap-2 pb-6">
               <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
-                Gestão Premium
+                Powered by BARBEX
               </span>
             </div>
           </div>
@@ -410,8 +409,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-40 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
-            <BarbexLogo size="xl" textClassName="text-6xl" />
+          <header className="hidden md:flex h-20 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+            <BarbexLogo size="sm" showText={false} />
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
