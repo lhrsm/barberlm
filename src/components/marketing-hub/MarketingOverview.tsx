@@ -26,7 +26,7 @@ export function MarketingOverview({ model, loading, iq }: any) {
     { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s: number, b: any) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" },
     { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" },
     { label: "Horários vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
-    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: Coins, color: "text-gold", to: "/customers" },
+    { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" },
     { label: "Avaliações pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
     { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" },
   ];
