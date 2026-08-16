@@ -44,7 +44,7 @@ async function fetchProfileData(userId: string) {
     const [{ data: profileData, error: profileError }, { data: roleData, error: roleError }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, role, tenant_id, business_name, full_name, responsible_name, slug")
+        .select("id, role, tenant_id, business_name, full_name, responsible_name, slug, email")
         .eq("id", userId)
         .maybeSingle(),
       supabase
@@ -81,6 +81,7 @@ async function fetchProfileData(userId: string) {
       full_name: profileData?.full_name ?? null,
       responsible_name: profileData?.responsible_name ?? null,
       slug: profileData?.slug ?? null,
+      email: profileData?.email ?? null,
     };
 
     setState({ profile: normalizedProfile });
