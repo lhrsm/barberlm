@@ -34,7 +34,6 @@ export function MarketingOverview({ model, loading, iq }: any) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Hero Stats Dashboard */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {dashboardCards.map((card) => (
           <div key={card.label} className="rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-4 transition-all duration-200 hover:border-gold/30">
@@ -47,7 +46,6 @@ export function MarketingOverview({ model, loading, iq }: any) {
         ))}
       </div>
 
-      {/* Operational Highlights */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {operationalStats.map((stat) => (
           <Link key={stat.label} to={stat.to} className="group">
@@ -64,12 +62,9 @@ export function MarketingOverview({ model, loading, iq }: any) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Marketing AI Advisor */}
         <div className="lg:col-span-2">
           <MarketingAIAdvisor tenantId={tenantId || ""} />
         </div>
-
-        {/* Predictive Trends */}
         <PredictiveTrends tenantId={tenantId || ""} />
       </div>
 
@@ -104,7 +99,6 @@ export function MarketingOverview({ model, loading, iq }: any) {
           )}
         </SectionCard>
 
-        {/* Campaign Timing Optimizer (Placeholder) */}
         <SectionCard title="Otimizacao de Horarios" subtitle="IA calculando melhor momento de envio" icon={Clock}>
            <div className="flex flex-col items-center justify-center py-10 space-y-4">
               <div className="relative">
