@@ -19,15 +19,15 @@ export function MarketingOverview({ model, loading, iq }: any) {
     { label: "Mensagens enviadas", value: model.summary.messagesSent, icon: MessageSquare, accent: "text-white" },
     { label: "Taxa de abertura", value: pct(model.summary.openRate), icon: Target, accent: "text-emerald-400" },
     { label: "Taxa de resposta", value: pct(model.summary.responseRate), icon: MessageSquare, accent: "text-blue-400" },
-    { label: "Receita atribuída", value: brl(model.summary.revenueGenerated), icon: ShoppingBag, accent: "text-emerald-400" },
+    { label: "Receita atribuida", value: brl(model.summary.revenueGenerated), icon: ShoppingBag, accent: "text-emerald-400" },
   ];
 
   const operationalStats = [
     { label: "Clientes inativos", value: iq.inactiveBuckets.reduce((s: number, b: any) => s + b.rows.length, 0), icon: AlertCircle, color: "text-rose-400", to: "/customers" },
     { label: "Aniversariantes", value: iq.birthdays.month.length, icon: Users, color: "text-gold", to: "/customers" },
-    { label: "Horários vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
+    { label: "Horarios vagos hoje", value: iq.idle.today.reduce((s: number, i: any) => s + i.freeSlots, 0), icon: Clock, color: "text-amber-400", to: "/calendar" },
     { label: "Cashback sem uso", value: iq.cashback.withBalance.length, icon: ShoppingBag, color: "text-gold", to: "/customers" },
-    { label: "Avaliações pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
+    { label: "Avaliacoes pendentes", value: iq.reviews.notReviewed, icon: Star, color: "text-blue-400", to: "/reviews" },
     { label: "Produtos parados", value: iq.products.noSales.length, icon: ShoppingBag, color: "text-rose-400", to: "/products" },
   ];
 
@@ -56,7 +56,7 @@ export function MarketingOverview({ model, loading, iq }: any) {
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{stat.label}</p>
               </div>
               <p className="text-xl font-black text-white">{stat.value}</p>
-              <p className="mt-1 text-[9px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity">Ver público →</p>
+              <p className="mt-1 text-[9px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity">Ver publico &rarr;</p>
             </div>
           </Link>
         ))}
@@ -66,7 +66,7 @@ export function MarketingOverview({ model, loading, iq }: any) {
         {/* Marketing AI Advisor */}
         <MarketingAIAdvisor tenantId={tenantId || ""} />
 
-        <SectionCard title="Atividade Recente" subtitle="Últimas comunicações disparadas" icon={History}>
+        <SectionCard title="Atividade Recente" subtitle="Ultimas comunicacoes disparadas" icon={History}>
           {loading ? (
             <SkeletonBlock rows={3} />
           ) : model.campaigns.length === 0 ? (
@@ -81,7 +81,7 @@ export function MarketingOverview({ model, loading, iq }: any) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-white">{c.name}</p>
                     <p className="text-[10px] text-white/40">
-                      {new Date(c.date).toLocaleDateString("pt-BR")} • {c.customers} impactados • {c.result}
+                      {new Date(c.date).toLocaleDateString("pt-BR")} &bull; {c.customers} impactados &bull; {c.result}
                     </p>
                   </div>
                   <div className={cn(
