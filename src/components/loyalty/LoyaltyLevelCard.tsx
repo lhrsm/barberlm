@@ -29,7 +29,7 @@ export function LoyaltyLevelCard({
   className,
 }: LoyaltyLevelCardProps) {
   const progress = nextLevel
-    ? Math.min(100, Math.max(0, ((currentXP - currentLevel?.min_xp || 0) / (nextLevel.min_xp - (currentLevel?.min_xp || 0))) * 100))
+    ? Math.min(100, Math.max(0, ((currentXP - (currentLevel?.min_xp ?? 0)) / ((nextLevel.min_xp ?? 1) - (currentLevel?.min_xp ?? 0))) * 100))
     : 100;
 
   const LevelIcon = currentLevel?.icon ? (LucideIcons as any)[currentLevel.icon] || Trophy : Trophy;
