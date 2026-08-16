@@ -42,22 +42,21 @@ function setState(partial: Partial<{ user: User | null; session: Session | null;
 
 async function fetchProfileData(userId: string) {
   try {
-    const [{ data: profileData, error: profileError }, { data: roleData, error: roleError }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, role, tenant_id, business_name, full_name, responsible_name, slug, email")
-        .eq("id", userId)
-        .maybeSingle(),
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle(),
-    ]);
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, role, tenant_id, business_name, responsible_name, slug, email")
+      .eq("id", userId)
+      .maybeSingle();
 
     if (profileError) {
       console.error("[useAuth] Error fetching profile:", profileError);
     }
+
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
 
     if (roleError) {
       console.error("[useAuth] Error fetching user role:", roleError);
@@ -71,20 +70,16 @@ async function fetchProfileData(userId: string) {
       return null;
     }
 
-    // CRITICAL: We need to ensure we have the absolute latest data from the DB,
-    // bypassing any potential caching in the client library or unexpected stale state.
     const normalizedProfile: Profile = {
       id: profileData?.id ?? userId,
       role: resolvedRole ?? "client",
       tenant_id: profileData?.tenant_id ?? null,
       business_name: profileData?.business_name ?? null,
-      full_name: profileData?.full_name ?? null,
+      full_name: profileData?.responsible_name ?? null,
       responsible_name: profileData?.responsible_name ?? null,
       slug: profileData?.slug ?? null,
       email: profileData?.email ?? null,
     };
-
-    console.log("[useAuth] Profile updated for:", normalizedProfile.email, "Responsible Name:", normalizedProfile.responsible_name);
 
     setState({ profile: normalizedProfile });
     return normalizedProfile;
