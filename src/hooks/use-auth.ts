@@ -66,14 +66,13 @@ async function fetchProfileData(userId: string) {
     const resolvedRole = (roleData?.role as UserRole | null) ?? (profileData?.role as UserRole | null) ?? null;
 
     if (!profileData && !resolvedRole) {
-      // Profile is created automatically by the handle_new_user trigger.
-      // If for any reason it's still missing, we don't try to insert from
-      // the client (RLS / role triggers can block it). Just leave profile null.
       console.warn("[useAuth] No auth profile data for user:", userId);
       setState({ profile: null });
       return null;
     }
 
+    // CRITICAL: We need to ensure we have the absolute latest data from the DB,
+    // bypassing any potential caching in the client library or unexpected stale state.
     const normalizedProfile: Profile = {
       id: profileData?.id ?? userId,
       role: resolvedRole ?? "client",
@@ -84,6 +83,12 @@ async function fetchProfileData(userId: string) {
       slug: profileData?.slug ?? null,
       email: profileData?.email ?? null,
     };
+
+    console.log("[useAuth] Profile updated:", {
+      id: normalizedProfile.id,
+      responsible_name: normalizedProfile.responsible_name,
+      email: normalizedProfile.email
+    });
 
     setState({ profile: normalizedProfile });
     return normalizedProfile;

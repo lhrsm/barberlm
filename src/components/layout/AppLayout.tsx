@@ -139,12 +139,17 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   };
 
   const getDisplayName = () => {
-    if (loading || !authProfile) return "";
+    if (loading) return "";
     
+    // DEBUG: Logs to identify what is actually arriving in the component
+    // console.log("[Header Debug] profile:", authProfile);
+    // console.log("[Header Debug] authUser:", authUser);
+
     // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
     const rawName = 
       authProfile?.responsible_name ||
       authProfile?.full_name || 
+      (authUser?.user_metadata as any)?.responsible_name ||
       (authUser?.user_metadata as any)?.display_name ||
       (authUser?.user_metadata as any)?.full_name ||
       (authUser?.user_metadata as any)?.name ||
@@ -153,7 +158,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
     if (!rawName) return "";
     
-    // Per requirement #6: Extract first name for the greeting presentation
+    // Per requirement #6: Extract first name and enforce uppercase
     const firstName = String(rawName).trim().split(/\s+/)[0];
     return firstName.toUpperCase();
   };
@@ -458,9 +463,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                       {getDisplayName()}
                     </span>
                   ) : (
-                    <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
-                      COMANDANTE
-                    </span>
+                    null
                   )}
                 </div>
                 <span className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.1em] mt-0.5">
