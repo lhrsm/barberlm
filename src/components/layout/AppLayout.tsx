@@ -159,10 +159,6 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       (authProfile as any)?.email?.split('@')[0] ||
       authUser?.email?.split('@')[0];
 
-    // LOG PARA RASTREAR O VALOR FINAL ANTES DA FORMATAÇÃO
-    console.log("[DEBUG] getDisplayName final rawName:", rawName);
-    console.log("[DEBUG] getDisplayName authUser email:", authUser?.email);
-
     if (!rawName) return "";
     
     const stringName = String(rawName).trim();
