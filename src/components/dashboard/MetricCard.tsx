@@ -133,10 +133,10 @@ export function MetricCard({
                     ? "bg-rose-500/10 text-rose-400"
                     : "bg-white/5 text-zinc-400",
               )}
-              title={trendLabel || "Comparado ao período anterior"}
+              title={trendLabel || "Comparado à média"}
             >
               <TrendIcon className="h-3 w-3" aria-hidden />
-              {Math.abs(trend).toFixed(1)}%
+              {Math.abs(trend).toFixed(1)}% {trendLabel || "vs média"}
             </span>
           )}
         </div>

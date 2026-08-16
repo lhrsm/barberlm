@@ -110,17 +110,13 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <Badge variant="gold" className="px-4 py-1.5 uppercase tracking-widest font-black text-[10px] animate-glow">
-            <Sparkles className="h-3 w-3 mr-2 fill-current" />
-            Visão Executiva
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tightest uppercase">
-            {greeting()}, <span className="text-gradient-gold italic">{name && name.includes('@') ? 'Comandante' : (name ? name.split(' ')[0] : (loading ? '' : 'Comandante'))}</span>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white italic uppercase">
+            {greeting()}, <span className="text-gradient-gold">{name && name.includes('@') ? 'Comandante' : (name ? name.split(' ')[0] : (loading ? '' : 'Comandante'))}</span>
           </h1>
-          <p className="text-muted-foreground font-bold flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gold/60" />
+          <p className="text-[13px] text-muted-foreground font-medium flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5 text-gold/60" />
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
           </p>
         </div>

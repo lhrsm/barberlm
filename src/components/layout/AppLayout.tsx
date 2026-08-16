@@ -249,7 +249,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
               />
             </div>
           ) : (
-            <BarbexLogo size="md" showText={false} className="shrink-0" />
+            <BarbexLogo size="sm" showText={false} className="shrink-0" />
           )}
           <p className="text-xl font-black text-white truncate tracking-tight">{businessName}</p>
         </div>
@@ -277,7 +277,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                   />
                 </div>
               ) : (
-                <BarbexLogo size="md" showText={false} className="shrink-0" />
+                <BarbexLogo size="sm" showText={false} className="shrink-0" />
               )}
               <p className="text-xl font-black text-white truncate">{businessName}</p>
             </div>

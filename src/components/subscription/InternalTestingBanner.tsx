@@ -13,20 +13,18 @@ export function InternalTestingBanner({ className }: Props) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-2xl border border-gold/40 bg-gradient-to-r from-gold/10 via-[#0b0f17] to-[#0b0f17] px-4 py-3 shadow-[0_4px_16px_rgba(212,175,55,0.10)]",
+        "flex items-center gap-3 rounded-2xl border border-gold/20 bg-gold/5 px-3 py-2 shadow-sm backdrop-blur-sm",
         className,
       )}
       role="status"
     >
-      <div className="h-9 w-9 shrink-0 rounded-xl bg-gold/15 border border-gold/40 grid place-items-center">
-        <ShieldCheck className="h-4 w-4 text-gold" />
-      </div>
+      <ShieldCheck className="h-4 w-4 text-gold shrink-0" />
       <div className="min-w-0">
-        <p className="text-xs font-black uppercase tracking-widest text-gold">
+        <p className="text-[11px] font-black uppercase tracking-widest text-gold leading-none">
           Ambiente interno de testes
         </p>
-        <p className="text-[13px] text-zinc-300 leading-snug">
-          Esta barbearia utiliza um voucher administrativo permanente concedido pelo Super Admin.
+        <p className="text-[10px] text-zinc-400 mt-0.5 leading-none">
+          Voucher administrativo permanente ativo.
         </p>
       </div>
     </div>

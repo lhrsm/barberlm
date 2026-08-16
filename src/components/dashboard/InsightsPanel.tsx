@@ -137,38 +137,38 @@ export const InsightsPanel = memo(({ appointments, stats, barbers = [], birthday
   return (
     <section
       aria-label="Insights da barbearia"
-      className="rounded-3xl border border-white/10 bg-[#0b0f17]/80 p-5 md:p-6"
+      className="rounded-3xl border border-white/5 bg-[#0b0f17]/40 p-6 h-full flex flex-col transition-all duration-300 hover:bg-[#0b0f17]/60"
     >
-      <div className="mb-4 flex items-center gap-2">
-        <span className="grid h-8 w-8 place-items-center rounded-xl bg-amber-500/10 text-amber-400">
-          <Lightbulb className="h-4 w-4" aria-hidden />
-        </span>
+      <div className="mb-6 flex items-center gap-3">
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gold/10 text-gold border border-gold/20">
+          <Lightbulb className="h-5 w-5" aria-hidden />
+        </div>
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-black uppercase tracking-[0.14em] text-white">
+          <h3 className="truncate text-sm font-black uppercase tracking-[0.14em] text-white italic">
             Insights
           </h3>
-          <p className="truncate text-[11px] text-zinc-500">
-            Leituras automáticas dos dados já existentes no painel
+          <p className="truncate text-[11px] text-zinc-500 font-medium">
+            Leituras automáticas da sua operação
           </p>
         </div>
       </div>
 
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1">
         {insights.map((i) => (
           <li
             key={i.id}
             className={cn(
-              "flex items-start gap-3 rounded-2xl border p-3 transition-colors duration-300",
+              "flex items-start gap-3 rounded-2xl border p-4 transition-all duration-300 hover:translate-x-1 group",
               i.tone === "warn"
-                ? "border-amber-500/20 bg-amber-500/5"
+                ? "border-amber-500/10 bg-amber-500/5 hover:border-amber-500/20"
                 : i.tone === "good"
-                  ? "border-emerald-500/20 bg-emerald-500/5"
-                  : "border-white/10 bg-white/[0.02]",
+                  ? "border-emerald-500/10 bg-emerald-500/5 hover:border-emerald-500/20"
+                  : "border-white/5 bg-white/[0.01] hover:border-white/10 hover:bg-white/[0.03]",
             )}
           >
             <i.icon
               className={cn(
-                "mt-0.5 h-4 w-4 shrink-0",
+                "mt-0.5 h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110",
                 i.tone === "warn"
                   ? "text-amber-400"
                   : i.tone === "good"
@@ -177,7 +177,12 @@ export const InsightsPanel = memo(({ appointments, stats, barbers = [], birthday
               )}
               aria-hidden
             />
-            <span className="text-[13px] leading-snug text-zinc-300">{i.text}</span>
+            <div className="space-y-1">
+              <span className="text-[13px] leading-snug text-zinc-300 font-medium block">{i.text}</span>
+              <button className="text-[10px] font-black uppercase tracking-widest text-gold hover:text-gold/80 transition-colors pt-1">
+                Ver detalhes
+              </button>
+            </div>
           </li>
         ))}
       </ul>

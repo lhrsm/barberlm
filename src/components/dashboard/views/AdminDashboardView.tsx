@@ -78,7 +78,7 @@ export const AdminDashboardView = memo(({
 
         <TabsContent value="daily" className="space-y-8 mt-0">
           <div className="grid gap-8 lg:grid-cols-12">
-            <div className="lg:col-span-8 space-y-8">
+            <div className="lg:col-span-9 space-y-8">
               <ExecutiveSummary 
                 appointments={todayAppointments} 
                 stats={stats} 
@@ -86,13 +86,14 @@ export const AdminDashboardView = memo(({
                 name={name}
               />
               
-              <KPIGrid>
+              <KPIGrid cols={4}>
                 <MetricCard
                   label="Vendas em serviços"
                   value={`R$ ${stats.daily.totalServicesValue.toFixed(2)}`}
                   hint="Valor bruto realizado"
                   icon={Scissors}
                   tone="blue"
+                  trend={null}
                 />
                 <MetricCard
                   label="Entrada real (dinheiro)"
@@ -100,6 +101,7 @@ export const AdminDashboardView = memo(({
                   hint="Dinheiro novo em caixa"
                   icon={CircleDollarSign}
                   tone="emerald"
+                  trend={null}
                 />
                 <MetricCard
                   label="Créditos utilizados"
@@ -107,6 +109,7 @@ export const AdminDashboardView = memo(({
                   hint="Uso de saldos anteriores"
                   icon={Wallet}
                   tone="purple"
+                  trend={null}
                 />
                 <MetricCard
                   label="Cashback concedido"
@@ -114,11 +117,12 @@ export const AdminDashboardView = memo(({
                   hint="Hoje"
                   icon={TicketPercent}
                   tone="gold"
+                  trend={null}
                 />
               </KPIGrid>
             </div>
 
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <InsightsPanel
                 appointments={todayAppointments}
                 stats={stats}
