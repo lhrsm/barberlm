@@ -84,11 +84,7 @@ async function fetchProfileData(userId: string) {
       email: profileData?.email ?? null,
     };
 
-    console.log("[useAuth] Profile updated:", {
-      id: normalizedProfile.id,
-      responsible_name: normalizedProfile.responsible_name,
-      email: normalizedProfile.email
-    });
+    console.log("[useAuth] Profile updated for:", normalizedProfile.email, "Responsible Name:", normalizedProfile.responsible_name);
 
     setState({ profile: normalizedProfile });
     return normalizedProfile;

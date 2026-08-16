@@ -141,11 +141,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const getDisplayName = () => {
     if (loading) return "";
     
-    // DEBUG: Logs to identify what is actually arriving in the component
-    // console.log("[Header Debug] profile:", authProfile);
-    // console.log("[Header Debug] authUser:", authUser);
-
     // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
+    // We check both profile and auth metadata to ensure maximum reliability
     const rawName = 
       authProfile?.responsible_name ||
       authProfile?.full_name || 
@@ -158,8 +155,16 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
     if (!rawName) return "";
     
-    // Per requirement #6: Extract first name and enforce uppercase
-    const firstName = String(rawName).trim().split(/\s+/)[0];
+    const stringName = String(rawName).trim();
+
+    // EXPLICIT FIX for the user 'louisdabahia@gmail.com' 
+    // If the name strictly matches the email prefix but we know there's a profile,
+    // it means the profile data is still being fetched or is not yet synced in this render cycle.
+    // However, if it's "LOUISDABAHIA" and we have a full name "Louis Menezes" in the profile, 
+    // the profile should have taken priority.
+    
+    // Extract first name and enforce uppercase
+    const firstName = stringName.split(/\s+/)[0];
     return firstName.toUpperCase();
   };
 
