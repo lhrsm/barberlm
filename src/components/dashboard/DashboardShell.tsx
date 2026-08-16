@@ -41,7 +41,7 @@ export function DashboardHeader({
           </h1>
         </div>
         {subtitle && (
-          <p className="text-[13px] text-gray-500 font-medium max-w-lg">
+          <p className="text-[13px] text-gray-500 font-medium max-w-lg mt-1">
             {subtitle}
           </p>
         )}

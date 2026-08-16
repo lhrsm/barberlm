@@ -110,16 +110,8 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white italic uppercase">
-            {greeting()}, <span className="text-gradient-gold">{name && name.includes('@') ? 'Comandante' : (name ? name.split(' ')[0] : (loading ? '' : 'Comandante'))}</span>
-          </h1>
-          <p className="text-[12px] text-muted-foreground font-medium flex items-center gap-2 mt-1">
-            <Clock className="h-3.5 w-3.5 text-gold/60" />
-            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
-          </p>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 empty:hidden">
+        {birthdaysCount > 0 && (
 
         {birthdaysCount > 0 && (
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-gold/5 border border-gold/20 shadow-gold/5 animate-bounce">

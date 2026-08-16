@@ -111,6 +111,7 @@ const barberNavItems = (slug: string) => [
 
 export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const instanceId = useId().replace(/:/g, "");
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId, isLoading: tenantLoading } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
@@ -124,6 +125,36 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const loading = authLoading || profLoading;
 
   const slug = tenantProfile?.slug || authProfile?.slug || "general";
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour >= 5 && hour < 12) return "BOM DIA";
+    if (hour >= 12 && hour < 18) return "BOA TARDE";
+    return "BOA NOITE";
+  };
+
+  const getDisplayName = () => {
+    if (loading) return "";
+    
+    const rawName = 
+      authProfile?.full_name || 
+      authProfile?.name || 
+      (authUser?.user_metadata as any)?.display_name ||
+      (authUser?.user_metadata as any)?.full_name ||
+      (authUser?.user_metadata as any)?.name ||
+      authUser?.email?.split('@')[0];
+
+    if (!rawName) return "";
+    
+    // Clean email prefix if it contains numbers or special chars that look like an ID
+    const cleanName = rawName.split(' ')[0].toUpperCase();
+    return cleanName;
+  };
 
   const { isEnabled: isModuleEnabled } = useModules();
   const rawNav = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
@@ -409,8 +440,29 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-20 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
-            <BarbexLogo size="sm" showText={false} />
+          <header className="hidden md:flex h-24 items-center justify-between px-8 border-b border-gold/10 bg-[#0b0f17] shrink-0">
+            <div className="flex items-center gap-6">
+              <BarbexLogo size="md" showText={false} className="h-16 w-auto" markClassName="h-16" />
+              
+              <div className="flex flex-col justify-center border-l border-white/10 pl-6 h-12">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-black tracking-tighter text-white italic">
+                    {getGreeting()},
+                  </span>
+                  {getDisplayName() ? (
+                    <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
+                      {getDisplayName()}
+                    </span>
+                  ) : (
+                    <div className="h-6 w-24 bg-white/5 animate-pulse rounded-md" />
+                  )}
+                </div>
+                <span className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.1em] mt-0.5">
+                  {currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
+                </span>
+              </div>
+            </div>
+
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
