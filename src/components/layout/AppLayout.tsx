@@ -141,19 +141,20 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const getDisplayName = () => {
     if (loading) return "";
     
-    // Attempt to get a clean first name
+    // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
     const rawName = 
-      (authProfile as any)?.first_name ||
-      authProfile?.full_name?.split(' ')[0] || 
-      (authUser?.user_metadata as any)?.display_name?.split(' ')[0] ||
-      (authUser?.user_metadata as any)?.full_name?.split(' ')[0] ||
-      (authUser?.user_metadata as any)?.name?.split(' ')[0] ||
+      (authProfile as any)?.responsible_name ||
+      authProfile?.full_name || 
+      (authUser?.user_metadata as any)?.display_name ||
+      (authUser?.user_metadata as any)?.full_name ||
+      (authUser?.user_metadata as any)?.name ||
       authUser?.email?.split('@')[0].split('.')[0].split('_')[0];
 
     if (!rawName) return "";
     
-    // Clean name: uppercase and only first word, removing common email separators
-    const cleanName = String(rawName).split(/[\s.@_]/)[0].toUpperCase();
+    // Clean name: uppercase and handle multi-word if it's a name, or first word if it looks like an email/slug
+    // The user asked for "LOUIS MENEZES" if they saved that, so we preserve spaces but remove separators
+    const cleanName = String(rawName).trim().toUpperCase();
     return cleanName;
   };
 

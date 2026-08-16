@@ -287,7 +287,7 @@ function DashboardComponent() {
             birthdaysCount={birthdayCustomers.length}
             tenantId={tenantId || ""}
             navigate={navigate}
-            name={authProfile?.full_name || user?.user_metadata?.full_name || user?.email}
+            name={authProfile?.responsible_name || authProfile?.full_name || user?.user_metadata?.full_name || user?.email}
           />
         );
       case 'finance':
@@ -310,7 +310,7 @@ function DashboardComponent() {
             setIsWalkinOpen={setIsWalkinOpen}
             dashboardTab={dashboardTab}
             setDashboardTab={setDashboardTab}
-            name={authProfile?.full_name || user?.user_metadata?.full_name || user?.email}
+            name={authProfile?.responsible_name || authProfile?.full_name || user?.user_metadata?.full_name || user?.email}
           />
         );
     }
