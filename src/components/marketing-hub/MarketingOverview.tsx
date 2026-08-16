@@ -1,7 +1,7 @@
 import { Stat } from "@/routes/marketing";
 import { SectionCard, SkeletonBlock, EmptyState } from "@/components/intelligence/ui";
 import { brl } from "@/components/intelligence/engine";
-import { Lightbulb, Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, CheckCircle2, History, Zap } from "lucide-react";
+import { Lightbulb, Megaphone, Users, MessageSquare, Target, ShoppingBag, AlertCircle, Clock, CheckCircle2, History, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
