@@ -101,21 +101,18 @@ function initializeAuth() {
 
   // 1. Subscribe FIRST so we don't miss events during getSession().
   supabase.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-      // Clear data if signed out
-      if (!session) {
+    if (event === 'SIGNED_OUT') {
+      setState({ session: null, user: null, profile: null });
+    } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      if (session?.user) {
+        setState({
+          session,
+          user: session.user,
+        });
+        await fetchProfileData(session.user.id);
+      } else {
         setState({ session: null, user: null, profile: null });
       }
-    }
-
-    if (session?.user) {
-      setState({
-        session,
-        user: session.user,
-      });
-      fetchProfileData(session.user.id);
-    } else if (event !== 'INITIAL_SESSION') {
-      setState({ session: null, user: null, profile: null });
     }
   });
 
