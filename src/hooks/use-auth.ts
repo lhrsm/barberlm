@@ -10,6 +10,7 @@ interface Profile {
   tenant_id: string | null;
   business_name: string | null;
   full_name: string | null;
+  responsible_name: string | null;
   slug: string | null;
 }
 
@@ -43,7 +44,7 @@ async function fetchProfileData(userId: string) {
     const [{ data: profileData, error: profileError }, { data: roleData, error: roleError }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, role, tenant_id, business_name, full_name, slug")
+        .select("id, role, tenant_id, business_name, full_name, responsible_name, slug")
         .eq("id", userId)
         .maybeSingle(),
       supabase
@@ -78,6 +79,7 @@ async function fetchProfileData(userId: string) {
       tenant_id: profileData?.tenant_id ?? null,
       business_name: profileData?.business_name ?? null,
       full_name: profileData?.full_name ?? null,
+      responsible_name: profileData?.responsible_name ?? null,
       slug: profileData?.slug ?? null,
     };
 
