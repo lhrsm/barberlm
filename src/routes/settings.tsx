@@ -389,7 +389,6 @@ function SettingsComponent() {
         avatar_url: profileUpdateData.avatar_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
 
-        // loyalty_mode mantido por compatibilidade — derivado dos switches independentes
         loyalty_mode: profileUpdateData.loyalty_enabled
           ? 'loyalty'
           : (profileUpdateData.cashback_enabled ? 'cashback' : 'none'),
@@ -424,6 +423,14 @@ function SettingsComponent() {
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
+
+    // Update Auth metadata to keep identity consistent across profile and metadata
+    await supabase.auth.updateUser({
+      data: {
+        responsible_name: profileUpdateData.responsible_name,
+        full_name: profileUpdateData.responsible_name // fallback
+      }
+    });
 
 
     // Save to barbershop_settings

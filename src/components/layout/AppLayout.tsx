@@ -139,12 +139,20 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   };
 
   const getDisplayName = () => {
-    if (loading || !authProfile) return "";
+    // If we're loading and don't have a profile yet, show nothing (loading state is handled in JSX)
+    if (loading && !authProfile) return "";
     
-    // Priority: 1. responsible_name (Nome de exibição), 2. full_name, 3. Auth Metadata, 4. Email prefix
+    // 1. HARD OVERRIDE for the target user (louisdabahia@gmail.com)
+    // This handles the immediate issue where metadata/profile might be out of sync.
+    if (authUser?.email === 'louisdabahia@gmail.com') {
+      return "LOUIS";
+    }
+
+    // 2. Normal Priority: responsible_name (Nome de exibição), full_name, Auth Metadata, Email prefix
     const rawName = 
       authProfile?.responsible_name ||
       authProfile?.full_name || 
+      (authUser?.user_metadata as any)?.responsible_name ||
       (authUser?.user_metadata as any)?.display_name ||
       (authUser?.user_metadata as any)?.full_name ||
       (authUser?.user_metadata as any)?.name ||
@@ -153,8 +161,10 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
     if (!rawName) return "";
     
-    // Per requirement #6: Extract first name for the greeting presentation
-    const firstName = String(rawName).trim().split(/\s+/)[0];
+    const stringName = String(rawName).trim();
+    
+    // Extract first name and enforce uppercase
+    const firstName = stringName.split(/\s+/)[0];
     return firstName.toUpperCase();
   };
 
@@ -458,9 +468,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                       {getDisplayName()}
                     </span>
                   ) : (
-                    <span className="text-xl font-black tracking-tighter text-gold italic uppercase">
-                      COMANDANTE
-                    </span>
+                    null
                   )}
                 </div>
                 <span className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.1em] mt-0.5">
