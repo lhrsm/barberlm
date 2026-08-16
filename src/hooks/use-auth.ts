@@ -12,6 +12,7 @@ interface Profile {
   full_name: string | null;
   responsible_name: string | null;
   slug: string | null;
+  email: string | null;
 }
 
 // Global state shared across useAuth instances.
