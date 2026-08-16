@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 
 export const getReceptionAppointments = createServerFn({ method: "GET" })
-  .validator((d: { tenantId: string; day: string }) => d)
-  .handler(async ({ data: { tenantId, day } }) => {
+  .input(z.object({ tenantId: z.string(), day: z.string() }))
+  .handler(async ({ input: { tenantId, day } }) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { appointments: [], error: "Unauthorized" };
 
