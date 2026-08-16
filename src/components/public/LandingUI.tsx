@@ -71,7 +71,7 @@ export function LandingImage({
             setIsLoading(false);
           }}
           className={cn(
-            "h-full w-full object-cover transition-transform duration-700 hover:scale-105",
+            "h-full w-full object-contain transition-transform duration-700 hover:scale-105",
             objectPosition,
             isLoading ? "opacity-0" : "opacity-100"
           )}

@@ -117,7 +117,7 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
             Visão Executiva
           </Badge>
           <h1 className="text-4xl md:text-5xl font-black tracking-tightest uppercase">
-            {greeting()}, <span className="text-gradient-gold italic">{name ? name.split(' ')[0] : (loading ? '' : 'Comandante')}</span>
+            {greeting()}, <span className="text-gradient-gold italic">{name && name.includes('@') ? 'Comandante' : (name ? name.split(' ')[0] : (loading ? '' : 'Comandante'))}</span>
           </h1>
           <p className="text-muted-foreground font-bold flex items-center gap-2">
             <Clock className="h-4 w-4 text-gold/60" />
