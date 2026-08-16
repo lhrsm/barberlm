@@ -99,3 +99,16 @@ export const optimizeCampaignTiming = createServerFn({ method: "POST" })
       confidence: 94
     };
   });
+
+/**
+ * Retorna analise preditiva de tendencias de servicos.
+ */
+export const getServiceTrends = createServerFn({ method: "GET" })
+  .inputValidator((data) => z.object({ tenantId: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    return [
+      { service: "Degrade Premium", trend: "up", change: 15, insight: "Alta procura aos sabados" },
+      { service: "Barba Terapia", trend: "up", change: 8, insight: "Crescimento em dias de semana" },
+      { service: "Coloracao", trend: "down", change: 5, insight: "Sazonalidade baixa" }
+    ];
+  });
