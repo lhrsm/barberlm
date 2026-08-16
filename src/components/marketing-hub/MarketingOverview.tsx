@@ -9,6 +9,7 @@ import { cn } from "../../lib/utils";
 import { MarketingAIAdvisor } from "./MarketingAIAdvisor";
 import { PredictiveTrends } from "./PredictiveTrends";
 import { useTenant } from "../../hooks/use-tenant";
+import React from "react";
 
 export function MarketingOverview({ model, loading, iq }: any) {
   const { tenantId } = useTenant();
@@ -32,86 +33,73 @@ export function MarketingOverview({ model, loading, iq }: any) {
     { label: "Produtos parados", value: iq?.products?.noSales?.length || 0, icon: ShoppingBag, color: "text-rose-400", to: "/products" as const },
   ];
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        {dashboardCards.map((card) => (
-          <div key={card.label} className="rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-4 transition-all duration-200 hover:border-gold/30">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{card.label}</p>
-              <card.icon size={12} className="text-white/30" />
-            </div>
-            <p className={cn("text-xl font-black", card.accent)}>{card.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        {operationalStats.map((stat) => (
-          <Link key={stat.label} to={stat.to} className="group">
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all duration-200 group-hover:bg-white/[0.04] group-hover:border-gold/20">
-              <div className="flex items-center gap-2 mb-1">
-                <stat.icon size={12} className={stat.color} />
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{stat.label}</p>
-              </div>
-              <p className="text-xl font-black text-white">{stat.value}</p>
-              <p className="mt-1 text-[9px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity">Ver publico &rarr;</p>
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <MarketingAIAdvisor tenantId={tenantId || ""} />
-        </div>
-        <PredictiveTrends tenantId={tenantId || ""} />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SectionCard title="Atividade Recente" subtitle="Ultimas comunicacoes disparadas" icon={History}>
-          {loading ? (
-            <SkeletonBlock rows={3} />
-          ) : !model?.campaigns?.length ? (
-            <EmptyState text="Nenhuma atividade recente encontrada." />
-          ) : (
-            <ul className="space-y-2">
-              {model.campaigns.slice(0, 5).map((c) => (
-                <li
-                  key={c.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-white">{c.name}</p>
-                    <p className="text-[10px] text-white/40">
-                      {new Date(c.date).toLocaleDateString("pt-BR")} &bull; {c.customers} impactados &bull; {c.result}
-                    </p>
-                  </div>
-                  <div className={cn(
-                    "rounded-lg border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider",
-                    c.status === "ativa" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" : "border-white/10 bg-white/5 text-white/40"
-                  )}>
-                    {c.status}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard title="Otimizacao de Horarios" subtitle="IA calculando melhor momento de envio" icon={Clock}>
-           <div className="flex flex-col items-center justify-center py-10 space-y-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gold/20 blur-2xl rounded-full" />
-                <Zap className="h-12 w-12 text-gold relative animate-pulse" />
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-black text-white uppercase tracking-widest">Calculando Probabilidades</p>
-                <p className="text-[9px] font-bold text-white/40 uppercase mt-1">Horario sugerido: 14:30 (Confianca 94%)</p>
-              </div>
-           </div>
-        </SectionCard>
-      </div>
-    </div>
+  const content = React.createElement("div", { className: "space-y-6 animate-in fade-in duration-500" }, 
+    React.createElement("div", { className: "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" },
+      dashboardCards.map((card) => 
+        React.createElement("div", { key: card.label, className: "rounded-2xl border border-white/[0.07] bg-[#0b0f17] p-4 transition-all duration-200 hover:border-gold/30" },
+          React.createElement("div", { className: "flex items-center justify-between mb-2" },
+            React.createElement("p", { className: "text-[10px] font-black uppercase tracking-widest text-white/40" }, card.label),
+            React.createElement(card.icon, { size: 12, className: "text-white/30" })
+          ),
+          React.createElement("p", { className: cn("text-xl font-black", card.accent) }, card.value)
+        )
+      )
+    ),
+    React.createElement("div", { className: "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" },
+      operationalStats.map((stat) => 
+        React.createElement(Link, { key: stat.label, to: stat.to as any, className: "group" },
+          React.createElement("div", { className: "rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all duration-200 group-hover:bg-white/[0.04] group-hover:border-gold/20" },
+            React.createElement("div", { className: "flex items-center gap-2 mb-1" },
+              React.createElement(stat.icon, { size: 12, className: stat.color }),
+              React.createElement("p", { className: "text-[10px] font-black uppercase tracking-widest text-white/40" }, stat.label)
+            ),
+            React.createElement("p", { className: "text-xl font-black text-white" }, stat.value),
+            React.createElement("p", { className: "mt-1 text-[9px] font-bold text-gold opacity-0 group-hover:opacity-100 transition-opacity" }, "Ver publico →")
+          )
+        )
+      )
+    ),
+    React.createElement("div", { className: "grid gap-6 lg:grid-cols-3" },
+      React.createElement("div", { className: "lg:col-span-2" },
+        React.createElement(MarketingAIAdvisor, { tenantId: tenantId || "" })
+      ),
+      React.createElement(PredictiveTrends, { tenantId: tenantId || "" })
+    ),
+    React.createElement("div", { className: "grid gap-6 lg:grid-cols-2" },
+      React.createElement(SectionCard, { title: "Atividade Recente", subtitle: "Ultimas comunicacoes disparadas", icon: History },
+        loading ? 
+          React.createElement(SkeletonBlock, { rows: 3 }) : 
+          (!model?.campaigns?.length ? 
+            React.createElement(EmptyState, { text: "Nenhuma atividade recente encontrada." }) : 
+            React.createElement("ul", { className: "space-y-2" },
+              model.campaigns.slice(0, 5).map((c) => 
+                React.createElement("li", { key: c.id, className: "flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3" },
+                  React.createElement("div", { className: "min-w-0 flex-1" },
+                    React.createElement("p", { className: "truncate text-sm font-bold text-white" }, c.name),
+                    React.createElement("p", { className: "text-[10px] text-white/40" }, 
+                      new Date(c.date).toLocaleDateString("pt-BR") + " • " + c.customers + " impactados • " + c.result
+                    )
+                  ),
+                  React.createElement("div", { className: cn("rounded-lg border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider", c.status === "ativa" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" : "border-white/10 bg-white/5 text-white/40") }, c.status)
+                )
+              )
+            )
+          )
+      ),
+      React.createElement(SectionCard, { title: "Otimizacao de Horarios", subtitle: "IA calculando melhor momento de envio", icon: Clock },
+        React.createElement("div", { className: "flex flex-col items-center justify-center py-10 space-y-4" },
+          React.createElement("div", { className: "relative" },
+            React.createElement("div", { className: "absolute inset-0 bg-gold/20 blur-2xl rounded-full" }),
+            React.createElement(Zap, { className: "h-12 w-12 text-gold relative animate-pulse" })
+          ),
+          React.createElement("div", { className: "text-center" },
+            React.createElement("p", { className: "text-xs font-black text-white uppercase tracking-widest" }, "Calculando Probabilidades"),
+            React.createElement("p", { className: "text-[9px] font-bold text-white/40 uppercase mt-1" }, "Horario sugerido: 14:30 (Confianca 94%)")
+          )
+        )
+      )
+    )
   );
+
+  return content;
 }
