@@ -13,13 +13,6 @@ interface Props {
   loading?: boolean;
 }
 
-function greeting(d = new Date()) {
-  const h = d.getHours();
-  if (h >= 5 && h < 12) return "Bom dia";
-  if (h >= 12 && h < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
 const brl = (v: number) =>
   (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -53,74 +46,9 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
     };
   }, [appointments, stats]);
 
-  const chips = [
-    {
-      icon: CalendarCheck,
-      label: "Atendimentos hoje",
-      value: String(m.active),
-      tone: "text-sky-300 bg-sky-500/10 border-sky-500/20",
-    },
-    {
-      icon: Clock,
-      label: "Em aberto",
-      value: String(m.pending),
-      tone: "text-amber-300 bg-amber-500/10 border-amber-500/20",
-    },
-    {
-      icon: Target,
-      label: "Taxa de conclusão",
-      value: `${m.completionRate.toFixed(0)}%`,
-      tone: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
-    },
-    {
-      icon: CircleDollarSign,
-      label: "Entrada em caixa",
-      value: brl(m.revenue),
-      tone: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
-    },
-    {
-      icon: Sparkles,
-      label: "Ticket médio hoje",
-      value: brl(m.ticketToday),
-      tone: "text-purple-300 bg-purple-500/10 border-purple-500/20",
-    },
-    ...(birthdaysCount > 0
-      ? [
-          {
-            icon: Cake,
-            label: "Aniversariantes",
-            value: String(birthdaysCount),
-            tone: "text-pink-300 bg-pink-500/10 border-pink-500/20",
-          },
-        ]
-      : []),
-  ];
-
-  const sentence = [
-    `Hoje sua agenda possui ${m.active} atendimento${m.active === 1 ? "" : "s"}.`,
-    m.pending > 0 ? `${m.pending} ainda aguardam conclusão.` : "Nenhum horário pendente no momento.",
-    `A entrada em caixa é de ${brl(m.revenue)}.`,
-    m.ticketDelta != null && Math.abs(m.ticketDelta) >= 1
-      ? `O ticket médio de hoje está ${m.ticketDelta > 0 ? "acima" : "abaixo"} da média do mês em ${Math.abs(m.ticketDelta).toFixed(0)}%.`
-      : "",
-    m.newCustomers > 0 ? `${m.newCustomers} novo(s) cliente(s) cadastrado(s).` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white italic uppercase">
-            {greeting()}, <span className="text-gradient-gold">{name && name.includes('@') ? 'Comandante' : (name ? name.split(' ')[0] : (loading ? '' : 'Comandante'))}</span>
-          </h1>
-          <p className="text-[12px] text-muted-foreground font-medium flex items-center gap-2 mt-1">
-            <Clock className="h-3.5 w-3.5 text-gold/60" />
-            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
-          </p>
-        </div>
-
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 empty:hidden">
         {birthdaysCount > 0 && (
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-gold/5 border border-gold/20 shadow-gold/5 animate-bounce">
             <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
