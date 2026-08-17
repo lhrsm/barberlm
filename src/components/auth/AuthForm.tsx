@@ -204,12 +204,12 @@ export function AuthForm() {
               E-mail Administrativo
             </Label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
               <Input
                 id="login-email"
                 type="email"
                 autoComplete="email"
-                className="pl-12 h-[56px] rounded-[16px] bg-white/[0.03] border-white/5 text-white placeholder:text-white/10 focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:bg-transparent"
+                className="pl-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -223,12 +223,12 @@ export function AuthForm() {
               Telefone do Profissional
             </Label>
             <div className="relative group">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
               <Input
                 id="login-phone"
                 type="tel"
                 autoComplete="tel"
-                className="pl-12 h-[56px] rounded-[16px] bg-white/[0.03] border-white/5 text-white placeholder:text-white/10 focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                className="pl-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -237,6 +237,7 @@ export function AuthForm() {
             </div>
           </div>
         )}
+
 
         {loginMethod === "email" && (
           <div className="space-y-1.5">
