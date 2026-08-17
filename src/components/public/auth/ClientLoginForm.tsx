@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Lock, Eye, EyeOff, Loader2, Mail, Phone, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { User, Lock, Eye, EyeOff, Loader2, Mail, Phone, ArrowRight, ShieldCheck, AlertCircle, Shield } from "lucide-react";
+import { MFAVerificationGuard } from "@/components/security/MFAVerificationGuard";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +31,7 @@ interface ClientLoginFormProps {
 export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientLoginFormProps) {
   const { redirect } = useSearch({ from: '/auth' }) as { redirect?: string };
   const [showPassword, setShowPassword] = useState(false);
-  const [view, setView] = useState<'login' | 'forgot-password' | 'success'>('login');
+  const [view, setView] = useState<'login' | 'forgot-password' | 'success' | 'mfa'>('login');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
@@ -65,19 +67,13 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
         return;
       }
 
+      if (result.status === 'mfa_required') {
+        setView('mfa');
+        return;
+      }
+
       if (result.status === 'success') {
-        // Force session refresh client-side to ensure profile data is fetched
-        await supabase.auth.getSession();
-        toast.success("Login realizado com sucesso!");
-        
-        // Redirect based on role or context
-        if (redirect) {
-          window.location.href = redirect;
-        } else if (barbershopSlug) {
-          navigate({ to: `/${barbershopSlug}/portal` as any });
-        } else {
-          navigate({ to: "/portal" as any });
-        }
+        handleSuccess();
       }
     } catch (error: any) {
       toast.error(error.message || "Telefone/e-mail ou senha inválidos.");
@@ -85,6 +81,19 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       setLoading(false);
     }
   };
+
+  const handleSuccess = async () => {
+    await supabase.auth.getSession();
+    toast.success("Login realizado com sucesso!");
+    if (redirect) {
+      window.location.href = redirect;
+    } else if (barbershopSlug) {
+      navigate({ to: `/${barbershopSlug}/portal` as any });
+    } else {
+      navigate({ to: "/portal" as any });
+    }
+  };
+
 
   const handleForgotPassword = async () => {
     const identifier = form.getValues("identifier");
@@ -270,8 +279,23 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               Voltar ao login
             </Button>
           </motion.div>
+        {view === 'mfa' && (
+          <motion.div
+            key="mfa"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="py-4"
+          >
+            <MFAVerificationGuard 
+              onSuccess={handleSuccess}
+              onCancel={() => setView('login')}
+              title="Autenticação Forte"
+              description="Sua conta possui MFA ativado. Insira o código do seu app autenticador."
+            />
+          </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }
