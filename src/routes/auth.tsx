@@ -44,7 +44,7 @@ function AuthPageComponent() {
       <div className="w-full max-w-md relative z-10 flex flex-col items-center">
         <div className="mb-10 w-full flex flex-col items-center">
             <div className="flex justify-center w-full">
-              <div className="w-[180px] h-[80px] md:w-[220px] md:h-[100px] flex items-center justify-center">
+              <div className="w-[200px] h-[90px] md:w-[260px] md:h-[120px] flex items-center justify-center">
                 <img 
                   src="https://id-preview--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app/__l5e/assets-v1/09902c18-ce15-4559-987e-73b6866a0457/logo-barbex.png?v=17081708" 
                   alt="Barbex Logo" 

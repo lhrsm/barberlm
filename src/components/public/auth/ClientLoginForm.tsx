@@ -141,7 +141,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
                   <Input
                     id="identifier"
-                    placeholder="+55 (71) 99999-9999 ou seu@email.com"
+                    placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
                     onChange={(e) => {
@@ -262,7 +262,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Telefone ou E-mail</Label>
                 <Input
-                  placeholder="+55 (71) 99999-9999 ou seu@email.com"
+                  placeholder="+55 (71) 99999-9999 ou e-mail"
                   value={form.watch("identifier")}
                   onChange={(e) => {
                     const val = e.target.value;
