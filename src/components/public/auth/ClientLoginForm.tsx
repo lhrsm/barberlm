@@ -146,14 +146,17 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     autoComplete="username"
                     onChange={(e) => {
                       const val = e.target.value;
-                      if (!val.includes('@')) {
-                        // Apply visual mask for phone
+                      // Logic: Only apply phone mask if there are NO letters or @ AND it looks like a phone number
+                      if (!/[a-zA-Z@]/.test(val)) {
                         const digits = val.replace(/\D/g, "");
                         let formatted = val;
-                        if (digits.length > 0) {
+                        
+                        // Don't format very short strings to avoid jumping
+                        if (digits.length >= 2) {
                           if (digits.startsWith('55')) {
                             const withoutDDI = digits.substring(2);
-                            if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
+                            if (withoutDDI.length === 0) formatted = `+55`;
+                            else if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
                             else if (withoutDDI.length <= 6) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2)}`;
                             else if (withoutDDI.length <= 10) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 6)}-${withoutDDI.slice(6)}`;
                             else formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 7)}-${withoutDDI.slice(7, 11)}`;
@@ -163,8 +166,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                             else if (digits.length <= 10) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
                             else formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
                           }
+                          form.setValue("identifier", formatted);
+                        } else {
+                          form.setValue("identifier", val);
                         }
-                        form.setValue("identifier", formatted);
                       } else {
                         form.setValue("identifier", val);
                       }
@@ -266,14 +271,15 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   value={form.watch("identifier")}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (!val.includes('@')) {
-                      // Apply visual mask for phone
+                    if (!/[a-zA-Z@]/.test(val)) {
                       const digits = val.replace(/\D/g, "");
                       let formatted = val;
-                      if (digits.length > 0) {
+                      
+                      if (digits.length >= 2) {
                         if (digits.startsWith('55')) {
                           const withoutDDI = digits.substring(2);
-                          if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
+                          if (withoutDDI.length === 0) formatted = `+55`;
+                          else if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
                           else if (withoutDDI.length <= 6) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2)}`;
                           else if (withoutDDI.length <= 10) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 6)}-${withoutDDI.slice(6)}`;
                           else formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 7)}-${withoutDDI.slice(7, 11)}`;
@@ -283,8 +289,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                           else if (digits.length <= 10) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
                           else formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
                         }
+                        form.setValue("identifier", formatted);
+                      } else {
+                        form.setValue("identifier", val);
                       }
-                      form.setValue("identifier", formatted);
                     } else {
                       form.setValue("identifier", val);
                     }
