@@ -42,7 +42,7 @@ export function BarbexLogo({
       <img
         src={logoData.url}
         alt="Barbex Logo"
-        className={cn("w-auto object-contain", s.box, markClassName)}
+        className={cn("w-auto h-auto object-contain", s.box, markClassName)}
       />
 
       {showText && (
