@@ -33,9 +33,11 @@ export const requestEmailVerification = createServerFn({ method: "POST" })
     // Send via Resend
     try {
       await sendVerificationCode({
-        email: data.email,
-        code,
-        userName: data.userName
+        data: {
+          email: data.email,
+          code,
+          userName: data.userName
+        }
       });
       return { success: true };
     } catch (sendError) {
@@ -65,11 +67,13 @@ export const verifyEmailCode = createServerFn({ method: "POST" })
       return { success: false, error: "Código inválido ou expirado" };
     }
 
+    const challengeData = challenge as any;
+
     // Mark as verified
     await supabaseAdmin
       .from("verification_challenges" as any)
       .update({ verified_at: new Date().toISOString() })
-      .eq("id", challenge.id);
+      .eq("id", challengeData.id);
 
     return { success: true };
   });
