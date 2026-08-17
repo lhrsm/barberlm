@@ -8781,6 +8781,50 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_challenges: {
+        Row: {
+          attempts: number | null
+          client_id: string | null
+          code_hash: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          purpose: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          client_id?: string | null
+          code_hash: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          purpose: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          client_id?: string | null
+          code_hash?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_challenges_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waiting_list: {
         Row: {
           barber_id: string | null
