@@ -26,14 +26,17 @@ function CustomerPortalGuard() {
 
   useEffect(() => {
     // Early exit if still loading initial auth state OR if we have a user but are still fetching their profile.
-    // fetchProfileData in useAuth is async and might take a moment.
     if (loading || (user && !profile)) return;
 
-    console.log("[PortalGuard] Identity Check:", { 
-      hasUser: !!user, 
-      hasProfile: !!profile, 
+    console.warn('[AUTH_REDIRECT_TRACE]', {
+      source: 'CustomerPortalGuard',
+      reason: !user ? 'No active session' : (profile?.identity_status === 'legacy' ? 'Legacy account' : 'None'),
+      pathname: window.location.pathname,
+      authUserId: user?.id,
+      sessionExists: !!user,
+      profileExists: !!profile,
       identityStatus: profile?.identity_status,
-      pathname: window.location.pathname
+      timestamp: Date.now()
     });
 
     if (!user) {
@@ -46,7 +49,6 @@ function CustomerPortalGuard() {
       return;
     }
 
-    // Now we have both user and profile
     if (profile?.identity_status === 'legacy') {
       console.log("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
       navigate({ to: "/auth" as any });

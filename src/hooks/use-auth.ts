@@ -45,6 +45,7 @@ function setState(partial: Partial<{ user: User | null; session: Session | null;
 }
 
 async function fetchProfileData(userId: string) {
+  console.log('[AUTH_PROFILE_FETCH_START]', { userId, timestamp: Date.now() });
   try {
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
@@ -103,7 +104,19 @@ function initializeAuth() {
 
   // 1. Subscribe FIRST so we don't miss events during getSession().
   supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('[AUTH_STATE_TRACE]', event, {
+      userId: session?.user?.id,
+      sessionExists: !!session,
+      timestamp: Date.now()
+    });
+
     if (event === 'SIGNED_OUT') {
+      console.warn('[AUTH_SIGNOUT_TRACE]', {
+        source: 'onAuthStateChange',
+        reason: 'SIGNED_OUT event',
+        pathname: typeof window !== 'undefined' ? window.location.pathname : 'server',
+        userId: globalUser?.id
+      });
       setState({ session: null, user: null, profile: null });
     } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
       if (session?.user) {
