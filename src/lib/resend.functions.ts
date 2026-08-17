@@ -91,17 +91,17 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
     correlationId: z.string().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
-    const admin = await getAdmin();
+    const adminClient = await getAdmin();
     
     // Fetch global settings from database
-    const { data: settings } = await admin
+    const { data: settings } = await adminClient
       .from("resend_settings" as any)
       .select("*")
       .maybeSingle();
 
     const RESEND_API_KEY = process.env['RESEND_API_KEY'];
-    const FROM_EMAIL = settings?.from_email || process.env['RESEND_FROM_EMAIL'] || 'noreply@notify.barbex.shop';
-    const FROM_NAME = settings?.from_name || process.env['RESEND_FROM_NAME'] || 'Barbex';
+    const FROM_EMAIL = (settings as any)?.from_email || process.env['RESEND_FROM_EMAIL'] || 'noreply@notify.barbex.shop';
+    const FROM_NAME = (settings as any)?.from_name || process.env['RESEND_FROM_NAME'] || 'Barbex';
 
     if (!RESEND_API_KEY) {
       console.error("[Resend] API key not found");
@@ -112,11 +112,9 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
     if (!template) {
       throw new Error(`Template ${data.templateKey} not found`);
     }
-
-    const admin = await getAdmin();
     
-    // Create initial log - using 'any' to bypass TS validation on the new table until types regenerate
-    const { data: logEntry } = await admin
+    // Create initial log
+    const { data: logEntry } = await adminClient
       .from("email_logs" as any)
       .insert({
         tenant_id: data.tenantId,
@@ -195,7 +193,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
       const resendData = await response.json();
       
       if (logId) {
-        await admin
+        await adminClient
           .from("email_logs" as any)
           .update({
             status: 'sent',
@@ -210,7 +208,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
       console.error("[Resend] Send failed:", error);
       
       if (logId) {
-        await admin
+        await adminClient
           .from("email_logs" as any)
           .update({
             status: 'failed',
