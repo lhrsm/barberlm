@@ -102,14 +102,17 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   };
 
   const handleSuccess = async (result?: any) => {
-    console.log("[ClientLoginForm] Login successful. Settiing session manually...");
+    console.log("[ClientLoginForm] Login successful. Setting session manually...");
     
-    // If we have a session in the result, set it manually to ensure the client-side
-    // singleton client is aware of it immediately.
+    // 1. If we have a session in the result, set it manually.
     if (result?.session) {
       console.log("[ClientLoginForm] Setting session from result");
-      await supabase.auth.setSession(result.session);
+      const { error: sessionError } = await supabase.auth.setSession(result.session);
+      if (sessionError) {
+        console.error("[ClientLoginForm] Error setting manual session:", sessionError);
+      }
     }
+
 
     // 1. Check if the client already has it
     const { data: { session } } = await supabase.auth.getSession();
