@@ -59,6 +59,7 @@ export function KPIGrid({ children, cols = 4 }: { children: React.ReactNode; col
   return (
     <div className={cn(
       "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+      cols === 5 && "lg:grid-cols-5",
       cols === 3 && "lg:grid-cols-3",
       cols === 2 && "lg:grid-cols-2"
     )}>
