@@ -27,6 +27,7 @@ interface ClientLoginFormProps {
 }
 
 export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientLoginFormProps) {
+  const { redirect } = useNavigate({ from: '/auth' as any }).useSearch() as { redirect?: string };
   const [showPassword, setShowPassword] = useState(false);
   const [view, setView] = useState<'login' | 'forgot-password' | 'success'>('login');
   const [loading, setLoading] = useState(false);
@@ -70,7 +71,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
         toast.success("Login realizado com sucesso!");
         
         // Redirect based on role or context
-        if (barbershopSlug) {
+        if (redirect) {
+          window.location.href = redirect;
+        } else if (barbershopSlug) {
           navigate({ to: `/${barbershopSlug}/portal` as any });
         } else {
           navigate({ to: "/portal" as any });

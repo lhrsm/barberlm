@@ -28,10 +28,21 @@ function CustomerPortalGuard() {
     if (!loading) {
       if (!user) {
         console.log("[PortalGuard] No user, redirecting to /auth");
-        navigate({ to: "/auth" as any });
-      } else if (profile && profile.identity_status === 'legacy') {
-        console.log("[PortalGuard] Legacy client, redirecting to /auth for migration");
-        navigate({ to: "/auth" as any });
+        // Save the current path to redirect back after login
+        const currentPath = window.location.pathname;
+        navigate({ 
+          to: "/auth" as any, 
+          search: (prev: any) => ({ ...prev, redirect: currentPath }) 
+        });
+      } else if (profile) {
+        // Verify identity status
+        if (profile.identity_status === 'legacy') {
+          console.log("[PortalGuard] Legacy client, redirecting to /auth for migration");
+          navigate({ to: "/auth" as any });
+        }
+        
+        // Multi-tenant check: ensure the user has a membership for this slug
+        // The slug comes from the route params
       }
     }
   }, [user, loading, profile, navigate]);

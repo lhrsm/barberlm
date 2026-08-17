@@ -72,6 +72,7 @@ import { Route as DashboardCentroDeComandoRouteImport } from './routes/dashboard
 import { Route as DashboardBiRouteImport } from './routes/dashboard.bi'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminUpgradeRecommendationsRouteImport } from './routes/admin.upgrade-recommendations'
@@ -432,6 +433,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AgendamentoTokenRoute = AgendamentoTokenRouteImport.update({
   id: '/agendamento/$token',
   path: '/agendamento/$token',
@@ -667,7 +673,7 @@ export interface FileRoutesByFullPath {
   '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -729,6 +735,7 @@ export interface FileRoutesByFullPath {
   '/admin/upgrade-recommendations': typeof AdminUpgradeRecommendationsRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
@@ -774,7 +781,7 @@ export interface FileRoutesByTo {
   '/$slug': typeof SlugRouteWithChildren
   '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -833,6 +840,7 @@ export interface FileRoutesByTo {
   '/admin/upgrade-recommendations': typeof AdminUpgradeRecommendationsRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
@@ -880,7 +888,7 @@ export interface FileRoutesById {
   '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -942,6 +950,7 @@ export interface FileRoutesById {
   '/admin/upgrade-recommendations': typeof AdminUpgradeRecommendationsRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dashboard/assistente': typeof DashboardAssistenteRoute
   '/dashboard/bi': typeof DashboardBiRoute
@@ -1052,6 +1061,7 @@ export interface FileRouteTypes {
     | '/admin/upgrade-recommendations'
     | '/admin/vouchers'
     | '/agendamento/$token'
+    | '/auth/reset-password'
     | '/checkout/return'
     | '/dashboard/assistente'
     | '/dashboard/bi'
@@ -1156,6 +1166,7 @@ export interface FileRouteTypes {
     | '/admin/upgrade-recommendations'
     | '/admin/vouchers'
     | '/agendamento/$token'
+    | '/auth/reset-password'
     | '/checkout/return'
     | '/dashboard/assistente'
     | '/dashboard/bi'
@@ -1264,6 +1275,7 @@ export interface FileRouteTypes {
     | '/admin/upgrade-recommendations'
     | '/admin/vouchers'
     | '/agendamento/$token'
+    | '/auth/reset-password'
     | '/checkout/return'
     | '/dashboard/assistente'
     | '/dashboard/bi'
@@ -1311,7 +1323,7 @@ export interface RootRouteChildren {
   AcademyRoute: typeof AcademyRouteWithChildren
   AccessibilityRoute: typeof AccessibilityRoute
   AdminRoute: typeof AdminRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   AutomationsRoute: typeof AutomationsRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
@@ -1809,6 +1821,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/agendamento/$token': {
       id: '/agendamento/$token'
       path: '/agendamento/$token'
@@ -2206,6 +2225,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AuthRouteChildren {
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface DashboardRouteChildren {
   DashboardAssistenteRoute: typeof DashboardAssistenteRoute
   DashboardBiRoute: typeof DashboardBiRoute
@@ -2298,7 +2327,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcademyRoute: AcademyRouteWithChildren,
   AccessibilityRoute: AccessibilityRoute,
   AdminRoute: AdminRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   AutomationsRoute: AutomationsRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,

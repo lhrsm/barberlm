@@ -23,6 +23,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPageComponent() {
+  const { redirect } = Route.useSearch() as { redirect?: string };
   const [migrationData, setMigrationData] = useState<{ userId: string; phone: string | null } | null>(null);
 
   return (
