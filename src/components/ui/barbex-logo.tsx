@@ -10,9 +10,9 @@ const SIZES: Record<
   xs: { box: "h-10", text: "text-lg", gap: "gap-2" },
   sm: { box: "h-12", text: "text-xl", gap: "gap-2.5" },
   md: { box: "h-14", text: "text-2xl", gap: "gap-3" },
-  lg: { box: "h-28 md:h-36", text: "text-4xl", gap: "gap-4" },
-  xl: { box: "h-36 md:h-44", text: "text-5xl", gap: "gap-5" },
-  "2xl": { box: "h-44 md:h-56", text: "text-7xl", gap: "gap-6" },
+  lg: { box: "h-32 md:h-44", text: "text-4xl", gap: "gap-4" },
+  xl: { box: "h-44 md:h-56", text: "text-5xl", gap: "gap-5" },
+  "2xl": { box: "h-56 md:h-72", text: "text-7xl", gap: "gap-6" },
 };
 
 interface BarbexLogoProps {
