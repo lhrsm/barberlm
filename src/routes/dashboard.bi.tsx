@@ -59,8 +59,8 @@ function BusinessIntelligencePage() {
 
   if (analyticsQuery.isLoading) {
     return (
-      <div className="flex flex-col gap-8 p-6 bg-background/50 min-h-screen items-center justify-center">
-        <p className="text-gold-DEFAULT animate-pulse font-black uppercase tracking-tighter">Processando BI...</p>
+      <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh]">
+        <p className="text-gold animate-pulse font-black uppercase tracking-tighter">Processando BI...</p>
       </div>
     );
   }
@@ -71,7 +71,7 @@ function BusinessIntelligencePage() {
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
   return (
-    <div className="flex flex-col gap-8 p-6 bg-background/50 min-h-screen">
+    <div className="flex flex-col gap-8 p-4 md:p-8 bg-background/50 min-h-screen">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gold-DEFAULT via-gold-light to-gold-DEFAULT bg-clip-text text-transparent">
