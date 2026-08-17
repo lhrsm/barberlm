@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 const loginSchema = z.object({
   identifier: z.string().min(1, "Informe seu e-mail ou telefone"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
-  remember: z.boolean().default(true),
+  remember: z.boolean(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -40,7 +40,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     defaultValues: {
       identifier: "",
       password: "",
-      remember: false,
+      remember: true,
     },
   });
 
