@@ -3,7 +3,7 @@ import { SecurityCentral } from '@/components/security/SecurityCentral';
 
 export const Route = createFileRoute('/dashboard/settings/security')({
   component: () => (
-    <div className="p-6 md:p-8">
+    <div className="p-6 md:p-8 overflow-y-auto h-full pb-20">
       <SecurityCentral />
     </div>
   ),
