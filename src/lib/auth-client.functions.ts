@@ -30,8 +30,8 @@ export const clientLogin = createServerFn({ method: "POST" })
     }
 
     if (authResult.error) {
-      console.log(`[AuthClient] Login failed for ${value}: ${authResult.error.message}`);
-      throw new Error("Telefone/e-mail ou senha inválidos.");
+      console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message, authResult.error.code);
+      throw new Error(`Erro de autenticação: ${authResult.error.message}`);
     }
     
     const { data: { user } } = authResult;

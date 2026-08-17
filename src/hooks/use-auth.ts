@@ -103,33 +103,35 @@ function initializeAuth() {
   setState({ loading: true });
 
   // 1. Subscribe FIRST so we don't miss events during getSession().
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('[AUTH_STATE_TRACE]', event, {
-      userId: session?.user?.id,
-      sessionExists: !!session,
-      timestamp: Date.now()
-    });
-
-    if (event === 'SIGNED_OUT') {
-      console.warn('[AUTH_SIGNOUT_TRACE]', {
-        source: 'onAuthStateChange',
-        reason: 'SIGNED_OUT event',
-        pathname: typeof window !== 'undefined' ? window.location.pathname : 'server',
-        userId: globalUser?.id
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.warn('[AUTH_STATE_TRACE]', event, {
+        userId: session?.user?.id,
+        sessionExists: !!session,
+        timestamp: Date.now()
       });
-      setState({ session: null, user: null, profile: null });
-    } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-      if (session?.user) {
-        setState({
-          session,
-          user: session.user,
+
+      if (event === 'SIGNED_OUT') {
+        console.warn('[AUTH_SIGNOUT_TRACE]', {
+          source: 'onAuthStateChange',
+          reason: 'SIGNED_OUT event',
+          pathname: typeof window !== 'undefined' ? window.location.pathname : 'server',
+          userId: globalUser?.id
         });
-        await fetchProfileData(session.user.id);
-      } else {
         setState({ session: null, user: null, profile: null });
+      } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (session?.user) {
+          console.warn('[AUTH_STATE_TRACE]', 'User session established, fetching profile...');
+          setState({
+            session,
+            user: session.user,
+          });
+          await fetchProfileData(session.user.id);
+        } else if (event !== 'INITIAL_SESSION') {
+          // Only clear if it's a real event without a user
+          setState({ session: null, user: null, profile: null });
+        }
       }
-    }
-  });
+    });
 
   // Listen for custom profile update events
   if (typeof window !== 'undefined') {
