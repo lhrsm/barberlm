@@ -154,9 +154,11 @@ function CustomerPortalPage() {
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
             <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+          </div>
         </div>
       </div>
     </div>
+
 
 
       {/* Level Dashboard */}
