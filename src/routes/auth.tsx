@@ -28,7 +28,7 @@ export const Route = createFileRoute("/auth")({
   },
   component: AuthPageComponent,
   head: () => ({
-    title: "Barbex — Login Administrativo",
+    title: isClientPortal ? "Barbex — Portal do Cliente" : "Barbex — Login Administrativo",
     meta: [
       { 
         name: "description", 
