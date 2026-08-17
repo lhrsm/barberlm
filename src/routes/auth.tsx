@@ -42,11 +42,9 @@ function AuthPageComponent() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <div className="mb-8 text-center">
-          <div className="flex justify-center mb-4">
-            <BarbexLogo className="w-56 md:w-64 h-auto" showText={false} />
-          </div>
-          <h2 className="text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
+        <div className="mb-8 flex flex-col items-center">
+          <BarbexLogo className="w-56 md:w-64 h-auto" showText={false} />
+          <h2 className="mt-4 text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden">

@@ -110,7 +110,7 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
         .from('profiles')
         .select('email')
         .eq('phone', value)
-        .single();
+        .maybeSingle();
       
       if (error || !profile?.email) {
         // Generic success message to prevent enumeration
