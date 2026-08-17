@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendVerificationCode } from "./resend.functions";
+import { sendTransactionalEmail } from "./resend.functions";
 
 export const requestEmailVerification = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
@@ -32,11 +32,14 @@ export const requestEmailVerification = createServerFn({ method: "POST" })
 
     // Send via Resend
     try {
-      await sendVerificationCode({
+      await sendTransactionalEmail({
         data: {
-          email: data.email,
-          code,
-          userName: data.userName
+          recipient: data.email,
+          templateKey: 'email_verification_code',
+          templateData: {
+            code,
+            userName: data.userName
+          }
         }
       });
       return { success: true };
