@@ -116,7 +116,7 @@ function TeamManagementPage() {
                 <TableCell className="font-medium text-white">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold">
-                      {member.profile?.responsible_name?.[0] || member.profile?.display_name?.[0] || member.profile?.email?.[0] || '?'}
+                      {member.profile?.responsible_name?.[0] || member.profile?.display_name?.[0] || member.profile?.email?.[0] || member.email?.[0] || '?'}
                     </div>
                     <div>
                       <div>{member.profile?.responsible_name || member.profile?.display_name || 'Sem nome'}</div>
