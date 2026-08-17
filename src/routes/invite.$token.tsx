@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
 import { acceptTeamInvitation } from "@/lib/team.functions";
-import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,8 +28,7 @@ function AcceptInvitationPage() {
   const acceptFn = useServerFn(acceptTeamInvitation);
   
   // For Phase 4, we'll implement the real validation logic
-  const { supabase } = useAuth();
-
+  
   useEffect(() => {
     async function validateToken() {
       const { data, error } = await supabase
