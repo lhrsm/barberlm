@@ -163,12 +163,15 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     autoComplete="username"
                     onChange={(e) => {
                       const val = e.target.value;
-                      // Logic: Only apply phone mask if there are NO letters or @ AND it looks like a phone number
-                      if (!/[a-zA-Z@]/.test(val)) {
+                      // Improved detection logic: 
+                      // 1. If it contains @ or letters (except '+' for DDI), treat as email immediately.
+                      // 2. Otherwise, treat as phone and apply mask.
+                      if (/[a-zA-Z@]/.test(val)) {
+                        form.setValue("identifier", val);
+                      } else {
                         const digits = val.replace(/\D/g, "");
                         let formatted = val;
                         
-                        // Don't format very short strings to avoid jumping
                         if (digits.length >= 2) {
                           if (digits.startsWith('55')) {
                             const withoutDDI = digits.substring(2);
@@ -187,8 +190,6 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                         } else {
                           form.setValue("identifier", val);
                         }
-                      } else {
-                        form.setValue("identifier", val);
                       }
                     }}
                     className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
