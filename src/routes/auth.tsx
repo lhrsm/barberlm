@@ -164,7 +164,7 @@ function AuthPageComponent() {
             <div className={`relative ${isClientPortal ? 'bg-white' : 'bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5'} rounded-[32px] shadow-2xl overflow-hidden p-8 md:p-10`}>
               <div className="text-center space-y-3 mb-10">
                 <h2 className={`text-2xl md:text-3xl font-black ${isClientPortal ? 'text-zinc-900' : 'text-white'} tracking-tighter uppercase italic leading-none`}>
-                  {isClientPortal ? 'PORTAL DO' : 'BEM-VINDO AO'} <span className="text-gold">{isClientPortal ? 'CLIENTE' : 'BARBEX'}</span>
+                  {isClientPortal ? 'PORTAL DO' : 'BEM-VINDO'} <span className="text-gold">{isClientPortal ? 'CLIENTE' : 'BARBEX'}</span>
                 </h2>
                 <p className={`${isClientPortal ? 'text-zinc-400' : 'text-zinc-500'} text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed max-w-[240px] mx-auto`}>
                   {isClientPortal ? 'Gerencie seus agendamentos e cashback em um só lugar.' : 'Acesse sua barbearia e gerencie sua operação de qualquer lugar.'}
