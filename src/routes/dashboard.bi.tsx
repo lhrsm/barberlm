@@ -2,6 +2,7 @@ import React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getBIAnalytics } from "@/lib/bi.functions";
+import { testBIData } from "@/lib/bi-debug.functions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -72,11 +73,39 @@ function BusinessIntelligencePage() {
 
   const analytics = analyticsQuery.data;
 
+  // Debug Hook
+  const debugQuery = useQuery({
+    queryKey: ["bi-debug", dateRange],
+    queryFn: () => testBIData({ 
+      data: {
+        start_date: dateRange.start, 
+        end_date: dateRange.end,
+      }
+    }),
+    enabled: !!analyticsQuery.error || (!analytics && !analyticsQuery.isLoading)
+  });
+
   if (analyticsQuery.isLoading || !analytics) {
     if (!analytics && !analyticsQuery.isLoading) {
       return (
-        <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh]">
-          <p className="text-rose-400 font-black uppercase tracking-tighter">Não foi possível carregar os dados do BI.</p>
+        <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh] text-center max-w-2xl mx-auto">
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl mb-4">
+             <p className="text-rose-400 font-black uppercase tracking-tighter mb-2">Não foi possível carregar os dados do BI.</p>
+             {analyticsQuery.error && (
+               <p className="text-xs text-rose-400/70 font-mono break-all mb-4">
+                 Error: {(analyticsQuery.error as any)?.message || "Unknown error"}
+               </p>
+             )}
+             
+             {debugQuery.data && (
+               <div className="mt-4 text-left bg-black/40 p-4 rounded-xl border border-white/5 overflow-auto max-h-[300px]">
+                 <p className="text-[10px] font-bold text-zinc-500 uppercase mb-2">BI DATA DEBUG</p>
+                 <pre className="text-[10px] text-zinc-400 font-mono">
+                   {JSON.stringify(debugQuery.data, null, 2)}
+                 </pre>
+               </div>
+             )}
+          </div>
           <Button onClick={() => analyticsQuery.refetch()} variant="outline" className="border-gold text-gold">
             Tentar Novamente
           </Button>
