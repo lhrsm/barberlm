@@ -315,54 +315,97 @@ export function ResendSettingsCard({ emailLogs = [], onRefreshLogs }: ResendSett
         </div>
       )}
 
-      {/* Modal de Teste (Same as existing, just linked to settings) */}
+      {/* Modal de Teste */}
       {isTestModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[#0b0f17] border border-gold/20 rounded-[2rem] p-8 space-y-6">
-            <div className="text-center space-y-2">
-              <Mail className="w-12 h-12 text-gold mx-auto mb-4" />
-              <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Testar Envio</h3>
-              <p className="text-zinc-400 text-sm">Enviaremos um e-mail de teste utilizando o remetente global configurado.</p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
-                <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-1">
-                  <span>Remetente Atual</span>
-                  <Badge variant="outline" className="h-4 border-emerald-500/20 text-emerald-400 text-[8px]">{settings?.domain}</Badge>
-                </div>
-                <div className="text-xs font-bold text-white">{settings?.from_name} &lt;{settings?.from_email}&gt;</div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">E-mail Destinatário</Label>
-                <Input 
-                  type="email" 
-                  placeholder="seu-email@exemplo.com"
-                  className="h-12 rounded-xl bg-[#05070d] border-zinc-800 text-white"
-                  // Link to test email logic from parent
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsTestModalOpen(false)}
-                className="flex-1 h-12 rounded-xl text-zinc-400"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                className="flex-1 h-12 rounded-xl bg-gold text-black font-black uppercase tracking-widest"
-                // onClick={handleTestSend}
-              >
-                Enviar Teste
-              </Button>
-            </div>
-          </div>
-        </div>
+        <TestModal 
+          isOpen={isTestModalOpen}
+          onClose={() => setIsTestModalOpen(false)}
+          settings={settings}
+          onRefreshLogs={onRefreshLogs}
+        />
       )}
     </>
+  );
+}
+
+function TestModal({ isOpen, onClose, settings, onRefreshLogs }: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  settings: any, 
+  onRefreshLogs?: () => void 
+}) {
+  const [testEmail, setTestEmail] = useState("");
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleTestSend = async () => {
+    if (!testEmail) return;
+    setIsTesting(true);
+    
+    try {
+      const { sendTransactionalEmail } = await import("@/lib/resend.functions");
+      await sendTransactionalEmail({
+        data: {
+          recipient: testEmail,
+          templateKey: 'test_email'
+        }
+      });
+      toast.success("E-mail de teste enviado!");
+      onClose();
+      onRefreshLogs?.();
+    } catch (error) {
+      toast.error("Falha ao enviar teste");
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-[#0b0f17] border border-gold/20 rounded-[2rem] p-8 space-y-6 shadow-[0_0_50px_rgba(212,175,55,0.1)]">
+        <div className="text-center space-y-2">
+          <Mail className="w-12 h-12 text-gold mx-auto mb-4" />
+          <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Testar Envio</h3>
+          <p className="text-zinc-400 text-sm">Enviaremos um e-mail de teste utilizando o remetente global configurado.</p>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+            <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-1">
+              <span>Remetente Atual</span>
+              <Badge variant="outline" className="h-4 border-emerald-500/20 text-emerald-400 text-[8px]">{settings?.domain}</Badge>
+            </div>
+            <div className="text-xs font-bold text-white truncate">{settings?.from_name} &lt;{settings?.from_email}&gt;</div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">E-mail Destinatário</Label>
+            <Input 
+              type="email" 
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="seu-email@exemplo.com"
+              className="h-12 rounded-xl bg-[#05070d] border-zinc-800 text-white"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button 
+            variant="ghost" 
+            onClick={onClose}
+            className="flex-1 h-12 rounded-xl text-zinc-400"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleTestSend}
+            disabled={isTesting || !testEmail}
+            className="flex-1 h-12 rounded-xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90"
+          >
+            {isTesting ? <Loader2 size={16} className="animate-spin" /> : "Enviar Teste"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
