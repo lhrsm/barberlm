@@ -123,10 +123,16 @@ async function initializeAuth() {
 
     // 2. Initial hydration
     try {
+      // Small delay to allow session persistence to settle (especially on F5)
+      if (typeof window !== 'undefined') {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       console.log("[AUTH_TRACE] Initial getSession:", { hasSession: !!session });
       
       if (session?.user) {
+        // Keep loading=true until profile is fetched
         setState({ session, user: session.user, loading: true });
         await fetchProfileData(session.user.id);
       } else {
@@ -136,9 +142,12 @@ async function initializeAuth() {
       console.error("[AUTH_TRACE] getSession error:", err);
       setState({ session: null, user: null, profile: null });
     } finally {
-      // Garantir que NUNCA ficamos presos em loading: true
       setState({ loading: false });
-      console.log("[AUTH_TRACE] Initialization complete", { loading: globalLoading, user: !!globalUser, profile: !!globalProfile });
+      console.log("[AUTH_TRACE] Initialization complete", { 
+        loading: globalLoading, 
+        user: !!globalUser, 
+        profile: !!globalProfile 
+      });
     }
   })();
 
