@@ -11,9 +11,11 @@ export const clientLogin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, password } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    const { supabase } = context as any;
     
-    if (!supabase) throw new Error("Supabase client not found in context");
+    // Barbex Enterprise Singleton Client
+    const { supabase } = await import("@/integrations/supabase/client");
+    
+    if (!supabase) throw new Error("Supabase client singleton not initialized");
 
     let authResult;
     if (type === 'email') {
@@ -76,7 +78,7 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, redirectTo } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    const { supabase } = context as any;
+    const { supabase } = await import("@/integrations/supabase/client");
 
     let email = value;
 
@@ -114,7 +116,7 @@ export const validateResetToken = createServerFn({ method: "POST" })
     token: z.string()
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as any;
+    const { supabase } = await import("@/integrations/supabase/client");
     // Supabase JS client doesn't have a direct "validate token" method without consuming it,
     // but verifyOtp with type 'recovery' can check it.
     // However, the standard way is to handle it on the client side with onAuthStateChange.
@@ -127,7 +129,7 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as any;
+    const { supabase } = await import("@/integrations/supabase/client");
     
     // This assumes the user is already authenticated via the recovery link
     const { error } = await supabase.auth.updateUser({
