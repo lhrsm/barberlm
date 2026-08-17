@@ -6,20 +6,26 @@
 export const normalizePhone = (phone: string): string => {
   if (!phone) return "";
   
+  // Remove all non-digits
   let digits = phone.replace(/\D/g, "");
   
-  // Se tiver 10 ou 11 dígitos, assume que é BR e falta o DDI 55
+  // If user included + (which is removed by \D), or already has 55
+  if (digits.startsWith("55") && digits.length >= 12) {
+    return digits;
+  }
+
+  // Handle Brazilian numbers (10 or 11 digits without 55)
   if (digits.length === 10 || digits.length === 11) {
     digits = "55" + digits;
   }
   
-  // Se começar com 55, verifica a regra do 9º dígito
+  // Apply 9th digit repair for Brazil if missing
   if (digits.startsWith('55')) {
     const country = digits.slice(0, 2); // 55
     const ddd = digits.slice(2, 4);     // DDD
-    let number = digits.slice(4);       // O resto do número
+    let number = digits.slice(4);       // The number part
     
-    // Regra: Se tiver apenas 8 dígitos após o DDD, adiciona o 9 na frente
+    // If it has only 8 digits after DDD, it's missing the prefix 9
     if (number.length === 8) {
       number = "9" + number;
     }
