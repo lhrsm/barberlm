@@ -40,7 +40,7 @@ export const updateResendSettings = createServerFn({ method: "POST" })
     from_email: z.string().email(),
     domain: z.string().min(1)
   }).parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // Check super_admin role
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const user = context.user;
