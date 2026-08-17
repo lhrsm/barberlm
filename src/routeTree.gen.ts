@@ -107,6 +107,7 @@ import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaig
 import { Route as DashboardSettingsSecurityRouteImport } from './routes/dashboard.settings.security'
 import { Route as ApiPublicSendPushRouteImport } from './routes/api/public/send-push'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
+import { Route as SlugPortalSecurityRouteImport } from './routes/$slug.portal.security'
 import { Route as SlugEquipeBarberIdRouteImport } from './routes/$slug.equipe.$barberId'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicSubscriptionsWebhookRouteImport } from './routes/api/public/subscriptions/webhook'
@@ -614,6 +615,11 @@ const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
   path: '/agendamentos/grupo/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugPortalSecurityRoute = SlugPortalSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => SlugPortalRoute,
+} as any)
 const SlugEquipeBarberIdRoute = SlugEquipeBarberIdRouteImport.update({
   id: '/equipe/$barberId',
   path: '/equipe/$barberId',
@@ -728,7 +734,7 @@ export interface FileRoutesByFullPath {
   '/tutorials': typeof TutorialsRoute
   '/updates': typeof UpdatesRoute
   '/$slug/checkin': typeof SlugCheckinRoute
-  '/$slug/portal': typeof SlugPortalRoute
+  '/$slug/portal': typeof SlugPortalRouteWithChildren
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
@@ -781,6 +787,7 @@ export interface FileRoutesByFullPath {
   '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
+  '/$slug/portal/security': typeof SlugPortalSecurityRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
@@ -836,7 +843,7 @@ export interface FileRoutesByTo {
   '/tutorials': typeof TutorialsRoute
   '/updates': typeof UpdatesRoute
   '/$slug/checkin': typeof SlugCheckinRoute
-  '/$slug/portal': typeof SlugPortalRoute
+  '/$slug/portal': typeof SlugPortalRouteWithChildren
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
@@ -889,6 +896,7 @@ export interface FileRoutesByTo {
   '/reception': typeof ReceptionIndexRoute
   '/subscription': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
+  '/$slug/portal/security': typeof SlugPortalSecurityRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
@@ -949,7 +957,7 @@ export interface FileRoutesById {
   '/tutorials': typeof TutorialsRoute
   '/updates': typeof UpdatesRoute
   '/$slug/checkin': typeof SlugCheckinRoute
-  '/$slug/portal': typeof SlugPortalRoute
+  '/$slug/portal': typeof SlugPortalRouteWithChildren
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/academy/$pathId': typeof AcademyPathIdRouteWithChildren
   '/admin/addons': typeof AdminAddonsRoute
@@ -1002,6 +1010,7 @@ export interface FileRoutesById {
   '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
+  '/$slug/portal/security': typeof SlugPortalSecurityRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
@@ -1116,6 +1125,7 @@ export interface FileRouteTypes {
     | '/reception/'
     | '/subscription/'
     | '/$slug/equipe/$barberId'
+    | '/$slug/portal/security'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
     | '/dashboard/settings/security'
@@ -1224,6 +1234,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/subscription'
     | '/$slug/equipe/$barberId'
+    | '/$slug/portal/security'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
     | '/dashboard/settings/security'
@@ -1336,6 +1347,7 @@ export interface FileRouteTypes {
     | '/reception/'
     | '/subscription/'
     | '/$slug/equipe/$barberId'
+    | '/$slug/portal/security'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
     | '/dashboard/settings/security'
@@ -2104,6 +2116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendamentosGrupoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug/portal/security': {
+      id: '/$slug/portal/security'
+      path: '/security'
+      fullPath: '/$slug/portal/security'
+      preLoaderRoute: typeof SlugPortalSecurityRouteImport
+      parentRoute: typeof SlugPortalRoute
+    }
     '/$slug/equipe/$barberId': {
       id: '/$slug/equipe/$barberId'
       path: '/equipe/$barberId'
@@ -2191,16 +2210,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface SlugPortalRouteChildren {
+  SlugPortalSecurityRoute: typeof SlugPortalSecurityRoute
+}
+
+const SlugPortalRouteChildren: SlugPortalRouteChildren = {
+  SlugPortalSecurityRoute: SlugPortalSecurityRoute,
+}
+
+const SlugPortalRouteWithChildren = SlugPortalRoute._addFileChildren(
+  SlugPortalRouteChildren,
+)
+
 interface SlugRouteChildren {
   SlugCheckinRoute: typeof SlugCheckinRoute
-  SlugPortalRoute: typeof SlugPortalRoute
+  SlugPortalRoute: typeof SlugPortalRouteWithChildren
   SlugProfissionalRoute: typeof SlugProfissionalRoute
   SlugEquipeBarberIdRoute: typeof SlugEquipeBarberIdRoute
 }
 
 const SlugRouteChildren: SlugRouteChildren = {
   SlugCheckinRoute: SlugCheckinRoute,
-  SlugPortalRoute: SlugPortalRoute,
+  SlugPortalRoute: SlugPortalRouteWithChildren,
   SlugProfissionalRoute: SlugProfissionalRoute,
   SlugEquipeBarberIdRoute: SlugEquipeBarberIdRoute,
 }
