@@ -59,6 +59,25 @@ const getAdmin = async () => {
 };
 
 /**
+ * Legacy compatibility: sendVerificationCode
+ */
+export const sendVerificationCode = createServerFn({ method: "POST" })
+  .inputValidator((data) => z.object({
+    email: z.string().email(),
+    code: z.string().length(6),
+    userName: z.string().optional(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    return sendTransactionalEmail({
+      data: {
+        recipient: data.email,
+        templateKey: 'email_verification_code',
+        templateData: { code: data.code, userName: data.userName }
+      }
+    });
+  });
+
+/**
  * Central Transactional Email Service
  * Handles template rendering, logging, and sending via Resend
  */
@@ -88,9 +107,9 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
 
     const admin = await getAdmin();
     
-    // Create initial log
-    const { data: logEntry, error: logError } = await admin
-      .from("email_logs")
+    // Create initial log - using 'any' to bypass TS validation on the new table until types regenerate
+    const { data: logEntry } = await admin
+      .from("email_logs" as any)
       .insert({
         tenant_id: data.tenantId,
         user_id: data.userId,
@@ -98,11 +117,11 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
         template_key: data.templateKey,
         correlation_id: data.correlationId,
         status: 'processing'
-      })
+      } as any)
       .select('id')
       .single();
 
-    const logId = logEntry?.id;
+    const logId = (logEntry as any)?.id;
 
     try {
       // Basic branding HTML structure
@@ -155,7 +174,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
           html: html,
           tags: [
             { name: 'template_key', value: data.templateKey },
-            { name: 'log_id', value: logId || '' }
+            { name: 'log_id', value: String(logId || '') }
           ]
         }),
       });
@@ -169,12 +188,12 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
       
       if (logId) {
         await admin
-          .from("email_logs")
+          .from("email_logs" as any)
           .update({
             status: 'sent',
             sent_at: new Date().toISOString(),
             provider_message_id: resendData.id
-          })
+          } as any)
           .eq("id", logId);
       }
 
@@ -184,12 +203,12 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
       
       if (logId) {
         await admin
-          .from("email_logs")
+          .from("email_logs" as any)
           .update({
             status: 'failed',
             failed_at: new Date().toISOString(),
             error_code: error.message
-          })
+          } as any)
           .eq("id", logId);
       }
       
