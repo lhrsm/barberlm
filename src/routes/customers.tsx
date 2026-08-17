@@ -686,5 +686,10 @@ const CustomersComponent = memo(() => {
 });
 
 export const Route = createFileRoute("/customers")({
-  component: CustomersComponent,
+  component: () => (
+    <PermissionGuard permission="clients:view">
+      <CustomersComponent />
+    </PermissionGuard>
+  ),
 });
+
