@@ -106,6 +106,7 @@ function CustomerPortalGuard() {
 }
 
 function CustomerPortalPage() {
+  const params = useParams({ from: "/$slug/portal" }) as { slug: string };
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
@@ -184,7 +185,7 @@ function CustomerPortalPage() {
           </div>
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: profile?.slug || "" }}
+            params={{ slug: params.slug }}
             className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
           >
             <ShieldCheck className="h-5 w-5" />
@@ -193,7 +194,7 @@ function CustomerPortalPage() {
         <div className="flex items-center gap-3">
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: profile?.slug || "" }}
+            params={{ slug: params.slug }}
             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
           >
             <ShieldCheck className="h-4 w-4" />
