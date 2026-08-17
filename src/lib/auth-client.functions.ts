@@ -122,7 +122,7 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
+      redirectTo: redirectTo || `${window.location.origin}/auth/reset-password`,
     });
 
     if (error) {

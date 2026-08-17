@@ -37,7 +37,7 @@ export const Route = createFileRoute("/auth/reset-password" as any)({
 function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'form' | 'success' | 'expired'>('form');
+  const [status, setStatus] = useState<'loading' | 'form' | 'success' | 'expired'>('loading');
   const updatePasswordFn = useServerFn(updatePassword);
   const navigate = useNavigate();
 
@@ -50,19 +50,35 @@ function ResetPasswordPage() {
   });
 
   useEffect(() => {
-    // Supabase automatically handles the recovery token in the URL and establishes a session.
-    // We can check if we have a session to see if the link is valid.
+    // Check if the link is a password recovery link
+    // Supabase Auth sends the type=recovery in the URL hash/query
+    const hash = window.location.hash;
+    const query = new URLSearchParams(window.location.search);
+    
+    const isRecovery = hash.includes('type=recovery') || query.get('type') === 'recovery';
+    
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // If no session is present, it might be expired or invalid
-        // But let's wait a bit as it might be processing the hash
+      
+      // If we have a session and it's from a recovery link, we're good
+      if (session) {
+        setStatus('form');
+        return;
+      }
+
+      // If no session but it looks like a recovery attempt, wait for Supabase to process hash
+      if (isRecovery || hash.length > 50) {
         setTimeout(async () => {
           const { data: { session: retrySession } } = await supabase.auth.getSession();
-          if (!retrySession) {
+          if (retrySession) {
+            setStatus('form');
+          } else {
             setStatus('expired');
           }
-        }, 1500);
+        }, 1000);
+      } else {
+        // Not a recovery link and no session
+        setStatus('expired');
       }
     };
 
@@ -110,6 +126,13 @@ function ResetPasswordPage() {
 
         <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden p-8">
           <AnimatePresence mode="wait">
+            {status === 'loading' && (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <Loader2 className="w-10 h-10 animate-spin text-gold" />
+                <p className="text-zinc-500 text-xs font-black uppercase tracking-widest">Validando acesso...</p>
+              </div>
+            )}
+
             {status === 'form' && (
               <motion.div
                 key="form"
