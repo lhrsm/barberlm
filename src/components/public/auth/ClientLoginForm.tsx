@@ -83,18 +83,30 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   };
 
   const handleSuccess = async () => {
+    console.log("[ClientLoginForm] Login successful. Awaiting session hydration...");
+    
+    // Force a small wait and manual session check to ensure AuthProvider picks it up
     const { data: { session } } = await supabase.auth.getSession();
-    console.log("[ClientLoginForm] Login success, session check:", !!session);
+    
+    if (!session) {
+      console.error("[ClientLoginForm] Session not found immediately after login success.");
+      toast.error("Erro na sincronização da sessão. Tente novamente.");
+      return;
+    }
+
     toast.success("Login realizado com sucesso!");
     
+    // Dispatch custom event to trigger useAuth refresh if needed
+    window.dispatchEvent(new CustomEvent('profile-updated'));
+
     if (redirect) {
-      console.log("[ClientLoginForm] Redirecting to stored path:", redirect);
+      console.log("[ClientLoginForm] Redirecting to intended path:", redirect);
       window.location.href = redirect;
     } else if (barbershopSlug) {
-      console.log("[ClientLoginForm] Redirecting to slug portal:", barbershopSlug);
+      console.log("[ClientLoginForm] Redirecting to tenant portal:", barbershopSlug);
       navigate({ to: `/${barbershopSlug}/portal` as any });
     } else {
-      console.log("[ClientLoginForm] Redirecting to general portal");
+      console.log("[ClientLoginForm] Redirecting to default portal");
       navigate({ to: "/portal" as any });
     }
   };

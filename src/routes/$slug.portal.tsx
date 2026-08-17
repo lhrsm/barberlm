@@ -25,47 +25,62 @@ function CustomerPortalGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("[PortalGuard] State Check:", { 
-      loading, 
+    // Early exit if still loading initial auth state
+    if (loading) return;
+
+    console.log("[PortalGuard] Identity Check:", { 
       hasUser: !!user, 
       hasProfile: !!profile, 
       identityStatus: profile?.identity_status,
-      tenantId: profile?.tenant_id,
       pathname: window.location.pathname
     });
 
-    if (!loading) {
-      if (!user) {
-        console.log("[PortalGuard] REDIRECT_DEBUG: No user, redirecting to /auth", {
-          source: 'CustomerPortalGuard',
-          reason: 'unauthenticated'
-        });
-        const currentPath = window.location.pathname;
-        navigate({ 
-          to: "/auth" as any, 
-          search: { redirect: currentPath } as any
-        });
-      } else if (profile) {
-        if (profile.identity_status === 'legacy') {
-          console.log("[PortalGuard] REDIRECT_DEBUG: Legacy client, redirecting to /auth", {
-            source: 'CustomerPortalGuard',
-            reason: 'legacy_status'
-          });
-          navigate({ to: "/auth" as any });
-        }
-      } else {
-        // Auth exists but profile is null
-        console.log("[PortalGuard] Auth exists but profile is null. Waiting for profile hydration or identity resolution.");
-      }
+    if (!user) {
+      console.log("[PortalGuard] REDIRECT: No active session. Redirecting to login.");
+      const currentPath = window.location.pathname;
+      navigate({ 
+        to: "/auth" as any, 
+        search: { redirect: currentPath } as any
+      });
+      return;
     }
+
+    // If we have a user but no profile yet, we wait. 
+    // fetchProfileData in useAuth is async and might take a moment.
+    if (!profile) {
+      console.log("[PortalGuard] User authenticated. Waiting for profile data...");
+      return;
+    }
+
+    // Now we have both user and profile
+    if (profile.identity_status === 'legacy') {
+      console.log("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
+      navigate({ to: "/auth" as any });
+      return;
+    }
+
+    console.log("[PortalGuard] Access Granted.");
   }, [user, loading, profile, navigate]);
 
-  if (loading || !user || (profile && profile.identity_status === 'legacy')) {
+  // Concept: DISTINGUISH LOADING FROM UNAUTHENTICATED
+  // Show loader while loading OR while we have a user but are still fetching their profile
+  if (loading || (user && !profile)) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
-        <Loader2 className="h-10 w-10 text-gold animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 text-gold animate-spin" />
+          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+            Validando Identidade Premium...
+          </p>
+        </div>
       </div>
     );
+  }
+
+  // If loading is done and we STILL don't have a user, the useEffect will handle the redirect.
+  // We just need to make sure we don't render the page content if we're not ready.
+  if (!user || !profile || profile.identity_status === 'legacy') {
+    return null;
   }
 
   return <CustomerPortalPage />;
