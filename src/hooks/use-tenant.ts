@@ -10,13 +10,46 @@ export function useTenant() {
   // Check for impersonation in sessionStorage
   const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
   
+  // 1. Check for explicit memberships
+  const { data: membership } = useQuery({
+    queryKey: ["tenant-membership", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("tenant_memberships")
+        .select("tenant_id, role")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
   // The actual tenant ID being viewed/managed
+  // Order of priority: 
+  // 1. Impersonation (Super Admin)
+  // 2. Explicit Membership (V2 Architecture)
+  // 3. Super Admin default (null)
+  // 4. Role-based fallback (Legacy Architecture)
   const tenantId = authLoading 
     ? null 
-    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null)))));
+    : (impersonatedId || 
+       membership?.tenant_id || 
+       (profile?.role === 'super_admin' ? null : 
+        (profile?.tenant_id || 
+         (profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null)))));
 
     if (typeof window !== 'undefined') {
-      console.log("[useTenant] Debug:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id, professionalTenantId: session?.tenant_id });
+      console.log("[useTenant] Debug:", { 
+        tenantId, 
+        role: profile?.role, 
+        impersonatedId, 
+        membershipTenantId: membership?.tenant_id,
+        profileId: profile?.id, 
+        professionalTenantId: session?.tenant_id 
+      });
     }
 
 
@@ -73,6 +106,7 @@ export function useTenant() {
     tenantId,
     tenantProfile,
     planDetails,
+    membership,
     isLoading: authLoading || queryLoading,
     isFeatureEnabled,
     getLimit,

@@ -4,6 +4,8 @@ import { User, Session } from "@supabase/supabase-js";
 
 export type UserRole = 'super_admin' | 'admin' | 'tenant_admin' | 'manager' | 'reception' | 'finance' | 'barber' | 'client';
 
+export type IdentityStatus = 'legacy' | 'pending' | 'completed';
+
 interface Profile {
   id: string;
   role: UserRole;
@@ -11,8 +13,10 @@ interface Profile {
   business_name: string | null;
   full_name: string | null;
   responsible_name: string | null;
+  display_name: string | null;
   slug: string | null;
   email: string | null;
+  identity_status: IdentityStatus;
 }
 
 // Global state shared across useAuth instances.
@@ -44,7 +48,7 @@ async function fetchProfileData(userId: string) {
   try {
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select("id, role, tenant_id, business_name, responsible_name, slug, email")
+      .select("id, role, tenant_id, business_name, responsible_name, display_name, slug, email, identity_status")
       .eq("id", userId)
       .maybeSingle();
 
@@ -77,8 +81,10 @@ async function fetchProfileData(userId: string) {
       business_name: profileData?.business_name ?? null,
       full_name: profileData?.responsible_name ?? null,
       responsible_name: profileData?.responsible_name ?? null,
+      display_name: profileData?.display_name ?? null,
       slug: profileData?.slug ?? null,
       email: profileData?.email ?? null,
+      identity_status: (profileData?.identity_status as IdentityStatus) ?? 'legacy',
     };
 
     setState({ profile: normalizedProfile });
