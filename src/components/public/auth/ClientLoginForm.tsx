@@ -57,8 +57,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   }, [form.watch(), form.formState.isSubmitting]);
 
   const onSubmit = async (values: LoginFormValues) => {
+    console.log("[ClientLoginForm] onSubmit called with:", { identifier: values.identifier });
     setLoading(true);
     try {
+      console.log("[ClientLoginForm] Invoking loginFn...");
       const result = await loginFn({
         data: {
           identifier: values.identifier,
@@ -66,8 +68,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
           barbershopSlug,
         }
       });
+      console.log("[ClientLoginForm] loginFn result:", result);
 
       if (result.status === 'migration_required') {
+        console.log("[ClientLoginForm] Migration required");
         if (onMigrationRequired) {
           onMigrationRequired({ userId: result.userId, phone: result.phone });
         } else {
@@ -77,16 +81,20 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       }
 
       if (result.status === 'mfa_required') {
+        console.log("[ClientLoginForm] MFA required");
         setView('mfa');
         return;
       }
 
       if (result.status === 'success') {
+        console.log("[ClientLoginForm] Success, calling handleSuccess");
         handleSuccess();
       }
     } catch (error: any) {
+      console.error("[ClientLoginForm] Login error caught:", error);
       toast.error(error.message || "Telefone/e-mail ou senha inválidos.");
     } finally {
+      console.log("[ClientLoginForm] onSubmit finished");
       setLoading(false);
     }
   };
