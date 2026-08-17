@@ -58,26 +58,33 @@ function ResetPasswordPage() {
     const isRecovery = hash.includes('type=recovery') || query.get('type') === 'recovery';
     
     const checkSession = async () => {
+      console.log("[RESET_PASSWORD_TRACE] Initializing recovery check...", { isRecovery });
+      
       const { data: { session } } = await supabase.auth.getSession();
       
       // If we have a session and it's from a recovery link, we're good
       if (session) {
+        console.log("[RESET_PASSWORD_TRACE] Session found immediately.");
         setStatus('form');
         return;
       }
 
       // If no session but it looks like a recovery attempt, wait for Supabase to process hash
       if (isRecovery || hash.length > 50) {
+        console.log("[RESET_PASSWORD_TRACE] No session yet, but hash/query looks like recovery. Waiting...");
         setTimeout(async () => {
           const { data: { session: retrySession } } = await supabase.auth.getSession();
           if (retrySession) {
+            console.log("[RESET_PASSWORD_TRACE] Session found after delay.");
             setStatus('form');
           } else {
+            console.warn("[RESET_PASSWORD_TRACE] Session NOT found after delay. Recovery link may be invalid or expired.");
             setStatus('expired');
           }
-        }, 1000);
+        }, 1500);
       } else {
         // Not a recovery link and no session
+        console.warn("[RESET_PASSWORD_TRACE] Not a recovery link and no session. Access denied.");
         setStatus('expired');
       }
     };
@@ -87,15 +94,28 @@ function ResetPasswordPage() {
 
   const onSubmit = async (values: ResetPasswordValues) => {
     setLoading(true);
+    console.log("[RESET_PASSWORD_TRACE] Submitting new password...");
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      console.log("[RESET_PASSWORD_TRACE] Current context:", {
+        pathname: window.location.pathname,
+        sessionExists: !!user,
+        userId: user?.id,
+        recoveryState: 'validating'
+      });
+
       await updatePasswordFn({
         data: {
           password: values.password,
         }
       });
+
+      console.log("[RESET_PASSWORD_TRACE] Password updated successfully for user:", user?.id);
       setStatus('success');
       toast.success("Senha atualizada com sucesso!");
     } catch (error: any) {
+      console.error("[RESET_PASSWORD_TRACE] Error updating password:", error);
       toast.error(error.message || "Erro ao atualizar senha");
     } finally {
       setLoading(false);
@@ -113,12 +133,8 @@ function ResetPasswordPage() {
       <div className="w-full max-w-md relative z-10 flex flex-col items-center">
         <div className="mb-10 w-full flex flex-col items-center">
           <div className="flex justify-center w-full">
-            <div className="w-[200px] h-[90px] md:w-[260px] md:h-[120px] flex items-center justify-center">
-              <img 
-                src="https://id-preview--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app/__l5e/assets-v1/09902c18-ce15-4559-987e-73b6866a0457/logo-barbex.png?v=17081708" 
-                alt="Barbex Logo" 
-                className="w-full h-full object-contain"
-              />
+            <div className="w-[180px] sm:w-[220px] md:w-[280px] h-auto flex items-center justify-center overflow-visible">
+              <BarbexLogo size="lg" showText={false} className="w-full h-full object-contain" />
             </div>
           </div>
           <h2 className="mt-4 text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
@@ -150,14 +166,14 @@ function ResetPasswordPage() {
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Nova Senha</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...form.register("password")}
                         autoComplete="new-password"
-                        className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                        className="h-[56px] pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       />
                       <button
                         type="button"
@@ -175,14 +191,14 @@ function ResetPasswordPage() {
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Confirmar Nova Senha</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
                       <Input
                         id="confirmPassword"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...form.register("confirmPassword")}
                         autoComplete="new-password"
-                        className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                        className="h-[56px] pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       />
                     </div>
                     {form.formState.errors.confirmPassword && (
@@ -220,18 +236,19 @@ function ResetPasswordPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center space-y-6 py-4"
               >
-                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500">
+                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-6">
                   <ShieldCheck size={40} />
                 </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Senha atualizada!</h2>
-                  <p className="text-zinc-500 text-sm font-medium">Sua senha foi redefinida com sucesso.</p>
+                <div className="space-y-3 mb-8">
+                  <h2 className="text-2xl font-black text-black tracking-tight uppercase italic leading-none">Senha atualizada!</h2>
+                  <div className="h-px w-12 bg-emerald-200 mx-auto" />
+                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-relaxed">Sua nova senha foi configurada com sucesso.</p>
                 </div>
                 <Button
                   asChild
-                  className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all"
+                  className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
                 >
-                  <Link to="/auth" search={{ tab: "login" }}>Entrar no Barbex</Link>
+                  <Link to="/auth" search={{ tab: "login" }}>Ir para o Login</Link>
                 </Button>
               </motion.div>
             )}
@@ -243,17 +260,18 @@ function ResetPasswordPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center space-y-6 py-4"
               >
-                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500">
+                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500 mb-6">
                   <AlertCircle size={40} />
                 </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Link expirado</h2>
-                  <p className="text-zinc-500 text-sm font-medium">Este link de recuperação expirou ou não é mais válido.</p>
+                <div className="space-y-3 mb-8">
+                  <h2 className="text-2xl font-black text-black tracking-tight uppercase italic leading-none">Link expirado</h2>
+                  <div className="h-px w-12 bg-red-200 mx-auto" />
+                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-relaxed">Este link de recuperação não é mais válido ou já foi utilizado.</p>
                 </div>
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full h-14 rounded-2xl border-zinc-200 font-black uppercase tracking-widest"
+                  className="w-full h-14 rounded-2xl border-zinc-200 text-zinc-950 font-black uppercase tracking-widest hover:bg-zinc-50 transition-all active:scale-[0.98]"
                 >
                   <Link to="/auth" search={{ tab: "login" }}>Solicitar novo link</Link>
                 </Button>

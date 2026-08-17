@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { toast } from "sonner";
-import { Phone, Mail, Lock } from "lucide-react";
+import { Phone, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 
@@ -15,6 +15,7 @@ export function AuthForm() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useProfessionalAuth();
 
@@ -110,7 +111,7 @@ export function AuthForm() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?type=recovery`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
       toast.success("E-mail de recuperação enviado com sucesso.");
@@ -159,11 +160,11 @@ export function AuthForm() {
               E-mail
             </Label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
               <Input
                 id="login-email"
                 type="email"
-                className="pl-11 h-[52px] rounded-[14px] bg-white/[0.04] border-white/10 text-white placeholder:text-white/30 focus-visible:border-[#F59E0B] focus-visible:ring-2 focus-visible:ring-[#F59E0B]/30 focus-visible:shadow-[0_0_0_4px_rgba(245,158,11,0.08)] transition-all"
+                className="pl-12 h-[56px] rounded-[14px] bg-white/[0.06] border-white/10 text-white placeholder:text-white/20 focus-visible:border-gold focus-visible:ring-2 focus-visible:ring-gold/20 transition-all"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -206,16 +207,24 @@ export function AuthForm() {
               </button>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
               <Input
                 id="login-password"
-                type="password"
-                className="pl-11 h-[52px] rounded-[14px] bg-white/[0.04] border-white/10 text-white placeholder:text-white/30 focus-visible:border-[#F59E0B] focus-visible:ring-2 focus-visible:ring-[#F59E0B]/30 focus-visible:shadow-[0_0_0_4px_rgba(245,158,11,0.08)] transition-all"
-                placeholder="Digite sua senha"
+                type={showPassword ? "text" : "password"}
+                className="pl-12 pr-12 h-[56px] rounded-[14px] bg-white/[0.06] border-white/10 text-white placeholder:text-white/20 focus-visible:border-gold focus-visible:ring-2 focus-visible:ring-gold/20 transition-all"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-1"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
         )}
