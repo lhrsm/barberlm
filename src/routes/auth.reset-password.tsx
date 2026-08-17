@@ -95,11 +95,9 @@ function ResetPasswordPage() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <div className="mb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <BarbexLogo className="w-48 md:w-56 h-auto" />
-          </div>
-          <h2 className="text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
+        <div className="mb-8 flex flex-col items-center">
+          <BarbexLogo className="w-56 md:w-64 h-auto" showText={false} />
+          <h2 className="mt-4 text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden p-8">
@@ -113,8 +111,8 @@ function ResetPasswordPage() {
                 className="space-y-6"
               >
                 <div className="text-center space-y-2">
-                  <h2 className="text-3xl font-black text-black tracking-tight leading-tight">Crie uma nova senha</h2>
-                  <p className="text-zinc-500 text-sm font-medium">Defina sua nova senha de acesso.</p>
+                  <h2 className="text-2xl md:text-3xl font-black text-black tracking-tight uppercase italic leading-tight">Crie uma nova senha</h2>
+                  <p className="text-zinc-500 text-[11px] font-black uppercase tracking-widest ml-1">Defina sua nova senha de acesso.</p>
                 </div>
 
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
