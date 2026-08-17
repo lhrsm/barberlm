@@ -17,97 +17,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/$slug/portal")({
-  component: CustomerPortalGuard,
+  component: CustomerPortalPage,
 });
 
-function CustomerPortalGuard() {
-  const { user, loading, profile } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // 1. Skip if still in early initialization (loading is true)
-    if (loading) {
-      console.log('[PortalGuard] Still loading auth state...');
-      return;
-    }
-
-    // 2. If we have a user but no profile yet, wait for profile hydration
-    if (user && !profile) {
-      console.log('[PortalGuard] Session found, waiting for profile...');
-      return;
-    }
-
-    // 3. SEVERAL SECONDS LATER: If loading is false and NO user, then redirect to auth
-    if (!user) {
-      console.warn('[AUTH_REDIRECT_TRACE]', {
-        source: 'CustomerPortalGuard',
-        reason: 'No session after loading completed',
-        pathname: window.location.pathname,
-        sessionExists: false,
-        timestamp: Date.now()
-      });
-      // Small delay before redirecting to allow last-second hydration if any
-      const timer = setTimeout(() => {
-        // We check the latest auth state via supabase client directly if user is still null
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
-          }
-        });
-      }, 2000);
-      return () => clearTimeout(timer);
-
-    }
-
-    console.warn('[AUTH_REDIRECT_TRACE]', {
-      source: 'CustomerPortalGuard',
-      reason: (profile?.identity_status === 'legacy' ? 'Legacy account' : 'None'),
-      pathname: window.location.pathname,
-      authUserId: user?.id,
-      sessionExists: !!user,
-      profileExists: !!profile,
-      identityStatus: profile?.identity_status,
-      timestamp: Date.now()
-    });
-
-    if (profile?.identity_status === 'legacy') {
-      console.warn("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
-      window.location.href = "/auth";
-      return;
-    }
-
-    console.log("[PortalGuard] Access Granted.");
-  }, [user, loading, profile]);
-
-
-  // Concept: DISTINGUISH LOADING FROM UNAUTHENTICATED
-  // Show loader while loading OR while we have a user but are still fetching their profile.
-  // This prevents flickering or premature redirects.
-  if (loading || (user && !profile)) {
-    return (
-      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 text-gold animate-spin" />
-          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-            Validando Identidade Premium...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // If loading is done and we STILL don't have a user, the useEffect will handle the redirect.
-  // We just need to make sure we don't render the page content if we're not ready.
-  if (!user || !profile || profile.identity_status === 'legacy') {
-    return null;
-  }
-
-  return <CustomerPortalPage />;
-}
-
 function CustomerPortalPage() {
+  const { user, loading: authLoading, profile } = useAuth();
   const params = useParams({ from: "/$slug/portal" });
-  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     customer: any;
@@ -115,6 +30,79 @@ function CustomerPortalPage() {
     achievements: any[];
     unlockedAchievements: any[];
   } | null>(null);
+
+  useEffect(() => {
+    if (authLoading) return;
+    
+    if (!user) {
+      console.warn('[AUTH_REDIRECT_TRACE]', {
+        source: 'CustomerPortalPage',
+        reason: 'No session',
+        pathname: window.location.pathname
+      });
+      window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+
+    if (profile?.identity_status === 'legacy') {
+      window.location.href = "/auth";
+      return;
+    }
+
+    async function loadPortalData() {
+      try {
+        const { data: customerData, error: customerError } = await supabase
+          .from("customers")
+          .select("*, loyalty_levels(*)")
+          .eq("user_id", user!.id) 
+          .eq("tenant_id", profile?.tenant_id)
+          .maybeSingle();
+
+        if (customerError) throw customerError;
+
+        const [levelsRes, achRes, unlockedRes] = await Promise.all([
+          supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
+          supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
+          customerData 
+            ? supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
+            : Promise.resolve({ data: [] })
+        ]);
+
+        setData({
+          customer: customerData,
+          levels: levelsRes.data || [],
+          achievements: achRes.data || [],
+          unlockedAchievements: unlockedRes.data || []
+        });
+      } catch (err: any) {
+        toast.error("Erro ao carregar portal: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (profile) {
+      loadPortalData();
+    }
+  }, [user, authLoading, profile]);
+
+  if (authLoading || (user && !profile) || loading) {
+    return (
+      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 text-gold animate-spin" />
+          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+            Carregando Portal Premium...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !profile || profile.identity_status === 'legacy') {
+    return null;
+  }
+
 
   useEffect(() => {
     async function loadPortalData() {
