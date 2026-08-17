@@ -124,3 +124,75 @@ export const getPendingInvitations = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return invites;
   });
+
+export const acceptTeamInvitation = createServerFn({ method: "POST" })
+  .inputValidator(z.object({
+    token: z.string(),
+    password: z.string().min(6)
+  }))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { token, password } = data;
+
+    // 1. Validate Invitation
+    const { data: invite, error: inviteError } = await supabaseAdmin
+      .from('user_invitations')
+      .select('*')
+      .eq('token_hash', token)
+      .eq('status', 'pending')
+      .single();
+
+    if (inviteError || !invite) throw new Error("Convite inválido ou expirado.");
+
+    if (new Date(invite.expires_at) < new Date()) {
+      await supabaseAdmin
+        .from('user_invitations')
+        .update({ status: 'expired' })
+        .eq('id', invite.id);
+      throw new Error("Este convite expirou.");
+    }
+
+    // 2. Check if Auth User exists
+    const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
+    let user = authData.users.find(u => u.email === invite.email);
+
+    if (!user) {
+      // Create Auth User
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: invite.email,
+        password: password,
+        email_confirm: true,
+        user_metadata: {
+          role: invite.role,
+          tenant_id: invite.tenant_id
+        }
+      });
+      if (createError) throw new Error(createError.message);
+      user = newUser.user;
+    }
+
+    // 3. Link Membership & Profile
+    const { error: membershipError } = await supabaseAdmin
+      .from('tenant_memberships')
+      .upsert({
+        tenant_id: invite.tenant_id,
+        user_id: user.id,
+        role: invite.role,
+        status: 'active'
+      });
+
+    if (membershipError) throw new Error(membershipError.message);
+
+    // 4. Update Invitation Status
+    await supabaseAdmin
+      .from('user_invitations')
+      .update({ 
+        status: 'accepted',
+        accepted_at: new Date().toISOString(),
+        accepted_by: user.id
+      } as any)
+      .eq('id', invite.id);
+
+    return { success: true };
+  });
+
