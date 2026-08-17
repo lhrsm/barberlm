@@ -291,7 +291,7 @@ function DashboardIndexComponent() {
   };
 
   return (
-    <>
+    <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8">
       {renderSpecializedView()}
       <WalkinModal 
         open={isWalkinOpen} 
@@ -301,6 +301,6 @@ function DashboardIndexComponent() {
           fetchStats();
         }}
       />
-    </>
+    </div>
   );
 }
