@@ -3,6 +3,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
+import { acceptTeamInvitation } from "@/lib/team.functions";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,21 +25,42 @@ function AcceptInvitationPage() {
   const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // In a real implementation, we'd have a server function to validate the token and get invite details
-  // For this Phase 4, we'll simulate the look and feel
+  const acceptFn = useServerFn(acceptTeamInvitation);
   
+  // For Phase 4, we'll implement the real validation logic
+  const { supabase } = useAuth();
+
   useEffect(() => {
-    // Simulate loading invitation details
-    const timer = setTimeout(() => {
+    async function validateToken() {
+      const { data, error } = await supabase
+        .from('user_invitations')
+        .select(`
+          *,
+          tenant:profiles!user_invitations_tenant_id_fkey(business_name)
+        `)
+        .eq('token_hash', token)
+        .eq('status', 'pending')
+        .single();
+      
+      if (error || !data) {
+        setError("Convite inválido ou já utilizado.");
+        return;
+      }
+      
+      if (new Date(data.expires_at) < new Date()) {
+        setError("Este convite expirou.");
+        return;
+      }
+
       setInvitation({
-        barbershopName: "Barbearia Premium",
-        role: "Recepcionista",
-        email: "usuario@exemplo.com"
+        barbershopName: data.tenant?.business_name || "Barbearia",
+        role: data.role,
+        email: data.email
       });
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [token]);
+    }
+    
+    if (token) validateToken();
+  }, [token, supabase]);
 
   const handleAccept = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,18 +75,38 @@ function AcceptInvitationPage() {
 
     setLoading(true);
     try {
-      // Logic to accept invitation would go here:
-      // 1. Create/Link Auth User
-      // 2. Activate membership
-      // 3. Set role
+      await acceptFn({ data: { token, password } });
       toast.success("Convite aceito com sucesso!");
-      navigate({ to: "/dashboard" });
-    } catch (err) {
-      toast.error("Erro ao aceitar convite");
+      navigate({ to: "/auth" });
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao aceitar convite");
     } finally {
       setLoading(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-4">
+        <div className="mb-8">
+          <BarbexLogo size="xl" />
+        </div>
+        <Card className="w-full max-w-md bg-[#0b0f17] border-red-500/20 shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-white">Oops!</CardTitle>
+            <CardDescription className="text-red-400">
+              {error}
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button onClick={() => navigate({ to: "/" })} className="bg-gold text-black">
+              Voltar para o início
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   if (!invitation && !error) {
     return (
