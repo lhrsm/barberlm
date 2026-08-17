@@ -18,8 +18,3 @@ CREATE POLICY "Users can view their own security logs"
     FOR SELECT
     TO authenticated
     USING (auth.uid() = user_id);
-
--- Verification Challenges (reusing or extending for email change)
--- Assuming verification_challenges already exists from Phase 2, but ensuring it supports email_change
--- If it doesn't exist, we create a simplified version for this phase if needed, 
--- but let's check current schema first.
