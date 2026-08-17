@@ -202,6 +202,11 @@ function TeamManagementPage() {
           </Table>
         </div>
       )}
+
+      <div className="mt-8">
+        <PermissionMatrix />
+      </div>
     </div>
+
   );
 }
