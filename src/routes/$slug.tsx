@@ -4450,7 +4450,7 @@ function ShopPageComponent() {
                     <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
                     <span className="text-[10px] font-black uppercase tracking-widest text-primary" style={{ color: primaryColor }}>Opcional</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pb-6 px-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 pb-6 px-1">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
@@ -4458,23 +4458,23 @@ function ShopPageComponent() {
                           key={p.id}
                           whileHover={{ y: -4 }}
                           className={cn(
-                            "group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden bg-white text-black shadow-lg shadow-black/5",
+                            "group relative flex flex-col rounded-[20px] border transition-all duration-300 overflow-hidden bg-white text-black shadow-md",
                             cartItem 
-                              ? "border-black ring-1 ring-black shadow-xl" 
-                              : "border-zinc-200 hover:border-zinc-300 hover:shadow-xl"
+                              ? "border-gold ring-1 ring-gold/20 shadow-lg shadow-gold/5" 
+                              : "border-zinc-100 hover:border-gold/30 hover:shadow-xl"
                           )}
                         >
                           {/* Image Container */}
-                          <div className="relative aspect-video w-full overflow-hidden bg-zinc-100">
+                          <div className="relative aspect-square w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
                             {p.image_url ? (
                               <img 
                                 src={p.image_url} 
                                 alt={p.name}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 p-4" 
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-zinc-300">
-                                <Package size={48} strokeWidth={1} />
+                              <div className="w-full h-full flex items-center justify-center text-zinc-200">
+                                <Package size={40} strokeWidth={1} />
                               </div>
                             )}
                             
@@ -4497,21 +4497,21 @@ function ShopPageComponent() {
                             </div>
 
                             {/* Price Badge Overlay */}
-                            <div className="absolute bottom-3 left-3">
-                              <div className="px-3 py-1.5 rounded-xl bg-white/95 border border-zinc-100 text-black font-bold text-sm shadow-sm">
+                            <div className="absolute bottom-2 left-2">
+                              <div className="px-2.5 py-1 rounded-lg bg-black text-white font-black text-xs shadow-lg">
                                 R$ {p.price.toFixed(2)}
                               </div>
                             </div>
                           </div>
 
                           {/* Content */}
-                          <div className="p-5 flex flex-col flex-1">
+                          <div className="p-4 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h4 className="text-zinc-900 font-bold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-black transition-colors">
+                              <h4 className="text-black font-black text-sm uppercase tracking-tight leading-tight mb-1 line-clamp-1 group-hover:text-gold transition-colors">
                                 {p.name}
                               </h4>
                               {(p.short_description || p.description) && (
-                                <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed break-words">
+                                <p className="text-[10px] font-bold text-zinc-400 line-clamp-2 leading-snug break-words">
                                   {p.short_description || p.description}
                                 </p>
                               )}
@@ -4519,28 +4519,28 @@ function ShopPageComponent() {
 
                             <div className="mt-auto space-y-3">
                               {cartItem ? (
-                                <div className="flex items-center justify-between bg-zinc-50 rounded-xl p-1.5 border border-zinc-100">
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                    className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
-                                  >
-                                    <Minus size={16} />
-                                  </button>
-                                  <span className="text-sm font-bold text-zinc-900 w-24 text-center">{cartItem.quantity} unidades</span>
+                                  <div className="flex items-center justify-between bg-zinc-50 rounded-xl p-1 border border-zinc-100">
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
+                                      className="hover:bg-zinc-200 text-black rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                    >
+                                      <Minus size={14} />
+                                    </button>
+                                    <span className="text-[10px] font-black uppercase text-zinc-900 w-16 text-center">{cartItem.quantity} un</span>
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
                                     className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                     disabled={cartItem.quantity >= (p.stock_quantity || 99)}
                                   >
-                                    <Plus size={16} />
+                                    <Plus size={14} />
                                   </button>
                                 </div>
                               ) : (
                                 <Button
                                   onClick={() => toggleProduct(p)}
-                                  className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-11 w-full"
+                                  className="bg-black text-white hover:bg-zinc-800 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all duration-200 h-10 w-full"
                                 >
-                                  <Plus size={16} className="mr-1.5 shrink-0" /> Adicionar
+                                  <Plus size={12} className="mr-1.5 shrink-0" /> Adicionar
                                 </Button>
                               )}
                               
