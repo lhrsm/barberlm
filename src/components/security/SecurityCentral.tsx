@@ -30,7 +30,7 @@ export const SecurityCentral: React.FC = () => {
   });
 
   const passwordMutation = useMutation({
-    mutationFn: (pwd: string) => updatePassword({ password: pwd }),
+    mutationFn: (pwd: string) => updatePassword({ data: { password: pwd } }),
     onSuccess: () => {
       toast.success('Senha atualizada com sucesso!');
       setNewPassword('');
