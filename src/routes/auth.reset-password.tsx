@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Eye, EyeOff, Loader2, ShieldCheck, Scissors, AlertCircle, ArrowLeft } from "lucide-react";
+import { BarbexLogo } from "@/components/ui/barbex-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,10 +96,10 @@ function ResetPasswordPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 mb-4">
-            <Scissors className="text-gold w-8 h-8" />
+          <div className="flex justify-center mb-6">
+            <BarbexLogo className="w-48 md:w-56 h-auto" />
           </div>
-          <h1 className="text-xl font-black text-white tracking-widest uppercase">Barbex</h1>
+          <h2 className="text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden p-8">
@@ -119,15 +120,15 @@ function ResetPasswordPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Nova Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...form.register("password")}
                         autoComplete="new-password"
-                        className="h-14 pl-12 pr-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 transition-all"
+                        className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       />
                       <button
                         type="button"
@@ -144,15 +145,15 @@ function ResetPasswordPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Confirmar Nova Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
                       <Input
                         id="confirmPassword"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...form.register("confirmPassword")}
                         autoComplete="new-password"
-                        className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 transition-all"
+                        className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       />
                     </div>
                     {form.formState.errors.confirmPassword && (
