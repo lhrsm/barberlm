@@ -193,7 +193,7 @@ function CustomerPortalPage() {
         <div className="flex items-center gap-3">
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: (useParams({ from: '/$slug/portal' }) as any).slug }}
+            params={{ slug: profile?.slug || "" }}
             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
           >
             <ShieldCheck className="h-4 w-4" />
