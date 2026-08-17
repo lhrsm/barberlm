@@ -3716,6 +3716,21 @@ function ShopPageComponent() {
               </motion.div>
             )}
 
+            {bookingStep === 1 && showIdentityStep && (
+              <BookingAuthStep
+                customerName={customerName}
+                customerPhone={customerPhone}
+                customerId={customerId}
+                tenantId={shop.id}
+                onBack={() => setShowIdentityStep(false)}
+                onSuccess={(userId, email) => {
+                  setShowIdentityStep(false);
+                  setBookingStep(2);
+                  // Opcional: atualizar o perfil se necessário
+                }}
+              />
+            )}
+
             {bookingStep === 2 && activeSubscription && !bookingMode && (() => {
               const plan = activeSubscription.plan;
               const used = subUsage.total_uses_consumed;
