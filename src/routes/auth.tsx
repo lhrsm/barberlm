@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { ClientLoginForm } from "@/components/public/auth/ClientLoginForm";
+import { BookingAuthStep } from "@/components/public/booking/BookingAuthStep";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   CheckCircle2, 
