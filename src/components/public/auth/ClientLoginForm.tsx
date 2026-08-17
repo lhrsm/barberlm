@@ -132,7 +132,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     // Dispatch custom event to trigger useAuth refresh if needed
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
-    const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : "/portal");
+    const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : (result?.user?.slug ? `/${result.user.slug}/portal` : "/portal"));
     console.log("[ClientLoginForm] Navigating to target path:", targetPath);
     
     // Forced reload might be safer here to ensure all providers see the new cookies
