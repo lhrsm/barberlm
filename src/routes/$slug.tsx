@@ -3481,8 +3481,15 @@ function ShopPageComponent() {
         }
       }}>
 
-        <DialogContent className={cn("p-0 overflow-hidden bg-white border-2 border-gold h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl [&>button.absolute]:right-4 [&>button.absolute]:top-4 [&>button.absolute]:h-10 [&>button.absolute]:w-10 [&>button.absolute]:rounded-full [&>button.absolute]:bg-black/80 [&>button.absolute]:backdrop-blur [&>button.absolute]:text-white [&>button.absolute]:opacity-100 [&>button.absolute]:flex [&>button.absolute]:items-center [&>button.absolute]:justify-center [&>button.absolute]:shadow-xl [&>button.absolute]:hover:bg-red-600 [&>button.absolute]:hover:text-white [&>button.absolute]:transition-colors [&>button.absolute>svg]:h-5 [&>button.absolute>svg]:w-5 [&>button.absolute]:z-50", bookingStep === 1 ? "sm:max-w-[920px]" : "sm:max-w-[480px]", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
-          <div className={cn("flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent", bookingStep === 1 ? "p-0" : "p-6 sm:p-8")}>
+        <DialogContent className={cn(
+          "p-0 overflow-hidden bg-white border border-gold/20 flex flex-col rounded-[24px] md:rounded-[32px] shadow-2xl transition-all duration-300",
+          "w-full max-w-[calc(100vw-20px)] sm:max-w-[calc(100vw-32px)] md:max-w-[min(720px,calc(100vw-48px))]",
+          bookingStep === 1 ? "md:max-w-[min(820px,calc(100vw-48px))]" : "",
+          "max-h-[85vh]",
+          "[&>button.absolute]:right-4 [&>button.absolute]:top-4 [&>button.absolute]:h-8 [&>button.absolute]:w-8 [&>button.absolute]:rounded-full [&>button.absolute]:bg-black/5 [&>button.absolute]:text-zinc-400 [&>button.absolute]:opacity-100 [&>button.absolute]:flex [&>button.absolute]:items-center [&>button.absolute]:justify-center [&>button.absolute]:hover:bg-red-50 [&>button.absolute]:hover:text-red-600 [&>button.absolute]:transition-all [&>button.absolute>svg]:h-4 [&>button.absolute>svg]:w-4 [&>button.absolute]:z-50",
+          isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none max-h-none"
+        )}>
+          <div className={cn("flex-1 overflow-y-auto custom-scrollbar flex flex-col", bookingStep === 1 ? "p-0" : "p-6 md:p-8")}>
           {!isEmbedded && bookingStep > 1 && (
             <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
 
@@ -3491,7 +3498,7 @@ function ShopPageComponent() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
+                    className="h-9 px-3 w-auto rounded-full bg-zinc-100 hover:bg-zinc-200 text-black flex items-center gap-1.5 transition-all active:scale-[0.98]" 
                     onClick={() => {
                       if (bookingStep === 5 && paymentMethod) {
                         setPaymentMethod(null);
@@ -3499,17 +3506,25 @@ function ShopPageComponent() {
                       setBookingStep(prev => prev - 1);
                     }}
                   >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Voltar</span>
                   </Button>
                 )}
-                <DialogTitle className="text-xl font-bold tracking-tight text-black">
-                  {bookingStep === 1 && (showIdentityStep ? "Segurança" : "Bem-vindo")}
-                  {bookingStep === 2 && "O que faremos?"}
-                  {bookingStep === 3 && "Quem atende?"}
-                  {bookingStep === 4 && "Quando?"}
-                  {bookingStep === 5 && "Confirmar"}
-                </DialogTitle>
               </div>
+              
+              <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div 
+                    key={i} 
+                    className={cn(
+                      "h-1 rounded-full transition-all duration-300",
+                      i <= bookingStep ? "w-6 bg-gold" : "w-1.5 bg-zinc-200"
+                    )}
+                  />
+                ))}
+              </div>
+
+              <div className="w-9 h-9" /> {/* Spacer for symmetry */}
             </DialogHeader>
           )}
 
