@@ -53,6 +53,7 @@ import { Route as SubscriptionIndexRouteImport } from './routes/subscription.ind
 import { Route as ReceptionIndexRouteImport } from './routes/reception.index'
 import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as AuthIndexRouteImport } from './routes/auth.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
@@ -341,6 +342,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -788,6 +794,7 @@ export interface FileRoutesByFullPath {
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
+  '/auth/': typeof AuthIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/reception/': typeof ReceptionIndexRoute
@@ -817,7 +824,6 @@ export interface FileRoutesByTo {
   '/$slug': typeof SlugRouteWithChildren
   '/academy': typeof AcademyRouteWithChildren
   '/accessibility': typeof AccessibilityRoute
-  '/auth': typeof AuthRouteWithChildren
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -898,6 +904,7 @@ export interface FileRoutesByTo {
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
+  '/auth': typeof AuthIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
   '/reception': typeof ReceptionIndexRoute
@@ -1013,6 +1020,7 @@ export interface FileRoutesById {
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
+  '/auth/': typeof AuthIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/reception/': typeof ReceptionIndexRoute
@@ -1129,6 +1137,7 @@ export interface FileRouteTypes {
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
+    | '/auth/'
     | '/dashboard/'
     | '/loyalty/'
     | '/reception/'
@@ -1158,7 +1167,6 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/academy'
     | '/accessibility'
-    | '/auth'
     | '/automations'
     | '/barbers'
     | '/calendar'
@@ -1239,6 +1247,7 @@ export interface FileRouteTypes {
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin'
+    | '/auth'
     | '/dashboard'
     | '/loyalty'
     | '/reception'
@@ -1353,6 +1362,7 @@ export interface FileRouteTypes {
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
+    | '/auth/'
     | '/dashboard/'
     | '/loyalty/'
     | '/reception/'
@@ -1750,6 +1760,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/'
+      fullPath: '/auth/'
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -2337,10 +2354,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AuthRouteChildren {
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthIndexRoute: AuthIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
