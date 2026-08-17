@@ -29,8 +29,15 @@ export const updatePassword = createServerFn({ method: "POST" })
   .inputValidator(z.object({
     password: z.string().min(6),
   }))
-  .handler(async ({ data }) => {
-    const { error } = await supabase.auth.updateUser({
+  .handler(async ({ data, context }) => {
+    // Blindagem: Usar context.supabase para isolamento total da sessão
+    const { data: { user }, error: userError } = await context.supabase.auth.getUser();
+    
+    if (userError || !user) {
+      throw new Error("Não autorizado: sessão inválida.");
+    }
+
+    const { error } = await context.supabase.auth.updateUser({
       password: data.password
     });
     if (error) throw new Error(error.message);

@@ -130,11 +130,20 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { error } = await supabase.auth.updateUser({
+    // Blindagem: Garantir que estamos atuando sobre o usuário da requisição
+    const { data: { user }, error: userError } = await context.supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error("[AuthClient] Tentativa de updatePassword sem sessão válida", userError);
+      throw new Error("Sessão expirada ou inválida. Por favor, solicite um novo link de recuperação.");
+    }
+
+    const { error } = await context.supabase.auth.updateUser({
       password: data.password
     });
 
     if (error) {
+      console.error("[AuthClient] Erro ao atualizar senha via updateUser", error);
       throw new Error(error.message || "Erro ao atualizar senha");
     }
 
