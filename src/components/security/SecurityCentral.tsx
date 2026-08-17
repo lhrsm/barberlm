@@ -184,7 +184,13 @@ export const SecurityCentral: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* MFA Section */}
+        <div className="md:col-span-2">
+          <MFASettings />
+        </div>
+
         {/* Sessions Section */}
+
         <Card className="bg-black/40 border-gold/10 backdrop-blur-sm md:col-span-2">
           <CardHeader>
             <div className="flex items-center gap-2">
