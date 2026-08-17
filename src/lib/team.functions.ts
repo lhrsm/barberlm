@@ -20,12 +20,22 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
     const { email, phone, role, professionalId, tenantId } = data;
 
     // 1. Check if user already has membership
-    const { data: existingMember } = await supabase
-      .from('tenant_memberships')
+    const { data: existingUser } = await supabase
+      .from('profiles')
       .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', userId) // This should actually check if an auth user with this email exists first
-      .single();
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
+      const { data: membership } = await supabase
+        .from('tenant_memberships')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('user_id', existingUser.id)
+        .maybeSingle();
+      
+      if (membership) throw new Error("Este usuário já faz parte desta barbearia.");
+    }
 
     // Generate token
     const token = randomBytes(32).toString('hex');
