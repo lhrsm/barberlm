@@ -20,32 +20,29 @@ interface Profile {
 }
 
 // Global state shared across useAuth instances.
-// IMPORTANT: initial values MUST be identical on server and client to avoid
-// hydration mismatches. We start with loading=false / null user, and switch to
-// loading=true only AFTER hydration when initializeAuth runs in a useEffect.
 let globalUser: User | null = null;
 let globalSession: Session | null = null;
 let globalProfile: Profile | null = null;
-let globalLoading = false;
+let globalLoading = true; 
 let initialized = false;
+let initializationPromise: Promise<void> | null = null;
 const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
 
+
 function emit() {
-  listeners.forEach((l) =>
-    l({ user: globalUser, session: globalSession, profile: globalProfile, loading: globalLoading })
-  );
+  const state = { user: globalUser, session: globalSession, profile: globalProfile, loading: globalLoading };
+  listeners.forEach((l) => l(state));
 }
 
 function setState(partial: Partial<{ user: User | null; session: Session | null; profile: Profile | null; loading: boolean }>) {
-  if ('user' in partial) globalUser = partial.user!;
-  if ('session' in partial) globalSession = partial.session!;
-  if ('profile' in partial) globalProfile = partial.profile!;
-  if ('loading' in partial) globalLoading = partial.loading!;
+  if (partial.user !== undefined) globalUser = partial.user;
+  if (partial.session !== undefined) globalSession = partial.session;
+  if (partial.profile !== undefined) globalProfile = partial.profile;
+  if (partial.loading !== undefined) globalLoading = partial.loading;
   emit();
 }
 
 async function fetchProfileData(userId: string) {
-  console.log('[AUTH_PROFILE_FETCH_START]', { userId, timestamp: Date.now() });
   try {
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
@@ -70,7 +67,6 @@ async function fetchProfileData(userId: string) {
     const resolvedRole = (roleData?.role as UserRole | null) ?? (profileData?.role as UserRole | null) ?? null;
 
     if (!profileData && !resolvedRole) {
-      console.warn("[useAuth] No auth profile data for user:", userId);
       setState({ profile: null });
       return null;
     }
@@ -96,65 +92,48 @@ async function fetchProfileData(userId: string) {
   }
 }
 
-function initializeAuth() {
-  if (initialized) return;
-  initialized = true;
+async function initializeAuth() {
+  if (initializationPromise) return initializationPromise;
 
-  setState({ loading: true });
+  initializationPromise = (async () => {
+    if (initialized) return;
+    initialized = true;
 
-  // 1. Subscribe FIRST so we don't miss events during getSession().
+    setState({ loading: true });
+
+    // 1. Subscribe to auth events
     supabase.auth.onAuthStateChange(async (event, session) => {
-      console.warn('[AUTH_STATE_TRACE]', event, {
-        userId: session?.user?.id,
-        sessionExists: !!session,
-        timestamp: Date.now()
-      });
-
       if (event === 'SIGNED_OUT') {
-        console.warn('[AUTH_SIGNOUT_TRACE]', {
-          source: 'onAuthStateChange',
-          reason: 'SIGNED_OUT event',
-          pathname: typeof window !== 'undefined' ? window.location.pathname : 'server',
-          userId: globalUser?.id
-        });
-        setState({ session: null, user: null, profile: null });
+        setState({ session: null, user: null, profile: null, loading: false });
       } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         if (session?.user) {
-          console.warn('[AUTH_STATE_TRACE]', 'User session established, fetching profile...');
-          setState({
-            session,
-            user: session.user,
-          });
+          setState({ session, user: session.user, loading: true });
           await fetchProfileData(session.user.id);
+          setState({ loading: false });
         } else if (event !== 'INITIAL_SESSION') {
-          // Only clear if it's a real event without a user
-          setState({ session: null, user: null, profile: null });
+          setState({ session: null, user: null, profile: null, loading: false });
         }
       }
     });
 
-  // Listen for custom profile update events
-  if (typeof window !== 'undefined') {
-    window.addEventListener('profile-updated', async () => {
+    // 2. Initial hydration
+    try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        setState({ session, user: session.user, loading: true });
         await fetchProfileData(session.user.id);
+      } else {
+        setState({ session: null, user: null, profile: null });
       }
-    });
-  }
+    } catch (err) {
+      console.error("[useAuth] getSession error:", err);
+      setState({ session: null, user: null, profile: null });
+    } finally {
+      setState({ loading: false });
+    }
+  })();
 
-
-  // 2. Then hydrate the existing session from storage.
-  supabase.auth
-    .getSession()
-    .then(async ({ data: { session } }) => {
-      setState({ session, user: session?.user ?? null });
-      if (session?.user) {
-        await fetchProfileData(session.user.id);
-      }
-    })
-    .catch((err) => console.error("[useAuth] getSession error:", err))
-    .finally(() => setState({ loading: false }));
+  return initializationPromise;
 }
 
 export function useAuth() {
@@ -162,17 +141,13 @@ export function useAuth() {
     user: globalUser,
     session: globalSession,
     profile: globalProfile,
-    loading: globalLoading,
+    loading: initialized ? globalLoading : true,
   });
 
   useEffect(() => {
-    const listener = (next: typeof state) => setLocalState(next);
-    listeners.add(listener);
-
-    if (!initialized && typeof window !== 'undefined') {
-      initializeAuth();
-    } else {
-      listener({
+    // Se já inicializou, sincroniza o estado local imediatamente
+    if (initialized) {
+      setLocalState({
         user: globalUser,
         session: globalSession,
         profile: globalProfile,
@@ -180,19 +155,24 @@ export function useAuth() {
       });
     }
 
+    const listener = (next: typeof state) => {
+      setLocalState(next);
+    };
+    listeners.add(listener);
+
+    if (!initialized && typeof window !== 'undefined') {
+      initializeAuth();
+    }
+
     return () => {
       listeners.delete(listener);
     };
   }, []);
 
+
   const logout = async () => {
-    console.warn('[AUTH_SIGNOUT_TRACE]', {
-      source: 'useAuth.logout',
-      pathname: window.location.pathname,
-      timestamp: Date.now()
-    });
     await supabase.auth.signOut();
-    setState({ session: null, user: null, profile: null });
+    setState({ session: null, user: null, profile: null, loading: false });
   };
 
   return {
@@ -204,3 +184,4 @@ export function useAuth() {
     logout,
   };
 }
+
