@@ -68,13 +68,16 @@ export const clientLogin = createServerFn({ method: "POST" })
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, role, auth_setup_status, tenant_id')
+      .select('id, role, tenant_id, identity_status')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile) throw new Error("Perfil não encontrado");
+    if (profileError || !profile) {
+      console.error("[AuthClient] Profile resolution failed for UID:", user.id, profileError);
+      throw new Error("Perfil não encontrado");
+    }
 
-    if (profile.auth_setup_status === 'legacy') {
+    if (profile.identity_status === 'legacy') {
       return { 
         status: 'migration_required', 
         userId: user.id,

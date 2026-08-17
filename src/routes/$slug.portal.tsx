@@ -76,6 +76,7 @@ function CustomerPortalPage() {
           .from("customers")
           .select("*, loyalty_levels(*)")
           .eq("user_id", user.id) 
+          .eq("tenant_id", profile?.tenant_id)
           .maybeSingle();
 
         if (customerError) throw customerError;
