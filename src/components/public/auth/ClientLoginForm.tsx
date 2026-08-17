@@ -279,7 +279,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               Voltar ao login
             </Button>
           </motion.div>
+        )}
         {view === 'mfa' && (
+
           <motion.div
             key="mfa"
             initial={{ opacity: 0, scale: 0.95 }}
