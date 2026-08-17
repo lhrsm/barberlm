@@ -148,7 +148,7 @@ function DashboardIndexComponent() {
       .from("appointments")
       .select("*, customers(*), services(*), barbers(*)")
       .eq("tenant_id", tenantId)
-      .in("status", ["scheduled", "confirmed", "completed"])
+      .in("status", ["scheduled", "confirmed", "completed", "in_progress"])
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd)
       .order("start_time", { ascending: false });
