@@ -27,6 +27,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState, useMemo } from "react";
@@ -165,6 +166,7 @@ const calendarTourConfig = {
 
 const CalendarComponent = memo(() => {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
+  const { tenantId } = useTenant();
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -212,8 +214,8 @@ const CalendarComponent = memo(() => {
     let appQuery = supabase
       .from("appointments")
       .select("*, customers(*), services(*), barbers(*)")
-      .eq("tenant_id", user.id)
-      .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show"])
+      .eq("tenant_id", tenantId)
+      .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show", "pending", "in_progress"])
       .gte("start_time", start.toISOString())
       .lte("start_time", end.toISOString());
     
@@ -226,9 +228,9 @@ const CalendarComponent = memo(() => {
 
     const [appRes, barbRes, custRes, servRes] = await Promise.all([
       appQuery.order("start_time", { ascending: false }),
-      supabase.from("barbers").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("customers").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
+      supabase.from("barbers").select("*").eq("tenant_id", tenantId).order("name"),
+      supabase.from("customers").select("*").eq("tenant_id", tenantId).order("name"),
+      supabase.from("services").select("*").eq("tenant_id", tenantId).eq("active", true).order("name"),
     ]);
 
     if (appRes.error) {
@@ -246,12 +248,12 @@ const CalendarComponent = memo(() => {
 
     fetchData();
 
-    const tenantId = user.id;
+    const channelTenantId = tenantId || user.id;
     const channel = supabase
-      .channel(`appointments-calendar-${tenantId}`)
+      .channel(`appointments-calendar-${channelTenantId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${tenantId}` },
+        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${channelTenantId}` },
         () => {
           fetchData();
           refreshLimits();
