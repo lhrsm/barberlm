@@ -297,11 +297,6 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -1389,7 +1384,6 @@ export interface RootRouteChildren {
   AcademyRoute: typeof AcademyRouteWithChildren
   AccessibilityRoute: typeof AccessibilityRoute
   AdminRoute: typeof AdminRouteWithChildren
-  AuthRoute: typeof AuthRoute
   AuthRoute: typeof AuthRouteWithChildren
   AutomationsRoute: typeof AutomationsRoute
   BarbersRoute: typeof BarbersRoute
@@ -1685,13 +1679,6 @@ declare module '@tanstack/react-router' {
       path: '/automations'
       fullPath: '/automations'
       preLoaderRoute: typeof AutomationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2454,7 +2441,6 @@ const rootRouteChildren: RootRouteChildren = {
   AcademyRoute: AcademyRouteWithChildren,
   AccessibilityRoute: AccessibilityRoute,
   AdminRoute: AdminRouteWithChildren,
-  AuthRoute: AuthRoute,
   AuthRoute: AuthRouteWithChildren,
   AutomationsRoute: AutomationsRoute,
   BarbersRoute: BarbersRoute,
