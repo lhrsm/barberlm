@@ -10,6 +10,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { getSecurityLogs, updatePassword, requestEmailChange, listSessions } from '@/lib/auth-security.functions';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { MFASettings } from './MFASettings';
+
 
 export const SecurityCentral: React.FC = () => {
   const { user } = useAuth();
