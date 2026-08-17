@@ -236,18 +236,19 @@ function ResetPasswordPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center space-y-6 py-4"
               >
-                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500">
+                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-6">
                   <ShieldCheck size={40} />
                 </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Senha atualizada!</h2>
-                  <p className="text-zinc-500 text-sm font-medium">Sua senha foi redefinida com sucesso.</p>
+                <div className="space-y-3 mb-8">
+                  <h2 className="text-2xl font-black text-black tracking-tight uppercase italic leading-none">Senha atualizada!</h2>
+                  <div className="h-px w-12 bg-emerald-200 mx-auto" />
+                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-relaxed">Sua nova senha foi configurada com sucesso.</p>
                 </div>
                 <Button
                   asChild
-                  className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all"
+                  className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
                 >
-                  <Link to="/auth" search={{ tab: "login" }}>Entrar no Barbex</Link>
+                  <Link to="/auth" search={{ tab: "login" }}>Ir para o Login</Link>
                 </Button>
               </motion.div>
             )}
@@ -259,17 +260,18 @@ function ResetPasswordPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center space-y-6 py-4"
               >
-                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500">
+                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500 mb-6">
                   <AlertCircle size={40} />
                 </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Link expirado</h2>
-                  <p className="text-zinc-500 text-sm font-medium">Este link de recuperação expirou ou não é mais válido.</p>
+                <div className="space-y-3 mb-8">
+                  <h2 className="text-2xl font-black text-black tracking-tight uppercase italic leading-none">Link expirado</h2>
+                  <div className="h-px w-12 bg-red-200 mx-auto" />
+                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-relaxed">Este link de recuperação não é mais válido ou já foi utilizado.</p>
                 </div>
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full h-14 rounded-2xl border-zinc-200 font-black uppercase tracking-widest"
+                  className="w-full h-14 rounded-2xl border-zinc-200 text-zinc-950 font-black uppercase tracking-widest hover:bg-zinc-50 transition-all active:scale-[0.98]"
                 >
                   <Link to="/auth" search={{ tab: "login" }}>Solicitar novo link</Link>
                 </Button>
