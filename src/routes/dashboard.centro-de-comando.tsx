@@ -1,288 +1,399 @@
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { resolveCommandCenterContext } from "@/lib/command-center.functions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { useState, useEffect, useMemo, memo } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
+import { supabase } from "@/integrations/supabase/client";
 import { 
-  Users, 
-  Clock, 
-  AlertCircle, 
-  Wallet, 
-  Package, 
-  Monitor, 
-  Maximize2,
-  Calendar,
-  CheckCircle2,
-  Play
+  Loader2, RefreshCw, Settings, Calendar as CalendarIcon, 
+  CheckCircle2, Clock, Users, Scissors, CircleDollarSign, 
+  Activity, ArrowRight, UserPlus, Zap, AlertTriangle, 
+  ChevronLeft, ChevronRight, LayoutDashboard, Wallet, CreditCard
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, isSameDay, addMinutes, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AppointmentModal } from "@/components/calendar/AppointmentModal";
+import { WalkinModal } from "@/components/calendar/WalkinModal";
+import { Button } from "@/components/ui/button";
+import { MetricCard } from "@/components/dashboard/MetricCard";
+import { KPIGrid, DashboardHeader } from "@/components/dashboard/DashboardShell";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/dashboard/centro-de-comando")({
-  component: CommandCenterPage,
+  component: CentroDeComando,
 });
 
-function CommandCenterPage() {
-  const contextQuery = useQuery({
-    queryKey: ["command-center-context"],
-    queryFn: () => resolveCommandCenterContext(),
-    refetchInterval: 30000, 
-  });
+const brl = (v: number) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  const [isFocusMode, setIsFocusMode] = React.useState(false);
+function CentroDeComando() {
+  const { user, profile, role } = useAuth();
+  const { tenantId } = useTenant();
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [isWalkinOpen, setIsWalkinOpen] = useState(false);
+  const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
+  const [isRealtimeActive, setIsRealtimeActive] = useState(false);
 
-  if (contextQuery.isLoading) {
-    return <div className="p-8 text-center text-gold-DEFAULT animate-pulse">Iniciando Comando...</div>;
-  }
+  const fetchData = async () => {
+    if (!tenantId) return;
+    setLoading(true);
+    
+    const dayStart = startOfDay(selectedDate).toISOString();
+    const dayEnd = endOfDay(selectedDate).toISOString();
 
-  const context = contextQuery.data;
-  if (!context) return null;
+    const [apptsRes, barbersRes] = await Promise.all([
+      supabase
+        .from("appointments")
+        .select("*, customers(*), services(*), barbers(*)")
+        .eq("tenant_id", tenantId)
+        .gte("start_time", dayStart)
+        .lte("start_time", dayEnd)
+        .order("start_time", { ascending: true }),
+      supabase
+        .from("barbers")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("active", true)
+    ]);
 
-  return (
-    <div className={`flex flex-col gap-6 p-6 min-h-screen bg-background/50 transition-all duration-300 ${isFocusMode ? 'max-w-7xl mx-auto' : ''}`}>
-      {/* 5. HERO OPERACIONAL */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gold-DEFAULT via-gold-light to-gold-DEFAULT bg-clip-text text-transparent">
-            Centro de Comando
-          </h1>
-          <p className="text-muted-foreground flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
-            <span className="mx-1">•</span>
-            {context.metrics.active_professionals} profissionais ativos
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsFocusMode(!isFocusMode)}
-            className={isFocusMode ? "bg-gold-DEFAULT/10 border-gold-DEFAULT text-gold-DEFAULT" : ""}
-          >
-            <Maximize2 className="w-4 h-4 mr-2" />
-            Modo Foco
-          </Button>
-          <Button variant="outline" size="sm">
-            <Monitor className="w-4 h-4 mr-2" />
-            Modo TV
-          </Button>
-        </div>
-      </header>
+    if (apptsRes.data) setAppointments(apptsRes.data);
+    if (barbersRes.data) setBarbers(barbersRes.data);
 
-      {/* 6. STATUS GERAL */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatusCard 
-          title="Fila de Espera" 
-          value={context.metrics.waiting_clients} 
-          icon={Users}
-          status={context.metrics.waiting_clients > 3 ? "critical" : context.metrics.waiting_clients > 0 ? "warning" : "normal"}
-        />
-        <StatusCard 
-          title="Em Andamento" 
-          value={context.metrics.in_progress} 
-          icon={Play}
-          status="normal"
-        />
-        <StatusCard 
-          title="Pagamentos" 
-          value={context.metrics.pending_payments} 
-          icon={Wallet}
-          status={context.metrics.pending_payments > 0 ? "warning" : "normal"}
-        />
-        <StatusCard 
-          title="Pedidos" 
-          value={context.metrics.pending_orders} 
-          icon={Package}
-          status={context.metrics.pending_orders > 0 ? "warning" : "normal"}
-        />
-      </div>
+    // Cálculos de Stats
+    const completed = apptsRes.data?.filter(a => a.status === 'completed') || [];
+    const active = apptsRes.data?.filter(a => a.status !== 'cancelled') || [];
+    const scheduled = active.filter(a => a.status === 'scheduled' || a.status === 'confirmed');
+    const totalServicesValue = completed.reduce((acc, a) => acc + Number(a.total_price || 0), 0);
+    const realCashInflow = completed.reduce((acc, a) => acc + Number(a.final_amount || 0), 0);
+    const pendingAmount = active.filter(a => a.payment_status !== 'paid').reduce((acc, a) => acc + Number(a.final_amount || 0), 0);
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 7. OPERAÇÃO EM TEMPO REAL & 8. FILA */}
-        <div className="lg:col-span-2 space-y-6">
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Users className="w-5 h-5 text-gold-DEFAULT" />
-                Profissionais & Atendimentos
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {context.professionals.map((prof: any) => (
-                <ProfessionalCard key={prof.id} professional={prof} appointments={context.appointments} />
-              ))}
-            </div>
-          </section>
+    setStats({
+      total: active.length,
+      completed: completed.length,
+      inProgress: active.filter(a => a.status === 'in_progress').length,
+      waiting: active.filter(a => a.status === 'confirmed' || a.status === 'scheduled').length, // Ajustar lógica se houver check-in explícito
+      billing: realCashInflow,
+      pending: pendingAmount,
+      servicesValue: totalServicesValue
+    });
 
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gold-DEFAULT" />
-                Fila da Recepção
-              </h2>
-              <Badge variant="outline" className="text-gold-DEFAULT border-gold-DEFAULT">
-                {context.waiting_list.length} aguardando
-              </Badge>
-            </div>
-            <Card className="bg-background/40 backdrop-blur-sm border-gold-DEFAULT/20 overflow-hidden">
-              <CardContent className="p-0">
-                {context.waiting_list.length > 0 ? (
-                  <div className="divide-y divide-gold-DEFAULT/10">
-                    {context.waiting_list.map((item: any) => (
-                      <div key={item.id} className="p-4 flex items-center justify-between hover:bg-gold-DEFAULT/5 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gold-DEFAULT/10 flex items-center justify-center border border-gold-DEFAULT/20">
-                            <span className="text-gold-DEFAULT font-bold">{item.customer_name?.[0]}</span>
-                          </div>
-                          <div>
-                            <p className="font-medium">{item.customer_name}</p>
-                            <p className="text-xs text-muted-foreground">{item.service_name} • {item.professional_name}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs font-mono text-gold-DEFAULT">Aguardando {item.waiting_time || "5m"}</p>
-                          <Button size="sm" variant="ghost" className="h-7 text-xs px-2 hover:bg-gold-DEFAULT hover:text-black">
-                            Check-in
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-12 text-center text-muted-foreground">
-                    Nenhum cliente na fila no momento.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </section>
-        </div>
-
-        {/* 17. ALERTAS CRÍTICOS & ATALHOS */}
-        <div className="space-y-6">
-          <section>
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              Alertas Prioritários
-            </h2>
-            <div className="space-y-3">
-              {context.alerts.length > 0 ? (
-                context.alerts.map((alert: any) => (
-                  <AlertItem key={alert.id} alert={alert} />
-                ))
-              ) : (
-                <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20 text-green-500 text-sm flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Operação estável. Nenhum alerta crítico.
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
-            <div className="grid grid-cols-2 gap-2">
-              <QuickAction icon={Calendar} label="Novo Agendamento" />
-              <QuickAction icon={Users} label="Novo Walk-in" />
-              <QuickAction icon={Wallet} label="Receber PIX" />
-              <QuickAction icon={Package} label="Vender Produto" />
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatusCard({ title, value, icon: Icon, status }: any) {
-  const statusColors = {
-    normal: "border-gold-DEFAULT/20 text-foreground",
-    warning: "border-orange-500/50 bg-orange-500/5 text-orange-500",
-    critical: "border-red-500/50 bg-red-500/5 text-red-500 animate-pulse",
+    setLoading(false);
   };
 
-  return (
-    <Card className={`backdrop-blur-sm ${statusColors[status as keyof typeof statusColors]}`}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium opacity-80">{title}</CardTitle>
-        <Icon className="w-4 h-4" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-      </CardContent>
-    </Card>
-  );
-}
+  useEffect(() => {
+    fetchData();
 
-function ProfessionalCard({ professional, appointments }: any) {
-  const currentApp = appointments.find((a: any) => a.barber_id === professional.id && a.status === 'in_progress');
-  
+    if (!tenantId) return;
+    const channel = supabase
+      .channel(`operational-center-${tenantId}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'appointments', 
+        filter: `tenant_id=eq.${tenantId}`
+      }, () => {
+        setIsRealtimeActive(true);
+        fetchData();
+        setTimeout(() => setIsRealtimeActive(false), 2000);
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setIsRealtimeActive(true);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenantId, selectedDate]);
+
+  const handlePrevDay = () => setSelectedDate(prev => new Date(prev.setDate(prev.getDate() - 1)));
+  const handleNextDay = () => setSelectedDate(prev => new Date(prev.setDate(prev.getDate() + 1)));
+  const handleToday = () => setSelectedDate(new Date());
+
+  const operationalAlerts = useMemo(() => {
+    const alerts: any[] = [];
+    const now = new Date();
+
+    appointments.forEach(a => {
+      if (a.status === 'in_progress') {
+        const expectedEnd = parseISO(a.end_time);
+        if (now > expectedEnd) {
+          const delay = Math.round((now.getTime() - expectedEnd.getTime()) / 60000);
+          alerts.push({
+            id: `delay-${a.id}`,
+            type: 'critical',
+            text: `ATENDIMENTO ATRASADO: ${a.barbers?.name} está ${delay} min acima do previsto.`,
+            appointment: a
+          });
+        }
+      }
+      if (a.status === 'completed' && a.payment_status !== 'paid' && a.final_amount > 0) {
+        alerts.push({
+          id: `payment-${a.id}`,
+          type: 'important',
+          text: `PAGAMENTO PENDENTE: ${a.customers?.name} possui ${brl(a.final_amount)} em aberto.`,
+          appointment: a
+        });
+      }
+    });
+
+    return alerts;
+  }, [appointments]);
+
+  if (loading && !stats) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="animate-spin text-gold" size={48} />
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
-    <Card className="bg-background/40 backdrop-blur-sm border-gold-DEFAULT/10 hover:border-gold-DEFAULT/30 transition-all group">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold-DEFAULT/20">
-              {professional.avatar_url ? (
-                <img src={professional.avatar_url} alt={professional.full_name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gold-DEFAULT/10 flex items-center justify-center text-gold-DEFAULT font-bold">
-                  {professional.full_name?.[0]}
-                </div>
+    <AppLayout>
+      <div className="p-4 md:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter text-white">CENTRO DE COMANDO</h1>
+              {isRealtimeActive && (
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-black text-[9px] uppercase tracking-widest animate-pulse">
+                  ● Tempo Real Ativo
+                </Badge>
               )}
             </div>
-            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${currentApp ? 'bg-orange-500' : 'bg-green-500'}`} />
+            <p className="text-slate-400 font-medium">Operação da sua barbearia em tempo real.</p>
           </div>
-          <div>
-            <h3 className="font-semibold">{professional.full_name}</h3>
-            <p className="text-xs text-muted-foreground">
-              {currentApp ? "Atendendo agora" : "Disponível"}
-            </p>
+          
+          <div className="flex flex-wrap items-center gap-3 bg-zinc-900/50 p-2 rounded-2xl border border-white/5">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handlePrevDay}><ChevronLeft size={16} /></Button>
+              <Button 
+                variant="ghost" 
+                className="text-[10px] font-black uppercase tracking-widest h-9 px-4 hover:text-gold"
+                onClick={handleToday}
+              >
+                {isSameDay(selectedDate, new Date()) ? "HOJE" : format(selectedDate, "dd 'DE' MMM", { locale: ptBR }).toUpperCase()}
+              </Button>
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleNextDay}><ChevronRight size={16} /></Button>
+            </div>
+            <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={fetchData} className="text-zinc-400 hover:text-white"><RefreshCw size={14} className={cn(loading && "animate-spin")} /></Button>
+              <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white"><Settings size={14} /></Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Resumo Operacional (KPIs) */}
+        <KPIGrid cols={5}>
+          <MetricCard
+            label="Atendimentos"
+            value={stats.total}
+            hint={`${stats.completed} concluídos`}
+            icon={CalendarIcon}
+            tone="blue"
+          />
+          <MetricCard
+            label="Em Atendimento"
+            value={stats.inProgress}
+            hint="Neste momento"
+            icon={Activity}
+            tone="emerald"
+          />
+          <MetricCard
+            label="Aguardando"
+            value={stats.waiting}
+            hint="Próximos clientes"
+            icon={Clock}
+            tone="orange"
+          />
+          <MetricCard
+            label="Faturamento"
+            value={brl(stats.billing)}
+            hint="Realizado hoje"
+            icon={CircleDollarSign}
+            tone="gold"
+          />
+          <MetricCard
+            label="Pendente"
+            value={brl(stats.pending)}
+            hint="A receber hoje"
+            icon={Wallet}
+            tone="purple"
+          />
+        </KPIGrid>
+
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Timeline da Agenda */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold border border-gold/20">
+                    <CalendarIcon size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black uppercase italic tracking-tighter text-white">AGENDA EM TEMPO REAL</h3>
+                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Linha do tempo operacional</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {appointments.length === 0 ? (
+                  <div className="text-center py-12 space-y-4">
+                    <p className="text-zinc-500 font-medium italic">Sua agenda está livre nesta data.</p>
+                    <div className="flex justify-center gap-3">
+                      <Button onClick={() => setIsAppointmentOpen(true)} className="bg-gold text-black font-black uppercase tracking-widest text-[10px]">Novo Agendamento</Button>
+                    </div>
+                  </div>
+                ) : (
+                  appointments.map((a) => (
+                    <div 
+                      key={a.id} 
+                      className={cn(
+                        "group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
+                        a.status === 'completed' ? "bg-emerald-500/5 border-emerald-500/10 opacity-70" : 
+                        a.status === 'in_progress' ? "bg-gold/5 border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.05)]" : 
+                        "bg-white/[0.02] border-white/5 hover:border-white/10"
+                      )}
+                    >
+                      <div className="flex items-center gap-4 min-w-[100px]">
+                        <div className="text-sm font-black text-white italic">{format(parseISO(a.start_time), "HH:mm")}</div>
+                        <div className="h-8 w-px bg-white/10 hidden sm:block" />
+                      </div>
+                      
+                      <div className="flex flex-1 items-center gap-3 min-w-0">
+                        <Avatar className="h-10 w-10 border border-white/10">
+                          <AvatarImage src={a.barbers?.avatar_url} />
+                          <AvatarFallback className="bg-zinc-800 text-[10px] font-black">{a.barbers?.name?.substring(0,2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="text-xs font-black text-white uppercase tracking-tight truncate italic">{a.customers?.name || "Cliente"}</div>
+                          <div className="text-[10px] text-zinc-400 font-medium truncate uppercase tracking-widest">{a.services?.name} • {a.barbers?.name}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0 ml-auto sm:ml-0">
+                        <Badge 
+                          className={cn(
+                            "font-black text-[9px] uppercase tracking-widest px-2",
+                            a.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                            a.status === 'in_progress' ? "bg-gold/10 text-gold border-gold/20" :
+                            a.status === 'cancelled' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                            "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                          )}
+                        >
+                          {a.status === 'completed' ? "Concluído" : 
+                           a.status === 'in_progress' ? "Em Atendimento" :
+                           a.status === 'cancelled' ? "Cancelado" : "Confirmado"}
+                        </Badge>
+                        <div className="text-xs font-black text-white">{brl(a.total_price)}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Lateral Direita: Ações, Alertas e Equipe */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* Ações Rápidas */}
+            <div className="bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm">
+              <h3 className="text-sm font-black uppercase italic tracking-[0.15em] text-white mb-6">Ações Rápidas</h3>
+              <div className="grid gap-3">
+                <Button 
+                  onClick={() => setIsAppointmentOpen(true)}
+                  className="bg-gold text-black font-black uppercase tracking-widest text-[10px] h-12 rounded-xl w-full justify-start gap-3"
+                >
+                  <CalendarIcon size={16} />
+                  <span>Novo Agendamento</span>
+                </Button>
+                <Button 
+                  onClick={() => setIsWalkinOpen(true)}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] h-12 rounded-xl w-full justify-start gap-3 border-none"
+                >
+                  <UserPlus size={16} />
+                  <span>Walk-in / Presencial</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Atenção Necessária */}
+            <div className="bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-black uppercase italic tracking-[0.15em] text-white">Atenção Necessária</h3>
+                {operationalAlerts.length > 0 && <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />}
+              </div>
+              
+              <div className="space-y-3">
+                {operationalAlerts.length === 0 ? (
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                    <CheckCircle2 size={16} className="text-emerald-400" />
+                    <span className="text-xs font-medium text-emerald-400">Tudo certo por aqui.</span>
+                  </div>
+                ) : (
+                  operationalAlerts.map(alert => (
+                    <div key={alert.id} className={cn(
+                      "flex items-start gap-3 p-4 rounded-2xl border transition-all hover:bg-white/[0.02]",
+                      alert.type === 'critical' ? "bg-rose-500/5 border-rose-500/10" : "bg-amber-500/5 border-amber-500/10"
+                    )}>
+                      <AlertTriangle size={16} className={alert.type === 'critical' ? "text-rose-400 mt-0.5" : "text-amber-400 mt-0.5"} />
+                      <div className="space-y-1">
+                        <p className={cn("text-xs font-bold uppercase tracking-tight", alert.type === 'critical' ? "text-rose-400" : "text-amber-400")}>
+                          {alert.text}
+                        </p>
+                        <Button variant="link" className="p-0 h-auto text-[10px] font-black uppercase text-gold hover:no-underline opacity-80 hover:opacity-100">Ver Agendamento</Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Equipe Agora */}
+            <div className="bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm">
+              <h3 className="text-sm font-black uppercase italic tracking-[0.15em] text-white mb-6">Equipe Agora</h3>
+              <div className="space-y-4">
+                {barbers.map(barber => {
+                  const currentAppt = appointments.find(a => a.barber_id === barber.id && a.status === 'in_progress');
+                  const status = currentAppt ? "Em Atendimento" : "Livre";
+                  
+                  return (
+                    <div key={barber.id} className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-white/10 group-hover:border-gold/30 transition-colors">
+                          <AvatarImage src={barber.avatar_url} />
+                          <AvatarFallback className="bg-zinc-800 text-[10px] font-black">{barber.name?.substring(0,2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-tight italic">{barber.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <span className={cn("h-1.5 w-1.5 rounded-full", currentAppt ? "bg-gold animate-pulse" : "bg-emerald-500")} />
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{status}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <ArrowRight size={14} className="text-zinc-700 group-hover:text-gold transition-colors" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-
-        {currentApp ? (
-          <div className="space-y-2 p-2 rounded bg-gold-DEFAULT/5 border border-gold-DEFAULT/10">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Cliente:</span>
-              <span className="font-medium">{currentApp.customer_name}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Serviço:</span>
-              <span className="font-medium">{currentApp.service_name}</span>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 text-center border border-dashed border-gold-DEFAULT/10 rounded-lg">
-            <p className="text-xs text-muted-foreground">Aguardando próximo</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function AlertItem({ alert }: any) {
-  return (
-    <div className="p-3 rounded-lg border border-red-500/20 bg-red-500/5 flex items-start gap-3">
-      <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-      <div>
-        <p className="text-sm font-medium">{alert.title || "Alerta Operacional"}</p>
-        <p className="text-xs text-muted-foreground">{alert.description || "Atenção necessária nesta tarefa."}</p>
       </div>
-    </div>
-  );
-}
-
-function QuickAction({ icon: Icon, label }: any) {
-  return (
-    <Button variant="outline" className="h-auto py-3 flex-col gap-2 border-gold-DEFAULT/20 hover:border-gold-DEFAULT hover:bg-gold-DEFAULT/5">
-      <Icon className="w-5 h-5 text-gold-DEFAULT" />
-      <span className="text-[10px] uppercase font-bold tracking-wider">{label}</span>
-    </Button>
+      
+      <AppointmentModal open={isAppointmentOpen} onOpenChange={setIsAppointmentOpen} onSuccess={fetchData} />
+      <WalkinModal open={isWalkinOpen} onOpenChange={setIsWalkinOpen} onSuccess={fetchData} />
+    </AppLayout>
   );
 }
