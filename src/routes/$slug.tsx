@@ -3503,7 +3503,7 @@ function ShopPageComponent() {
                   </Button>
                 )}
                 <DialogTitle className="text-xl font-bold tracking-tight text-black">
-                  {bookingStep === 1 && "Bem-vindo"}
+                  {bookingStep === 1 && (showIdentityStep ? "Segurança" : "Bem-vindo")}
                   {bookingStep === 2 && "O que faremos?"}
                   {bookingStep === 3 && "Quem atende?"}
                   {bookingStep === 4 && "Quando?"}
