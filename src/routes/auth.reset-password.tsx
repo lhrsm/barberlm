@@ -58,26 +58,33 @@ function ResetPasswordPage() {
     const isRecovery = hash.includes('type=recovery') || query.get('type') === 'recovery';
     
     const checkSession = async () => {
+      console.log("[RESET_PASSWORD_TRACE] Initializing recovery check...", { isRecovery });
+      
       const { data: { session } } = await supabase.auth.getSession();
       
       // If we have a session and it's from a recovery link, we're good
       if (session) {
+        console.log("[RESET_PASSWORD_TRACE] Session found immediately.");
         setStatus('form');
         return;
       }
 
       // If no session but it looks like a recovery attempt, wait for Supabase to process hash
       if (isRecovery || hash.length > 50) {
+        console.log("[RESET_PASSWORD_TRACE] No session yet, but hash/query looks like recovery. Waiting...");
         setTimeout(async () => {
           const { data: { session: retrySession } } = await supabase.auth.getSession();
           if (retrySession) {
+            console.log("[RESET_PASSWORD_TRACE] Session found after delay.");
             setStatus('form');
           } else {
+            console.warn("[RESET_PASSWORD_TRACE] Session NOT found after delay. Recovery link may be invalid or expired.");
             setStatus('expired');
           }
-        }, 1000);
+        }, 1500);
       } else {
         // Not a recovery link and no session
+        console.warn("[RESET_PASSWORD_TRACE] Not a recovery link and no session. Access denied.");
         setStatus('expired');
       }
     };
