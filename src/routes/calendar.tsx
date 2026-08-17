@@ -166,6 +166,7 @@ const calendarTourConfig = {
 
 const CalendarComponent = memo(() => {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
+  const { tenantId } = useTenant();
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
