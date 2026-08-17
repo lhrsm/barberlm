@@ -72,7 +72,17 @@ function BusinessIntelligencePage() {
 
   const analytics = analyticsQuery.data;
 
-  if (analyticsQuery.isLoading) {
+  if (analyticsQuery.isLoading || !analytics) {
+    if (!analytics && !analyticsQuery.isLoading) {
+      return (
+        <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh]">
+          <p className="text-rose-400 font-black uppercase tracking-tighter">Não foi possível carregar os dados do BI.</p>
+          <Button onClick={() => analyticsQuery.refetch()} variant="outline" className="border-gold text-gold">
+            Tentar Novamente
+          </Button>
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh]">
         <div className="h-12 w-12 border-4 border-gold border-t-transparent rounded-full animate-spin" />
@@ -80,8 +90,6 @@ function BusinessIntelligencePage() {
       </div>
     );
   }
-
-  if (!analytics) return null;
 
   const brl = (v: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
