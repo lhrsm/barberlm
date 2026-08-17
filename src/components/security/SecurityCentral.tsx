@@ -41,7 +41,7 @@ export const SecurityCentral: React.FC = () => {
   });
 
   const emailMutation = useMutation({
-    mutationFn: (email: string) => requestEmailChange({ newEmail: email }),
+    mutationFn: (email: string) => requestEmailChange({ data: { newEmail: email } }),
     onSuccess: (res) => {
       toast.success(res.message);
       setNewEmail('');
