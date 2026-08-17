@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getResendSettings = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -33,15 +34,16 @@ export const getResendSettings = createServerFn({ method: "GET" })
   });
 
 export const updateResendSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({
     from_name: z.string().min(1),
     from_email: z.string().email(),
     domain: z.string().min(1)
   }).parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // Check super_admin role
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = context.user;
     
     if (!user) throw new Error("Unauthorized");
 
@@ -71,7 +73,23 @@ export const updateResendSettings = createServerFn({ method: "POST" })
   });
 
 export const validateResendIntegration = createServerFn({ method: "POST" })
-  .handler(async () => {
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    // Verify super_admin role
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const user = context.user;
+    
+    if (!user) throw new Error("Unauthorized");
+
+    const { data: roleData } = await supabaseAdmin
+      .from("user_roles" as any)
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (!roleData) throw new Error("Permission denied. Super Admin required.");
+
     const RESEND_API_KEY = process.env['RESEND_API_KEY'];
     if (!RESEND_API_KEY) {
       return { success: false, error: "API Key não configurada" };
@@ -89,7 +107,30 @@ export const validateResendIntegration = createServerFn({ method: "POST" })
       }
 
       const domainsData = await response.json();
-      return { success: true, domains: domainsData.data };
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      
+      // Get current domain from settings
+      const { data: settings } = await supabaseAdmin
+        .from("resend_settings" as any)
+        .select("domain")
+        .maybeSingle();
+
+      const currentDomain = (settings as any)?.domain;
+      const resendDomain = domainsData.data?.find((d: any) => d.name === currentDomain);
+
+      if (resendDomain) {
+        await supabaseAdmin
+          .from("resend_settings" as any)
+          .update({ is_domain_verified: resendDomain.status === 'verified' } as any)
+          .eq("domain", currentDomain);
+      }
+
+      return { 
+        success: true, 
+        domains: domainsData.data,
+        verified: resendDomain?.status === 'verified',
+        status: resendDomain?.status || 'not_found'
+      };
     } catch (error: any) {
       return { success: false, error: error.message };
     }

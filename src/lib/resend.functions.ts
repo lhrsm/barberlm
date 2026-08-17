@@ -251,9 +251,10 @@ function renderTemplateContent(key: TemplateKey, data: any = {}) {
       `;
     case 'test_email':
       return `
-        <p>Este é um e-mail de teste para validar a configuração do Resend no Barbex.</p>
-        <p><strong>Status:</strong> Conectado</p>
-        <p><strong>Horário:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+        <p>Olá.</p>
+        <p>Este é um e-mail de teste da integração Resend do Barbex.</p>
+        <p>Se você recebeu esta mensagem, a configuração de e-mail transacional está funcionando corretamente.</p>
+        <p><strong>Barbex</strong></p>
       `;
     case 'security_alert':
     case 'mfa_enabled':
