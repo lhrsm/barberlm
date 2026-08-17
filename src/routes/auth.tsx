@@ -44,11 +44,11 @@ function AuthPageComponent() {
       <div className="w-full max-w-md relative z-10">
         <div className="mb-8 flex flex-col items-center">
             <div className="flex justify-center w-full mb-8">
-              <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
+              <div className="w-[180px] h-[180px] md:w-[240px] md:h-[240px] flex items-center justify-center">
                 <img 
                   src="https://wdxhjwodyctgzqtogkgv.supabase.co/storage/v1/object/public/barber-avatars/logo-barbex.png" 
                   alt="Barbex Logo" 
-                  className="max-w-full max-height-full object-contain"
+                  className="max-w-full max-h-full object-contain"
                 />
               </div>
             </div>
