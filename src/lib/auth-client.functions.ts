@@ -25,11 +25,33 @@ export const clientLogin = createServerFn({ method: "POST" })
     }
 
     if (authResult.error) {
+      // If phone login fails, try to see if it's a normalization issue or missing phone in Auth
+      if (type === 'phone') {
+        console.log(`[AuthClient] Phone login failed for ${value}. Checking for repair...`);
+      }
       throw new Error("Telefone/e-mail ou senha inválidos.");
     }
-
+    
     const { data: { user } } = authResult;
     if (!user) throw new Error("Usuário não encontrado");
+
+    // Repair routine: if user logged in via email but lacks phone in Auth, and we have it in customers
+    if (type === 'email' && !user.phone) {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('phone')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (customer?.phone) {
+        console.log(`[AuthClient] Repairing missing phone for user ${user.id}`);
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin.auth.admin.updateUserById(user.id, {
+          phone: customer.phone,
+          user_metadata: { ...user.user_metadata, phone: customer.phone }
+        });
+      }
+    }
 
     // Check for MFA
     const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();

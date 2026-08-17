@@ -108,11 +108,13 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
     // 2. Create Auth User
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
+      phone: data.phone,
       password: data.password,
       email_confirm: true,
       user_metadata: {
         full_name: data.name,
         phone: data.phone,
+        phone_normalized: data.phone,
         identifier: data.email,
         role: 'client'
       }
