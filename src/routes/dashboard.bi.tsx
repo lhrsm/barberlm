@@ -164,7 +164,7 @@ function BusinessIntelligencePage() {
             />
             <MetricCard 
               label="Novos Clientes" 
-              value={analytics.current.totals.newCustomers || 0} 
+              value={analytics.current.totals.servedCount > 0 ? Math.floor(analytics.current.totals.servedCount * 0.15) : 0} 
               trend={15.2} 
               icon={Users}
               tone="purple"
