@@ -274,6 +274,7 @@ export function AuthForm() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
 
+
             </div>
           </div>
         )}
