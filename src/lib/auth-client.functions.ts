@@ -18,17 +18,19 @@ export const clientLogin = createServerFn({ method: "POST" })
     if (!supabase) throw new Error("Supabase client singleton not initialized");
 
     let authResult;
-    if (type === 'email') {
-      authResult = await supabase.auth.signInWithPassword({ email: value, password });
-    } else {
-      authResult = await supabase.auth.signInWithPassword({ phone: value, password });
+    try {
+      if (type === 'email') {
+        authResult = await supabase.auth.signInWithPassword({ email: value, password });
+      } else {
+        authResult = await supabase.auth.signInWithPassword({ phone: value, password });
+      }
+    } catch (e: any) {
+      console.error(`[AuthClient] Sign in exception for ${value}:`, e);
+      throw new Error("Telefone/e-mail ou senha inválidos.");
     }
 
     if (authResult.error) {
-      // If phone login fails, try to see if it's a normalization issue or missing phone in Auth
-      if (type === 'phone') {
-        console.log(`[AuthClient] Phone login failed for ${value}. Checking for repair...`);
-      }
+      console.log(`[AuthClient] Login failed for ${value}: ${authResult.error.message}`);
       throw new Error("Telefone/e-mail ou senha inválidos.");
     }
     

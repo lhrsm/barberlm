@@ -141,10 +141,35 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
                   <Input
                     id="identifier"
-                    placeholder="71999999999 ou seu@email.com"
+                    placeholder="+55 (71) 99999-9999 ou seu@email.com"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val.includes('@')) {
+                        // Apply visual mask for phone
+                        const digits = val.replace(/\D/g, "");
+                        let formatted = val;
+                        if (digits.length > 0) {
+                          if (digits.startsWith('55')) {
+                            const withoutDDI = digits.substring(2);
+                            if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
+                            else if (withoutDDI.length <= 6) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2)}`;
+                            else if (withoutDDI.length <= 10) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 6)}-${withoutDDI.slice(6)}`;
+                            else formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 7)}-${withoutDDI.slice(7, 11)}`;
+                          } else {
+                            if (digits.length <= 2) formatted = `(${digits}`;
+                            else if (digits.length <= 6) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+                            else if (digits.length <= 10) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+                            else formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+                          }
+                        }
+                        form.setValue("identifier", formatted);
+                      } else {
+                        form.setValue("identifier", val);
+                      }
+                    }}
+                    className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
                   />
                 </div>
                 {form.formState.errors.identifier && (
@@ -171,7 +196,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                    className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
                   />
                   <button
                     type="button"
@@ -237,10 +262,34 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Telefone ou E-mail</Label>
                 <Input
-                  placeholder="71999999999 ou seu@email.com"
+                  placeholder="+55 (71) 99999-9999 ou seu@email.com"
                   value={form.watch("identifier")}
-                  onChange={(e) => form.setValue("identifier", e.target.value)}
-                  className="h-14 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val.includes('@')) {
+                      // Apply visual mask for phone
+                      const digits = val.replace(/\D/g, "");
+                      let formatted = val;
+                      if (digits.length > 0) {
+                        if (digits.startsWith('55')) {
+                          const withoutDDI = digits.substring(2);
+                          if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
+                          else if (withoutDDI.length <= 6) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2)}`;
+                          else if (withoutDDI.length <= 10) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 6)}-${withoutDDI.slice(6)}`;
+                          else formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 7)}-${withoutDDI.slice(7, 11)}`;
+                        } else {
+                          if (digits.length <= 2) formatted = `(${digits}`;
+                          else if (digits.length <= 6) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+                          else if (digits.length <= 10) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+                          else formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+                        }
+                      }
+                      form.setValue("identifier", formatted);
+                    } else {
+                      form.setValue("identifier", val);
+                    }
+                  }}
+                  className="h-14 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
                 />
               </div>
 
@@ -260,39 +309,50 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             key="success"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-6 py-6"
+            className="flex flex-col items-center justify-center py-6 text-center"
           >
-            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 border border-emerald-100 shadow-sm">
-              <MailCheck size={40} />
+            <div className="mb-6 relative">
+              <div className="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-50 animate-pulse" />
+              <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center text-emerald-500 border border-emerald-100 shadow-xl shadow-emerald-500/10">
+                <CheckCircle2 size={48} strokeWidth={1.5} />
+              </div>
             </div>
             
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-black tracking-tight uppercase italic">E-mail Enviado</h2>
-              <div className="space-y-1">
-                <p className="text-zinc-500 text-sm font-bold">
-                  Enviamos as instruções de recuperação.
+            <div className="space-y-3 mb-8 px-4">
+              <h2 className="text-3xl font-black text-black tracking-tight uppercase italic leading-none">E-mail Enviado</h2>
+              <div className="space-y-2">
+                <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest opacity-80">
+                  Instruções encaminhadas com sucesso
                 </p>
-                <p className="text-zinc-400 text-[11px] font-medium leading-relaxed px-4">
-                  Verifique também sua pasta de spam ou lixo eletrônico.
+                <div className="h-px w-12 bg-gold/30 mx-auto" />
+                <p className="text-zinc-400 text-xs font-medium leading-relaxed max-w-[280px] mx-auto">
+                  Enviamos o link de recuperação para o seu e-mail cadastrado. Por favor, verifique também sua pasta de <span className="text-zinc-600 font-bold uppercase">spam</span>.
                 </p>
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col gap-3 px-4">
+            <div className="w-full space-y-4 px-6">
               <Button
                 onClick={() => setView('login')}
-                className="h-14 w-full bg-black text-white font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-800 transition-all active:scale-[0.98]"
+                className="h-14 w-full bg-black text-white font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.98] border border-white/10"
               >
                 Entendi
               </Button>
               
-              <button 
-                onClick={handleForgotPassword}
-                disabled={loading}
-                className="text-[10px] font-black uppercase tracking-widest text-gold hover:text-gold-dark transition-colors py-2 flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="animate-spin w-3 h-3" /> : "Reenviar e-mail"}
-              </button>
+              <div className="pt-2">
+                <button 
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="group flex items-center justify-center gap-2 mx-auto"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gold group-hover:text-gold-dark transition-colors">
+                    Não recebeu?
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black/40 group-hover:text-gold transition-colors border-b border-black/10 group-hover:border-gold pb-0.5">
+                    {loading ? "Enviando..." : "Reenviar link"}
+                  </span>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
