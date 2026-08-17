@@ -106,7 +106,7 @@ function CustomerPortalGuard() {
 }
 
 function CustomerPortalPage() {
-  const params = useParams({ from: "/$slug/portal" }) as { slug: string };
+  const params = useParams({ from: "/$slug/portal" });
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
