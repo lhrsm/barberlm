@@ -213,6 +213,7 @@ const CalendarComponent = memo(() => {
       .from("appointments")
       .select("*, customers(*), services(*), barbers(*)")
       .eq("tenant_id", user.id)
+      .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show"])
       .gte("start_time", start.toISOString())
       .lte("start_time", end.toISOString());
     
