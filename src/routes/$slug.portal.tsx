@@ -21,8 +21,8 @@ export const Route = createFileRoute("/$slug/portal")({
 });
 
 function CustomerPortalPage() {
-  const { user, loading: authLoading, profile } = useAuth();
   const params = useParams({ from: "/$slug/portal" });
+  const { user, loading: authLoading, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     customer: any;
@@ -103,61 +103,15 @@ function CustomerPortalPage() {
     return null;
   }
 
-
-  useEffect(() => {
-    async function loadPortalData() {
-      if (!user) return;
-      try {
-        const { data: customerData, error: customerError } = await supabase
-          .from("customers")
-          .select("*, loyalty_levels(*)")
-          .eq("user_id", user.id) 
-          .eq("tenant_id", profile?.tenant_id)
-          .maybeSingle();
-
-        if (customerError) throw customerError;
-
-        const [levelsRes, achRes, unlockedRes] = await Promise.all([
-          supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
-          supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
-          customerData 
-            ? supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
-            : Promise.resolve({ data: [] })
-        ]);
-
-        setData({
-          customer: customerData,
-          levels: levelsRes.data || [],
-          achievements: achRes.data || [],
-          unlockedAchievements: unlockedRes.data || []
-        });
-      } catch (err: any) {
-        toast.error("Erro ao carregar portal: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadPortalData();
-  }, [user]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
-        <div className="h-10 w-10 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   const currentLevel = data?.customer?.loyalty_levels;
   const levels = data?.levels || [];
-  const currentIndex = levels.findIndex(l => l.id === currentLevel?.id);
+  const currentIndex = levels.findIndex((l: any) => l.id === currentLevel?.id);
   const nextLevel = currentIndex !== -1 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : undefined;
 
-  const achievements = (data?.achievements || []).map(ach => ({
+  const achievements = (data?.achievements || []).map((ach: any) => ({
     ...ach,
-    unlocked: data?.unlockedAchievements?.some(ua => ua.achievement_id === ach.id),
-    unlocked_at: data?.unlockedAchievements?.find(ua => ua.achievement_id === ach.id)?.unlocked_at
+    unlocked: data?.unlockedAchievements?.some((ua: any) => ua.achievement_id === ach.id),
+    unlocked_at: data?.unlockedAchievements?.find((ua: any) => ua.achievement_id === ach.id)?.unlocked_at
   }));
 
   return (
@@ -190,16 +144,14 @@ function CustomerPortalPage() {
           </Link>
 
           <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-          <Activity className="h-5 w-5 text-gold" />
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
-            <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+            <Activity className="h-5 w-5 text-gold" />
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
+              <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-
 
       {/* Level Dashboard */}
       <LoyaltyLevelCard 
