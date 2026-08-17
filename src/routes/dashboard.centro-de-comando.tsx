@@ -388,7 +388,6 @@ function CentroDeComando() {
             </div>
           </div>
         </div>
-        </div>
       </div>
       <AppointmentModal open={isAppointmentOpen} onOpenChange={setIsAppointmentOpen} onSuccess={fetchData} />
       <WalkinModal open={isWalkinOpen} onOpenChange={setIsWalkinOpen} onSuccess={fetchData} />

@@ -345,7 +345,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
             )}
             <div className="space-y-3 flex-1 pt-2">
               {navItems.map((item) => {
-                const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+                const isActive = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
                 return (
                   <Link
                     key={item.to}
@@ -358,7 +358,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                         : "hover:bg-white/5"
                     )}
                   >
-                    <item.icon size={24} className="text-gold" />
+                    <item.icon size={24} className={isActive ? "text-gold" : "text-zinc-500 group-hover:text-gold"} />
                     <span className="text-white">{item.label}</span>
                   </Link>
                 );
