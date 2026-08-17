@@ -52,6 +52,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionIndexRouteImport } from './routes/subscription.index'
 import { Route as ReceptionIndexRouteImport } from './routes/reception.index'
 import { Route as LoyaltyIndexRouteImport } from './routes/loyalty.index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SubscriptionsStatusRouteImport } from './routes/subscriptions.status'
 import { Route as SubscriptionsReportsRouteImport } from './routes/subscriptions.reports'
@@ -329,6 +330,11 @@ const LoyaltyIndexRoute = LoyaltyIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LoyaltyRoute,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -742,6 +748,7 @@ export interface FileRoutesByFullPath {
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
@@ -775,7 +782,6 @@ export interface FileRoutesByTo {
   '/commissions': typeof CommissionsRoute
   '/cookies': typeof CookiesRoute
   '/customers': typeof CustomersRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/finances': typeof FinancesRoute
   '/history': typeof HistoryRoute
   '/integrations': typeof IntegrationsRoute
@@ -846,6 +852,7 @@ export interface FileRoutesByTo {
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin': typeof AdminIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/loyalty': typeof LoyaltyIndexRoute
   '/reception': typeof ReceptionIndexRoute
   '/subscription': typeof SubscriptionIndexRoute
@@ -954,6 +961,7 @@ export interface FileRoutesById {
   '/subscriptions/reports': typeof SubscriptionsReportsRoute
   '/subscriptions/status': typeof SubscriptionsStatusRoute
   '/admin/': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/loyalty/': typeof LoyaltyIndexRoute
   '/reception/': typeof ReceptionIndexRoute
   '/subscription/': typeof SubscriptionIndexRoute
@@ -1063,6 +1071,7 @@ export interface FileRouteTypes {
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
+    | '/dashboard/'
     | '/loyalty/'
     | '/reception/'
     | '/subscription/'
@@ -1096,7 +1105,6 @@ export interface FileRouteTypes {
     | '/commissions'
     | '/cookies'
     | '/customers'
-    | '/dashboard'
     | '/finances'
     | '/history'
     | '/integrations'
@@ -1167,6 +1175,7 @@ export interface FileRouteTypes {
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin'
+    | '/dashboard'
     | '/loyalty'
     | '/reception'
     | '/subscription'
@@ -1274,6 +1283,7 @@ export interface FileRouteTypes {
     | '/subscriptions/reports'
     | '/subscriptions/status'
     | '/admin/'
+    | '/dashboard/'
     | '/loyalty/'
     | '/reception/'
     | '/subscription/'
@@ -1658,6 +1668,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/loyalty/'
       preLoaderRoute: typeof LoyaltyIndexRouteImport
       parentRoute: typeof LoyaltyRoute
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -2197,6 +2214,7 @@ interface DashboardRouteChildren {
   DashboardCrmRoute: typeof DashboardCrmRoute
   DashboardIntegracoesRoute: typeof DashboardIntegracoesRoute
   DashboardMembershipRoute: typeof DashboardMembershipRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -2207,6 +2225,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCrmRoute: DashboardCrmRoute,
   DashboardIntegracoesRoute: DashboardIntegracoesRoute,
   DashboardMembershipRoute: DashboardMembershipRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
