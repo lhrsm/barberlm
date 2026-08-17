@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Lock, Eye, EyeOff, Loader2, Mail, Phone, ArrowRight, ShieldCheck, AlertCircle, Shield } from "lucide-react";
+import { User, Lock, Eye, EyeOff, Loader2, Mail, Phone, ArrowRight, ShieldCheck, AlertCircle, Shield, MailCheck, CheckCircle2 } from "lucide-react";
 import { MFAVerificationGuard } from "@/components/security/MFAVerificationGuard";
 
 import { Button } from "@/components/ui/button";
@@ -119,7 +119,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   };
 
   return (
-    <div className="w-full max-w-[min(480px,calc(100vw-48px))] mx-auto">
+    <div className="w-full max-w-[min(480px,calc(100vw-48px))] mx-auto relative">
       <AnimatePresence mode="wait">
         {view === 'login' && (
           <motion.div
@@ -260,24 +260,40 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             key="success"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-6 py-8"
+            className="text-center space-y-6 py-6"
           >
-            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500">
-              <ShieldCheck size={40} />
+            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 border border-emerald-100 shadow-sm">
+              <MailCheck size={40} />
             </div>
+            
             <div className="space-y-2">
-              <h2 className="text-2xl font-black text-black tracking-tight">Instruções enviadas</h2>
-              <p className="text-zinc-500 text-sm font-medium px-4">
-                Se encontrarmos uma conta compatível, enviaremos as instruções de recuperação para o e-mail cadastrado.
-              </p>
+              <h2 className="text-2xl font-black text-black tracking-tight uppercase italic">E-mail Enviado</h2>
+              <div className="space-y-1">
+                <p className="text-zinc-500 text-sm font-bold">
+                  Enviamos as instruções de recuperação.
+                </p>
+                <p className="text-zinc-400 text-[11px] font-medium leading-relaxed px-4">
+                  Verifique também sua pasta de spam ou lixo eletrônico.
+                </p>
+              </div>
             </div>
-            <Button
-              onClick={() => setView('login')}
-              variant="outline"
-              className="h-12 border-zinc-200 rounded-xl font-bold px-8 hover:bg-zinc-50 transition-all"
-            >
-              Voltar ao login
-            </Button>
+
+            <div className="pt-2 flex flex-col gap-3 px-4">
+              <Button
+                onClick={() => setView('login')}
+                className="h-14 w-full bg-black text-white font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-800 transition-all active:scale-[0.98]"
+              >
+                Entendi
+              </Button>
+              
+              <button 
+                onClick={handleForgotPassword}
+                disabled={loading}
+                className="text-[10px] font-black uppercase tracking-widest text-gold hover:text-gold-dark transition-colors py-2 flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="animate-spin w-3 h-3" /> : "Reenviar e-mail"}
+              </button>
+            </div>
           </motion.div>
         )}
         {view === 'mfa' && (
