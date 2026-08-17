@@ -1,6 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { withModule } from "@/components/modules/withModule";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,19 +8,44 @@ import {
   Trophy, 
   Sparkles, 
   Crown, 
-  Target, 
-  TrendingUp, 
   ShieldCheck, 
   Activity,
   ChevronRight,
-  ArrowRight
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/$slug/portal")({
-  component: CustomerPortalPage,
+  component: CustomerPortalGuard,
 });
+
+function CustomerPortalGuard() {
+  const { user, loading, profile } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        console.log("[PortalGuard] No user, redirecting to /auth");
+        navigate({ to: "/auth" as any });
+      } else if (profile && profile.identity_status === 'legacy') {
+        console.log("[PortalGuard] Legacy client, redirecting to /auth for migration");
+        navigate({ to: "/auth" as any });
+      }
+    }
+  }, [user, loading, profile, navigate]);
+
+  if (loading || !user || (profile && profile.identity_status === 'legacy')) {
+    return (
+      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
+        <Loader2 className="h-10 w-10 text-gold animate-spin" />
+      </div>
+    );
+  }
+
+  return <CustomerPortalPage />;
+}
 
 function CustomerPortalPage() {
   const { user } = useAuth();
@@ -41,7 +64,7 @@ function CustomerPortalPage() {
         const { data: customerData, error: customerError } = await supabase
           .from("customers")
           .select("*, loyalty_levels(*)")
-          .eq("user_id", user.id) // Simplificação: assume que o usuário logado é o cliente
+          .eq("user_id", user.id) 
           .maybeSingle();
 
         if (customerError) throw customerError;
