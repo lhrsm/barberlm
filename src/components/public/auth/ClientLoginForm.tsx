@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 const loginSchema = z.object({
   identifier: z.string().min(1, "Informe seu e-mail ou telefone"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
-  remember: z.boolean(),
+  remember: z.boolean().default(true),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -172,6 +172,16 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                 {form.formState.errors.password && (
                   <p className="text-[10px] text-red-500 font-bold ml-1">{form.formState.errors.password.message}</p>
                 )}
+              </div>
+
+              <div className="flex items-center gap-2 px-1">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  {...form.register("remember")}
+                  className="w-4 h-4 rounded border-zinc-300 text-gold focus:ring-gold"
+                />
+                <Label htmlFor="remember" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer">Manter conectado</Label>
               </div>
 
               <Button
