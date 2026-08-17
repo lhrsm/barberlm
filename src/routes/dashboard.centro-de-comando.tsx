@@ -77,7 +77,7 @@ function CentroDeComando() {
       total: active.length,
       completed: completed.length,
       inProgress: active.filter(a => a.status === 'in_progress').length,
-      waiting: active.filter(a => a.status === 'confirmed' || a.status === 'scheduled').length, // Ajustar lógica se houver check-in explícito
+      waiting: active.filter(a => a.status === 'confirmed' || a.status === 'scheduled' || a.status === 'pending').length,
       billing: realCashInflow,
       pending: pendingAmount,
       servicesValue: totalServicesValue
@@ -291,7 +291,7 @@ function CentroDeComando() {
                         >
                           {a.status === 'completed' ? "Concluído" : 
                            a.status === 'in_progress' ? "Em Atendimento" :
-                           a.status === 'cancelled' ? "Cancelado" : "Confirmado"}
+                           a.status === 'cancelled' ? "Cancelado" : (a.status === 'confirmed' ? "Confirmado" : "Pendente")}
                         </Badge>
                         <div className="text-xs font-black text-white">{brl(a.total_price)}</div>
                       </div>
