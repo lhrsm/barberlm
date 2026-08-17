@@ -11,55 +11,44 @@ export const clientLogin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, password } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    
-    // We use the supabase client from context (provided by middleware)
-    // In TanStack Start with Supabase, the context should have the supabase client
     const { supabase } = context as any;
     
-    if (!supabase) {
-      throw new Error("Supabase client not found in context");
-    }
+    if (!supabase) throw new Error("Supabase client not found in context");
 
     let authResult;
-    
     if (type === 'email') {
-      authResult = await supabase.auth.signInWithPassword({
-        email: value,
-        password: password,
-      });
+      authResult = await supabase.auth.signInWithPassword({ email: value, password });
     } else {
-      authResult = await supabase.auth.signInWithPassword({
-        phone: value,
-        password: password,
-      });
+      authResult = await supabase.auth.signInWithPassword({ phone: value, password });
     }
 
     if (authResult.error) {
-      // Return a generic error to prevent enumeration
       throw new Error("Credenciais inválidas");
     }
 
     const { data: { user } } = authResult;
-    
-    if (!user) {
-      throw new Error("Usuário não encontrado");
+    if (!user) throw new Error("Usuário não encontrado");
+
+    // Check for MFA
+    const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+    const hasVerifiedMFA = factors?.all?.some((f: any) => f.status === 'verified');
+
+    if (hasVerifiedMFA) {
+      return {
+        status: 'mfa_required',
+        userId: user.id
+      };
     }
 
-    // Check if user is a client and get their status
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, role, auth_setup_status, tenant_id')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile) {
-      throw new Error("Perfil não encontrado");
-    }
+    if (profileError || !profile) throw new Error("Perfil não encontrado");
 
-    // Check if it's a legacy client
     if (profile.auth_setup_status === 'legacy') {
-      // In a real scenario, we might want to sign them out or return a specific status
-      // to trigger the migration flow on the frontend.
       return { 
         status: 'migration_required', 
         userId: user.id,
@@ -77,6 +66,7 @@ export const clientLogin = createServerFn({ method: "POST" })
       }
     };
   });
+
 
 export const requestPasswordReset = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
