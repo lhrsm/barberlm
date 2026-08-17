@@ -123,3 +123,4 @@ function RootComponent() {
   </QueryClientProvider>
 );
 }
+// Ensure route imports are working by checking routeTree.gen.ts (automatic)
