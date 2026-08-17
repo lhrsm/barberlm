@@ -33,7 +33,8 @@ import {
   Webhook,
   Activity,
   History,
-  PlayCircle
+  PlayCircle,
+  Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,7 @@ function IntegrationsComponent() {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [isTesting, setIsTesting] = useState(false);
+  const [aiSettings, setAiSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,11 +73,13 @@ function IntegrationsComponent() {
     if (!tenantId) return;
     
     try {
-      const [logsRes] = await Promise.all([
-        supabase.from("email_logs" as any).select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(5)
+      const [logsRes, aiRes] = await Promise.all([
+        supabase.from("email_logs" as any).select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(5),
+        supabase.from("ai_settings").select("*").eq("tenant_id", tenantId).maybeSingle()
       ]);
 
       if (logsRes.data) setEmailLogs(logsRes.data);
+      if (aiRes.data) setAiSettings(aiRes.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -254,13 +258,13 @@ function IntegrationsComponent() {
                       <Lock size={10} /> ELITE
                     </span>
                   ) : (
-                    <span className={cn(
+                  <span className={cn(
                       "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                      ai?.id
+                      aiSettings?.id
                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                         : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
                     )}>
-                      {ai?.id ? "Ativo" : "Pendente"}
+                      {aiSettings?.id ? "Ativo" : "Pendente"}
                     </span>
                   )}
                 </div>
@@ -270,11 +274,11 @@ function IntegrationsComponent() {
               <CardContent className="flex-1 space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">API Key (OpenAI)</Label>
-                  <Input type="password" defaultValue={ai?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
+                  <Input type="password" defaultValue={aiSettings?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo</Label>
-                  <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
+                  <Input defaultValue={aiSettings?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
                 </div>
               </CardContent>
               <CardFooter className="border-t border-zinc-800/80 pt-4 justify-start">
