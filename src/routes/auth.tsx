@@ -6,9 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Scissors } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { tab: string; redirect?: string } => {
+  validateSearch: (search: Record<string, unknown>) => {
     return {
-      tab: (search.tab as string) || "login",
+      tab: (search.tab as string) || undefined,
       redirect: (search.redirect as string) || undefined,
     };
   },
