@@ -164,16 +164,16 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     autoComplete="username"
                     onChange={(e) => {
                       const val = e.target.value;
-                      // Improved detection logic: 
-                      // 1. If it contains @ or letters (except '+' for DDI), treat as email immediately.
-                      // 2. Otherwise, treat as phone and apply mask.
-                      if (/[a-zA-Z@]/.test(val)) {
+                      
+                      // 1. If it contains @ or letters (except '+' for DDI at start), treat as email immediately.
+                      if (/[a-zA-Z@]/.test(val) || (val.includes('+') && val.indexOf('+') > 0)) {
                         form.setValue("identifier", val);
                       } else {
+                        // Phone normalization
                         const digits = val.replace(/\D/g, "");
                         let formatted = val;
                         
-                        if (digits.length >= 2) {
+                        if (digits.length > 0) {
                           if (digits.startsWith('55')) {
                             const withoutDDI = digits.substring(2);
                             if (withoutDDI.length === 0) formatted = `+55`;
