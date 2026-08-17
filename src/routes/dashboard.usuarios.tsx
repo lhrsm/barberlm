@@ -18,8 +18,13 @@ import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/dashboard/usuarios")({
-  component: TeamManagementPage,
+  component: () => (
+    <PermissionGuard permission="users:manage">
+      <TeamManagementPage />
+    </PermissionGuard>
+  ),
 });
+
 
 function TeamManagementPage() {
   const { tenantId } = useTenant();
