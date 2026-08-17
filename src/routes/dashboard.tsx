@@ -10,9 +10,7 @@ function DashboardLayout() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-[#05070d] pb-20">
-        <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8">
-          <Outlet />
-        </div>
+        <Outlet />
         <AppointmentModal />
       </div>
     </AppLayout>
