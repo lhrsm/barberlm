@@ -11,8 +11,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { getTeamMembers, getPendingInvitations } from "@/lib/team.functions";
 import { useTenant } from "@/hooks/use-tenant";
 import { AddUserModal } from "@/components/team/AddUserModal";
+import { PermissionMatrix } from "@/components/security/PermissionMatrix";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 import { useState } from "react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/dashboard/usuarios")({
   component: TeamManagementPage,
