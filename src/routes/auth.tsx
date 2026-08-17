@@ -211,25 +211,25 @@ function AuthPageComponent() {
               {/* Commercial Info / Badges */}
               <div className={`mt-8 pt-8 border-t ${isClientPortal ? 'border-zinc-100' : 'border-white/5'} grid grid-cols-2 gap-4`}>
                 {[
-                  { text: "15 dias grátis" },
-                  { text: "Sem cartão" },
-                  { text: "Config. Rápida" },
-                  { text: "Suporte VIP" }
+                  { text: isClientPortal ? "Check-in Rápido" : "15 dias grátis" },
+                  { text: isClientPortal ? "Histórico 360°" : "Sem cartão" },
+                  { text: isClientPortal ? "Cashback Ativo" : "Config. Rápida" },
+                  { text: isClientPortal ? "Agenda 24h" : "Suporte VIP" }
                 ].map((info, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <CheckCircle2 size={12} className="text-gold/60" />
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{info.text}</span>
+                    <span className={`text-[9px] font-bold ${isClientPortal ? 'text-zinc-400' : 'text-zinc-500'} uppercase tracking-widest`}>{info.text}</span>
                   </div>
                 ))}
               </div>
 
               {/* Security Footer */}
               <div className="mt-10 flex flex-col items-center text-center space-y-2 opacity-50">
-                <div className="flex items-center gap-2 text-[10px] font-black text-white uppercase tracking-widest">
+                <div className={`flex items-center gap-2 text-[10px] font-black ${isClientPortal ? 'text-zinc-900' : 'text-white'} uppercase tracking-widest`}>
                   <ShieldCheck size={14} className="text-gold" />
                   Ambiente Seguro
                 </div>
-                <p className="text-[8px] font-medium text-zinc-500 leading-relaxed max-w-[200px]">
+                <p className={`text-[8px] font-medium ${isClientPortal ? 'text-zinc-500' : 'text-zinc-500'} leading-relaxed max-w-[200px]`}>
                   Seus dados são protegidos por autenticação e controles de segurança avançados.
                 </p>
               </div>
