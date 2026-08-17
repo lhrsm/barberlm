@@ -4748,24 +4748,24 @@ function ShopPageComponent() {
                               </div>
                             </div>
                           )}
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <Button 
-                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            className="flex items-center justify-between h-20 px-6 bg-zinc-50 text-black hover:bg-zinc-100 border border-zinc-200 rounded-2xl font-semibold shadow-sm transition-all duration-200 hover:shadow-md group"
                             onClick={() => setPaymentMethod('barbershop')}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center">
-                                <Scissors size={24} className="text-white" />
+                              <div className="h-12 w-12 rounded-xl bg-white border border-zinc-100 flex items-center justify-center">
+                                <Scissors size={24} className="text-zinc-400 group-hover:text-black transition-colors" />
                               </div>
                               <div className="text-left">
-                                <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
-                                <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
+                                <p className="text-sm font-black uppercase tracking-tight text-black">Pagar na Unidade</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest opacity-80">Pague após o serviço</p>
                               </div>
                             </div>
-                            <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
+                            <ChevronRight size={18} className="text-zinc-300 group-hover:text-black transition-colors" />
                           </Button>
                           <Button 
-                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-800 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                             onClick={() => setPaymentMethod('pix')}
                           >
                             <div className="flex items-center gap-4">
@@ -4773,11 +4773,11 @@ function ShopPageComponent() {
                                 <QrCode size={24} className="text-white" />
                               </div>
                               <div className="text-left">
-                                <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
-                                <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
+                                <p className="text-sm font-black uppercase tracking-tight text-white">Pagar Agora (PIX)</p>
+                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest opacity-80">Reserva garantida</p>
                               </div>
                             </div>
-                            <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
+                            <ChevronRight size={18} className="text-white/60 group-hover:text-white transition-colors" />
                           </Button>
                         </div>
                         </>
