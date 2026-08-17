@@ -185,13 +185,13 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <div className="space-y-2">
                 <Label htmlFor="identifier" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Telefone ou E-mail</Label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
                   <Input
                     id="identifier"
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
+                    className="h-[56px] pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
                   />
 
                 </div>
@@ -212,14 +212,14 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   </button>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
+                    className="h-[56px] pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
                   />
                   <button
                     type="button"
