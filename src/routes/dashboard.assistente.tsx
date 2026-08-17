@@ -49,7 +49,6 @@ function AIAssistantPage() {
 
   if (authLoading || tenantLoading || loadingConfig) {
     return (
-    return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" />
       </div>

@@ -147,7 +147,6 @@ function CentroDeComando() {
 
   if (loading && !stats) {
     return (
-    return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="animate-spin text-gold" size={48} />
       </div>
@@ -389,9 +388,8 @@ function CentroDeComando() {
           </div>
         </div>
       </div>
-      
       <AppointmentModal open={isAppointmentOpen} onOpenChange={setIsAppointmentOpen} onSuccess={fetchData} />
       <WalkinModal open={isWalkinOpen} onOpenChange={setIsWalkinOpen} onSuccess={fetchData} />
-    </AppLayout>
+    </>
   );
 }
