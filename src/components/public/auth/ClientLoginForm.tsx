@@ -83,13 +83,18 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   };
 
   const handleSuccess = async () => {
-    await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("[ClientLoginForm] Login success, session check:", !!session);
     toast.success("Login realizado com sucesso!");
+    
     if (redirect) {
+      console.log("[ClientLoginForm] Redirecting to stored path:", redirect);
       window.location.href = redirect;
     } else if (barbershopSlug) {
+      console.log("[ClientLoginForm] Redirecting to slug portal:", barbershopSlug);
       navigate({ to: `/${barbershopSlug}/portal` as any });
     } else {
+      console.log("[ClientLoginForm] Redirecting to general portal");
       navigate({ to: "/portal" as any });
     }
   };

@@ -25,24 +25,37 @@ function CustomerPortalGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("[PortalGuard] State Check:", { 
+      loading, 
+      hasUser: !!user, 
+      hasProfile: !!profile, 
+      identityStatus: profile?.identity_status,
+      tenantId: profile?.tenant_id,
+      pathname: window.location.pathname
+    });
+
     if (!loading) {
       if (!user) {
-        console.log("[PortalGuard] No user, redirecting to /auth");
-        // Save the current path to redirect back after login
+        console.log("[PortalGuard] REDIRECT_DEBUG: No user, redirecting to /auth", {
+          source: 'CustomerPortalGuard',
+          reason: 'unauthenticated'
+        });
         const currentPath = window.location.pathname;
         navigate({ 
           to: "/auth" as any, 
           search: { redirect: currentPath } as any
         });
       } else if (profile) {
-        // Verify identity status
         if (profile.identity_status === 'legacy') {
-          console.log("[PortalGuard] Legacy client, redirecting to /auth for migration");
+          console.log("[PortalGuard] REDIRECT_DEBUG: Legacy client, redirecting to /auth", {
+            source: 'CustomerPortalGuard',
+            reason: 'legacy_status'
+          });
           navigate({ to: "/auth" as any });
         }
-        
-        // Multi-tenant check: ensure the user has a membership for this slug
-        // The slug comes from the route params
+      } else {
+        // Auth exists but profile is null
+        console.log("[PortalGuard] Auth exists but profile is null. Waiting for profile hydration or identity resolution.");
       }
     }
   }, [user, loading, profile, navigate]);
