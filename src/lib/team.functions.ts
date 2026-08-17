@@ -28,7 +28,7 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
       .single();
 
     // Generate token
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const token = randomBytes(32).toString('hex');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 72);
 
