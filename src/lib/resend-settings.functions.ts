@@ -89,7 +89,30 @@ export const validateResendIntegration = createServerFn({ method: "POST" })
       }
 
       const domainsData = await response.json();
-      return { success: true, domains: domainsData.data };
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      
+      // Get current domain from settings
+      const { data: settings } = await supabaseAdmin
+        .from("resend_settings" as any)
+        .select("domain")
+        .maybeSingle();
+
+      const currentDomain = (settings as any)?.domain;
+      const resendDomain = domainsData.data?.find((d: any) => d.name === currentDomain);
+
+      if (resendDomain) {
+        await supabaseAdmin
+          .from("resend_settings" as any)
+          .update({ is_domain_verified: resendDomain.status === 'verified' } as any)
+          .eq("domain", currentDomain);
+      }
+
+      return { 
+        success: true, 
+        domains: domainsData.data,
+        verified: resendDomain?.status === 'verified',
+        status: resendDomain?.status || 'not_found'
+      };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
