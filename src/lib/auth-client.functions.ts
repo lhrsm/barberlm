@@ -25,7 +25,7 @@ export const clientLogin = createServerFn({ method: "POST" })
     }
 
     if (authResult.error) {
-      throw new Error("Credenciais inválidas");
+      throw new Error("Telefone/e-mail ou senha inválidos.");
     }
 
     const { data: { user } } = authResult;

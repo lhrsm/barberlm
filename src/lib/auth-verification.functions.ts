@@ -113,6 +113,7 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       user_metadata: {
         full_name: data.name,
         phone: data.phone,
+        identifier: data.email,
         role: 'client'
       }
     });
