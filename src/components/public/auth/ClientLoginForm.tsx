@@ -100,28 +100,26 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     }
   };
 
-  const handleSuccess = async () => {
+  const handleSuccess = async (result?: any) => {
     console.log("[ClientLoginForm] Login successful. Settiing session manually...");
     
-    // The server function successfully signed in. 
-    // On the client, we need to ensure the cookies/localStorage are updated.
-    // Supabase.auth.signInWithPassword should have already handled this in the server function 
-    // if it were client-side, but since it was server-side, the client-side singleton
-    // might not have the session yet.
-    
+    // If we have a session in the result, set it manually to ensure the client-side
+    // singleton client is aware of it immediately.
+    if (result?.session) {
+      console.log("[ClientLoginForm] Setting session from result");
+      await supabase.auth.setSession(result.session);
+    }
+
     // 1. Check if the client already has it
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
       console.log("[ClientLoginForm] Session not in client yet, performing silent refresh/check...");
-      // Try to refresh or wait briefly
       await new Promise(resolve => setTimeout(resolve, 500));
       const { data: { session: retrySession } } = await supabase.auth.getSession();
       
       if (!retrySession) {
         console.warn("[ClientLoginForm] Session still not found. This might be due to SSR/Client boundary.");
-        // If we still don't have it, we might need a hard reload or the serverFn didn't actually set cookies
-        // But TanStack Start should handle the cookies set in server functions if configured.
       }
     }
 
@@ -138,6 +136,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       window.location.href = targetPath;
     }, 100);
   };
+
 
 
 
