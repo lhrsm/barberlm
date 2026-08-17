@@ -220,6 +220,7 @@ export function BookingAuthStep({
                           {slots.map((slot, index) => (
                             <InputOTPSlot
                               key={index}
+                              index={index}
                               {...slot}
                               className="w-11 h-13 md:w-12 md:h-14 text-xl font-black bg-zinc-50 border-zinc-200 rounded-xl focus:ring-gold/30 focus:border-gold/50 transition-all"
                             />
