@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { clientLogin, requestPasswordReset } from "@/lib/auth-client.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
@@ -27,6 +27,7 @@ interface ClientLoginFormProps {
 }
 
 export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientLoginFormProps) {
+  const { redirect } = useSearch({ from: '/auth' }) as { redirect?: string };
   const [showPassword, setShowPassword] = useState(false);
   const [view, setView] = useState<'login' | 'forgot-password' | 'success'>('login');
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     defaultValues: {
       identifier: "",
       password: "",
-      remember: false,
+      remember: true,
     },
   });
 
@@ -70,7 +71,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
         toast.success("Login realizado com sucesso!");
         
         // Redirect based on role or context
-        if (barbershopSlug) {
+        if (redirect) {
+          window.location.href = redirect;
+        } else if (barbershopSlug) {
           navigate({ to: `/${barbershopSlug}/portal` as any });
         } else {
           navigate({ to: "/portal" as any });
@@ -172,6 +175,16 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                 {form.formState.errors.password && (
                   <p className="text-[10px] text-red-500 font-bold ml-1">{form.formState.errors.password.message}</p>
                 )}
+              </div>
+
+              <div className="flex items-center gap-2 px-1">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  {...form.register("remember")}
+                  className="w-4 h-4 rounded border-zinc-300 text-gold focus:ring-gold"
+                />
+                <Label htmlFor="remember" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer">Manter conectado</Label>
               </div>
 
               <Button

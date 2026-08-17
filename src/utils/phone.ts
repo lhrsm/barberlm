@@ -22,7 +22,8 @@ export const normalizePhone = (phone: string): string => {
     const ddd = digits.slice(2, 4);     // DDD
     let number = digits.slice(4);       // O resto do número
     
-    // Regra: Se tiver apenas 8 dígitos após o DDD, adicionamos o 9 na frente.
+    // Regra: Se tiver apenas 8 dígitos após o DDD (total 10 dígitos com DDI), adicionamos o 9 na frente.
+    // O PRD exige normalização consistente, e no Brasil celulares tem 9 dígitos.
     if (number.length === 8) {
       number = "9" + number;
     }

@@ -82,7 +82,7 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
     email: z.string().email(),
     password: z.string().min(6),
-    clientId: z.string(),
+    clientId: z.string().nullable(),
     phone: z.string(),
     name: z.string(),
     tenantId: z.string(),
@@ -158,15 +158,36 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
         });
     }
 
-    // 4. Update Customer record
-    await supabaseAdmin
-      .from("customers")
-      .update({
-        user_id: userId,
-        email: data.email,
-        auth_migration_status: 'completed'
-      })
-      .eq("id", data.clientId);
+    // 4. Update Customer record if clientId is provided
+    if (data.clientId) {
+      await supabaseAdmin
+        .from("customers")
+        .update({
+          user_id: userId,
+          email: data.email,
+          auth_migration_status: 'completed'
+        })
+        .eq("id", data.clientId);
+    } else {
+      // Try to find customer by phone and link it
+      const { data: customerByPhone } = await supabaseAdmin
+        .from("customers")
+        .select("id")
+        .eq("phone", data.phone)
+        .eq("tenant_id", data.tenantId)
+        .maybeSingle();
+
+      if (customerByPhone) {
+        await supabaseAdmin
+          .from("customers")
+          .update({
+            user_id: userId,
+            email: data.email,
+            auth_migration_status: 'completed'
+          })
+          .eq("id", customerByPhone.id);
+      }
+    }
 
     // 5. Create membership
     await supabaseAdmin
