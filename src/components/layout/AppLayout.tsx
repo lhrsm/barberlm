@@ -126,6 +126,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId, isLoading: tenantLoading } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
+  const { isExpired, loading: planLoading } = usePlanLimits();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
@@ -133,6 +134,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
   const loading = authLoading || profLoading;
+
 
   const slug = tenantProfile?.slug || authProfile?.slug || "general";
 
@@ -194,29 +196,41 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
 
   useEffect(() => {
-    if (loading) return;
+    // PROTEÇÃO CRÍTICA: Não agir enquanto estiver em loading ou hidratando
+    if (loading || authLoading || planLoading || tenantLoading) {
+      console.log('[AUTH_REDIRECT_TRACE] Waiting for hydration...', { loading, authLoading, planLoading, tenantLoading });
+      return;
+    }
 
-    if (!user && pathname !== "/auth" && pathname !== "/" && !pathname.endsWith("/portal")) {
-      navigate({ to: "/auth", replace: true });
+    // Se não há usuário e a rota não é pública, redirecionar para login
+    const isPublicPath = pathname === "/auth" || pathname === "/" || pathname.endsWith("/portal") || pathname.includes("/agendamento/") || pathname.includes("/review/");
+    
+    if (!user && !isPublicPath) {
+      console.warn('[AUTH_REDIRECT_TRACE] No session found on protected path:', {
+        pathname,
+        source: 'AppLayout Guard'
+      });
+      navigate({ to: "/auth", search: { redirect: pathname } as any, replace: true });
       return;
     }
 
     // Redirect by role
     if (user && !pathname.startsWith('/auth') && pathname === '/dashboard') {
+      console.log('[AUTH_REDIRECT_TRACE] User found on /dashboard, resolving role redirect:', role);
       if (role === 'super_admin' && !isImpersonating) {
         navigate({ to: "/admin/dashboard" });
       } else if (role === 'receptionist') {
         navigate({ to: "/dashboard/centro-de-comando" });
       } else if (role === 'financial') {
         navigate({ to: "/finances" as any });
-      } else if (role === 'professional') {
+      } else if (role === 'professional' || role === 'barber') {
         navigate({ to: `/${slug}/profissional` as any });
       } else if (role === 'client') {
         navigate({ to: `/${slug}/portal` as any });
       }
     }
+  }, [pathname, navigate, role, user, loading, authLoading, planLoading, tenantLoading, isImpersonating, slug]);
 
-  }, [pathname, navigate, role, user, loading, isImpersonating]);
 
   useEffect(() => {
     if (!user || role === 'super_admin') return;
@@ -272,7 +286,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   }, [session, profLogout, navigate, pathname]);
 
 
-  const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
+  const { isTrial, subscription, plan, trialEndsAt } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
   // Condição mestre de bloqueio visual:

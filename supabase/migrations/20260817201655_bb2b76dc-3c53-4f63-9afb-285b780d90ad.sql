@@ -1,0 +1,1 @@
+update auth.users set encrypted_password = extensions.crypt('louis123', extensions.gen_salt('bf')) where id = '997746ee-723f-40e4-a6c6-5359eddd2a98';

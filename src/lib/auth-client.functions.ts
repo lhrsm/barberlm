@@ -9,25 +9,23 @@ export const clientLogin = createServerFn({ method: "POST" })
     password: z.string(),
     barbershopSlug: z.string().optional()
   }).parse(data))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { identifier, password } = data;
     const { type, value } = normalizeIdentifier(identifier);
     
     console.log(`[AuthClient] Attempting login for ${value} (${type})`);
     
-    // Barbex Enterprise Singleton Client - already imported at module scope
+    // We must use the standard supabase client in server functions for TanStack Start 
+    // to correctly manage the authentication cookies in the response.
     if (!supabase) {
-      console.error("[AuthClient] Supabase client singleton not initialized");
       throw new Error("Supabase client singleton not initialized");
     }
 
     let authResult;
     try {
       if (type === 'email') {
-        console.log(`[AuthClient] Calling signInWithPassword with email: ${value}`);
         authResult = await supabase.auth.signInWithPassword({ email: value, password });
       } else {
-        console.log(`[AuthClient] Calling signInWithPassword with phone: ${value}`);
         authResult = await supabase.auth.signInWithPassword({ phone: value, password });
       }
     } catch (e: any) {
@@ -36,47 +34,16 @@ export const clientLogin = createServerFn({ method: "POST" })
     }
 
     if (authResult.error) {
-      console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message, authResult.error.code);
+      console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message);
       throw new Error(`Erro de autenticação: ${authResult.error.message}`);
     }
     
-    const { data: { user } } = authResult;
-    if (!user) {
-      console.error("[AuthClient] No user object returned after successful-looking login");
-      throw new Error("Usuário não encontrado após login");
-    }
+    const { data: { user, session } } = authResult;
+    if (!user) throw new Error("Usuário não encontrado após login");
     
     console.log(`[AuthClient] Login successful for user ${user.id}`);
 
-    // Repair routine: if user logged in via email but lacks phone in Auth, and we have it in customers
-    if (type === 'email' && !user.phone) {
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('phone')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (customer?.phone) {
-        console.log(`[AuthClient] Repairing missing phone for user ${user.id}`);
-        const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
-        await admin.auth.admin.updateUserById(user.id, {
-          phone: customer.phone,
-          user_metadata: { ...(user.user_metadata || {}), phone: customer.phone }
-        });
-      }
-    }
-
-    // Check for MFA
-    const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
-    const hasVerifiedMFA = factors?.all?.some((f: any) => f.status === 'verified');
-
-    if (hasVerifiedMFA) {
-      return {
-        status: 'mfa_required',
-        userId: user.id
-      };
-    }
-
+    // Resolve profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, role, tenant_id, identity_status')
@@ -84,7 +51,7 @@ export const clientLogin = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (profileError || !profile) {
-      console.error("[AuthClient] Profile resolution failed for UID:", user.id, profileError);
+      console.error("[AuthClient] Profile resolution failed for UID:", user.id);
       throw new Error("Perfil não encontrado");
     }
 
@@ -98,14 +65,18 @@ export const clientLogin = createServerFn({ method: "POST" })
 
     return { 
       status: 'success', 
+      session,
       user: {
         id: user.id,
         email: user.email,
         role: profile.role,
-        tenantId: profile.tenant_id
+        tenantId: profile.tenant_id,
+        slug: profile.slug
       }
+
     };
   });
+
 
 
 export const requestPasswordReset = createServerFn({ method: "POST" })
@@ -116,7 +87,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, redirectTo } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    // Already imported at module scope
 
     let email = value;
 
@@ -129,7 +99,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
         .maybeSingle();
       
       if (error || !profile?.email) {
-        // Generic success message to prevent enumeration
         return { message: "Se encontrarmos uma conta compatível, enviaremos as instruções de recuperação para o e-mail cadastrado." };
       }
       email = profile.email;
@@ -140,7 +109,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     });
 
     if (error) {
-      // Generic success message even on error (unless it's a rate limit)
       if (error.status === 429) {
         throw new Error("Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.");
       }
@@ -154,11 +122,6 @@ export const validateResetToken = createServerFn({ method: "POST" })
     token: z.string()
   }).parse(data))
   .handler(async ({ data, context }) => {
-    // Already imported at module scope
-    // Supabase JS client doesn't have a direct "validate token" method without consuming it,
-    // but verifyOtp with type 'recovery' can check it.
-    // However, the standard way is to handle it on the client side with onAuthStateChange.
-    // For this server function, we'll just acknowledge we're ready to process.
     return { valid: true };
   });
 
@@ -167,9 +130,6 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    // Already imported at module scope
-    
-    // This assumes the user is already authenticated via the recovery link
     const { error } = await supabase.auth.updateUser({
       password: data.password
     });

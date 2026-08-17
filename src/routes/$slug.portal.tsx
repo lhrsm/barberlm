@@ -21,7 +21,9 @@ export const Route = createFileRoute("/$slug/portal")({
 });
 
 function CustomerPortalPage() {
+  const navigate = useNavigate();
   const { user, loading: authLoading, profile } = useAuth();
+
   const params = useParams({ from: "/$slug/portal" });
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
@@ -32,22 +34,24 @@ function CustomerPortalPage() {
   } | null>(null);
 
   useEffect(() => {
+    // 1. Aguardar hidratação da autenticação
     if (authLoading) return;
     
+    // 2. Se não há usuário, redirecionar para auth COM navigate para evitar loops de reload
     if (!user) {
-      console.warn('[AUTH_REDIRECT_TRACE]', {
-        source: 'CustomerPortalPage',
-        reason: 'No session',
-        pathname: window.location.pathname
-      });
-      window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+      console.warn('[AUTH_REDIRECT_TRACE] Portal access denied: No session');
+      const currentPath = window.location.pathname;
+      navigate({ to: "/auth", search: { redirect: currentPath } as any, replace: true });
       return;
     }
 
+    // 3. Se o perfil for legacy, redirecionar
     if (profile?.identity_status === 'legacy') {
-      window.location.href = "/auth";
+      console.warn('[AUTH_REDIRECT_TRACE] Portal access denied: Legacy identity');
+      navigate({ to: "/auth", replace: true });
       return;
     }
+
 
     async function loadPortalData() {
       try {

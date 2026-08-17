@@ -80,16 +80,18 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
         return;
       }
 
-      if (result.status === 'mfa_required') {
+      if ((result as any).status === 'mfa_required') {
         console.log("[ClientLoginForm] MFA required");
         setView('mfa');
         return;
       }
 
+
       if (result.status === 'success') {
-        console.log("[ClientLoginForm] Success, calling handleSuccess");
-        handleSuccess();
+        console.log("[ClientLoginForm] Success, calling handleSuccess with result:", result);
+        handleSuccess(result);
       }
+
     } catch (error: any) {
       console.error("[ClientLoginForm] Login error caught:", error);
       toast.error(error.message || "Telefone/e-mail ou senha inválidos.");
@@ -99,16 +101,30 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     }
   };
 
-  const handleSuccess = async () => {
-    console.log("[ClientLoginForm] Login successful. Awaiting session hydration...");
+  const handleSuccess = async (result?: any) => {
+    console.log("[ClientLoginForm] Login successful. Setting session manually...");
     
-    // Force a small wait and manual session check to ensure AuthProvider picks it up
+    // 1. If we have a session in the result, set it manually.
+    if (result?.session) {
+      console.log("[ClientLoginForm] Setting session from result");
+      const { error: sessionError } = await supabase.auth.setSession(result.session);
+      if (sessionError) {
+        console.error("[ClientLoginForm] Error setting manual session:", sessionError);
+      }
+    }
+
+
+    // 1. Check if the client already has it
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
-      console.error("[ClientLoginForm] Session not found immediately after login success.");
-      toast.error("Erro na sincronização da sessão. Tente novamente.");
-      return;
+      console.log("[ClientLoginForm] Session not in client yet, performing silent refresh/check...");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data: { session: retrySession } } = await supabase.auth.getSession();
+      
+      if (!retrySession) {
+        console.warn("[ClientLoginForm] Session still not found. This might be due to SSR/Client boundary.");
+      }
     }
 
     toast.success("Login realizado com sucesso!");
@@ -116,18 +132,17 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     // Dispatch custom event to trigger useAuth refresh if needed
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
-    if (redirect) {
-      console.log("[ClientLoginForm] Redirecting to intended path via window.location.href:", redirect);
-      window.location.href = redirect;
-    } else if (barbershopSlug) {
-      const target = `/${barbershopSlug}/portal`;
-      console.log("[ClientLoginForm] Redirecting to tenant portal via window.location.href:", target);
-      window.location.href = target;
-    } else {
-      console.log("[ClientLoginForm] Redirecting to default portal via window.location.href: /portal");
-      window.location.href = "/portal";
-    }
+    const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : (result?.user?.slug ? `/${result.user.slug}/portal` : "/portal"));
+    console.log("[ClientLoginForm] Navigating to target path:", targetPath);
+    
+    // Forced reload might be safer here to ensure all providers see the new cookies
+    setTimeout(() => {
+      window.location.href = targetPath;
+    }, 100);
   };
+
+
+
 
 
   const handleForgotPassword = async () => {
@@ -179,39 +194,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      
-                      // 1. If it contains @ or letters (except '+' for DDI at start), treat as email immediately.
-                      if (/[a-zA-Z@]/.test(val) || (val.includes('+') && val.indexOf('+') > 0)) {
-                        form.setValue("identifier", val);
-                      } else {
-                        // Phone normalization
-                        const digits = val.replace(/\D/g, "");
-                        let formatted = val;
-                        
-                        if (digits.length > 0) {
-                          if (digits.startsWith('55')) {
-                            const withoutDDI = digits.substring(2);
-                            if (withoutDDI.length === 0) formatted = `+55`;
-                            else if (withoutDDI.length <= 2) formatted = `+55 (${withoutDDI}`;
-                            else if (withoutDDI.length <= 6) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2)}`;
-                            else if (withoutDDI.length <= 10) formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 6)}-${withoutDDI.slice(6)}`;
-                            else formatted = `+55 (${withoutDDI.slice(0, 2)}) ${withoutDDI.slice(2, 7)}-${withoutDDI.slice(7, 11)}`;
-                          } else {
-                            if (digits.length <= 2) formatted = `(${digits}`;
-                            else if (digits.length <= 6) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-                            else if (digits.length <= 10) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-                            else formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
-                          }
-                          form.setValue("identifier", formatted);
-                        } else {
-                          form.setValue("identifier", val);
-                        }
-                      }
-                    }}
                     className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
                   />
+
                 </div>
                 {form.formState.errors.identifier && (
                   <p className="text-[10px] text-red-500 font-bold ml-1">{form.formState.errors.identifier.message}</p>
@@ -265,14 +250,11 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <Button
                 type="submit"
                 disabled={loading}
-                onClick={(e) => {
-                  console.log("[ClientLoginForm] Submit button clicked");
-                  form.handleSubmit(onSubmit)(e);
-                }}
                 className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.98]"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Entrar"}
               </Button>
+
 
               <div className="pt-2 text-center">
                 <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-tight">
