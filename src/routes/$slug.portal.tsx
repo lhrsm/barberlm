@@ -127,13 +127,29 @@ function CustomerPortalPage() {
     <div className="min-h-screen bg-[#05070d] text-white p-6 space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter mb-2">
-            Meu Portal <span className="text-gold">Premium</span>
-          </h1>
-          <p className="text-zinc-400 font-medium">Bem-vindo de volta, {data?.customer?.name || 'Cliente'}.</p>
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div>
+            <h1 className="text-4xl font-black uppercase italic tracking-tighter mb-2">
+              Meu Portal <span className="text-gold">Premium</span>
+            </h1>
+            <p className="text-zinc-400 font-medium">Bem-vindo de volta, {data?.customer?.name || 'Cliente'}.</p>
+          </div>
+          <Link 
+            to={`/${useParams({ from: '/$slug/portal' }).slug}/portal/security`}
+            className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
+          >
+            <ShieldCheck className="h-5 w-5" />
+          </Link>
         </div>
-        <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <Link 
+            to={`/${useParams({ from: '/$slug/portal' }).slug}/portal/security`}
+            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Segurança
+          </Link>
+          <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
           <Activity className="h-5 w-5 text-gold" />
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
