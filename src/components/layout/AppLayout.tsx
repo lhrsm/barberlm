@@ -412,7 +412,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
           <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4">
             {navItems.map((item) => {
-              const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+              const isActive = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
               return (
                 <Link
                   key={item.to}
