@@ -356,3 +356,5 @@ export function BookingAuthStep({
       </AnimatePresence>
       </div>
     </div>
+  );
+}
