@@ -345,7 +345,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
             )}
             <div className="space-y-3 flex-1 pt-2">
               {navItems.map((item) => {
-                const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+                const isActive = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
                 return (
                   <Link
                     key={item.to}
@@ -358,7 +358,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
                         : "hover:bg-white/5"
                     )}
                   >
-                    <item.icon size={24} className="text-gold" />
+                    <item.icon size={24} className={isActive ? "text-gold" : "text-zinc-500 group-hover:text-gold"} />
                     <span className="text-white">{item.label}</span>
                   </Link>
                 );
@@ -412,7 +412,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
           <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4">
             {navItems.map((item) => {
-              const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+              const isActive = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
               return (
                 <Link
                   key={item.to}
@@ -484,7 +484,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           </header>
 
           <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
-            <div className="max-w-7xl mx-auto w-full space-y-3">
+            <div className="max-w-[1600px] mx-auto w-full space-y-3">
               <InternalTestingBannerSlot />
               <AddonPaymentFailedBanner />
               <TrialEndingBanner />

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useState, useEffect, useMemo, memo } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -147,27 +147,25 @@ function CentroDeComando() {
 
   if (loading && !stats) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="animate-spin text-gold" size={48} />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="animate-spin text-gold" size={48} />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="p-4 md:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
-        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter text-white">CENTRO DE COMANDO</h1>
-              {isRealtimeActive && (
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-black text-[9px] uppercase tracking-widest animate-pulse">
-                  ● Tempo Real Ativo
-                </Badge>
-              )}
-            </div>
+    <>
+      <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+          <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter text-white">CENTRO DE COMANDO</h1>
+                {isRealtimeActive && (
+                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-black text-[9px] uppercase tracking-widest animate-pulse">
+                    ● Tempo Real Ativo
+                  </Badge>
+                )}
+              </div>
             <p className="text-slate-400 font-medium">Operação da sua barbearia em tempo real.</p>
           </div>
           
@@ -391,9 +389,8 @@ function CentroDeComando() {
           </div>
         </div>
       </div>
-      
       <AppointmentModal open={isAppointmentOpen} onOpenChange={setIsAppointmentOpen} onSuccess={fetchData} />
       <WalkinModal open={isWalkinOpen} onOpenChange={setIsWalkinOpen} onSuccess={fetchData} />
-    </AppLayout>
+    </>
   );
 }
