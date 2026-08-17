@@ -18,17 +18,26 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { userId, supabase: authSupabase } = context as any;
     
-    // Resolve Tenant
+    // Resolve Tenant (Definitive Barbex V2 Logic)
     if (!userId) throw new Error("Unauthorized");
     
     const { data: profile } = await authSupabase
       .from("profiles")
-      .select("tenant_id")
+      .select("id, role, tenant_id")
       .eq("id", userId)
       .single();
 
-    if (!profile?.tenant_id) throw new Error("Tenant not found");
-    const tenantId = profile.tenant_id;
+    if (!profile) throw new Error("Profile not found");
+
+    // Logic: 
+    // 1. tenant_admin has its own id as tenant_id if profile.tenant_id is null
+    // 2. super_admin views global or specific (handled by filters if needed, default to null)
+    // 3. other roles (manager, reception, barber) use profile.tenant_id
+    const tenantId = profile.tenant_id || (profile.role === 'tenant_admin' ? profile.id : null);
+
+    if (!tenantId && profile.role !== 'super_admin') {
+      throw new Error("Tenant context not resolved for role: " + profile.role);
+    }
 
     // Fetch primary data for a period
     const fetchPeriodData = async (start: string, end: string) => {
