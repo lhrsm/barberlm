@@ -12,10 +12,15 @@ export const clientLogin = createServerFn({ method: "POST" })
     const { identifier, password } = data;
     const { type, value } = normalizeIdentifier(identifier);
     
+    console.log(`[AuthClient] Attempting login for ${value} (${type})`);
+    
     // Barbex Enterprise Singleton Client
     const { supabase } = await import("@/integrations/supabase/client");
     
-    if (!supabase) throw new Error("Supabase client singleton not initialized");
+    if (!supabase) {
+      console.error("[AuthClient] Supabase client singleton not initialized");
+      throw new Error("Supabase client singleton not initialized");
+    }
 
     let authResult;
     try {
@@ -26,7 +31,7 @@ export const clientLogin = createServerFn({ method: "POST" })
       }
     } catch (e: any) {
       console.error(`[AuthClient] Sign in exception for ${value}:`, e);
-      throw new Error("Telefone/e-mail ou senha inválidos.");
+      throw new Error(`Erro de conexão com o servidor: ${e.message || "Erro desconhecido"}`);
     }
 
     if (authResult.error) {
@@ -35,7 +40,12 @@ export const clientLogin = createServerFn({ method: "POST" })
     }
     
     const { data: { user } } = authResult;
-    if (!user) throw new Error("Usuário não encontrado");
+    if (!user) {
+      console.error("[AuthClient] No user object returned after successful-looking login");
+      throw new Error("Usuário não encontrado após login");
+    }
+    
+    console.log(`[AuthClient] Login successful for user ${user.id}`);
 
     // Repair routine: if user logged in via email but lacks phone in Auth, and we have it in customers
     if (type === 'email' && !user.phone) {
