@@ -166,14 +166,14 @@ function ResetPasswordPage() {
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Nova Senha</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...form.register("password")}
                         autoComplete="new-password"
-                        className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                        className="h-[56px] pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       />
                       <button
                         type="button"
@@ -191,14 +191,14 @@ function ResetPasswordPage() {
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Confirmar Nova Senha</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={18} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
                       <Input
                         id="confirmPassword"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...form.register("confirmPassword")}
                         autoComplete="new-password"
-                        className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                        className="h-[56px] pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       />
                     </div>
                     {form.formState.errors.confirmPassword && (
