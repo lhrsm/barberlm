@@ -129,7 +129,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
           >
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1 mb-2">
               <h2 className="text-2xl md:text-3xl font-black text-black tracking-tight uppercase italic">Acesse sua conta</h2>
               <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">Portal do Cliente Barbex</p>
             </div>
