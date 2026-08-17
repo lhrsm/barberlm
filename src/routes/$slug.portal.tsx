@@ -21,7 +21,9 @@ export const Route = createFileRoute("/$slug/portal")({
 });
 
 function CustomerPortalPage() {
+  const navigate = useNavigate();
   const { user, loading: authLoading, profile } = useAuth();
+
   const params = useParams({ from: "/$slug/portal" });
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
