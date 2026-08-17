@@ -228,9 +228,9 @@ const CalendarComponent = memo(() => {
 
     const [appRes, barbRes, custRes, servRes] = await Promise.all([
       appQuery.order("start_time", { ascending: false }),
-      supabase.from("barbers").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("customers").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
+      supabase.from("barbers").select("*").eq("tenant_id", tenantId).order("name"),
+      supabase.from("customers").select("*").eq("tenant_id", tenantId).order("name"),
+      supabase.from("services").select("*").eq("tenant_id", tenantId).eq("active", true).order("name"),
     ]);
 
     if (appRes.error) {
