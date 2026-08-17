@@ -132,76 +132,8 @@ function IntegrationsComponent() {
             {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
 
             {/* Resend E-mail */}
-            <Card className="flex flex-col bg-[#0b0f17] border border-zinc-800/80 text-white rounded-2xl overflow-hidden shadow-[0_8px_28px_rgba(16,185,129,0.06)] hover:border-gold/30 transition-all">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="h-11 w-11 rounded-xl bg-sky-500/10 border border-sky-500/30 grid place-items-center">
-                    <Mail size={20} className="text-sky-400" />
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                    Conectado
-                  </span>
-                </div>
-                <CardTitle className="text-lg mt-4 text-white">Resend Enterprise</CardTitle>
-                <CardDescription className="text-zinc-400">Canal oficial de e-mails transacionais (notify.barbex.shop).</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-500">Domínio</span>
-                    <span className="font-bold text-white">notify.barbex.shop</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-500">Remetente</span>
-                    <span className="font-bold text-white">noreply@notify.barbex.shop</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-500">Status do Provedor</span>
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-none font-bold">Operacional</Badge>
-                  </div>
-                </div>
+            <ResendSettingsCard emailLogs={emailLogs} onRefreshLogs={fetchSettings} />
 
-                <div className="pt-4 space-y-3">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                    <History size={12} /> Últimos Envios
-                  </h4>
-                  <div className="space-y-2">
-                    {emailLogs.length === 0 ? (
-                      <p className="text-xs text-zinc-600 italic">Nenhum envio registrado recentemente.</p>
-                    ) : (
-                      emailLogs.map((log: any) => (
-                        <div key={log.id} className="flex items-center justify-between p-2 rounded-lg bg-black/20 text-[10px]">
-                          <span className="text-zinc-400 truncate max-w-[120px]">{log.recipient}</span>
-                          <Badge variant="outline" className={cn(
-                            "h-5 text-[8px] font-black uppercase border-none",
-                            log.status === 'delivered' ? "text-emerald-400 bg-emerald-500/5" : "text-amber-400 bg-amber-500/5"
-                          )}>
-                            {log.status}
-                          </Badge>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="border-t border-zinc-800/80 pt-4 gap-2">
-                <Button 
-                  onClick={() => setIsTestModalOpen(true)}
-                  size="sm" 
-                  className="h-8 px-3 text-xs rounded-lg bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90"
-                >
-                  <PlayCircle size={14} className="mr-1.5" /> Testar Envio
-                </Button>
-                <Button 
-                  variant="ghost"
-                  size="sm" 
-                  className="h-8 px-3 text-xs rounded-lg text-zinc-400 hover:text-white"
-                  onClick={() => toast.info("Logs detalhados em breve")}
-                >
-                  <Activity size={14} className="mr-1.5" /> Ver Logs
-                </Button>
-              </CardFooter>
-            </Card>
 
             {/* Modal de Teste */}
             {isTestModalOpen && (
