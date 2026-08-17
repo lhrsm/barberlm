@@ -32,14 +32,62 @@ export function AuthForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[AUTH_LOGIN_CLICK]", {
+      loginMethod,
+      hasEmail: !!email,
+      hasPhone: !!phone,
+      hasPassword: !!password,
+      isSubmitting: loading
+    });
+
+    if (loading) return;
+
+    if (loginMethod === "email") {
+      if (!email) {
+        toast.error("Informe seu e-mail administrativo.");
+        return;
+      }
+      if (!password) {
+        toast.error("Informe sua senha.");
+        return;
+      }
+    } else {
+      if (!phone) {
+        toast.error("Informe seu telefone profissional.");
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       if (loginMethod === "email") {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log("[AUTH_LOGIN_ATTEMPT] Direct Supabase sign-in for:", email);
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+
+        if (error) {
+          console.error("[AUTH_LOGIN_ERROR] Supabase error:", error);
+          if (error.message === "Invalid login credentials") {
+            throw new Error("E-mail ou senha incorretos.");
+          }
+          throw error;
+        }
+
+        console.log("[AUTH_LOGIN_SUCCESS] Session established for user:", data.user?.id);
+        
+        // Brief settling time for auth state
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Let useAuth and router handle the rest, but we can trigger a manual check
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error("Falha ao recuperar sessão após login.");
+        }
+
+        toast.success("Login realizado com sucesso!");
+        navigate({ to: "/dashboard" as any });
       } else {
         const cleanPhone = phone.replace(/\D/g, '');
         const { data: barber, error: barberError } = await supabase
@@ -61,6 +109,7 @@ export function AuthForm() {
 
         if (!targetBarber) {
           toast.error("Telefone não encontrado entre os barbeiros cadastrados.");
+          setLoading(false);
           return;
         }
 
@@ -88,15 +137,8 @@ export function AuthForm() {
         }, 500);
       }
     } catch (error: any) {
-      console.error("[AuthForm] Login error details:", error);
-      const errorMessage = error.message || "";
-      if (errorMessage === "Failed to fetch" || errorMessage.includes("fetch")) {
-        toast.error("Erro de conexão. Verifique sua internet.");
-      } else if (errorMessage === "Invalid login credentials" || errorMessage.includes("invalid_credentials")) {
-        toast.error("E-mail ou senha incorretos.");
-      } else {
-        toast.error(errorMessage);
-      }
+      console.error("[AUTH_LOGIN_CRITICAL] Exception:", error);
+      toast.error(error.message || "Não foi possível realizar o acesso administrativo.");
     } finally {
       setLoading(false);
     }
@@ -162,12 +204,12 @@ export function AuthForm() {
               E-mail Administrativo
             </Label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
               <Input
                 id="login-email"
                 type="email"
                 autoComplete="email"
-                className="pl-12 h-[56px] rounded-[16px] bg-white/[0.03] border-white/5 text-white placeholder:text-white/10 focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:bg-transparent"
+                className="pl-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -181,12 +223,12 @@ export function AuthForm() {
               Telefone do Profissional
             </Label>
             <div className="relative group">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
               <Input
                 id="login-phone"
                 type="tel"
                 autoComplete="tel"
-                className="pl-12 h-[56px] rounded-[16px] bg-white/[0.03] border-white/5 text-white placeholder:text-white/10 focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                className="pl-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -195,6 +237,7 @@ export function AuthForm() {
             </div>
           </div>
         )}
+
 
         {loginMethod === "email" && (
           <div className="space-y-1.5">
@@ -211,12 +254,12 @@ export function AuthForm() {
               </button>
             </div>
             <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
               <Input
                 id="login-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="pl-12 pr-12 h-[56px] rounded-[16px] bg-white/[0.03] border-white/5 text-white placeholder:text-white/10 focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                className="pl-12 pr-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -225,11 +268,13 @@ export function AuthForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors p-1"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black transition-colors p-1 z-20"
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
+
+
             </div>
           </div>
         )}
@@ -274,11 +319,11 @@ export function AuthForm() {
                 Seu e-mail cadastrado
               </Label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
                 <Input
                   id="reset-email"
                   type="email"
-                  className="pl-12 h-[56px] rounded-[16px] bg-white/[0.03] border-white/5 text-white placeholder:text-white/10 focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                  className="pl-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
                   placeholder="exemplo@barbex.shop"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
