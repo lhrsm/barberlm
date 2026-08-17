@@ -64,6 +64,8 @@ import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as DashboardUsuariosRouteImport } from './routes/dashboard.usuarios'
 import { Route as DashboardMembershipRouteImport } from './routes/dashboard.membership'
 import { Route as DashboardIntegracoesRouteImport } from './routes/dashboard.integracoes'
 import { Route as DashboardCrmRouteImport } from './routes/dashboard.crm'
@@ -391,6 +393,16 @@ const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
   getParentRoute: () => LoyaltyRoute,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardUsuariosRoute = DashboardUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardMembershipRoute = DashboardMembershipRouteImport.update({
   id: '/membership',
@@ -744,6 +756,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
+  '/dashboard/usuarios': typeof DashboardUsuariosRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -849,6 +863,8 @@ export interface FileRoutesByTo {
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
+  '/dashboard/usuarios': typeof DashboardUsuariosRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -959,6 +975,8 @@ export interface FileRoutesById {
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
+  '/dashboard/usuarios': typeof DashboardUsuariosRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -1070,6 +1088,8 @@ export interface FileRouteTypes {
     | '/dashboard/crm'
     | '/dashboard/integracoes'
     | '/dashboard/membership'
+    | '/dashboard/usuarios'
+    | '/invite/$token'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1175,6 +1195,8 @@ export interface FileRouteTypes {
     | '/dashboard/crm'
     | '/dashboard/integracoes'
     | '/dashboard/membership'
+    | '/dashboard/usuarios'
+    | '/invite/$token'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1284,6 +1306,8 @@ export interface FileRouteTypes {
     | '/dashboard/crm'
     | '/dashboard/integracoes'
     | '/dashboard/membership'
+    | '/dashboard/usuarios'
+    | '/invite/$token'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1360,6 +1384,7 @@ export interface RootRouteChildren {
   UpdatesRoute: typeof UpdatesRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   SubscriptionAddonsRoute: typeof SubscriptionAddonsRoute
   SubscriptionIndexRoute: typeof SubscriptionIndexRoute
@@ -1764,6 +1789,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/loyalty/campaigns'
       preLoaderRoute: typeof LoyaltyCampaignsRouteImport
       parentRoute: typeof LoyaltyRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/usuarios': {
+      id: '/dashboard/usuarios'
+      path: '/usuarios'
+      fullPath: '/dashboard/usuarios'
+      preLoaderRoute: typeof DashboardUsuariosRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/membership': {
       id: '/dashboard/membership'
@@ -2243,6 +2282,7 @@ interface DashboardRouteChildren {
   DashboardCrmRoute: typeof DashboardCrmRoute
   DashboardIntegracoesRoute: typeof DashboardIntegracoesRoute
   DashboardMembershipRoute: typeof DashboardMembershipRoute
+  DashboardUsuariosRoute: typeof DashboardUsuariosRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -2254,6 +2294,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCrmRoute: DashboardCrmRoute,
   DashboardIntegracoesRoute: DashboardIntegracoesRoute,
   DashboardMembershipRoute: DashboardMembershipRoute,
+  DashboardUsuariosRoute: DashboardUsuariosRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -2364,6 +2405,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpdatesRoute: UpdatesRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   SubscriptionAddonsRoute: SubscriptionAddonsRoute,
   SubscriptionIndexRoute: SubscriptionIndexRoute,
