@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+console.log("[AuthClient] Module loaded");
 import { normalizeIdentifier } from "@/utils/auth-identifier";
 
 export const clientLogin = createServerFn({ method: "POST" })
