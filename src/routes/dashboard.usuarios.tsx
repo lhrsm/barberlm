@@ -12,6 +12,7 @@ import { getTeamMembers, getPendingInvitations } from "@/lib/team.functions";
 import { useTenant } from "@/hooks/use-tenant";
 import { AddUserModal } from "@/components/team/AddUserModal";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/usuarios")({
   component: TeamManagementPage,
