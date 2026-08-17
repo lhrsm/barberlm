@@ -617,164 +617,200 @@ export function AppointmentModal({
         }}
       >
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-        <DialogContent
-          className="flex max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 text-foreground shadow-2xl"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          {canAddAppointment ? (
-            <>
-              <DialogHeader className="space-y-3 border-b border-border bg-card px-5 py-4 text-left sm:px-6">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    {editingAppointmentId ? (
-                      <Pencil className="h-5 w-5" />
-                    ) : (
-                      <CalendarPlus className="h-5 w-5" />
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <DialogTitle className="truncate text-lg font-black tracking-tight">
-                      {editingAppointmentId ? "Editar agendamento" : "Novo agendamento"}
-                    </DialogTitle>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {shopName || "Agendamento manual"}
-                    </p>
-                  </div>
-                </div>
-                <AppointmentStepper current={currentStep} withReceipt={paymentMethod === "pix"} />
-              </DialogHeader>
-
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
-                {currentStep === 1 && (
-                  <ProfessionalServiceStep
-                    barbers={barbers}
-                    services={filteredServices}
-                    selectedBarber={selectedBarber}
-                    selectedService={selectedService}
-                    onBarberChange={(id) => {
-                      setSelectedBarber(id);
-                      setSelectedService("");
-                      setSelectedTime("");
-                      setErrors((e) => ({ ...e, barber: null }));
-                    }}
-                    onServiceChange={(id) => {
-                      setSelectedService(id);
-                      setErrors((e) => ({ ...e, service: null }));
-                    }}
-                    errors={errors}
-                    serviceWarning={serviceWarning}
-                  />
-                )}
-
-                {currentStep === 2 && (
-                  <DateTimeStep
-                    barber={barberObj}
-                    service={serviceObj}
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    onDateChange={(d) => {
-                      setSelectedDate(d);
-                      setSelectedTime("");
-                      setErrors((e) => ({ ...e, date: null }));
-                    }}
-                    onTimeChange={(t) => {
-                      setSelectedTime(t);
-                      setErrors((e) => ({ ...e, time: null }));
-                    }}
-                    slots={slots}
-                    slotsLoading={slotsLoading}
-                    isDayEnabled={isDayEnabled}
-                    nextAvailableDate={nextAvailableDate}
-                    errors={errors}
-                  />
-                )}
-
-                {currentStep === 3 && (
-                  <CustomerStep
-                    customers={customers}
-                    selectedCustomer={selectedCustomer}
-                    onCustomerChange={(id) => {
-                      setSelectedCustomer(id);
-                      setErrors((e) => ({ ...e, customer: null }));
-                    }}
-                    onCreateNew={() => setIsNewCustomerDialogOpen(true)}
-                    errors={errors}
-                  />
-                )}
-
-                {currentStep === 4 && (
-                  <AppointmentReviewStep
-                    barber={barberObj}
-                    customer={customerObj}
-                    service={serviceObj}
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    shopName={shopName}
-                    breakdown={breakdown}
-                    paymentStatus={paymentStatus}
-                    paymentMethod={paymentMethod}
-                    onPaymentStatusChange={setPaymentStatus}
-                    onPaymentMethodChange={setPaymentMethod}
-                    mixedCredits=""
-                    mixedOther=""
-                    onMixedCreditsChange={() => {}}
-                    onMixedOtherChange={() => {}}
-                    onEditStep={setCurrentStep}
-                    errors={errors}
-                  />
-                )}
-
-                {currentStep === 5 && receiptContext && (
-                  <PixReceiptStep
-                    tenantId={receiptContext.tenantId}
-                    appointmentId={receiptContext.appointmentId}
-                    customerId={selectedCustomer}
-                    customerName={customerObj?.name}
-                    serviceName={serviceObj?.name}
-                    amount={receiptContext.amount}
-                    dateLabel={format(parseISO(selectedDate), "dd/MM/yyyy")}
-                    timeLabel={selectedTime}
-                    shopName={shopName}
-                    pixKey={shopPixKey}
-                    whatsappNumber={shopWhatsapp}
-                    onFinish={() => {
-                      setOpen(false);
-                      setCurrentStep(1);
-                      setReceiptContext(null);
-                    }}
-                  />
-                )}
+        <DialogContent className="p-0 overflow-hidden bg-white border border-gold/20 flex flex-col rounded-[24px] md:rounded-[32px] shadow-2xl transition-all duration-300 w-full max-w-[calc(100vw-24px)] sm:max-w-[480px] max-h-[90vh]">
+          <DialogHeader className="p-6 md:p-8 pb-4 space-y-2 shrink-0 border-b border-zinc-100 mb-2 relative">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
+                {editingAppointmentId ? <Pencil size={20} /> : <CalendarPlus size={20} />}
               </div>
-
-              {currentStep < 5 && (
-              <DialogFooter className="border-t border-border bg-card px-5 py-4 sm:px-6">
-                <AppointmentModalFooter
-                  step={currentStep}
-                  isLoading={isLoading}
-                  isEditing={!!editingAppointmentId}
-                  onBack={() => setCurrentStep((prev) => prev - 1)}
-                  onNext={handleNextStep}
-                  onConfirm={handleCreateAppointment}
+              <div>
+                <DialogTitle className="text-lg font-black uppercase tracking-tight text-black leading-none">
+                  {editingAppointmentId ? "Editar Agendamento" : "Novo Agendamento"}
+                </DialogTitle>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">Painel Administrativo</p>
+              </div>
+            </div>
+            
+            <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {[1, 2, 3, 4].map(i => (
+                <div 
+                  key={i} 
+                  className={cn(
+                    "h-1 rounded-full transition-all duration-300",
+                    i <= currentStep ? "w-4 bg-gold" : "w-1 bg-zinc-200"
+                  )}
                 />
-              </DialogFooter>
-              )}
-            </>
-          ) : (
-            <div className="space-y-4 p-6">
-              <Alert variant="destructive">
+              ))}
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 pt-2">
+            {!canAddAppointment && !editingAppointmentId && (
+              <Alert variant="destructive" className="mb-6 border-destructive/50 bg-destructive/5">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Limite de Agendamentos Atingido</AlertTitle>
+                <AlertTitle>Limite Atingido</AlertTitle>
                 <AlertDescription>
-                  Seu plano atual permite apenas {limits.monthlyAppointments} agendamentos por mês.
-                  Faça o upgrade para o plano Pro para agendamentos ilimitados.
+                  Você atingiu o limite de agendamentos mensais do seu plano.
+                  <Link to="/settings" className="ml-1 font-bold underline hover:text-primary transition-colors">
+                    Fazer Upgrade
+                  </Link>
                 </AlertDescription>
               </Alert>
-              <Button className="w-full" asChild>
-                <Link to="/subscription">Ver Planos</Link>
-              </Button>
-            </div>
+            )}
+
+            {currentStep === 1 && (
+              <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                <ProfessionalServiceStep
+                  barbers={barbers}
+                  services={filteredServices}
+                  selectedBarber={selectedBarber}
+                  selectedService={selectedService}
+                  onBarberChange={(id) => {
+                    setSelectedBarber(id);
+                    setSelectedService("");
+                    setSelectedTime("");
+                    setErrors((e) => ({ ...e, barber: null }));
+                  }}
+                  onServiceChange={(id) => {
+                    setSelectedService(id);
+                    setErrors((e) => ({ ...e, service: null }));
+                  }}
+                  errors={errors}
+                  serviceWarning={serviceWarning}
+                />
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                <DateTimeStep
+                  barber={barberObj}
+                  service={serviceObj}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  onDateChange={(d) => {
+                    setSelectedDate(d);
+                    setSelectedTime("");
+                    setErrors((e) => ({ ...e, date: null }));
+                  }}
+                  onTimeChange={(t) => {
+                    setSelectedTime(t);
+                    setErrors((e) => ({ ...e, time: null }));
+                  }}
+                  slots={slots}
+                  slotsLoading={slotsLoading}
+                  isDayEnabled={isDayEnabled}
+                  nextAvailableDate={nextAvailableDate}
+                  errors={errors}
+                />
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                <CustomerStep
+                  customers={customers}
+                  selectedCustomer={selectedCustomer}
+                  onCustomerChange={(id) => {
+                    setSelectedCustomer(id);
+                    setErrors((e) => ({ ...e, customer: null }));
+                  }}
+                  onCreateNew={() => setIsNewCustomerDialogOpen(true)}
+                  errors={errors}
+                />
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                <AppointmentReviewStep
+                  barber={barberObj}
+                  customer={customerObj}
+                  service={serviceObj}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  shopName={shopName}
+                  breakdown={breakdown}
+                  paymentStatus={paymentStatus}
+                  paymentMethod={paymentMethod}
+                  onPaymentStatusChange={setPaymentStatus}
+                  onPaymentMethodChange={setPaymentMethod}
+                  mixedCredits=""
+                  mixedOther=""
+                  onMixedCreditsChange={() => {}}
+                  onMixedOtherChange={() => {}}
+                  onEditStep={setCurrentStep}
+                  errors={errors}
+                />
+              </div>
+            )}
+
+            {currentStep === 5 && receiptContext && (
+              <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                <PixReceiptStep
+                  tenantId={receiptContext.tenantId}
+                  appointmentId={receiptContext.appointmentId}
+                  customerId={selectedCustomer}
+                  customerName={customerObj?.name}
+                  serviceName={serviceObj?.name}
+                  amount={receiptContext.amount}
+                  dateLabel={format(parseISO(selectedDate), "dd/MM/yyyy")}
+                  timeLabel={selectedTime}
+                  shopName={shopName}
+                  pixKey={shopPixKey}
+                  whatsappNumber={shopWhatsapp}
+                  onFinish={() => {
+                    setOpen(false);
+                    setCurrentStep(1);
+                    setReceiptContext(null);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {!receiptContext && (
+            <DialogFooter className="p-6 md:p-8 pt-4 border-t border-zinc-100 bg-zinc-50/50">
+              <div className="flex w-full justify-between items-center">
+                {currentStep > 1 ? (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setCurrentStep(prev => prev - 1)}
+                    className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-black"
+                  >
+                    Voltar
+                  </Button>
+                ) : (
+                  <div />
+                )}
+                
+                <div className="flex gap-3">
+                  {currentStep < 4 ? (
+                    <Button 
+                      onClick={handleNextStep}
+                      disabled={
+                        (currentStep === 1 && (!selectedBarber || !selectedService)) ||
+                        (currentStep === 2 && !selectedTime) ||
+                        (currentStep === 3 && !selectedCustomer) ||
+                        (!canAddAppointment && !editingAppointmentId) ||
+                        isLoading
+                      }
+                      className="bg-black text-white hover:bg-zinc-800 rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px]"
+                    >
+                      Próximo
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleCreateAppointment}
+                      disabled={isLoading || (!canAddAppointment && !editingAppointmentId)}
+                      className="bg-black text-white hover:bg-zinc-800 rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px]"
+                    >
+                      {isLoading ? "Salvando..." : editingAppointmentId ? "Salvar" : "Confirmar"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </DialogFooter>
           )}
         </DialogContent>
       </Dialog>
@@ -786,39 +822,39 @@ export function AppointmentModal({
           if (!open) setNewCustomer({ name: "", phone: "" });
         }}
       >
-        <DialogContent className="rounded-2xl sm:max-w-[425px]">
+        <DialogContent className="rounded-[24px] border border-gold/20 sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black">Cadastrar novo cliente</DialogTitle>
+            <DialogTitle className="text-lg font-black uppercase tracking-tight italic">Cadastrar novo cliente</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="new-customer-name">Nome completo</Label>
+              <Label htmlFor="new-customer-name" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Nome completo</Label>
               <Input
                 id="new-customer-name"
                 placeholder="Nome do cliente"
                 value={newCustomer.name}
                 onChange={(e) => setNewCustomer((prev) => ({ ...prev, name: e.target.value }))}
                 autoComplete="off"
-                className="rounded-xl"
+                className="h-12 rounded-xl border-zinc-200 focus:ring-gold/30"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-customer-phone">Telefone</Label>
+              <Label htmlFor="new-customer-phone" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Telefone</Label>
               <Input
                 id="new-customer-phone"
                 placeholder="(00) 00000-0000"
                 value={newCustomer.phone}
                 onChange={(e) => setNewCustomer((prev) => ({ ...prev, phone: e.target.value }))}
                 autoComplete="off"
-                className="rounded-xl"
+                className="h-12 rounded-xl border-zinc-200 focus:ring-gold/30"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
-              variant="outline"
-              className="rounded-xl"
+              variant="ghost"
+              className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500"
               onClick={() => {
                 setIsNewCustomerDialogOpen(false);
                 setNewCustomer({ name: "", phone: "" });
@@ -827,7 +863,7 @@ export function AppointmentModal({
               Cancelar
             </Button>
             <Button
-              className="rounded-xl font-bold"
+              className="bg-black text-white hover:bg-zinc-800 rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px]"
               onClick={handleCreateCustomer}
               disabled={isLoading || !newCustomer.name}
             >
@@ -839,3 +875,6 @@ export function AppointmentModal({
     </>
   );
 }
+
+const cn = (...classes: any[]) => classes.filter(Boolean).join(" ");
+

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowLeft, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { requestEmailVerification, verifyEmailCode, finalizeAuthSetup } from "@/lib/auth-verification.functions";
 
 interface BookingAuthStepProps {
@@ -118,25 +120,34 @@ export function BookingAuthStep({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white p-6 md:p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-zinc-100 transition-colors">
-          <ArrowLeft size={20} className="text-zinc-600" />
-        </button>
-        <div className="flex items-center gap-1.5">
-          {[1, 2, 3].map(i => (
-            <div 
-              key={i} 
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                (step === 'email' && i === 1) || 
-                (step === 'verification' && i <= 2) || 
-                (step === 'password' && i <= 3) 
-                ? 'w-6 bg-gold' : 'w-1.5 bg-zinc-200'
-              }`}
-            />
-          ))}
+    <div className="flex flex-col w-full max-w-[min(720px,calc(100vw-48px))] mx-auto bg-white rounded-[24px] md:rounded-[32px] border border-gold/20 shadow-xl overflow-hidden relative">
+      <div className="p-6 md:p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={onBack} 
+            className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-black"
+          >
+            <ArrowLeft size={18} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Voltar</span>
+          </button>
+          
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3].map(i => (
+              <div 
+                key={i} 
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300",
+                  ((step === 'email' && i === 1) || 
+                  (step === 'verification' && i <= 2) || 
+                  (step === 'password' && i <= 3))
+                  ? 'w-6 bg-gold' : 'w-1.5 bg-zinc-200'
+                )}
+              />
+            ))}
+          </div>
+
+          <div className="w-10 h-10 -mr-2" /> {/* Spacer to center progress */}
         </div>
-      </div>
 
       <AnimatePresence mode="wait">
         {step === 'email' && (
@@ -148,8 +159,8 @@ export function BookingAuthStep({
             className="space-y-6"
           >
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-black tracking-tight leading-tight">Configurar seu acesso</h3>
-              <p className="text-zinc-500 text-sm">Para sua segurança, precisamos validar seu e-mail e criar uma senha para futuros acessos.</p>
+              <h3 className="text-2xl md:text-[26px] font-black text-black tracking-tight italic uppercase leading-tight">Configurar seu acesso</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed max-w-[420px]">Para sua segurança, precisamos validar seu e-mail e criar uma senha para futuros acessos.</p>
             </div>
 
             <div className="space-y-4">
@@ -187,32 +198,47 @@ export function BookingAuthStep({
             className="space-y-6"
           >
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-black tracking-tight leading-tight">Confirme seu e-mail</h3>
-              <p className="text-zinc-500 text-sm">Enviamos um código de 6 dígitos para:</p>
-              <p className="text-black font-bold truncate">{email}</p>
+              <h3 className="text-2xl md:text-[26px] font-black text-black tracking-tight italic uppercase leading-tight">Confirme seu e-mail</h3>
+              <div className="space-y-1">
+                <p className="text-zinc-500 text-sm leading-relaxed">Enviamos um código de 6 dígitos para:</p>
+                <p className="text-black font-black truncate text-base">{email}</p>
+              </div>
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 text-center block">Código de 6 dígitos</Label>
-                <div className="flex justify-center">
-                  <Input 
-                    maxLength={6}
-                    placeholder="000000"
-                    value={code}
-                    onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-                    className="h-16 text-center text-3xl font-black tracking-[0.5em] bg-zinc-50 border-zinc-200 rounded-2xl text-black w-full max-w-[200px]"
-                  />
+              <div className="space-y-4 flex flex-col items-center">
+                <div className="space-y-3 w-full max-w-[360px]">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 text-center block">Código de verificação</Label>
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={code}
+                      onChange={(val) => setCode(val)}
+                      inputMode="numeric"
+                      render={({ slots }) => (
+                        <InputOTPGroup className="gap-2">
+                          {slots.map((slot, index) => (
+                            <InputOTPSlot
+                              key={index}
+                              index={index}
+                              {...slot}
+                              className="w-11 h-13 md:w-12 md:h-14 text-xl font-black bg-zinc-50 border-zinc-200 rounded-xl focus:ring-gold/30 focus:border-gold/50 transition-all"
+                            />
+                          ))}
+                        </InputOTPGroup>
+                      )}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <Button 
-                onClick={handleVerifyCode}
-                disabled={loading || code.length !== 6}
-                className="w-full h-14 rounded-2xl bg-black text-white font-extrabold hover:bg-zinc-800 transition-all"
-              >
-                {loading ? <Loader2 className="animate-spin" /> : "Confirmar código"}
-              </Button>
+                <Button 
+                  onClick={handleVerifyCode}
+                  disabled={loading || code.length !== 6}
+                  className="w-full max-w-[360px] h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
+                >
+                  {loading ? <Loader2 className="animate-spin" /> : "Confirmar código"}
+                </Button>
+              </div>
 
               <div className="text-center">
                 {timer > 0 ? (
@@ -246,8 +272,8 @@ export function BookingAuthStep({
             className="space-y-6"
           >
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-black tracking-tight leading-tight">Crie sua senha</h3>
-              <p className="text-zinc-500 text-sm">Agora defina uma senha segura para acessar seu portal no Barbex.</p>
+              <h3 className="text-2xl md:text-[26px] font-black text-black tracking-tight italic uppercase leading-tight">Crie sua senha</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed max-w-[420px]">Agora defina uma senha segura para acessar seu portal no Barbex.</p>
             </div>
 
             <div className="space-y-4">
@@ -261,7 +287,8 @@ export function BookingAuthStep({
                       placeholder="••••••••"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="h-14 pl-12 pr-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30"
+                      className="h-14 pl-12 pr-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 focus-visible:border-gold/50 transition-all"
+                      autoComplete="new-password"
                     />
                     <button 
                       type="button"
@@ -282,24 +309,37 @@ export function BookingAuthStep({
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
-                      className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30"
+                      className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 focus-visible:border-gold/50 transition-all"
+                      autoComplete="new-password"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl space-y-2">
-                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-tighter text-zinc-600">
-                  <AlertCircle size={14} className="text-gold" /> Requisitos mínimos:
+              <div className="p-5 bg-zinc-50 border border-zinc-100 rounded-[20px] space-y-3">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  REQUISITOS DA SENHA
                 </div>
-                <ul className="grid grid-cols-1 gap-1 text-[12px] text-zinc-500 font-medium">
-                  <li className="flex items-center gap-2">
-                    <div className={`h-1.5 w-1.5 rounded-full ${password.length >= 6 ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
-                    Pelo menos 6 caracteres
+                <ul className="grid grid-cols-1 gap-2 text-[13px] text-zinc-600 font-bold">
+                  <li className="flex items-center gap-2.5">
+                    {password.length >= 6 ? (
+                      <CheckCircle2 size={16} className="text-emerald-500" />
+                    ) : (
+                      <div className="h-4 w-4 rounded-full border-2 border-zinc-200" />
+                    )}
+                    <span className={cn(password.length >= 6 ? "text-emerald-600" : "text-zinc-400")}>
+                      Pelo menos 6 caracteres
+                    </span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <div className={`h-1.5 w-1.5 rounded-full ${password === confirmPassword && password.length > 0 ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
-                    Senhas devem coincidir
+                  <li className="flex items-center gap-2.5">
+                    {password === confirmPassword && password.length > 0 ? (
+                      <CheckCircle2 size={16} className="text-emerald-500" />
+                    ) : (
+                      <div className="h-4 w-4 rounded-full border-2 border-zinc-200" />
+                    )}
+                    <span className={cn(password === confirmPassword && password.length > 0 ? "text-emerald-600" : "text-zinc-400")}>
+                      Senhas devem coincidir
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -307,7 +347,7 @@ export function BookingAuthStep({
               <Button 
                 onClick={handleFinish}
                 disabled={loading || password.length < 6 || password !== confirmPassword}
-                className="w-full h-14 rounded-2xl bg-black text-white font-extrabold hover:bg-zinc-800 transition-all"
+                className="w-full md:w-[260px] h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Finalizar configuração"}
               </Button>
@@ -315,6 +355,7 @@ export function BookingAuthStep({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
