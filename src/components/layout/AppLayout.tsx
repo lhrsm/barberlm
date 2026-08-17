@@ -126,6 +126,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId, isLoading: tenantLoading } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
+  const { isExpired, loading: planLoading } = usePlanLimits();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
@@ -133,6 +134,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
   const loading = authLoading || profLoading;
+
 
   const slug = tenantProfile?.slug || authProfile?.slug || "general";
 
@@ -284,7 +286,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   }, [session, profLogout, navigate, pathname]);
 
 
-  const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
+  const { isTrial, subscription, plan, trialEndsAt } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
   // Condição mestre de bloqueio visual:
