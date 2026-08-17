@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { enrollMFA, verifyMFA, unenrollMFA, listFactors, getMFAStatus } from '@/lib/auth-security.functions';
+import { enrollMFA, verifyMFA, unenrollMFA, listFactors, getMFAStatus, generateBackupCodes, listBackupCodes } from '@/lib/auth-security.functions';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Download, RefreshCw } from 'lucide-react';
+
 
 export const MFASettings: React.FC = () => {
   const queryClient = useQueryClient();
@@ -104,30 +106,34 @@ export const MFASettings: React.FC = () => {
             <Loader2 className="w-6 h-6 text-gold animate-spin" />
           </div>
         ) : isMFAEnabled ? (
-          <div className="space-y-4">
-            {activeFactors.map((factor: any) => (
-              <div key={factor.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-gold/10">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gold/10 rounded-lg">
-                    <ShieldCheck className="w-5 h-5 text-gold" />
+          <div className="space-y-6">
+            <div className="space-y-4">
+              {activeFactors.map((factor: any) => (
+                <div key={factor.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-gold/10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gold/10 rounded-lg">
+                      <ShieldCheck className="w-5 h-5 text-gold" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white">Aplicativo Autenticador</p>
+                      <p className="text-xs text-gray-500">Configurado via TOTP</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-white">Aplicativo Autenticador</p>
-                    <p className="text-xs text-gray-500">Configurado via TOTP</p>
-                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => unenrollMutation.mutate(factor.id)}
+                    disabled={unenrollMutation.isPending}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Desativar
+                  </Button>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => unenrollMutation.mutate(factor.id)}
-                  disabled={unenrollMutation.isPending}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Desativar
-                </Button>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <BackupCodesSection />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
@@ -149,6 +155,7 @@ export const MFASettings: React.FC = () => {
             </div>
           </div>
         )}
+
 
         {/* Enrollment Modal */}
         <Dialog open={showEnrollModal} onOpenChange={setShowEnrollModal}>
@@ -240,3 +247,113 @@ export const MFASettings: React.FC = () => {
     </Card>
   );
 };
+
+const BackupCodesSection: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [showCodesModal, setShowCodesModal] = useState(false);
+  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
+
+  const { data: backupCodes, isLoading } = useQuery({
+    queryKey: ['mfa-backup-codes'],
+    queryFn: () => listBackupCodes()
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: () => generateBackupCodes(),
+    onSuccess: (codes) => {
+      setGeneratedCodes(codes);
+      setShowCodesModal(true);
+      queryClient.invalidateQueries({ queryKey: ['mfa-backup-codes'] });
+    },
+    onError: (error: any) => toast.error(`Erro ao gerar códigos: ${error.message}`)
+  });
+
+  const downloadCodes = () => {
+    const text = `CÓDIGOS DE RECUPERAÇÃO BARBEX\n\nGuarde em local seguro. Cada código pode ser usado apenas uma vez.\n\n${generatedCodes.join('\n')}`;
+    const element = document.createElement("a");
+    const file = new Blob([text], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "barbex-backup-codes.txt";
+    document.body.appendChild(element);
+    element.click();
+  };
+
+  const hasCodes = backupCodes && backupCodes.length > 0;
+
+  return (
+    <div className="pt-6 border-t border-white/5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="text-sm font-bold text-white flex items-center gap-2">
+            <Key className="w-4 h-4 text-gold" />
+            Códigos de Recuperação
+          </h4>
+          <p className="text-xs text-gray-500 mt-1">
+            Use estes códigos para acessar sua conta caso perca seu dispositivo MFA.
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => generateMutation.mutate()}
+          disabled={generateMutation.isPending}
+          className="border-gold/20 text-gold hover:bg-gold/10"
+        >
+          {generateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <RefreshCw className="w-3 h-3 mr-2" />}
+          {hasCodes ? 'Regerar Códigos' : 'Gerar Códigos'}
+        </Button>
+      </div>
+
+      {hasCodes && (
+        <div className="p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <CheckCircle2 className="w-3 h-3 text-green-500" />
+            Você possui códigos de recuperação ativos.
+          </div>
+          <Badge variant="outline" className="text-[10px] text-zinc-500 border-zinc-800 uppercase tracking-widest">
+            {backupCodes.filter((c: any) => !c.used_at).length} Disponíveis
+          </Badge>
+        </div>
+      )}
+
+      <Dialog open={showCodesModal} onOpenChange={setShowCodesModal}>
+        <DialogContent className="bg-[#0a0c14] border-gold/20 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">
+              Códigos de <span className="text-gold">Recuperação</span>
+            </DialogTitle>
+            <DialogDescription className="text-red-400 font-bold">
+              ATENÇÃO: Estes códigos serão exibidos apenas esta vez. Salve-os agora!
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-black/40 border border-gold/20 rounded-xl p-6 grid grid-cols-2 gap-4">
+            {generatedCodes.map((code, idx) => (
+              <div key={idx} className="font-mono text-center py-2 bg-white/5 rounded border border-white/10 text-zinc-200 tracking-wider">
+                {code}
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={downloadCodes}
+              className="flex-1 border-white/10 text-white hover:bg-white/5"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Baixar TXT
+            </Button>
+            <Button 
+              onClick={() => setShowCodesModal(false)}
+              className="flex-1 bg-gold hover:bg-gold/80 text-black font-bold"
+            >
+              Salvar e Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
