@@ -159,21 +159,57 @@ function AuthPageComponent() {
             {/* Glow Effect */}
             <div className="absolute -inset-1 bg-gradient-to-b from-gold/20 to-transparent rounded-[32px] blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
             
-            <div className="relative bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5 rounded-[32px] shadow-2xl overflow-hidden p-8 md:p-10">
+            <div className={`relative ${isClientPortal ? 'bg-white' : 'bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5'} rounded-[32px] shadow-2xl overflow-hidden p-8 md:p-10`}>
               <div className="text-center space-y-3 mb-10">
-                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic leading-none">
-                  BEM-VINDO AO <span className="text-gold">BARBEX</span>
+                <h2 className={`text-2xl md:text-3xl font-black ${isClientPortal ? 'text-zinc-900' : 'text-white'} tracking-tighter uppercase italic leading-none`}>
+                  {isClientPortal ? 'PORTAL DO' : 'BEM-VINDO AO'} <span className="text-gold">{isClientPortal ? 'CLIENTE' : 'BARBEX'}</span>
                 </h2>
-                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed max-w-[240px] mx-auto">
-                  Acesse sua barbearia e gerencie sua operação de qualquer lugar.
+                <p className={`${isClientPortal ? 'text-zinc-400' : 'text-zinc-500'} text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed max-w-[240px] mx-auto`}>
+                  {isClientPortal ? 'Gerencie seus agendamentos e cashback em um só lugar.' : 'Acesse sua barbearia e gerencie sua operação de qualquer lugar.'}
                 </p>
               </div>
 
-              {/* Administrative Auth Form */}
-              <AuthForm />
+              {isClientPortal ? (
+                <div className="space-y-6">
+                  {!migrationData ? (
+                    <ClientLoginForm onMigrationRequired={(data) => setMigrationData(data)} />
+                  ) : (
+                    <BookingAuthStep
+                      customerName="Cliente Barbex"
+                      customerPhone={migrationData.phone || ""}
+                      customerId={null}
+                      tenantId=""
+                      onSuccess={() => window.location.reload()}
+                      onBack={() => setMigrationData(null)}
+                    />
+                  )}
+                  <div className="text-center pt-4">
+                    <Button 
+                      variant="link" 
+                      onClick={() => navigate({ to: '/auth', search: { tab: undefined } })}
+                      className="text-zinc-400 hover:text-gold text-[10px] font-black uppercase tracking-widest"
+                    >
+                      Acesso Administrativo
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <AuthForm />
+                  <div className="text-center pt-6">
+                    <Button 
+                      variant="link" 
+                      onClick={() => navigate({ to: '/auth', search: { tab: 'client' } })}
+                      className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
+                    >
+                      Acesso para Clientes
+                    </Button>
+                  </div>
+                </>
+              )}
 
               {/* Commercial Info / Badges */}
-              <div className="mt-8 pt-8 border-t border-white/5 grid grid-cols-2 gap-4">
+              <div className={`mt-8 pt-8 border-t ${isClientPortal ? 'border-zinc-100' : 'border-white/5'} grid grid-cols-2 gap-4`}>
                 {[
                   { text: "15 dias grátis" },
                   { text: "Sem cartão" },
