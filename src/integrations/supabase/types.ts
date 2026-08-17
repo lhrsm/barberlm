@@ -6372,6 +6372,39 @@ export type Database = {
           },
         ]
       }
+      resend_settings: {
+        Row: {
+          created_at: string | null
+          domain: string
+          from_email: string
+          from_name: string
+          id: string
+          is_domain_verified: boolean | null
+          last_test_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string
+          from_email?: string
+          from_name?: string
+          id?: string
+          is_domain_verified?: boolean | null
+          last_test_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string
+          from_email?: string
+          from_name?: string
+          id?: string
+          is_domain_verified?: boolean | null
+          last_test_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       review_automation_logs: {
         Row: {
           appointment_id: string
