@@ -10,6 +10,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getTeamMembers, getPendingInvitations } from "@/lib/team.functions";
 import { useTenant } from "@/hooks/use-tenant";
+import { AddUserModal } from "@/components/team/AddUserModal";
+import { useState } from "react";
 
 export const Route = createFileRoute("/dashboard/usuarios")({
   component: TeamManagementPage,
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/dashboard/usuarios")({
 
 function TeamManagementPage() {
   const { tenantId } = useTenant();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const fetchMembers = useServerFn(getTeamMembers);
   const fetchInvites = useServerFn(getPendingInvitations);
 
@@ -39,11 +42,20 @@ function TeamManagementPage() {
           <h1 className="text-3xl font-bold text-white">Usuários e Permissões</h1>
           <p className="text-zinc-400">Gerencie quem pode acessar e operar sua barbearia.</p>
         </div>
-        <Button className="bg-gold hover:bg-gold/90 text-black font-bold">
+        <Button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-gold hover:bg-gold/90 text-black font-bold"
+        >
           <UserPlus className="mr-2 h-4 w-4" />
           Adicionar usuário
         </Button>
       </div>
+
+      <AddUserModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        tenantId={tenantId || ''} 
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-[#0b0f17] border-gold/10">
