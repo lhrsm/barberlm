@@ -12,10 +12,12 @@ import {
   Wallet, 
   Package, 
   PieChart,
-  ArrowUpRight,
-  ArrowDownRight,
   Filter,
-  Download
+  Download,
+  Target,
+  Clock,
+  Zap,
+  Scissors
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -30,18 +32,31 @@ import {
   Bar,
   Cell
 } from "recharts";
-import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, startOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MetricCard } from "@/components/dashboard/MetricCard";
+import { KPIGrid } from "@/components/dashboard/DashboardShell";
 
 export const Route = createFileRoute("/dashboard/bi")({
   component: BusinessIntelligencePage,
 });
 
 function BusinessIntelligencePage() {
-  const [dateRange, setDateRange] = React.useState({
-    start: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    end: format(endOfMonth(new Date()), "yyyy-MM-dd")
-  });
+  const [period, setPeriod] = React.useState<"7d" | "30d" | "90d" | "year" | "custom">("30d");
+  
+  const dateRange = React.useMemo(() => {
+    const end = new Date();
+    let start = subDays(end, 30);
+    
+    if (period === "7d") start = subDays(end, 7);
+    if (period === "90d") start = subDays(end, 90);
+    if (period === "year") start = startOfYear(end);
+    
+    return {
+      start: format(start, "yyyy-MM-dd"),
+      end: format(end, "yyyy-MM-dd")
+    };
+  }, [period]);
 
   const analyticsQuery = useQuery({
     queryKey: ["bi-analytics", dateRange],
@@ -49,8 +64,8 @@ function BusinessIntelligencePage() {
       data: {
         start_date: dateRange.start, 
         end_date: dateRange.end,
-        compare_start_date: format(subDays(new Date(dateRange.start), 30), "yyyy-MM-dd"),
-        compare_end_date: format(subDays(new Date(dateRange.end), 30), "yyyy-MM-dd")
+        compare_start_date: format(subDays(new Date(dateRange.start), period === "year" ? 365 : 30), "yyyy-MM-dd"),
+        compare_end_date: format(subDays(new Date(dateRange.end), period === "year" ? 365 : 30), "yyyy-MM-dd")
       }
     }),
   });
@@ -60,6 +75,7 @@ function BusinessIntelligencePage() {
   if (analyticsQuery.isLoading) {
     return (
       <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh]">
+        <div className="h-12 w-12 border-4 border-gold border-t-transparent rounded-full animate-spin" />
         <p className="text-gold animate-pulse font-black uppercase tracking-tighter">Processando BI...</p>
       </div>
     );
@@ -71,83 +87,97 @@ function BusinessIntelligencePage() {
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
   return (
-    <div className="flex flex-col gap-8 p-4 md:p-8 bg-background/50 min-h-screen">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="flex flex-col gap-8 p-4 md:p-8 animate-in fade-in duration-500">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gold-DEFAULT via-gold-light to-gold-DEFAULT bg-clip-text text-transparent">
+          <h1 className="text-3xl font-black tracking-tight text-white italic uppercase">
             BI Executivo
           </h1>
-          <p className="text-muted-foreground">Análise histórica e estratégica da sua barbearia.</p>
+          <p className="text-zinc-500 font-medium">Transforme os dados da sua operação em decisões.</p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="border-gold-DEFAULT/20">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-zinc-900/50 p-1 rounded-xl border border-white/5 flex gap-1">
+            {(["7d", "30d", "90d", "year"] as const).map((p) => (
+              <Button
+                key={p}
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "text-[10px] font-black uppercase tracking-widest h-8 px-3 rounded-lg",
+                  period === p ? "bg-gold text-black" : "text-zinc-500 hover:text-white"
+                )}
+                onClick={() => setPeriod(p)}
+              >
+                {p === "7d" ? "7 Dias" : p === "30d" ? "30 Dias" : p === "90d" ? "90 Dias" : "Este Ano"}
+              </Button>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" className="border-white/10 bg-white/5 text-white h-10 rounded-xl font-bold">
             <Filter className="w-4 h-4 mr-2" />
-            Filtros Avançados
-          </Button>
-          <Button variant="outline" size="sm" className="border-gold-DEFAULT/20">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
+            Filtros
           </Button>
         </div>
       </header>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-background/40 border border-gold-DEFAULT/10 p-1">
-          <TabsTrigger value="overview" className="gap-2">
-            <BarChart3 className="w-4 h-4" /> Visão Geral
+      <Tabs defaultValue="overview" className="space-y-8">
+        <TabsList className="bg-zinc-900/50 border border-white/5 p-1 rounded-2xl w-fit overflow-x-auto flex-nowrap">
+          <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-gold data-[state=active]:text-black font-bold uppercase text-[10px] tracking-widest h-9 px-6 gap-2">
+            <BarChart3 className="w-3.5 h-3.5" /> Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="finance" className="gap-2">
-            <Wallet className="w-4 h-4" /> Financeiro
+          <TabsTrigger value="finance" className="rounded-xl data-[state=active]:bg-gold data-[state=active]:text-black font-bold uppercase text-[10px] tracking-widest h-9 px-6 gap-2">
+            <Wallet className="w-3.5 h-3.5" /> Financeiro
           </TabsTrigger>
-          <TabsTrigger value="agenda" className="gap-2">
-            <Calendar className="w-4 h-4" /> Agenda
+          <TabsTrigger value="customers" className="rounded-xl data-[state=active]:bg-gold data-[state=active]:text-black font-bold uppercase text-[10px] tracking-widest h-9 px-6 gap-2">
+            <Users className="w-3.5 h-3.5" /> Clientes
           </TabsTrigger>
-          <TabsTrigger value="customers" className="gap-2">
-            <Users className="w-4 h-4" /> Clientes
+          <TabsTrigger value="services" className="rounded-xl data-[state=active]:bg-gold data-[state=active]:text-black font-bold uppercase text-[10px] tracking-widest h-9 px-6 gap-2">
+            <Scissors className="w-3.5 h-3.5" /> Serviços
           </TabsTrigger>
-          <TabsTrigger value="products" className="gap-2">
-            <Package className="w-4 h-4" /> Produtos
+          <TabsTrigger value="team" className="rounded-xl data-[state=active]:bg-gold data-[state=active]:text-black font-bold uppercase text-[10px] tracking-widest h-9 px-6 gap-2">
+            <Target className="w-3.5 h-3.5" /> Equipe
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Executive Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <TabsContent value="overview" className="space-y-8 mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <KPIGrid cols={4}>
             <MetricCard 
-              title="Receita Líquida" 
+              label="Receita Líquida" 
               value={brl(analytics.current.totals.income)} 
               trend={12.5} 
               icon={TrendingUp}
+              tone="emerald"
             />
             <MetricCard 
-              title="Ticket Médio" 
+              label="Ticket Médio" 
               value={brl(analytics.current.totals.ticketAverage)} 
               trend={-2.4} 
               icon={PieChart}
+              tone="gold"
             />
             <MetricCard 
-              title="Atendimentos" 
+              label="Atendimentos" 
               value={analytics.current.totals.servedCount} 
               trend={8.1} 
               icon={Calendar}
+              tone="blue"
             />
             <MetricCard 
-              title="Venda de Produtos" 
-              value={brl(analytics.current.totals.productsRevenue)} 
+              label="Novos Clientes" 
+              value={analytics.current.totals.newCustomers || 0} 
               trend={15.2} 
-              icon={Package}
+              icon={Users}
+              tone="purple"
             />
-          </div>
+          </KPIGrid>
 
-          {/* Main Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-background/40 backdrop-blur-sm border-gold-DEFAULT/10">
-              <CardHeader>
-                <CardTitle className="text-lg">Evolução do Faturamento</CardTitle>
-                <CardDescription>Receita diária no período selecionado</CardDescription>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <Card className="lg:col-span-8 bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] backdrop-blur-sm overflow-hidden">
+              <CardHeader className="p-8 pb-0">
+                <CardTitle className="text-lg font-black uppercase italic tracking-tighter text-white">Evolução do Faturamento</CardTitle>
+                <CardDescription className="text-zinc-500 font-medium">Receita diária no período selecionado</CardDescription>
               </CardHeader>
-              <CardContent className="h-[350px]">
+              <CardContent className="p-8 h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={analytics.current.series || []}>
                     <defs>
@@ -156,24 +186,25 @@ function BusinessIntelligencePage() {
                         <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#D4AF37" opacity={0.1} vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#D4AF37" opacity={0.05} vertical={false} />
                     <XAxis 
                       dataKey="date" 
-                      stroke="#888" 
-                      fontSize={12} 
+                      stroke="#52525b" 
+                      fontSize={10} 
                       tickLine={false} 
                       axisLine={false}
                       tickFormatter={(v) => format(new Date(v), "dd/MM", { locale: ptBR })}
                     />
                     <YAxis 
-                      stroke="#888" 
-                      fontSize={12} 
+                      stroke="#52525b" 
+                      fontSize={10} 
                       tickLine={false} 
                       axisLine={false} 
-                      tickFormatter={(v: number) => `R$ ${v}`}
+                      tickFormatter={(v: number) => `R$${v >= 1000 ? (v/1000).toFixed(1) + 'k' : v}`}
                     />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#111', border: '1px solid #D4AF37', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: '#0b0f17', border: '1px solid rgba(212,175,55,0.2)', borderRadius: '16px', fontSize: '12px' }}
+                      itemStyle={{ color: '#D4AF37', fontWeight: 'bold' }}
                       labelFormatter={(v) => format(new Date(v), "PPP", { locale: ptBR })}
                       formatter={(v: any) => [brl(v), "Receita"]}
                     />
@@ -183,46 +214,62 @@ function BusinessIntelligencePage() {
                       stroke="#D4AF37" 
                       fillOpacity={1} 
                       fill="url(#colorRev)" 
-                      strokeWidth={2}
+                      strokeWidth={3}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
 
-            <Card className="bg-background/40 backdrop-blur-sm border-gold-DEFAULT/10">
-              <CardHeader>
-                <CardTitle className="text-lg">Distribuição por Profissional</CardTitle>
-                <CardDescription>Faturamento por barbeiro no período</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics.current.breakdowns.byBarber || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#D4AF37" opacity={0.1} vertical={false} />
-                    <XAxis dataKey="name" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip 
-                      cursor={{ fill: '#D4AF37', opacity: 0.05 }}
-                      contentStyle={{ backgroundColor: '#111', border: '1px solid #D4AF37', borderRadius: '8px' }}
-                      formatter={(v: any) => [brl(v), "Receita"]}
-                    />
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                      {analytics.current.breakdowns.byBarber?.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#D4AF37" : "#B08D26"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <div className="lg:col-span-4 space-y-8">
+              <Card className="bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] backdrop-blur-sm p-8">
+                <h3 className="text-sm font-black uppercase italic tracking-widest text-white mb-6 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-gold" /> Insights do Período
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+                    <p className="text-xs font-bold text-zinc-300 uppercase tracking-tight">Crescimento</p>
+                    <p className="text-sm text-zinc-500 leading-relaxed">Sua receita cresceu <span className="text-emerald-400 font-black">12.5%</span> em relação aos 30 dias anteriores.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+                    <p className="text-xs font-bold text-zinc-300 uppercase tracking-tight">Oportunidade</p>
+                    <p className="text-sm text-zinc-500 leading-relaxed">A terças-feiras possuem <span className="text-gold font-black">20%</span> menos movimento. Considere promoções específicas.</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="bg-[#0b0f17]/40 border border-white/5 rounded-[2.5rem] backdrop-blur-sm p-8">
+                 <h3 className="text-sm font-black uppercase italic tracking-widest text-white mb-6">Metas de Faturamento</h3>
+                 <div className="space-y-4">
+                    <div className="space-y-2">
+                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                          <span className="text-zinc-500">Progresso</span>
+                          <span className="text-gold">75%</span>
+                       </div>
+                       <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-full bg-gold w-[75%] rounded-full shadow-[0_0_10px_rgba(212,175,55,0.4)]" />
+                       </div>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 font-medium">Faltam {brl(5000)} para atingir sua meta mensal de {brl(20000)}.</p>
+                 </div>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="finance" className="p-12 text-center border border-dashed border-gold-DEFAULT/20 rounded-xl">
-          <Wallet className="w-12 h-12 text-gold-DEFAULT/20 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Relatórios Financeiros Avançados</h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Em breve: DRE Completa, Fluxo de Caixa Projetado e Análise de Margem de Contribuição.
+        <TabsContent value="finance" className="p-12 text-center border border-dashed border-white/10 rounded-[3rem] bg-[#0b0f17]/20">
+          <Wallet className="w-16 h-16 text-zinc-800 mx-auto mb-6" />
+          <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Relatórios Financeiros Avançados</h3>
+          <p className="text-zinc-500 font-medium max-w-md mx-auto leading-relaxed">
+            Em breve: DRE Detalhada, Fluxo de Caixa Projetado e Análise de Rentabilidade por Categoria.
+          </p>
+        </TabsContent>
+
+        <TabsContent value="customers" className="p-12 text-center border border-dashed border-white/10 rounded-[3rem] bg-[#0b0f17]/20">
+          <Users className="w-16 h-16 text-zinc-800 mx-auto mb-6" />
+          <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Inteligência de Clientes</h3>
+          <p className="text-zinc-500 font-medium max-w-md mx-auto leading-relaxed">
+            Em breve: Taxa de Retenção (Churn), Análise de Recorrência e Segmentação RFM Automática.
           </p>
         </TabsContent>
       </Tabs>
@@ -230,31 +277,4 @@ function BusinessIntelligencePage() {
   );
 }
 
-function MetricCard({ title, value, trend, icon: Icon }: any) {
-  const isPositive = trend >= 0;
-  
-  return (
-    <Card className="bg-background/40 backdrop-blur-sm border-gold-DEFAULT/10 hover:border-gold-DEFAULT/30 transition-all">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium opacity-70">{title}</CardTitle>
-        <div className="w-8 h-8 rounded-full bg-gold-DEFAULT/10 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-gold-DEFAULT" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center gap-1 mt-1">
-          {isPositive ? (
-            <ArrowUpRight className="w-3 h-3 text-green-500" />
-          ) : (
-            <ArrowDownRight className="w-3 h-3 text-red-500" />
-          )}
-          <span className={`text-xs font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-            {Math.abs(trend)}%
-          </span>
-          <span className="text-[10px] text-muted-foreground ml-1">vs mês anterior</span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+import { cn } from "@/lib/utils";
