@@ -135,7 +135,8 @@ function CustomerPortalPage() {
             <p className="text-zinc-400 font-medium">Bem-vindo de volta, {data?.customer?.name || 'Cliente'}.</p>
           </div>
           <Link 
-            to={`/${useParams({ from: '/$slug/portal' }).slug}/portal/security`}
+            to="/$slug/portal/security"
+            params={{ slug: (useParams({ from: '/$slug/portal' }) as any).slug }}
             className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
           >
             <ShieldCheck className="h-5 w-5" />
@@ -143,12 +144,14 @@ function CustomerPortalPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link 
-            to={`/${useParams({ from: '/$slug/portal' }).slug}/portal/security`}
+            to="/$slug/portal/security"
+            params={{ slug: (useParams({ from: '/$slug/portal' }) as any).slug }}
             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
           >
             <ShieldCheck className="h-4 w-4" />
             Segurança
           </Link>
+
           <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
           <Activity className="h-5 w-5 text-gold" />
           <div>
