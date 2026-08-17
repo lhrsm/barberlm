@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { normalizeIdentifier } from "@/utils/auth-identifier";
+import { supabase } from "@/integrations/supabase/client";
+console.log("[AuthClient] Module loaded at", new Date().toISOString());
 
 export const clientLogin = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
@@ -14,9 +16,7 @@ export const clientLogin = createServerFn({ method: "POST" })
     
     console.log(`[AuthClient] Attempting login for ${value} (${type})`);
     
-    // Barbex Enterprise Singleton Client
-    const { supabase } = await import("@/integrations/supabase/client");
-    
+    // Barbex Enterprise Singleton Client - already imported at module scope
     if (!supabase) {
       console.error("[AuthClient] Supabase client singleton not initialized");
       throw new Error("Supabase client singleton not initialized");
@@ -117,7 +117,7 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, redirectTo } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    const { supabase } = await import("@/integrations/supabase/client");
+    // Already imported at module scope
 
     let email = value;
 
@@ -155,7 +155,7 @@ export const validateResetToken = createServerFn({ method: "POST" })
     token: z.string()
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase } = await import("@/integrations/supabase/client");
+    // Already imported at module scope
     // Supabase JS client doesn't have a direct "validate token" method without consuming it,
     // but verifyOtp with type 'recovery' can check it.
     // However, the standard way is to handle it on the client side with onAuthStateChange.
@@ -168,7 +168,7 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase } = await import("@/integrations/supabase/client");
+    // Already imported at module scope
     
     // This assumes the user is already authenticated via the recovery link
     const { error } = await supabase.auth.updateUser({
