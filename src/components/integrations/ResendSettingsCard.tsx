@@ -127,9 +127,9 @@ export function ResendSettingsCard({ emailLogs = [], onRefreshLogs }: ResendSett
             </div>
             <Badge className={cn(
               "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-none",
-              isConfigured ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-400"
+              isConfigured ? (settings?.is_domain_verified ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400") : "bg-zinc-500/10 text-zinc-400"
             )}>
-              {isConfigured ? "Conectado" : "Não Configurado"}
+              {isConfigured ? (settings?.is_domain_verified ? "Conectado" : "Pendente Verificação") : "Não Configurado"}
             </Badge>
           </div>
           <CardTitle className="text-lg mt-4 text-white">Resend Enterprise</CardTitle>
@@ -140,7 +140,14 @@ export function ResendSettingsCard({ emailLogs = [], onRefreshLogs }: ResendSett
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-500">Domínio</span>
-              <span className="font-bold text-white">{settings?.domain || "---"}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-white">{settings?.domain || "---"}</span>
+                {settings?.is_domain_verified ? (
+                  <CheckCircle2 size={12} className="text-emerald-400" />
+                ) : (
+                  <AlertCircle size={12} className="text-amber-400" />
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-500">Remetente</span>
@@ -336,24 +343,28 @@ function TestModal({ isOpen, onClose, settings, onRefreshLogs }: {
 }) {
   const [testEmail, setTestEmail] = useState("");
   const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; messageId?: string; error?: string } | null>(null);
 
   const handleTestSend = async () => {
     if (!testEmail) return;
     setIsTesting(true);
+    setTestResult(null);
     
     try {
       const { sendTransactionalEmail } = await import("@/lib/resend.functions");
-      await sendTransactionalEmail({
+      const result = await sendTransactionalEmail({
         data: {
           recipient: testEmail,
           templateKey: 'test_email'
         }
       });
-      toast.success("E-mail de teste enviado!");
-      onClose();
+      
+      setTestResult({ success: true, messageId: result.messageId });
+      toast.success("E-mail de teste enviado com sucesso!");
       onRefreshLogs?.();
-    } catch (error) {
-      toast.error("Falha ao enviar teste");
+    } catch (error: any) {
+      setTestResult({ success: false, error: error.message });
+      toast.error("Falha ao enviar e-mail de teste");
     } finally {
       setIsTesting(false);
     }
@@ -364,15 +375,15 @@ function TestModal({ isOpen, onClose, settings, onRefreshLogs }: {
       <div className="w-full max-w-md bg-[#0b0f17] border border-gold/20 rounded-[2rem] p-8 space-y-6 shadow-[0_0_50px_rgba(212,175,55,0.1)]">
         <div className="text-center space-y-2">
           <Mail className="w-12 h-12 text-gold mx-auto mb-4" />
-          <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Testar Envio</h3>
-          <p className="text-zinc-400 text-sm">Enviaremos um e-mail de teste utilizando o remetente global configurado.</p>
+          <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Enviar E-mail de Teste</h3>
+          <p className="text-zinc-400 text-sm">Valide a configuração real de envio transacional.</p>
         </div>
         
         <div className="space-y-4">
           <div className="p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
             <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-1">
-              <span>Remetente Atual</span>
-              <Badge variant="outline" className="h-4 border-emerald-500/20 text-emerald-400 text-[8px]">{settings?.domain}</Badge>
+              <span>Remetente</span>
+              <Badge variant="outline" className="h-4 border-emerald-500/20 text-emerald-400 text-[8px] uppercase">{settings?.domain}</Badge>
             </div>
             <div className="text-xs font-bold text-white truncate">{settings?.from_name} &lt;{settings?.from_email}&gt;</div>
           </div>
@@ -383,10 +394,27 @@ function TestModal({ isOpen, onClose, settings, onRefreshLogs }: {
               type="email" 
               value={testEmail}
               onChange={(e) => setTestEmail(e.target.value)}
-              placeholder="seu-email@exemplo.com"
+              placeholder="exemplo@email.com"
               className="h-12 rounded-xl bg-[#05070d] border-zinc-800 text-white"
             />
           </div>
+
+          {testResult && (
+            <div className={cn(
+              "p-4 rounded-xl border text-[10px] space-y-1",
+              testResult.success ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400" : "bg-rose-500/5 border-rose-500/20 text-rose-400"
+            )}>
+              <div className="font-black uppercase tracking-wider">
+                {testResult.success ? "Sucesso" : "Falha"}
+              </div>
+              <div className="break-all opacity-80">
+                {testResult.success 
+                  ? `ID: ${testResult.messageId}` 
+                  : `Erro: ${testResult.error}`
+                }
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3">
@@ -394,8 +422,9 @@ function TestModal({ isOpen, onClose, settings, onRefreshLogs }: {
             variant="ghost" 
             onClick={onClose}
             className="flex-1 h-12 rounded-xl text-zinc-400"
+            disabled={isTesting}
           >
-            Cancelar
+            Fechar
           </Button>
           <Button 
             onClick={handleTestSend}
