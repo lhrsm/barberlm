@@ -70,8 +70,10 @@ export const clientLogin = createServerFn({ method: "POST" })
         id: user.id,
         email: user.email,
         role: profile.role,
-        tenantId: profile.tenant_id
+        tenantId: profile.tenant_id,
+        slug: profile.slug
       }
+
     };
   });
 
