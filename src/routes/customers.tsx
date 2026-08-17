@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 import { useEffect, useMemo, useState, memo } from "react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -684,5 +686,10 @@ const CustomersComponent = memo(() => {
 });
 
 export const Route = createFileRoute("/customers")({
-  component: CustomersComponent,
+  component: () => (
+    <PermissionGuard permission="clients:view">
+      <CustomersComponent />
+    </PermissionGuard>
+  ),
 });
+

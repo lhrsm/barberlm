@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
-export type UserRole = 'super_admin' | 'admin' | 'tenant_admin' | 'manager' | 'reception' | 'finance' | 'barber' | 'client';
+export type UserRole = 'super_admin' | 'admin' | 'tenant_admin' | 'manager' | 'receptionist' | 'financial' | 'cashier' | 'professional' | 'client' | 'reception' | 'finance' | 'barber';
 
 export type IdentityStatus = 'legacy' | 'pending' | 'completed';
 
