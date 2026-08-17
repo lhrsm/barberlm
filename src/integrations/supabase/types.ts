@@ -10779,6 +10779,11 @@ export type Database = {
         | "barber"
         | "client"
         | "reception"
+        | "manager"
+        | "receptionist"
+        | "financial"
+        | "cashier"
+        | "professional"
       approval_status: "not_required" | "pending" | "approved" | "rejected"
       automation_flow_type: "single" | "multi"
       communication_category:
@@ -10960,6 +10965,11 @@ export const Constants = {
         "barber",
         "client",
         "reception",
+        "manager",
+        "receptionist",
+        "financial",
+        "cashier",
+        "professional",
       ],
       approval_status: ["not_required", "pending", "approved", "rejected"],
       automation_flow_type: ["single", "multi"],
