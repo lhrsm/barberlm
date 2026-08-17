@@ -98,13 +98,11 @@ function ResetPasswordPage() {
         recoveryState: 'validating'
       });
 
-      const { data, error } = await updatePasswordFn({
+      await updatePasswordFn({
         data: {
           password: values.password,
         }
       });
-
-      if (error) throw error;
 
       console.log("[RESET_PASSWORD_TRACE] Password updated successfully for user:", user?.id);
       setStatus('success');
