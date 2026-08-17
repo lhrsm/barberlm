@@ -80,11 +80,12 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
         return;
       }
 
-      if (result.status === 'mfa_required') {
+      if ((result as any).status === 'mfa_required') {
         console.log("[ClientLoginForm] MFA required");
         setView('mfa');
         return;
       }
+
 
       if (result.status === 'success') {
         console.log("[ClientLoginForm] Success, calling handleSuccess with result:", result);
