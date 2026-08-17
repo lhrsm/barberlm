@@ -82,7 +82,16 @@ function BusinessIntelligencePage() {
     );
   }
 
-  if (!analytics) return null;
+  if (!analytics && !analyticsQuery.isLoading) {
+    return (
+      <div className="flex flex-col gap-8 p-6 items-center justify-center min-h-[60vh]">
+        <p className="text-rose-400 font-black uppercase tracking-tighter">Não foi possível carregar os dados do BI.</p>
+        <Button onClick={() => analyticsQuery.refetch()} variant="outline" className="border-gold text-gold">
+          Tentar Novamente
+        </Button>
+      </div>
+    );
+  }
 
   const brl = (v: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
