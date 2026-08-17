@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { sendTransactionalEmail } from "./resend.functions";
 
 /**
  * Re-exporting MFA and Security functions for complete Etapa 7 implementation
@@ -41,6 +42,17 @@ export const updatePassword = createServerFn({ method: "POST" })
             user_id: user.id,
             event_type: 'password_changed',
             metadata: { method: 'settings' }
+        });
+        
+        await sendTransactionalEmail({
+          data: {
+            recipient: user.email!,
+            templateKey: 'security_alert',
+            templateData: {
+              message: 'Sua senha foi alterada com sucesso.'
+            },
+            userId: user.id
+          }
         });
     }
     return { success: true };
@@ -101,6 +113,14 @@ export const verifyMFA = createServerFn({ method: "POST" })
         event_type: 'mfa_enabled',
         metadata: { factorId: data.factorId }
       });
+
+      await sendTransactionalEmail({
+        data: {
+          recipient: user.email!,
+          templateKey: 'mfa_enabled',
+          userId: user.id
+        }
+      });
     }
     return { success: true };
   });
@@ -122,6 +142,14 @@ export const unenrollMFA = createServerFn({ method: "POST" })
         user_id: user.id,
         event_type: 'mfa_disabled',
         metadata: { factorId: data.factorId }
+      });
+
+      await sendTransactionalEmail({
+        data: {
+          recipient: user.email!,
+          templateKey: 'mfa_disabled',
+          userId: user.id
+        }
       });
     }
     return { success: true };

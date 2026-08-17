@@ -31,6 +31,10 @@ import {
   BarChart3,
   Globe,
   Webhook,
+  Activity,
+  History,
+  PlayCircle,
+  Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,8 +56,11 @@ function IntegrationsComponent() {
   const { tenantId } = useTenant();
   const { plan } = usePlanLimits();
   
-  const [email, setEmail] = useState<any>(null);
-  const [ai, setAi] = useState<any>(null);
+  const [emailLogs, setEmailLogs] = useState<any[]>([]);
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [isTesting, setIsTesting] = useState(false);
+  const [aiSettings, setAiSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,13 +73,13 @@ function IntegrationsComponent() {
     if (!tenantId) return;
     
     try {
-      const [emailRes, aiRes] = await Promise.all([
-        supabase.from("email_settings").select("*").eq("tenant_id", tenantId).maybeSingle(),
+      const [logsRes, aiRes] = await Promise.all([
+        supabase.from("email_logs" as any).select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(5),
         supabase.from("ai_settings").select("*").eq("tenant_id", tenantId).maybeSingle()
       ]);
 
-      if (emailRes.data) setEmail(emailRes.data);
-      if (aiRes.data) setAi(aiRes.data);
+      if (logsRes.data) setEmailLogs(logsRes.data);
+      if (aiRes.data) setAiSettings(aiRes.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -80,26 +87,26 @@ function IntegrationsComponent() {
     }
   }
 
-  const saveEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
+  const handleTestSend = async () => {
+    if (!testEmail || !tenantId) return;
+    setIsTesting(true);
     
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const data = {
-      tenant_id: tenantId,
-      api_key: formData.get('api_key') as string,
-      sender_email: formData.get('sender_email') as string,
-      sender_name: formData.get('sender_name') as string,
-    };
-
-    const { error } = email?.id 
-      ? await supabase.from("email_settings").update(data).eq("id", email.id)
-      : await supabase.from("email_settings").insert(data);
-
-    if (error) toast.error("Erro ao salvar E-mail");
-    else {
-      toast.success("E-mail configurado!");
+    try {
+      const { sendTransactionalEmail } = await import("@/lib/resend.functions");
+      await sendTransactionalEmail({
+        data: {
+          recipient: testEmail,
+          templateKey: 'test_email',
+          tenantId
+        }
+      });
+      toast.success("E-mail de teste enviado!");
+      setIsTestModalOpen(false);
       fetchSettings();
+    } catch (error) {
+      toast.error("Falha ao enviar teste");
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -124,53 +131,117 @@ function IntegrationsComponent() {
             {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
 
             {/* Resend E-mail */}
-            <Card className="flex flex-col bg-[#0b0f17] border border-zinc-800/80 text-white rounded-2xl overflow-hidden shadow-[0_8px_28px_rgba(16,185,129,0.06)] hover:border-emerald-500/30 transition-all">
+            <Card className="flex flex-col bg-[#0b0f17] border border-zinc-800/80 text-white rounded-2xl overflow-hidden shadow-[0_8px_28px_rgba(16,185,129,0.06)] hover:border-gold/30 transition-all">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="h-11 w-11 rounded-xl bg-sky-500/10 border border-sky-500/30 grid place-items-center">
                     <Mail size={20} className="text-sky-400" />
                   </div>
-                  <span className={cn(
-                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                    email?.id
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                      : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
-                  )}>
-                    {email?.id ? "Configurado" : "Pendente"}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                    Conectado
                   </span>
                 </div>
-                <CardTitle className="text-lg mt-4 text-white">E-mail (Resend)</CardTitle>
-                <CardDescription className="text-zinc-400">Envie e-mails profissionais com seu próprio domínio.</CardDescription>
+                <CardTitle className="text-lg mt-4 text-white">Resend Enterprise</CardTitle>
+                <CardDescription className="text-zinc-400">Canal oficial de e-mails transacionais (notify.barbex.shop).</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 space-y-4">
-                <form id="email-form" onSubmit={saveEmail} className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500">Domínio</span>
+                    <span className="font-bold text-white">notify.barbex.shop</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500">Remetente</span>
+                    <span className="font-bold text-white">noreply@notify.barbex.shop</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500">Status do Provedor</span>
+                    <Badge className="bg-emerald-500/10 text-emerald-400 border-none font-bold">Operacional</Badge>
+                  </div>
+                </div>
+
+                <div className="pt-4 space-y-3">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                    <History size={12} /> Últimos Envios
+                  </h4>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">API Key (Resend)</Label>
-                    <Input name="api_key" type="password" defaultValue={email?.api_key} placeholder="re_..." required className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500/50" />
+                    {emailLogs.length === 0 ? (
+                      <p className="text-xs text-zinc-600 italic">Nenhum envio registrado recentemente.</p>
+                    ) : (
+                      emailLogs.map((log: any) => (
+                        <div key={log.id} className="flex items-center justify-between p-2 rounded-lg bg-black/20 text-[10px]">
+                          <span className="text-zinc-400 truncate max-w-[120px]">{log.recipient}</span>
+                          <Badge variant="outline" className={cn(
+                            "h-5 text-[8px] font-black uppercase border-none",
+                            log.status === 'delivered' ? "text-emerald-400 bg-emerald-500/5" : "text-amber-400 bg-amber-500/5"
+                          )}>
+                            {log.status}
+                          </Badge>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">E-mail Remetente</Label>
-                      <Input name="sender_email" defaultValue={email?.sender_email} placeholder="contato@seudominio.com" required className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500/50" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Nome Remetente</Label>
-                      <Input name="sender_name" defaultValue={email?.sender_name} placeholder="Barbearia X" required className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500/50" />
-                    </div>
-                  </div>
-                </form>
-                <div className="bg-sky-500/5 p-3 rounded-xl border border-sky-500/20 flex gap-2.5">
-                  <ShieldCheck className="text-sky-400 shrink-0 mt-0.5" size={16} />
-                  <p className="text-[11px] text-sky-300/80 leading-relaxed">Certifique-se de configurar o DNS no painel do Resend para garantir a entrega dos e-mails.</p>
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-zinc-800/80 pt-4 justify-start">
-                <Button form="email-form" size="sm" className="h-8 px-3 text-xs rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
-                  Salvar Configurações
+              <CardFooter className="border-t border-zinc-800/80 pt-4 gap-2">
+                <Button 
+                  onClick={() => setIsTestModalOpen(true)}
+                  size="sm" 
+                  className="h-8 px-3 text-xs rounded-lg bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90"
+                >
+                  <PlayCircle size={14} className="mr-1.5" /> Testar Envio
                 </Button>
-
+                <Button 
+                  variant="ghost"
+                  size="sm" 
+                  className="h-8 px-3 text-xs rounded-lg text-zinc-400 hover:text-white"
+                  onClick={() => toast.info("Logs detalhados em breve")}
+                >
+                  <Activity size={14} className="mr-1.5" /> Ver Logs
+                </Button>
               </CardFooter>
             </Card>
+
+            {/* Modal de Teste */}
+            {isTestModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div className="w-full max-w-md bg-[#0b0f17] border border-gold/20 rounded-[2rem] p-8 space-y-6">
+                  <div className="text-center space-y-2">
+                    <Mail className="w-12 h-12 text-gold mx-auto mb-4" />
+                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Testar Integração</h3>
+                    <p className="text-zinc-400 text-sm">Enviaremos um e-mail de teste para validar a configuração.</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">E-mail Destinatário</Label>
+                    <Input 
+                      type="email" 
+                      value={testEmail} 
+                      onChange={(e) => setTestEmail(e.target.value)} 
+                      placeholder="seu-email@exemplo.com"
+                      className="h-12 rounded-xl bg-[#05070d] border-zinc-800 text-white"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setIsTestModalOpen(false)}
+                      className="flex-1 h-12 rounded-xl text-zinc-400"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleTestSend}
+                      disabled={isTesting || !testEmail}
+                      className="flex-1 h-12 rounded-xl bg-gold text-black font-black uppercase tracking-widest"
+                    >
+                      {isTesting ? <Loader2 className="animate-spin" /> : "Enviar Teste"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* OpenAI */}
             <Card className={cn(
@@ -187,13 +258,13 @@ function IntegrationsComponent() {
                       <Lock size={10} /> ELITE
                     </span>
                   ) : (
-                    <span className={cn(
+                  <span className={cn(
                       "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                      ai?.id
+                      aiSettings?.id
                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                         : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
                     )}>
-                      {ai?.id ? "Ativo" : "Pendente"}
+                      {aiSettings?.id ? "Ativo" : "Pendente"}
                     </span>
                   )}
                 </div>
@@ -203,11 +274,11 @@ function IntegrationsComponent() {
               <CardContent className="flex-1 space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">API Key (OpenAI)</Label>
-                  <Input type="password" defaultValue={ai?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
+                  <Input type="password" defaultValue={aiSettings?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo</Label>
-                  <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
+                  <Input defaultValue={aiSettings?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-10 rounded-xl bg-[#05070d] border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-purple-500/50 disabled:opacity-50" />
                 </div>
               </CardContent>
               <CardFooter className="border-t border-zinc-800/80 pt-4 justify-start">
