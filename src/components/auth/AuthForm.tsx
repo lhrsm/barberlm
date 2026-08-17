@@ -319,7 +319,7 @@ export function AuthForm() {
                 Seu e-mail cadastrado
               </Label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-gold transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
                 <Input
                   id="reset-email"
                   type="email"
