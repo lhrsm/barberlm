@@ -61,6 +61,16 @@ import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { toast } from "sonner";
 
 import { useModules, type ModuleKey } from "@/hooks/use-modules";
+import { usePermissions, type PermissionKey } from "@/hooks/use-permissions";
+
+interface NavItem {
+  label: string;
+  icon: any;
+  to: string;
+  module?: ModuleKey;
+  permission?: PermissionKey;
+}
+
 
 const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: ModuleKey }> = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
