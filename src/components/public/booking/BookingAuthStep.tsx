@@ -173,7 +173,7 @@ export function BookingAuthStep({
                     placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30"
+                    className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                   />
                 </div>
               </div>
@@ -222,7 +222,7 @@ export function BookingAuthStep({
                               key={index}
                               index={index}
                               {...slot}
-                              className="w-11 h-13 md:w-12 md:h-14 text-xl font-black bg-zinc-50 border-zinc-200 rounded-xl focus:ring-gold/30 focus:border-gold/50 transition-all"
+                              className="w-11 h-13 md:w-12 md:h-14 text-xl font-black bg-white border-zinc-200 rounded-xl focus:ring-gold/10 focus:border-gold/60 transition-all"
                             />
                           ))}
                         </InputOTPGroup>
@@ -287,7 +287,7 @@ export function BookingAuthStep({
                       placeholder="••••••••"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="h-14 pl-12 pr-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 focus-visible:border-gold/50 transition-all"
+                      className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       autoComplete="new-password"
                     />
                     <button 
@@ -309,7 +309,7 @@ export function BookingAuthStep({
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
-                      className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 focus-visible:border-gold/50 transition-all"
+                      className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       autoComplete="new-password"
                     />
                   </div>

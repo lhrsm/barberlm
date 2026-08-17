@@ -4,6 +4,7 @@ import { BookingAuthStep } from "@/components/public/booking/BookingAuthStep";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Scissors } from "lucide-react";
+import { BarbexLogo } from "@/components/ui/barbex-logo";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { tab?: string; redirect?: string } => {
@@ -42,10 +43,10 @@ function AuthPageComponent() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold/10 border border-gold/20 mb-4">
-            <Scissors className="text-gold w-8 h-8" />
+          <div className="flex justify-center mb-6">
+            <BarbexLogo className="w-48 md:w-56 h-auto" />
           </div>
-          <h1 className="text-xl font-black text-white tracking-widest uppercase">Barbex</h1>
+          <h2 className="text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden">
