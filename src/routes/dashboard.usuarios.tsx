@@ -135,7 +135,7 @@ function TeamManagementPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+                  <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white" onClick={() => toast.info("Edição de perfil em breve")}>
                     Editar
                   </Button>
                 </TableCell>
@@ -180,10 +180,10 @@ function TeamManagementPage() {
                     {new Date(invite.expires_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white" onClick={() => toast.info("Funcionalidade de reenvio em breve")}>
                       Reenviar
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
+                    <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300" onClick={() => toast.info("Funcionalidade de revogação em breve")}>
                       Revogar
                     </Button>
                   </TableCell>
