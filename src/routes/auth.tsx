@@ -27,14 +27,14 @@ export const Route = createFileRoute("/auth")({
     };
   },
   component: AuthPageComponent,
-  head: ({ search }) => ({
-    title: search.tab === "client" ? "Barbex — Portal do Cliente" : "Barbex — Login Administrativo",
+  head: () => ({
+    title: "Barbex — Autenticação Premium",
     meta: [
       { 
         name: "description", 
-        content: search.tab === "client" ? "Acesse seu histórico, créditos e agendamentos no Barbex." : "Acesse a gestão completa da sua barbearia. Barbex Enterprise." 
+        content: "Acesse a gestão completa ou o portal do cliente. Barbex Enterprise." 
       },
-      { property: "og:title", content: search.tab === "client" ? "Portal do Cliente Barbex" : "Barbex Admin Login" },
+      { property: "og:title", content: "Barbex - Login" },
       { property: "og:type", content: "website" },
     ],
   }),
