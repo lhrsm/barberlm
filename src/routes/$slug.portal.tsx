@@ -184,7 +184,7 @@ function CustomerPortalPage() {
           </div>
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: (useParams({ from: '/$slug/portal' }) as any).slug }}
+            params={{ slug: profile?.slug || "" }}
             className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
           >
             <ShieldCheck className="h-5 w-5" />
