@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getResendSettings = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -33,6 +34,7 @@ export const getResendSettings = createServerFn({ method: "GET" })
   });
 
 export const updateResendSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({
     from_name: z.string().min(1),
     from_email: z.string().email(),
@@ -41,7 +43,7 @@ export const updateResendSettings = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     // Check super_admin role
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = context.user;
     
     if (!user) throw new Error("Unauthorized");
 
@@ -71,7 +73,23 @@ export const updateResendSettings = createServerFn({ method: "POST" })
   });
 
 export const validateResendIntegration = createServerFn({ method: "POST" })
-  .handler(async () => {
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    // Verify super_admin role
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const user = context.user;
+    
+    if (!user) throw new Error("Unauthorized");
+
+    const { data: roleData } = await supabaseAdmin
+      .from("user_roles" as any)
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (!roleData) throw new Error("Permission denied. Super Admin required.");
+
     const RESEND_API_KEY = process.env['RESEND_API_KEY'];
     if (!RESEND_API_KEY) {
       return { success: false, error: "API Key não configurada" };
