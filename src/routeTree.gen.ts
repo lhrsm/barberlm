@@ -64,6 +64,7 @@ import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DashboardUsuariosRouteImport } from './routes/dashboard.usuarios'
 import { Route as DashboardMembershipRouteImport } from './routes/dashboard.membership'
 import { Route as DashboardIntegracoesRouteImport } from './routes/dashboard.integracoes'
@@ -392,6 +393,11 @@ const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
   getParentRoute: () => LoyaltyRoute,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardUsuariosRoute = DashboardUsuariosRouteImport.update({
   id: '/usuarios',
@@ -751,6 +757,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/dashboard/usuarios': typeof DashboardUsuariosRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -857,6 +864,7 @@ export interface FileRoutesByTo {
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/dashboard/usuarios': typeof DashboardUsuariosRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -968,6 +976,7 @@ export interface FileRoutesById {
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
   '/dashboard/usuarios': typeof DashboardUsuariosRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -1080,6 +1089,7 @@ export interface FileRouteTypes {
     | '/dashboard/integracoes'
     | '/dashboard/membership'
     | '/dashboard/usuarios'
+    | '/invite/$token'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1186,6 +1196,7 @@ export interface FileRouteTypes {
     | '/dashboard/integracoes'
     | '/dashboard/membership'
     | '/dashboard/usuarios'
+    | '/invite/$token'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1296,6 +1307,7 @@ export interface FileRouteTypes {
     | '/dashboard/integracoes'
     | '/dashboard/membership'
     | '/dashboard/usuarios'
+    | '/invite/$token'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1372,6 +1384,7 @@ export interface RootRouteChildren {
   UpdatesRoute: typeof UpdatesRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   SubscriptionAddonsRoute: typeof SubscriptionAddonsRoute
   SubscriptionIndexRoute: typeof SubscriptionIndexRoute
@@ -1776,6 +1789,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/loyalty/campaigns'
       preLoaderRoute: typeof LoyaltyCampaignsRouteImport
       parentRoute: typeof LoyaltyRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/usuarios': {
       id: '/dashboard/usuarios'
@@ -2385,6 +2405,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpdatesRoute: UpdatesRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   SubscriptionAddonsRoute: SubscriptionAddonsRoute,
   SubscriptionIndexRoute: SubscriptionIndexRoute,
