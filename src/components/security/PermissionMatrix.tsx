@@ -7,12 +7,18 @@ import { Badge } from '@/components/ui/badge';
 
 const ROLES = ['admin', 'manager', 'receptionist', 'financial', 'professional'] as const;
 
+interface Permission {
+  key: string;
+  name: string;
+  category: string;
+}
+
 export const PermissionMatrix: React.FC = () => {
-  const { data: permissions } = useQuery({
+  const { data: permissions } = useQuery<Permission[]>({
     queryKey: ['matrix-permissions'],
     queryFn: async () => {
       const { data } = await supabase.from('permissions').select('*').order('category');
-      return data || [];
+      return (data as Permission[]) || [];
     }
   });
 
@@ -28,7 +34,7 @@ export const PermissionMatrix: React.FC = () => {
     return rolePermissions?.some(rp => rp.role === role && rp.permission_key === permissionKey);
   };
 
-  const categories = [...new Set(permissions?.map(p => p.category))];
+  const categories = [...new Set(permissions?.map(p => p.category) || [])];
 
   return (
     <Card className="bg-black/40 border-gold/10 backdrop-blur-sm overflow-hidden">
@@ -55,11 +61,11 @@ export const PermissionMatrix: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {categories.map(category => (
-                <React.Fragment key={category}>
+              {categories.map((category) => (
+                <React.Fragment key={category as string}>
                   <tr className="bg-white/5">
                     <td colSpan={ROLES.length + 1} className="py-2 px-4 text-[9px] font-black uppercase tracking-[0.2em] text-gold/60">
-                      {category}
+                      {category as string}
                     </td>
                   </tr>
                   {permissions?.filter(p => p.category === category).map(permission => (
