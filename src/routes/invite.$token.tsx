@@ -59,7 +59,7 @@ function AcceptInvitationPage() {
     }
     
     if (token) validateToken();
-  }, [token, supabase]);
+  }, [token]);
 
   const handleAccept = async (e: React.FormEvent) => {
     e.preventDefault();
