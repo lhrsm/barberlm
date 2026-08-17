@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -28,21 +28,16 @@ function CustomerPortalGuard() {
     if (!loading) {
       if (!user) {
         console.log("[PortalGuard] No user, redirecting to /auth");
-        // Save the current path to redirect back after login
         const currentPath = window.location.pathname;
         navigate({ 
           to: "/auth" as any, 
           search: { redirect: currentPath } as any
         });
       } else if (profile) {
-        // Verify identity status
         if (profile.identity_status === 'legacy') {
           console.log("[PortalGuard] Legacy client, redirecting to /auth for migration");
           navigate({ to: "/auth" as any });
         }
-        
-        // Multi-tenant check: ensure the user has a membership for this slug
-        // The slug comes from the route params
       }
     }
   }, [user, loading, profile, navigate]);
@@ -60,6 +55,7 @@ function CustomerPortalGuard() {
 
 function CustomerPortalPage() {
   const { user } = useAuth();
+  const { slug } = useParams({ from: '/$slug/portal' });
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     customer: any;
@@ -135,7 +131,7 @@ function CustomerPortalPage() {
             <p className="text-zinc-400 font-medium">Bem-vindo de volta, {data?.customer?.name || 'Cliente'}.</p>
           </div>
           <Link 
-            to={`/${useParams({ from: '/$slug/portal' }).slug}/portal/security`}
+            to={`/${slug}/portal/security`}
             className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
           >
             <ShieldCheck className="h-5 w-5" />
@@ -143,17 +139,18 @@ function CustomerPortalPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link 
-            to={`/${useParams({ from: '/$slug/portal' }).slug}/portal/security`}
+            to={`/${slug}/portal/security`}
             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
           >
             <ShieldCheck className="h-4 w-4" />
             Segurança
           </Link>
           <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-          <Activity className="h-5 w-5 text-gold" />
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
-            <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+            <Activity className="h-5 w-5 text-gold" />
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
+              <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+            </div>
           </div>
         </div>
       </div>

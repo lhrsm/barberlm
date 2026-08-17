@@ -104,6 +104,7 @@ import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as SlugCheckinRouteImport } from './routes/$slug.checkin'
 import { Route as SubscriptionCardValidateTokenRouteImport } from './routes/subscription-card.validate.$token'
 import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaigns.$id'
+import { Route as DashboardSettingsSecurityRouteImport } from './routes/dashboard.settings.security'
 import { Route as ApiPublicSendPushRouteImport } from './routes/api/public/send-push'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as SlugEquipeBarberIdRouteImport } from './routes/$slug.equipe.$barberId'
@@ -597,6 +598,12 @@ const LoyaltyCampaignsIdRoute = LoyaltyCampaignsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => LoyaltyCampaignsRoute,
 } as any)
+const DashboardSettingsSecurityRoute =
+  DashboardSettingsSecurityRouteImport.update({
+    id: '/settings/security',
+    path: '/settings/security',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const ApiPublicSendPushRoute = ApiPublicSendPushRouteImport.update({
   id: '/api/public/send-push',
   path: '/api/public/send-push',
@@ -776,6 +783,7 @@ export interface FileRoutesByFullPath {
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
+  '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
@@ -883,6 +891,7 @@ export interface FileRoutesByTo {
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
+  '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
@@ -995,6 +1004,7 @@ export interface FileRoutesById {
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
+  '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/loyalty/campaigns/$id': typeof LoyaltyCampaignsIdRoute
   '/subscription-card/validate/$token': typeof SubscriptionCardValidateTokenRoute
   '/academy/$pathId/lessons/$lessonId': typeof AcademyPathIdLessonsLessonIdRoute
@@ -1108,6 +1118,7 @@ export interface FileRouteTypes {
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
+    | '/dashboard/settings/security'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/academy/$pathId/lessons/$lessonId'
@@ -1215,6 +1226,7 @@ export interface FileRouteTypes {
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
+    | '/dashboard/settings/security'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/academy/$pathId/lessons/$lessonId'
@@ -1326,6 +1338,7 @@ export interface FileRouteTypes {
     | '/$slug/equipe/$barberId'
     | '/agendamentos/grupo/$token'
     | '/api/public/send-push'
+    | '/dashboard/settings/security'
     | '/loyalty/campaigns/$id'
     | '/subscription-card/validate/$token'
     | '/academy/$pathId/lessons/$lessonId'
@@ -2070,6 +2083,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoyaltyCampaignsIdRouteImport
       parentRoute: typeof LoyaltyCampaignsRoute
     }
+    '/dashboard/settings/security': {
+      id: '/dashboard/settings/security'
+      path: '/settings/security'
+      fullPath: '/dashboard/settings/security'
+      preLoaderRoute: typeof DashboardSettingsSecurityRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/api/public/send-push': {
       id: '/api/public/send-push'
       path: '/api/public/send-push'
@@ -2284,6 +2304,7 @@ interface DashboardRouteChildren {
   DashboardMembershipRoute: typeof DashboardMembershipRoute
   DashboardUsuariosRoute: typeof DashboardUsuariosRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardSettingsSecurityRoute: typeof DashboardSettingsSecurityRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -2296,6 +2317,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardMembershipRoute: DashboardMembershipRoute,
   DashboardUsuariosRoute: DashboardUsuariosRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardSettingsSecurityRoute: DashboardSettingsSecurityRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
