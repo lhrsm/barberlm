@@ -2831,6 +2831,9 @@ export type Database = {
         Row: {
           accepts_tips: boolean
           active: boolean | null
+          auth_migration_status:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           avatar_url: string | null
           average_rating: number | null
           bio: string | null
@@ -2858,6 +2861,9 @@ export type Database = {
         Insert: {
           accepts_tips?: boolean
           active?: boolean | null
+          auth_migration_status?:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           avatar_url?: string | null
           average_rating?: number | null
           bio?: string | null
@@ -2885,6 +2891,9 @@ export type Database = {
         Update: {
           accepts_tips?: boolean
           active?: boolean | null
+          auth_migration_status?:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           avatar_url?: string | null
           average_rating?: number | null
           bio?: string | null
@@ -4210,6 +4219,9 @@ export type Database = {
         Row: {
           allow_marketing: boolean
           allow_notifications: boolean
+          auth_migration_status:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           avatar_url: string | null
           barber_id: string | null
           birth_date: string | null
@@ -4245,6 +4257,9 @@ export type Database = {
         Insert: {
           allow_marketing?: boolean
           allow_notifications?: boolean
+          auth_migration_status?:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
@@ -4280,6 +4295,9 @@ export type Database = {
         Update: {
           allow_marketing?: boolean
           allow_notifications?: boolean
+          auth_migration_status?:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
@@ -5844,6 +5862,7 @@ export type Database = {
           checkin_token: string | null
           commission_base: string
           created_at: string
+          display_name: string | null
           effective_plan: string | null
           email: string | null
           font_color: string | null
@@ -5853,6 +5872,7 @@ export type Database = {
           gallery_images: string[]
           google_maps_url: string | null
           id: string
+          identity_status: Database["public"]["Enums"]["identity_status"] | null
           is_internal_test_tenant: boolean
           logo_url: string | null
           loyalty_mode: string
@@ -5905,6 +5925,7 @@ export type Database = {
           checkin_token?: string | null
           commission_base?: string
           created_at?: string
+          display_name?: string | null
           effective_plan?: string | null
           email?: string | null
           font_color?: string | null
@@ -5914,6 +5935,9 @@ export type Database = {
           gallery_images?: string[]
           google_maps_url?: string | null
           id: string
+          identity_status?:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           is_internal_test_tenant?: boolean
           logo_url?: string | null
           loyalty_mode?: string
@@ -5966,6 +5990,7 @@ export type Database = {
           checkin_token?: string | null
           commission_base?: string
           created_at?: string
+          display_name?: string | null
           effective_plan?: string | null
           email?: string | null
           font_color?: string | null
@@ -5975,6 +6000,9 @@ export type Database = {
           gallery_images?: string[]
           google_maps_url?: string | null
           id?: string
+          identity_status?:
+            | Database["public"]["Enums"]["identity_status"]
+            | null
           is_internal_test_tenant?: boolean
           logo_url?: string | null
           loyalty_mode?: string
@@ -8324,6 +8352,44 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_memberships_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_webhooks: {
         Row: {
           active: boolean
@@ -10003,6 +10069,7 @@ export type Database = {
           cron_status: string
         }[]
       }
+      get_current_identity_context: { Args: never; Returns: Json }
       get_customer_review: {
         Args: { _appointment_id: string }
         Returns: {
@@ -10545,6 +10612,7 @@ export type Database = {
         | "failed"
         | "cancelled"
         | "expired"
+      identity_status: "legacy" | "pending" | "completed"
       loyalty_category: "visit" | "spend" | "referral" | "social" | "special"
       product_sale_status: "completed" | "cancelled" | "refunded"
       time_off_status: "scheduled" | "active" | "completed" | "cancelled"
@@ -10729,6 +10797,7 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
+      identity_status: ["legacy", "pending", "completed"],
       loyalty_category: ["visit", "spend", "referral", "social", "special"],
       product_sale_status: ["completed", "cancelled", "refunded"],
       time_off_status: ["scheduled", "active", "completed", "cancelled"],
