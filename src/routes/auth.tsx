@@ -42,6 +42,10 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPageComponent() {
   const navigate = useNavigate();
+  const { tab, redirect } = Route.useSearch();
+  const [migrationData, setMigrationData] = useState<{ userId: string; phone: string | null } | null>(null);
+
+  const isClientPortal = tab === "client";
   
   const benefits = [
     { icon: Calendar, text: "Mais agendamentos online" },
