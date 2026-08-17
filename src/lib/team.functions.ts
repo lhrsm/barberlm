@@ -153,7 +153,8 @@ export const acceptTeamInvitation = createServerFn({ method: "POST" })
     }
 
     // 2. Check if Auth User exists
-    const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
+    const { data: authData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    if (listError) throw new Error("Erro ao verificar usuários.");
     let user = authData.users.find(u => u.email === invite.email);
 
     if (!user) {
@@ -190,7 +191,7 @@ export const acceptTeamInvitation = createServerFn({ method: "POST" })
         status: 'accepted',
         accepted_at: new Date().toISOString(),
         accepted_by: user.id
-      } as any)
+      })
       .eq('id', invite.id);
 
     return { success: true };
