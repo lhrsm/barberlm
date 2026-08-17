@@ -72,7 +72,7 @@ interface NavItem {
 }
 
 
-const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: ModuleKey }> = [
+const defaultNavItems: NavItem[] = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard", permission: "dashboard:view" },
   { label: "Comando", icon: Activity, to: "/dashboard/centro-de-comando", permission: "command_center:view" },
   { label: "KPIs", icon: BarChart3, to: "/kpis", permission: "dashboard:view" },
