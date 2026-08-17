@@ -35,7 +35,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
-  const loginFn = useServerFn(clientLogin);
+  // Removido loginFn (serverFn) para simplificação
   const resetFn = useServerFn(requestPasswordReset);
 
   const form = useForm<LoginFormValues>({
