@@ -11,7 +11,7 @@ export const Route = createFileRoute('/$slug/portal/security')({
     return (
       <div className="min-h-screen bg-[#05070d] text-white p-6 md:p-8 space-y-8">
         <div className="flex items-center gap-4">
-          <Link to={`/${slug}/portal`}>
+          <Link to="/$slug/portal" params={{ slug }}>
             <Button variant="ghost" size="icon" className="text-gold hover:text-gold/80 hover:bg-gold/10">
               <ArrowLeft className="h-6 w-6" />
             </Button>
