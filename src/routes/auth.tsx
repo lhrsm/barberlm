@@ -10,7 +10,7 @@ export const Route = createFileRoute("/auth")({
     return {
       tab: (search.tab as string) || undefined,
       redirect: (search.redirect as string) || undefined,
-    };
+    } as const;
   },
   component: AuthPageComponent,
   head: () => ({
