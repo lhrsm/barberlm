@@ -120,12 +120,11 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       }
     });
 
-    if (authError) {
-      if (authError.message.includes("already registered")) {
-        // Handle linking if needed, but for now throw error as per PRD
+    if (authError || !authUser?.user) {
+      if (authError?.message?.includes("already registered")) {
         throw new Error("Este e-mail já está cadastrado.");
       }
-      throw authError;
+      throw authError || new Error("Falha ao criar usuário de autenticação.");
     }
 
     const userId = authUser.user.id;

@@ -47,10 +47,10 @@ export const clientLogin = createServerFn({ method: "POST" })
       
       if (customer?.phone) {
         console.log(`[AuthClient] Repairing missing phone for user ${user.id}`);
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+        await admin.auth.admin.updateUserById(user.id, {
           phone: customer.phone,
-          user_metadata: { ...user.user_metadata, phone: customer.phone }
+          user_metadata: { ...(user.user_metadata || {}), phone: customer.phone }
         });
       }
     }
