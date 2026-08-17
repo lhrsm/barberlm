@@ -45,6 +45,7 @@ import { cn } from "@/lib/utils";
 import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
 import { WebhooksCard } from "@/components/integrations/WebhooksCard";
 import { ConfigurableIntegrationCard } from "@/components/integrations/ConfigurableIntegrationCard";
+import { ResendSettingsCard } from "@/components/integrations/ResendSettingsCard";
 import { withModule } from "@/components/modules/withModule";
 
 
