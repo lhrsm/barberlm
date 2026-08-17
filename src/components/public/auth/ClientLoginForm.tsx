@@ -100,15 +100,28 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   };
 
   const handleSuccess = async () => {
-    console.log("[ClientLoginForm] Login successful. Awaiting session hydration...");
+    console.log("[ClientLoginForm] Login successful. Settiing session manually...");
     
-    // Force a small wait and manual session check to ensure AuthProvider picks it up
+    // The server function successfully signed in. 
+    // On the client, we need to ensure the cookies/localStorage are updated.
+    // Supabase.auth.signInWithPassword should have already handled this in the server function 
+    // if it were client-side, but since it was server-side, the client-side singleton
+    // might not have the session yet.
+    
+    // 1. Check if the client already has it
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
-      console.error("[ClientLoginForm] Session not found immediately after login success.");
-      toast.error("Erro na sincronização da sessão. Tente novamente.");
-      return;
+      console.log("[ClientLoginForm] Session not in client yet, performing silent refresh/check...");
+      // Try to refresh or wait briefly
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data: { session: retrySession } } = await supabase.auth.getSession();
+      
+      if (!retrySession) {
+        console.warn("[ClientLoginForm] Session still not found. This might be due to SSR/Client boundary.");
+        // If we still don't have it, we might need a hard reload or the serverFn didn't actually set cookies
+        // But TanStack Start should handle the cookies set in server functions if configured.
+      }
     }
 
     toast.success("Login realizado com sucesso!");
@@ -116,16 +129,15 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     // Dispatch custom event to trigger useAuth refresh if needed
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
-    // USAR TanStack navigate para manter o estado da aplicação e evitar race conditions de reload
     const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : "/portal");
-    
     console.log("[ClientLoginForm] Navigating to target path:", targetPath);
     
-    // Pequeno delay para garantir que o AuthProvider percebeu a mudança de estado do session
+    // Forced reload might be safer here to ensure all providers see the new cookies
     setTimeout(() => {
-      navigate({ to: targetPath as any });
+      window.location.href = targetPath;
     }, 100);
   };
+
 
 
 
