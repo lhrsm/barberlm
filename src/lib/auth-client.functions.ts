@@ -9,26 +9,25 @@ export const clientLogin = createServerFn({ method: "POST" })
     password: z.string(),
     barbershopSlug: z.string().optional()
   }).parse(data))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { identifier, password } = data;
     const { type, value } = normalizeIdentifier(identifier);
     
     console.log(`[AuthClient] Attempting login for ${value} (${type})`);
     
-    // Barbex Enterprise Singleton Client - already imported at module scope
-    if (!supabase) {
-      console.error("[AuthClient] Supabase client singleton not initialized");
-      throw new Error("Supabase client singleton not initialized");
-    }
+    // Use static import for admin for speed and consistency
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
 
+    // We do NOT use the singleton client here because it's shared and might carry state.
+    // Instead, we verify credentials and then use admin to get a session if needed,
+    // but the most reliable way for TanStack Start to pick up cookies is to use a fresh client.
+    
     let authResult;
     try {
       if (type === 'email') {
-        console.log(`[AuthClient] Calling signInWithPassword with email: ${value}`);
-        authResult = await supabase.auth.signInWithPassword({ email: value, password });
+        authResult = await admin.auth.signInWithPassword({ email: value, password });
       } else {
-        console.log(`[AuthClient] Calling signInWithPassword with phone: ${value}`);
-        authResult = await supabase.auth.signInWithPassword({ phone: value, password });
+        authResult = await admin.auth.signInWithPassword({ phone: value, password });
       }
     } catch (e: any) {
       console.error(`[AuthClient] Sign in exception for ${value}:`, e);
@@ -36,55 +35,32 @@ export const clientLogin = createServerFn({ method: "POST" })
     }
 
     if (authResult.error) {
-      console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message, authResult.error.code);
+      console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message);
       throw new Error(`Erro de autenticação: ${authResult.error.message}`);
     }
     
-    const { data: { user } } = authResult;
-    if (!user) {
-      console.error("[AuthClient] No user object returned after successful-looking login");
-      throw new Error("Usuário não encontrado após login");
-    }
+    const { data: { user, session } } = authResult;
+    if (!user) throw new Error("Usuário não encontrado após login");
     
     console.log(`[AuthClient] Login successful for user ${user.id}`);
 
-    // Repair routine: if user logged in via email but lacks phone in Auth, and we have it in customers
-    if (type === 'email' && !user.phone) {
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('phone')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (customer?.phone) {
-        console.log(`[AuthClient] Repairing missing phone for user ${user.id}`);
-        const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
-        await admin.auth.admin.updateUserById(user.id, {
-          phone: customer.phone,
-          user_metadata: { ...(user.user_metadata || {}), phone: customer.phone }
-        });
-      }
-    }
-
     // Check for MFA
-    const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+    const { data: factors } = await admin.auth.mfa.listFactors(user.id);
     const hasVerifiedMFA = factors?.all?.some((f: any) => f.status === 'verified');
 
     if (hasVerifiedMFA) {
-      return {
-        status: 'mfa_required',
-        userId: user.id
-      };
+      return { status: 'mfa_required', userId: user.id };
     }
 
-    const { data: profile, error: profileError } = await supabase
+    // Resolve profile
+    const { data: profile, error: profileError } = await admin
       .from('profiles')
       .select('id, role, tenant_id, identity_status')
       .eq('id', user.id)
       .maybeSingle();
 
     if (profileError || !profile) {
-      console.error("[AuthClient] Profile resolution failed for UID:", user.id, profileError);
+      console.error("[AuthClient] Profile resolution failed for UID:", user.id);
       throw new Error("Perfil não encontrado");
     }
 
@@ -98,6 +74,7 @@ export const clientLogin = createServerFn({ method: "POST" })
 
     return { 
       status: 'success', 
+      session, // Return session for client-side setSession if cookies fail
       user: {
         id: user.id,
         email: user.email,
@@ -106,6 +83,7 @@ export const clientLogin = createServerFn({ method: "POST" })
       }
     };
   });
+
 
 
 export const requestPasswordReset = createServerFn({ method: "POST" })

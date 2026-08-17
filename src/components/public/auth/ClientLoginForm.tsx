@@ -87,9 +87,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       }
 
       if (result.status === 'success') {
-        console.log("[ClientLoginForm] Success, calling handleSuccess");
-        handleSuccess();
+        console.log("[ClientLoginForm] Success, calling handleSuccess with result:", result);
+        handleSuccess(result);
       }
+
     } catch (error: any) {
       console.error("[ClientLoginForm] Login error caught:", error);
       toast.error(error.message || "Telefone/e-mail ou senha inválidos.");
