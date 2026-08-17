@@ -87,7 +87,7 @@ function AdminLayout() {
         pathname: window.location.pathname,
         timestamp: Date.now()
       });
-      navigate({ to: "/auth", replace: true });
+      window.location.href = "/auth";
       return;
     }
 

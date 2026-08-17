@@ -40,18 +40,16 @@ function CustomerPortalGuard() {
     });
 
     if (!user) {
-      console.log("[PortalGuard] REDIRECT: No active session. Redirecting to login.");
+      console.warn("[PortalGuard] REDIRECT: No active session. Redirecting to login.");
       const currentPath = window.location.pathname;
-      navigate({ 
-        to: "/auth" as any, 
-        search: { redirect: currentPath } as any
-      });
+      // Use window.location.href for a full reload to ensure the new route sees the session
+      window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
       return;
     }
 
     if (profile?.identity_status === 'legacy') {
-      console.log("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
-      navigate({ to: "/auth" as any });
+      console.warn("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
+      window.location.href = "/auth";
       return;
     }
 

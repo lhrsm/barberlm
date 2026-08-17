@@ -100,14 +100,15 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
     if (redirect) {
-      console.log("[ClientLoginForm] Redirecting to intended path:", redirect);
+      console.log("[ClientLoginForm] Redirecting to intended path via window.location.href:", redirect);
       window.location.href = redirect;
     } else if (barbershopSlug) {
-      console.log("[ClientLoginForm] Redirecting to tenant portal:", barbershopSlug);
-      navigate({ to: `/${barbershopSlug}/portal` as any });
+      const target = `/${barbershopSlug}/portal`;
+      console.log("[ClientLoginForm] Redirecting to tenant portal via window.location.href:", target);
+      window.location.href = target;
     } else {
-      console.log("[ClientLoginForm] Redirecting to default portal");
-      navigate({ to: "/portal" as any });
+      console.log("[ClientLoginForm] Redirecting to default portal via window.location.href: /portal");
+      window.location.href = "/portal";
     }
   };
 
