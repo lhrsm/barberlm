@@ -3514,7 +3514,7 @@ function ShopPageComponent() {
           )}
 
           <div className={cn("flex-1", bookingStep === 1 ? "" : "pr-1")}>
-            {bookingStep === 1 && (
+            {bookingStep === 1 && !showIdentityStep && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
