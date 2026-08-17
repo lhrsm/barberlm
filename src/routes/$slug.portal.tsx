@@ -17,96 +17,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/$slug/portal")({
-  component: CustomerPortalGuard,
+  component: CustomerPortalPage,
 });
 
-function CustomerPortalGuard() {
-  const { user, loading, profile } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // 1. Skip if still in early initialization (loading is true)
-    if (loading) {
-      console.log('[PortalGuard] Still loading auth state...');
-      return;
-    }
-
-    // 2. If we have a user but no profile yet, wait for profile hydration
-    if (user && !profile) {
-      console.log('[PortalGuard] Session found, waiting for profile...');
-      return;
-    }
-
-    // 3. SEVERAL SECONDS LATER: If loading is false and NO user, then redirect to auth
-    if (!user) {
-      console.warn('[AUTH_REDIRECT_TRACE]', {
-        source: 'CustomerPortalGuard',
-        reason: 'No session after loading completed',
-        pathname: window.location.pathname,
-        sessionExists: false,
-        timestamp: Date.now()
-      });
-      // Small delay before redirecting to allow last-second hydration if any
-      const timer = setTimeout(() => {
-        // We check the latest auth state via supabase client directly if user is still null
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
-          }
-        });
-      }, 2000);
-      return () => clearTimeout(timer);
-
-    }
-
-    console.warn('[AUTH_REDIRECT_TRACE]', {
-      source: 'CustomerPortalGuard',
-      reason: (profile?.identity_status === 'legacy' ? 'Legacy account' : 'None'),
-      pathname: window.location.pathname,
-      authUserId: user?.id,
-      sessionExists: !!user,
-      profileExists: !!profile,
-      identityStatus: profile?.identity_status,
-      timestamp: Date.now()
-    });
-
-    if (profile?.identity_status === 'legacy') {
-      console.warn("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
-      window.location.href = "/auth";
-      return;
-    }
-
-    console.log("[PortalGuard] Access Granted.");
-  }, [user, loading, profile]);
-
-
-  // Concept: DISTINGUISH LOADING FROM UNAUTHENTICATED
-  // Show loader while loading OR while we have a user but are still fetching their profile.
-  // This prevents flickering or premature redirects.
-  if (loading || (user && !profile)) {
-    return (
-      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 text-gold animate-spin" />
-          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-            Validando Identidade Premium...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // If loading is done and we STILL don't have a user, the useEffect will handle the redirect.
-  // We just need to make sure we don't render the page content if we're not ready.
-  if (!user || !profile || profile.identity_status === 'legacy') {
-    return null;
-  }
-
-  return <CustomerPortalPage />;
-}
-
 function CustomerPortalPage() {
-  const { user, profile } = useAuth();
+  const { user, loading: authLoading, profile } = useAuth();
+  const params = useParams({ from: "/$slug/portal" });
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     customer: any;
@@ -116,13 +32,29 @@ function CustomerPortalPage() {
   } | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+    
+    if (!user) {
+      console.warn('[AUTH_REDIRECT_TRACE]', {
+        source: 'CustomerPortalPage',
+        reason: 'No session',
+        pathname: window.location.pathname
+      });
+      window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+
+    if (profile?.identity_status === 'legacy') {
+      window.location.href = "/auth";
+      return;
+    }
+
     async function loadPortalData() {
-      if (!user) return;
       try {
         const { data: customerData, error: customerError } = await supabase
           .from("customers")
           .select("*, loyalty_levels(*)")
-          .eq("user_id", user.id) 
+          .eq("user_id", user!.id) 
           .eq("tenant_id", profile?.tenant_id)
           .maybeSingle();
 
@@ -149,31 +81,44 @@ function CustomerPortalPage() {
       }
     }
 
-    loadPortalData();
-  }, [user]);
+    if (profile) {
+      loadPortalData();
+    }
+  }, [user, authLoading, profile]);
 
-  if (loading) {
+  if (authLoading || (user && !profile) || loading) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
-        <div className="h-10 w-10 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 text-gold animate-spin" />
+          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+            Carregando Portal Premium...
+          </p>
+        </div>
       </div>
     );
   }
 
+  if (!user || !profile || profile.identity_status === 'legacy') {
+    return null;
+  }
+
   const currentLevel = data?.customer?.loyalty_levels;
   const levels = data?.levels || [];
-  const currentIndex = levels.findIndex(l => l.id === currentLevel?.id);
+  const currentIndex = levels.findIndex((l: any) => l.id === currentLevel?.id);
   const nextLevel = currentIndex !== -1 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : undefined;
 
-  const achievements = (data?.achievements || []).map(ach => ({
+  const achievements = (data?.achievements || []).map((ach: any) => ({
     ...ach,
-    unlocked: data?.unlockedAchievements?.some(ua => ua.achievement_id === ach.id),
-    unlocked_at: data?.unlockedAchievements?.find(ua => ua.achievement_id === ach.id)?.unlocked_at
+    unlocked: data?.unlockedAchievements?.some((ua: any) => ua.achievement_id === ach.id),
+    unlocked_at: data?.unlockedAchievements?.find((ua: any) => ua.achievement_id === ach.id)?.unlocked_at
   }));
+
+  // Safe slug for links
+  const slug = (params as any).slug;
 
   return (
     <div className="min-h-screen bg-[#05070d] text-white p-6 space-y-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center justify-between w-full md:w-auto">
           <div>
@@ -184,7 +129,7 @@ function CustomerPortalPage() {
           </div>
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: (useParams({ from: '/$slug/portal' }) as any).slug }}
+            params={{ slug }}
             className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
           >
             <ShieldCheck className="h-5 w-5" />
@@ -193,7 +138,7 @@ function CustomerPortalPage() {
         <div className="flex items-center gap-3">
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: (useParams({ from: '/$slug/portal' }) as any).slug }}
+            params={{ slug }}
             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
           >
             <ShieldCheck className="h-4 w-4" />
@@ -201,18 +146,15 @@ function CustomerPortalPage() {
           </Link>
 
           <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-          <Activity className="h-5 w-5 text-gold" />
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
-            <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+            <Activity className="h-5 w-5 text-gold" />
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
+              <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-
-
-      {/* Level Dashboard */}
       <LoyaltyLevelCard 
         currentXP={data?.customer?.xp || 0}
         currentLevel={currentLevel}
@@ -221,7 +163,6 @@ function CustomerPortalPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Achievements Section */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
@@ -235,7 +176,6 @@ function CustomerPortalPage() {
           <AchievementGrid achievements={achievements} />
         </div>
 
-        {/* Perks & Rewards */}
         <div className="space-y-6">
           <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
             <Sparkles className="h-6 w-6 text-gold" />
