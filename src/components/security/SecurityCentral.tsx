@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { MFASettings } from './MFASettings';
 
 
+
 export const SecurityCentral: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
