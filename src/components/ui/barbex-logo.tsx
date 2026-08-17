@@ -12,7 +12,7 @@ const SIZES: Record<
   md: { box: "h-14", text: "text-2xl", gap: "gap-3" },
   lg: { box: "h-32 md:h-44", text: "text-4xl", gap: "gap-4" },
   xl: { box: "h-44 md:h-56", text: "text-5xl", gap: "gap-5" },
-  "2xl": { box: "h-32 md:h-44", text: "text-7xl", gap: "gap-6" },
+  "2xl": { box: "h-48 md:h-64", text: "text-7xl", gap: "gap-6" },
 };
 
 interface BarbexLogoProps {
