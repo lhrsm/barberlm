@@ -484,7 +484,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           </header>
 
           <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
-            <div className="max-w-7xl mx-auto w-full space-y-3">
+            <div className="max-w-[1600px] mx-auto w-full space-y-3">
               <InternalTestingBannerSlot />
               <AddonPaymentFailedBanner />
               <TrialEndingBanner />
