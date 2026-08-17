@@ -170,12 +170,19 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   };
 
   const { isEnabled: isModuleEnabled } = useModules();
-  const rawNav = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
-  const navItems = rawNav.filter((item: any) => !item.module || isModuleEnabled(item.module));
+  const { hasPermission } = usePermissions();
 
-  if (role === 'super_admin' || role === 'admin') {
+  const rawNav = role === 'barber' || role === 'professional' ? [...barberNavItems(slug)] : [...defaultNavItems];
+  const navItems = rawNav.filter((item: NavItem) => {
+    const moduleEnabled = !item.module || isModuleEnabled(item.module);
+    const permissionGranted = !item.permission || hasPermission(item.permission);
+    return moduleEnabled && permissionGranted;
+  });
+
+  if (role === 'super_admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
+
 
   useEffect(() => {
     if (loading) return;
@@ -185,11 +192,21 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // Redirect super_admin to /admin if they are on a non-admin route and not impersonating
-    if (user && role === 'super_admin' && !pathname.startsWith('/admin') && pathname !== '/auth' && !isImpersonating) {
-      console.log("AppLayout: Redirecting super_admin to /admin/dashboard");
-      navigate({ to: "/admin/dashboard" });
+    // Redirect by role
+    if (user && !pathname.startsWith('/auth') && pathname === '/dashboard') {
+      if (role === 'super_admin' && !isImpersonating) {
+        navigate({ to: "/admin/dashboard" });
+      } else if (role === 'receptionist') {
+        navigate({ to: "/dashboard/centro-de-comando" });
+      } else if (role === 'financial') {
+        navigate({ to: "/finances" as any });
+      } else if (role === 'professional') {
+        navigate({ to: `/${slug}/profissional` as any });
+      } else if (role === 'client') {
+        navigate({ to: `/${slug}/portal` as any });
+      }
     }
+
   }, [pathname, navigate, role, user, loading, isImpersonating]);
 
   useEffect(() => {
