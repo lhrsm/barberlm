@@ -97,8 +97,10 @@ function AuthPageComponent() {
         animate={{ opacity: 1, x: 0 }}
         className="relative z-10 w-full md:w-[60%] flex flex-col justify-center px-8 md:px-24 py-20 md:py-0"
       >
-        <div className="mb-12">
-          <BarbexLogo size="lg" className="h-12 md:h-16 w-auto" />
+        <div className="mb-12 mt-4 md:mt-0">
+          <div className="w-[120px] sm:w-[150px] md:w-[200px] h-auto flex items-center justify-start overflow-visible">
+            <BarbexLogo size="lg" showText={false} className="h-full w-full object-contain" />
+          </div>
         </div>
 
         <div className="max-w-xl space-y-8">
@@ -151,9 +153,9 @@ function AuthPageComponent() {
       <motion.div 
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="relative z-20 w-full md:w-[40%] flex items-center justify-center p-6 md:p-12"
+        className="relative z-20 w-full md:w-[40%] min-w-[320px] max-w-full md:max-w-[550px] flex items-center justify-center p-6 md:p-12"
       >
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-[430px] md:max-w-[480px]">
           {/* Main Card */}
           <div className="relative group">
             {/* Glow Effect */}
