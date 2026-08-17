@@ -42,7 +42,6 @@ export const Route = createFileRoute("/dashboard/bi")({
 });
 
 function BusinessIntelligencePage() {
-  console.log("BusinessIntelligencePage rendering");
   const [period, setPeriod] = React.useState<"7d" | "30d" | "90d" | "year" | "custom">("30d");
   
   const dateRange = React.useMemo(() => {
