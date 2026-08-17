@@ -1,7 +1,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Users, UserPlus, ShieldAlert, Mail, UserCheck } from "lucide-react";
+import { Users, UserPlus, ShieldAlert, Mail, UserCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -63,7 +63,9 @@ function TeamManagementPage() {
             <CardTitle className="text-sm font-medium text-zinc-400">Usuários ativos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{members?.length || 0}</div>
+            <div className="text-2xl font-bold text-white">
+              {loadingMembers ? <Loader2 className="h-5 w-5 animate-spin" /> : members?.length || 0}
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-[#0b0f17] border-gold/10">
@@ -71,7 +73,9 @@ function TeamManagementPage() {
             <CardTitle className="text-sm font-medium text-zinc-400">Convites pendentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gold">{invites?.length || 0}</div>
+            <div className="text-2xl font-bold text-gold">
+              {loadingInvites ? <Loader2 className="h-5 w-5 animate-spin" /> : invites?.length || 0}
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-[#0b0f17] border-gold/10">
@@ -112,7 +116,7 @@ function TeamManagementPage() {
                 <TableCell className="font-medium text-white">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold">
-                      {member.profile?.responsible_name?.[0] || member.profile?.display_name?.[0] || '?'}
+                      {member.profile?.responsible_name?.[0] || member.profile?.display_name?.[0] || member.profile?.email?.[0] || '?'}
                     </div>
                     <div>
                       <div>{member.profile?.responsible_name || member.profile?.display_name || 'Sem nome'}</div>
