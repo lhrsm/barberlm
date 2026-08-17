@@ -19,6 +19,8 @@ export const getBIAnalytics = createServerFn({ method: "GET" })
     const { userId, supabase: authSupabase } = context as any;
     
     // Resolve Tenant
+    if (!userId) throw new Error("Unauthorized");
+    
     const { data: profile } = await authSupabase
       .from("profiles")
       .select("tenant_id")
