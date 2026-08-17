@@ -22,13 +22,13 @@ function TeamManagementPage() {
 
   const { data: members, isLoading: loadingMembers } = useQuery({
     queryKey: ['team-members', tenantId],
-    queryFn: () => fetchMembers({ tenantId: tenantId! }),
+    queryFn: () => fetchMembers({ data: { tenantId: tenantId! } }),
     enabled: !!tenantId
   });
 
   const { data: invites, isLoading: loadingInvites } = useQuery({
     queryKey: ['team-invites', tenantId],
-    queryFn: () => fetchInvites({ tenantId: tenantId! }),
+    queryFn: () => fetchInvites({ data: { tenantId: tenantId! } }),
     enabled: !!tenantId
   });
 

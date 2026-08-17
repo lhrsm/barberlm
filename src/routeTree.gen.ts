@@ -64,6 +64,7 @@ import { Route as ReceptionAgendaRouteImport } from './routes/reception.agenda'
 import { Route as LoyaltyTemplatesRouteImport } from './routes/loyalty.templates'
 import { Route as LoyaltyDashboardRouteImport } from './routes/loyalty.dashboard'
 import { Route as LoyaltyCampaignsRouteImport } from './routes/loyalty.campaigns'
+import { Route as DashboardUsuariosRouteImport } from './routes/dashboard.usuarios'
 import { Route as DashboardMembershipRouteImport } from './routes/dashboard.membership'
 import { Route as DashboardIntegracoesRouteImport } from './routes/dashboard.integracoes'
 import { Route as DashboardCrmRouteImport } from './routes/dashboard.crm'
@@ -391,6 +392,11 @@ const LoyaltyCampaignsRoute = LoyaltyCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
   getParentRoute: () => LoyaltyRoute,
+} as any)
+const DashboardUsuariosRoute = DashboardUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardMembershipRoute = DashboardMembershipRouteImport.update({
   id: '/membership',
@@ -744,6 +750,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
+  '/dashboard/usuarios': typeof DashboardUsuariosRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -849,6 +856,7 @@ export interface FileRoutesByTo {
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
+  '/dashboard/usuarios': typeof DashboardUsuariosRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -959,6 +967,7 @@ export interface FileRoutesById {
   '/dashboard/crm': typeof DashboardCrmRoute
   '/dashboard/integracoes': typeof DashboardIntegracoesRoute
   '/dashboard/membership': typeof DashboardMembershipRoute
+  '/dashboard/usuarios': typeof DashboardUsuariosRoute
   '/loyalty/campaigns': typeof LoyaltyCampaignsRouteWithChildren
   '/loyalty/dashboard': typeof LoyaltyDashboardRoute
   '/loyalty/templates': typeof LoyaltyTemplatesRoute
@@ -1070,6 +1079,7 @@ export interface FileRouteTypes {
     | '/dashboard/crm'
     | '/dashboard/integracoes'
     | '/dashboard/membership'
+    | '/dashboard/usuarios'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1175,6 +1185,7 @@ export interface FileRouteTypes {
     | '/dashboard/crm'
     | '/dashboard/integracoes'
     | '/dashboard/membership'
+    | '/dashboard/usuarios'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1284,6 +1295,7 @@ export interface FileRouteTypes {
     | '/dashboard/crm'
     | '/dashboard/integracoes'
     | '/dashboard/membership'
+    | '/dashboard/usuarios'
     | '/loyalty/campaigns'
     | '/loyalty/dashboard'
     | '/loyalty/templates'
@@ -1765,6 +1777,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoyaltyCampaignsRouteImport
       parentRoute: typeof LoyaltyRoute
     }
+    '/dashboard/usuarios': {
+      id: '/dashboard/usuarios'
+      path: '/usuarios'
+      fullPath: '/dashboard/usuarios'
+      preLoaderRoute: typeof DashboardUsuariosRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/membership': {
       id: '/dashboard/membership'
       path: '/membership'
@@ -2243,6 +2262,7 @@ interface DashboardRouteChildren {
   DashboardCrmRoute: typeof DashboardCrmRoute
   DashboardIntegracoesRoute: typeof DashboardIntegracoesRoute
   DashboardMembershipRoute: typeof DashboardMembershipRoute
+  DashboardUsuariosRoute: typeof DashboardUsuariosRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -2254,6 +2274,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCrmRoute: DashboardCrmRoute,
   DashboardIntegracoesRoute: DashboardIntegracoesRoute,
   DashboardMembershipRoute: DashboardMembershipRoute,
+  DashboardUsuariosRoute: DashboardUsuariosRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
