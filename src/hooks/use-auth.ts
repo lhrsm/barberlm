@@ -29,6 +29,7 @@ let initializationPromise: Promise<void> | null = null;
 const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
 
 
+
 function emit() {
   const state = { user: globalUser, session: globalSession, profile: globalProfile, loading: globalLoading };
   listeners.forEach((l) => l(state));
@@ -99,14 +100,18 @@ async function initializeAuth() {
     if (initialized) return;
     initialized = true;
 
+    // INICIO: Hydration logic with explicit locking and profile synchronization
     setState({ loading: true });
 
     // 1. Subscribe to auth events
     supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[AUTH_TRACE] onAuthStateChange: ${event}`, { hasSession: !!session });
+      
       if (event === 'SIGNED_OUT') {
         setState({ session: null, user: null, profile: null, loading: false });
       } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         if (session?.user) {
+          // Mantém loading=true até o perfil carregar
           setState({ session, user: session.user, loading: true });
           await fetchProfileData(session.user.id);
           setState({ loading: false });
@@ -119,6 +124,8 @@ async function initializeAuth() {
     // 2. Initial hydration
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("[AUTH_TRACE] Initial getSession:", { hasSession: !!session });
+      
       if (session?.user) {
         setState({ session, user: session.user, loading: true });
         await fetchProfileData(session.user.id);
@@ -126,15 +133,18 @@ async function initializeAuth() {
         setState({ session: null, user: null, profile: null });
       }
     } catch (err) {
-      console.error("[useAuth] getSession error:", err);
+      console.error("[AUTH_TRACE] getSession error:", err);
       setState({ session: null, user: null, profile: null });
     } finally {
+      // Garantir que NUNCA ficamos presos em loading: true
       setState({ loading: false });
+      console.log("[AUTH_TRACE] Initialization complete", { loading: globalLoading, user: !!globalUser, profile: !!globalProfile });
     }
   })();
 
   return initializationPromise;
 }
+
 
 export function useAuth() {
   const [state, setLocalState] = useState({

@@ -116,18 +116,17 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     // Dispatch custom event to trigger useAuth refresh if needed
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
-    if (redirect) {
-      console.log("[ClientLoginForm] Redirecting to intended path via window.location.href:", redirect);
-      window.location.href = redirect;
-    } else if (barbershopSlug) {
-      const target = `/${barbershopSlug}/portal`;
-      console.log("[ClientLoginForm] Redirecting to tenant portal via window.location.href:", target);
-      window.location.href = target;
-    } else {
-      console.log("[ClientLoginForm] Redirecting to default portal via window.location.href: /portal");
-      window.location.href = "/portal";
-    }
+    // USAR TanStack navigate para manter o estado da aplicação e evitar race conditions de reload
+    const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : "/portal");
+    
+    console.log("[ClientLoginForm] Navigating to target path:", targetPath);
+    
+    // Pequeno delay para garantir que o AuthProvider percebeu a mudança de estado do session
+    setTimeout(() => {
+      navigate({ to: targetPath as any });
+    }, 100);
   };
+
 
 
   const handleForgotPassword = async () => {
