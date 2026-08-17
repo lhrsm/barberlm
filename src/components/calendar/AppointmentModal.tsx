@@ -651,7 +651,7 @@ export function AppointmentModal({
                 <AlertTitle>Limite Atingido</AlertTitle>
                 <AlertDescription>
                   Você atingiu o limite de agendamentos mensais do seu plano.
-                  <Link to="/settings/subscription" className="ml-1 font-bold underline hover:text-primary transition-colors">
+                  <Link to="/settings" className="ml-1 font-bold underline hover:text-primary transition-colors">
                     Fazer Upgrade
                   </Link>
                 </AlertDescription>
