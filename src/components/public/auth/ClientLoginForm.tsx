@@ -119,7 +119,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-[min(480px,calc(100vw-48px))] mx-auto">
       <AnimatePresence mode="wait">
         {view === 'login' && (
           <motion.div
@@ -130,8 +130,8 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             className="space-y-6"
           >
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-black text-black tracking-tight">Acesse sua conta</h2>
-              <p className="text-zinc-500 text-sm font-medium">Portal do Cliente Barbex</p>
+              <h2 className="text-2xl md:text-3xl font-black text-black tracking-tight uppercase italic">Acesse sua conta</h2>
+              <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">Portal do Cliente Barbex</p>
             </div>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -144,7 +144,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="71999999999 ou seu@email.com"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 transition-all"
+                    className="h-14 pl-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 focus-visible:border-gold/50 transition-all"
                   />
                 </div>
                 {form.formState.errors.identifier && (
@@ -171,7 +171,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-14 pl-12 pr-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 transition-all"
+                    className="h-14 pl-12 pr-12 bg-zinc-50 border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/30 focus-visible:border-gold/50 transition-all"
                   />
                   <button
                     type="button"
