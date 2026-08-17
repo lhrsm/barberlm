@@ -1087,16 +1087,24 @@ function ShopPageComponent() {
           remaining_benefits: remaining,
           next_step: sub ? 'premium_chooser' : 'service_selection',
         });
-        setBookingStep(2);
+        const isMigrated = (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id;
+        
+        if (isMigrated) {
+          // Cliente já migrado ou com conta, segue o fluxo normal (já está identificado pelo telefone)
+          setBookingStep(2);
+        } else {
+          // Cliente Legado (tem telefone mas não tem conta auth)
+          setShowIdentityStep(true);
+        }
       } else {
-        // Novo cliente
+        // Novo cliente (não tem telefone no banco)
         if (!customerName || customerName.trim().length < 3) {
           toast.info("Por favor, informe seu nome completo.");
         } else {
           console.log('BOOKING DATA DEBUG: New customer proceeding', { customerName, customerPhone });
           setActiveSubscription(null);
           setBookingMode(null);
-          setBookingStep(2);
+          setShowIdentityStep(true);
         }
       }
     } catch (e: any) {
