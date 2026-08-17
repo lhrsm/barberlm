@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,6 +46,15 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       remember: true,
     },
   });
+  
+  // Trace form state for debugging
+  useEffect(() => {
+    console.log("[ClientLoginForm] Form state updated:", {
+      values: form.getValues(),
+      errors: form.formState.errors,
+      isSubmitting: form.formState.isSubmitting
+    });
+  }, [form.watch(), form.formState.isSubmitting]);
 
   const onSubmit = async (values: LoginFormValues) => {
     setLoading(true);
