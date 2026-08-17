@@ -6,6 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Scissors } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      tab: (search.tab as string) || "login",
+      redirect: (search.redirect as string) || undefined,
+    };
+  },
   component: AuthPageComponent,
   head: () => ({
     meta: [
@@ -23,7 +29,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPageComponent() {
-  const { redirect } = Route.useSearch() as { redirect?: string };
+  const { redirect } = Route.useSearch();
   const [migrationData, setMigrationData] = useState<{ userId: string; phone: string | null } | null>(null);
 
   return (

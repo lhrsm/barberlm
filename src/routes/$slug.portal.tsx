@@ -32,7 +32,7 @@ function CustomerPortalGuard() {
         const currentPath = window.location.pathname;
         navigate({ 
           to: "/auth" as any, 
-          search: (prev: any) => ({ ...prev, redirect: currentPath }) 
+          search: { redirect: currentPath } as any
         });
       } else if (profile) {
         // Verify identity status

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { clientLogin, requestPasswordReset } from "@/lib/auth-client.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
@@ -27,7 +27,7 @@ interface ClientLoginFormProps {
 }
 
 export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientLoginFormProps) {
-  const { redirect } = useNavigate({ from: '/auth' as any }).useSearch() as { redirect?: string };
+  const { redirect } = useSearch({ from: '/auth' }) as { redirect?: string };
   const [showPassword, setShowPassword] = useState(false);
   const [view, setView] = useState<'login' | 'forgot-password' | 'success'>('login');
   const [loading, setLoading] = useState(false);
