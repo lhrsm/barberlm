@@ -191,8 +191,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-[56px] pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
+                    className="h-[56px] pl-12 bg-white border-zinc-200 rounded-2xl text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                   />
+
 
                 </div>
                 {form.formState.errors.identifier && (
@@ -219,8 +220,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-[56px] pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
+                    className="h-[56px] pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                   />
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -316,8 +318,9 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                       form.setValue("identifier", val);
                     }
                   }}
-                  className="h-14 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-black"
+                  className="h-14 bg-white border-zinc-200 rounded-2xl text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
                 />
+
               </div>
 
               <Button
