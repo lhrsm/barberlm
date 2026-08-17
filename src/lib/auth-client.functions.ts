@@ -15,19 +15,18 @@ export const clientLogin = createServerFn({ method: "POST" })
     
     console.log(`[AuthClient] Attempting login for ${value} (${type})`);
     
-    // Use static import for admin for speed and consistency
-    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    // We must use the standard supabase client in server functions for TanStack Start 
+    // to correctly manage the authentication cookies in the response.
+    if (!supabase) {
+      throw new Error("Supabase client singleton not initialized");
+    }
 
-    // We do NOT use the singleton client here because it's shared and might carry state.
-    // Instead, we verify credentials and then use admin to get a session if needed,
-    // but the most reliable way for TanStack Start to pick up cookies is to use a fresh client.
-    
     let authResult;
     try {
       if (type === 'email') {
-        authResult = await admin.auth.signInWithPassword({ email: value, password });
+        authResult = await supabase.auth.signInWithPassword({ email: value, password });
       } else {
-        authResult = await admin.auth.signInWithPassword({ phone: value, password });
+        authResult = await supabase.auth.signInWithPassword({ phone: value, password });
       }
     } catch (e: any) {
       console.error(`[AuthClient] Sign in exception for ${value}:`, e);
@@ -44,20 +43,8 @@ export const clientLogin = createServerFn({ method: "POST" })
     
     console.log(`[AuthClient] Login successful for user ${user.id}`);
 
-    // Check for MFA
-    // Note: admin.auth.mfa.listFactors is not available on the admin client, 
-    // it requires a specific user context or the admin API.
-    // For now, we bypass the direct listFactors check and return success,
-    // assuming standard Supabase MFA handling if it were triggered.
-    const hasVerifiedMFA = false;
-
-
-    if (hasVerifiedMFA) {
-      return { status: 'mfa_required', userId: user.id };
-    }
-
     // Resolve profile
-    const { data: profile, error: profileError } = await admin
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, role, tenant_id, identity_status')
       .eq('id', user.id)
@@ -78,7 +65,7 @@ export const clientLogin = createServerFn({ method: "POST" })
 
     return { 
       status: 'success', 
-      session, // Return session for client-side setSession if cookies fail
+      session,
       user: {
         id: user.id,
         email: user.email,
@@ -98,7 +85,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, redirectTo } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    // Already imported at module scope
 
     let email = value;
 
@@ -111,7 +97,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
         .maybeSingle();
       
       if (error || !profile?.email) {
-        // Generic success message to prevent enumeration
         return { message: "Se encontrarmos uma conta compatível, enviaremos as instruções de recuperação para o e-mail cadastrado." };
       }
       email = profile.email;
@@ -122,7 +107,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     });
 
     if (error) {
-      // Generic success message even on error (unless it's a rate limit)
       if (error.status === 429) {
         throw new Error("Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.");
       }
@@ -136,11 +120,6 @@ export const validateResetToken = createServerFn({ method: "POST" })
     token: z.string()
   }).parse(data))
   .handler(async ({ data, context }) => {
-    // Already imported at module scope
-    // Supabase JS client doesn't have a direct "validate token" method without consuming it,
-    // but verifyOtp with type 'recovery' can check it.
-    // However, the standard way is to handle it on the client side with onAuthStateChange.
-    // For this server function, we'll just acknowledge we're ready to process.
     return { valid: true };
   });
 
@@ -149,9 +128,6 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    // Already imported at module scope
-    
-    // This assumes the user is already authenticated via the recovery link
     const { error } = await supabase.auth.updateUser({
       password: data.password
     });
