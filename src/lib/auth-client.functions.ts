@@ -130,7 +130,11 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    // Blindagem: Garantir que estamos atuando sobre o usuário da requisição
+    // Blindagem: Garantir que temos atuando sobre o usuário da requisição
+    if (!context?.supabase) {
+      throw new Error("Supabase client not found in context");
+    }
+    
     const { data: { user }, error: userError } = await context.supabase.auth.getUser();
     
     if (userError || !user) {
