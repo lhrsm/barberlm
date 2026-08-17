@@ -77,7 +77,7 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Barbex <noreply@barbex.shop>',
+        from: 'Barbex <noreply@barbex.shop>', // Usando domínio autenticado barbex.shop
         to: [email],
         subject: 'Você foi convidado para acessar o Barbex',
         html: htmlContent,
