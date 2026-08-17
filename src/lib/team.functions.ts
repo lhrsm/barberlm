@@ -188,10 +188,10 @@ export const acceptTeamInvitation = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from('user_invitations')
       .update({ 
-        status: 'accepted' as any,
-        accepted_at: new Date().toISOString() as any,
-        accepted_by: user.id as any
-      })
+        status: 'accepted',
+        accepted_at: new Date().toISOString(),
+        accepted_by: user.id
+      } as any)
       .eq('id', invite.id);
 
     return { success: true };
