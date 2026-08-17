@@ -61,20 +61,13 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     setLoading(true);
     try {
       console.log("[ClientLoginForm] Invoking loginFn...");
-      // Manual try-catch around the server function call to handle TanStack Start internal errors
-      let result;
-      try {
-        result = await loginFn({
-          data: {
-            identifier: values.identifier,
-            password: values.password,
-            barbershopSlug,
-          }
-        });
-      } catch (err: any) {
-        console.error("[ClientLoginForm] loginFn threw directly:", err);
-        throw new Error(err.message || "Erro de conexão com o servidor. Tente novamente.");
-      }
+      const result = await loginFn({
+        data: {
+          identifier: values.identifier,
+          password: values.password,
+          barbershopSlug,
+        }
+      });
       console.log("[ClientLoginForm] loginFn result:", result);
 
       if (result.status === 'migration_required') {

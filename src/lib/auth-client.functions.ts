@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { normalizeIdentifier } from "@/utils/auth-identifier";
 import { supabase } from "@/integrations/supabase/client";
-console.log("[AuthClient] Module loaded at", new Date().toISOString());
 
 export const clientLogin = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
