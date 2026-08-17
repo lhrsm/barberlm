@@ -41,7 +41,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       identifier: "",
       password: "",
       remember: false,
-    } as LoginFormValues,
+    },
   });
 
   const onSubmit = async (values: LoginFormValues) => {
