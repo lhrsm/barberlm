@@ -57,6 +57,26 @@ import {
   Youtube 
 } from "@/components/ui/social-icons";
 
+export const Route = createFileRoute("/")({
+  component: LandingPage,
+  head: () => ({
+    title: "Barbex — A plataforma completa para barbearias de alta performance",
+    meta: [
+      { 
+        name: "description", 
+        content: "Centralize agenda, clientes, equipe, financeiro, loja, assinaturas e marketing em uma única plataforma Enterprise." 
+      },
+      { property: "og:title", content: "Barbex — Gestão Premium de Barbearias" },
+      { 
+        property: "og:description", 
+        content: "Aumente seu faturamento e fidelize clientes com a melhor plataforma de gestão para barbearias." 
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+});
+
 
 
 function LandingPage() {
