@@ -99,7 +99,7 @@ function ResetPasswordPage() {
           <div className="flex justify-center w-full mb-8">
             <div className="w-[180px] h-[180px] md:w-[240px] md:h-[240px] flex items-center justify-center">
               <img 
-                src="https://wdxhjwodyctgzqtogkgv.supabase.co/storage/v1/object/public/barber-avatars/logo-barbex.png?v=1" 
+                src="/logo-barbex.png" 
                 alt="Barbex Logo" 
                 className="max-w-full max-h-full object-contain"
               />
