@@ -49,11 +49,17 @@ export function ProfessionalAuthProvider({ children }: { children: React.ReactNo
   };
 
   const logout = () => {
+    console.warn('[AUTH_REDIRECT_TRACE]', {
+      source: 'ProfessionalAuthProvider/logout',
+      reason: 'Manual professional logout',
+      pathname: window.location.pathname,
+      timestamp: Date.now()
+    });
     if (typeof window !== 'undefined') {
       localStorage.removeItem('barber_session');
     }
     setSession(null);
-    navigate({ to: "/auth" });
+    navigate({ to: "/auth" as any });
   };
 
   return (

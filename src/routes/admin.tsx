@@ -81,8 +81,13 @@ function AdminLayout() {
     if (loading) return;
 
     if (!user) {
-      console.log("Admin route guard: No session found, redirecting to /auth");
-      navigate({ to: "/auth", replace: true });
+      console.warn('[AUTH_REDIRECT_TRACE]', {
+        source: 'AdminLayoutGuard',
+        reason: 'No session found',
+        pathname: window.location.pathname,
+        timestamp: Date.now()
+      });
+      window.location.href = "/auth";
       return;
     }
 
@@ -92,7 +97,13 @@ function AdminLayout() {
     }
 
     if (role !== 'super_admin') {
-      console.warn("Admin route guard: Access denied. Role:", role);
+      console.warn('[AUTH_REDIRECT_TRACE]', {
+        source: 'AdminLayoutGuard',
+        reason: 'Access denied. Not super_admin',
+        role,
+        pathname: window.location.pathname,
+        timestamp: Date.now()
+      });
       toast.error("Acesso negado. Apenas super administradores.");
       navigate({ to: "/dashboard" });
       return;

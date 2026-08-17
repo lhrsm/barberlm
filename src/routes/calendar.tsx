@@ -195,7 +195,11 @@ const CalendarComponent = memo(() => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate({ to: "/auth" });
+      console.warn('[AUTH_REDIRECT_TRACE]', 'No user found in CalendarComponent, redirecting to /auth', {
+        pathname: window.location.pathname,
+        timestamp: Date.now()
+      });
+      window.location.href = "/auth";
       return;
     }
 

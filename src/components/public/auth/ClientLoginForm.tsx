@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,10 +46,21 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       remember: true,
     },
   });
+  
+  // Trace form state for debugging
+  useEffect(() => {
+    console.log("[ClientLoginForm] Form state updated:", {
+      values: form.getValues(),
+      errors: form.formState.errors,
+      isSubmitting: form.formState.isSubmitting
+    });
+  }, [form.watch(), form.formState.isSubmitting]);
 
   const onSubmit = async (values: LoginFormValues) => {
+    console.log("[ClientLoginForm] onSubmit called with:", { identifier: values.identifier });
     setLoading(true);
     try {
+      console.log("[ClientLoginForm] Invoking loginFn...");
       const result = await loginFn({
         data: {
           identifier: values.identifier,
@@ -57,8 +68,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
           barbershopSlug,
         }
       });
+      console.log("[ClientLoginForm] loginFn result:", result);
 
       if (result.status === 'migration_required') {
+        console.log("[ClientLoginForm] Migration required");
         if (onMigrationRequired) {
           onMigrationRequired({ userId: result.userId, phone: result.phone });
         } else {
@@ -68,16 +81,20 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       }
 
       if (result.status === 'mfa_required') {
+        console.log("[ClientLoginForm] MFA required");
         setView('mfa');
         return;
       }
 
       if (result.status === 'success') {
+        console.log("[ClientLoginForm] Success, calling handleSuccess");
         handleSuccess();
       }
     } catch (error: any) {
+      console.error("[ClientLoginForm] Login error caught:", error);
       toast.error(error.message || "Telefone/e-mail ou senha inválidos.");
     } finally {
+      console.log("[ClientLoginForm] onSubmit finished");
       setLoading(false);
     }
   };
@@ -100,14 +117,15 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
     if (redirect) {
-      console.log("[ClientLoginForm] Redirecting to intended path:", redirect);
+      console.log("[ClientLoginForm] Redirecting to intended path via window.location.href:", redirect);
       window.location.href = redirect;
     } else if (barbershopSlug) {
-      console.log("[ClientLoginForm] Redirecting to tenant portal:", barbershopSlug);
-      navigate({ to: `/${barbershopSlug}/portal` as any });
+      const target = `/${barbershopSlug}/portal`;
+      console.log("[ClientLoginForm] Redirecting to tenant portal via window.location.href:", target);
+      window.location.href = target;
     } else {
-      console.log("[ClientLoginForm] Redirecting to default portal");
-      navigate({ to: "/portal" as any });
+      console.log("[ClientLoginForm] Redirecting to default portal via window.location.href: /portal");
+      window.location.href = "/portal";
     }
   };
 
@@ -163,16 +181,16 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     autoComplete="username"
                     onChange={(e) => {
                       const val = e.target.value;
-                      // Improved detection logic: 
-                      // 1. If it contains @ or letters (except '+' for DDI), treat as email immediately.
-                      // 2. Otherwise, treat as phone and apply mask.
-                      if (/[a-zA-Z@]/.test(val)) {
+                      
+                      // 1. If it contains @ or letters (except '+' for DDI at start), treat as email immediately.
+                      if (/[a-zA-Z@]/.test(val) || (val.includes('+') && val.indexOf('+') > 0)) {
                         form.setValue("identifier", val);
                       } else {
+                        // Phone normalization
                         const digits = val.replace(/\D/g, "");
                         let formatted = val;
                         
-                        if (digits.length >= 2) {
+                        if (digits.length > 0) {
                           if (digits.startsWith('55')) {
                             const withoutDDI = digits.substring(2);
                             if (withoutDDI.length === 0) formatted = `+55`;
@@ -247,6 +265,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <Button
                 type="submit"
                 disabled={loading}
+                onClick={(e) => {
+                  console.log("[ClientLoginForm] Submit button clicked");
+                  form.handleSubmit(onSubmit)(e);
+                }}
                 className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.98]"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Entrar"}

@@ -26,30 +26,30 @@ function CustomerPortalGuard() {
 
   useEffect(() => {
     // Early exit if still loading initial auth state OR if we have a user but are still fetching their profile.
-    // fetchProfileData in useAuth is async and might take a moment.
     if (loading || (user && !profile)) return;
 
-    console.log("[PortalGuard] Identity Check:", { 
-      hasUser: !!user, 
-      hasProfile: !!profile, 
+    console.warn('[AUTH_REDIRECT_TRACE]', {
+      source: 'CustomerPortalGuard',
+      reason: !user ? 'No active session' : (profile?.identity_status === 'legacy' ? 'Legacy account' : 'None'),
+      pathname: window.location.pathname,
+      authUserId: user?.id,
+      sessionExists: !!user,
+      profileExists: !!profile,
       identityStatus: profile?.identity_status,
-      pathname: window.location.pathname
+      timestamp: Date.now()
     });
 
     if (!user) {
-      console.log("[PortalGuard] REDIRECT: No active session. Redirecting to login.");
+      console.warn("[PortalGuard] REDIRECT: No active session. Redirecting to login.");
       const currentPath = window.location.pathname;
-      navigate({ 
-        to: "/auth" as any, 
-        search: { redirect: currentPath } as any
-      });
+      // Use window.location.href for a full reload to ensure the new route sees the session
+      window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
       return;
     }
 
-    // Now we have both user and profile
     if (profile?.identity_status === 'legacy') {
-      console.log("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
-      navigate({ to: "/auth" as any });
+      console.warn("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
+      window.location.href = "/auth";
       return;
     }
 

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { normalizeIdentifier } from "@/utils/auth-identifier";
+import { supabase } from "@/integrations/supabase/client";
 
 export const clientLogin = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
@@ -12,30 +13,40 @@ export const clientLogin = createServerFn({ method: "POST" })
     const { identifier, password } = data;
     const { type, value } = normalizeIdentifier(identifier);
     
-    // Barbex Enterprise Singleton Client
-    const { supabase } = await import("@/integrations/supabase/client");
+    console.log(`[AuthClient] Attempting login for ${value} (${type})`);
     
-    if (!supabase) throw new Error("Supabase client singleton not initialized");
+    // Barbex Enterprise Singleton Client - already imported at module scope
+    if (!supabase) {
+      console.error("[AuthClient] Supabase client singleton not initialized");
+      throw new Error("Supabase client singleton not initialized");
+    }
 
     let authResult;
     try {
       if (type === 'email') {
+        console.log(`[AuthClient] Calling signInWithPassword with email: ${value}`);
         authResult = await supabase.auth.signInWithPassword({ email: value, password });
       } else {
+        console.log(`[AuthClient] Calling signInWithPassword with phone: ${value}`);
         authResult = await supabase.auth.signInWithPassword({ phone: value, password });
       }
     } catch (e: any) {
       console.error(`[AuthClient] Sign in exception for ${value}:`, e);
-      throw new Error("Telefone/e-mail ou senha inválidos.");
+      throw new Error(`Erro de conexão com o servidor: ${e.message || "Erro desconhecido"}`);
     }
 
     if (authResult.error) {
-      console.log(`[AuthClient] Login failed for ${value}: ${authResult.error.message}`);
-      throw new Error("Telefone/e-mail ou senha inválidos.");
+      console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message, authResult.error.code);
+      throw new Error(`Erro de autenticação: ${authResult.error.message}`);
     }
     
     const { data: { user } } = authResult;
-    if (!user) throw new Error("Usuário não encontrado");
+    if (!user) {
+      console.error("[AuthClient] No user object returned after successful-looking login");
+      throw new Error("Usuário não encontrado após login");
+    }
+    
+    console.log(`[AuthClient] Login successful for user ${user.id}`);
 
     // Repair routine: if user logged in via email but lacks phone in Auth, and we have it in customers
     if (type === 'email' && !user.phone) {
@@ -105,7 +116,7 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { identifier, redirectTo } = data;
     const { type, value } = normalizeIdentifier(identifier);
-    const { supabase } = await import("@/integrations/supabase/client");
+    // Already imported at module scope
 
     let email = value;
 
@@ -143,7 +154,7 @@ export const validateResetToken = createServerFn({ method: "POST" })
     token: z.string()
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase } = await import("@/integrations/supabase/client");
+    // Already imported at module scope
     // Supabase JS client doesn't have a direct "validate token" method without consuming it,
     // but verifyOtp with type 'recovery' can check it.
     // However, the standard way is to handle it on the client side with onAuthStateChange.
@@ -156,7 +167,7 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6)
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase } = await import("@/integrations/supabase/client");
+    // Already imported at module scope
     
     // This assumes the user is already authenticated via the recovery link
     const { error } = await supabase.auth.updateUser({

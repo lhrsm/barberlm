@@ -62,7 +62,13 @@ function DashboardIndexComponent() {
     if (loading) return;
 
     if (!user) {
-      navigate({ to: "/auth", replace: true });
+      console.warn('[AUTH_REDIRECT_TRACE]', {
+        source: 'DashboardIndexComponent',
+        reason: 'No session found',
+        pathname: window.location.pathname,
+        timestamp: Date.now()
+      });
+      window.location.href = "/auth";
       return;
     }
 
