@@ -47,7 +47,7 @@ function CustomerPortalGuard() {
     }
 
     // Now we have both user and profile
-    if (profile.identity_status === 'legacy') {
+    if (profile?.identity_status === 'legacy') {
       console.log("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
       navigate({ to: "/auth" as any });
       return;
