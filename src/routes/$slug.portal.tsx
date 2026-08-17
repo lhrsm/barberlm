@@ -37,12 +37,17 @@ function CustomerPortalPage() {
     // 1. Aguardar hidratação da autenticação
     if (authLoading) return;
     
-    // 2. Se não há usuário, redirecionar para auth COM navigate para evitar loops de reload
+    // 2. Se não há usuário, redirecionar para auth
     if (!user) {
       console.warn('[AUTH_REDIRECT_TRACE] Portal access denied: No session');
       const currentPath = window.location.pathname;
-      navigate({ to: "/auth", search: { redirect: currentPath } as any, replace: true });
-      return;
+      
+      // Pequeno delay para evitar falsos negativos se o authLoading flutuar
+      const timer = setTimeout(() => {
+        navigate({ to: "/auth", search: { redirect: currentPath } as any, replace: true });
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
 
     // 3. Se o perfil for legacy, redirecionar

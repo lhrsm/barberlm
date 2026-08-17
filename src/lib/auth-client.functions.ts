@@ -84,14 +84,13 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     identifier: z.string(),
     redirectTo: z.string()
   }).parse(data))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { identifier, redirectTo } = data;
     const { type, value } = normalizeIdentifier(identifier);
 
     let email = value;
 
     if (type === 'phone') {
-      // Resolve email from phone
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('email')
@@ -105,13 +104,14 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo || `${window.location.origin}/auth/reset-password`,
+      redirectTo: redirectTo,
     });
 
     if (error) {
       if (error.status === 429) {
         throw new Error("Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.");
       }
+      throw new Error(error.message);
     }
 
     return { message: "Se encontrarmos uma conta compatível, enviaremos as instruções de recuperação para o e-mail cadastrado." };
