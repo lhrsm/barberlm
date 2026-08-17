@@ -68,7 +68,7 @@ function CentroDeComando() {
     // Cálculos de Stats
     const completed = apptsRes.data?.filter(a => a.status === 'completed') || [];
     const active = apptsRes.data?.filter(a => a.status !== 'cancelled') || [];
-    const scheduled = active.filter(a => a.status === 'scheduled' || a.status === 'confirmed');
+    const scheduled = active.filter(a => a.status === 'scheduled' || a.status === 'confirmed' || a.status === 'pending');
     const totalServicesValue = completed.reduce((acc, a) => acc + Number(a.total_price || 0), 0);
     const realCashInflow = completed.reduce((acc, a) => acc + Number(a.final_amount || 0), 0);
     const pendingAmount = active.filter(a => a.payment_status !== 'paid').reduce((acc, a) => acc + Number(a.final_amount || 0), 0);
