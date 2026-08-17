@@ -97,12 +97,8 @@ function ResetPasswordPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="mb-8 flex flex-col items-center">
           <div className="flex justify-center w-full mb-8">
-            <div className="w-[200px] h-[80px] md:w-[280px] md:h-[120px] flex items-center justify-center">
-              <img 
-                src="https://id-preview--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app/__l5e/assets-v1/09902c18-ce15-4559-987e-73b6866a0457/logo-barbex.png" 
-                alt="Barbex Logo" 
-                className="w-full h-full object-contain"
-              />
+            <div className="w-[180px] h-[180px] md:w-[240px] md:h-[240px] flex items-center justify-center">
+              <BarbexLogo size="2xl" showText={false} markClassName="w-full h-full object-contain" />
             </div>
           </div>
           <h2 className="mt-4 text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
