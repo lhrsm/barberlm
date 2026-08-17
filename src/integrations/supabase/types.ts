@@ -4354,6 +4354,71 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          attempts: number
+          correlation_id: string | null
+          created_at: string
+          delivered_at: string | null
+          error_code: string | null
+          failed_at: string | null
+          id: string
+          provider: string
+          provider_event_id: string | null
+          provider_message_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          template_key: string
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          correlation_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_code?: string | null
+          failed_at?: string | null
+          id?: string
+          provider?: string
+          provider_event_id?: string | null
+          provider_message_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          template_key: string
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          correlation_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_code?: string | null
+          failed_at?: string | null
+          id?: string
+          provider?: string
+          provider_event_id?: string | null
+          provider_message_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_settings: {
         Row: {
           api_key: string | null
