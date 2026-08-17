@@ -83,6 +83,7 @@ const defaultNavItems: Array<{ label: string; icon: any; to: string; module?: Mo
   { label: "Campanhas", icon: Megaphone, to: "/campaigns", module: "campaigns" },
   { label: "Integrações", icon: Share2, to: "/dashboard/integracoes", module: "integrations_center" },
   { label: "Segurança", icon: ShieldCheck, to: "/admin/seguranca" },
+  { label: "Equipe", icon: Users, to: "/dashboard/usuarios" },
 
 
   { label: "Integrações", icon: Share2, to: "/integrations", module: "integrations" },
