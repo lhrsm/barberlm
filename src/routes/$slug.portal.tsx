@@ -21,8 +21,8 @@ export const Route = createFileRoute("/$slug/portal")({
 });
 
 function CustomerPortalPage() {
-  const params = useParams({ from: "/$slug/portal" });
   const { user, loading: authLoading, profile } = useAuth();
+  const params = useParams({ from: "/$slug/portal" });
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     customer: any;
@@ -114,9 +114,11 @@ function CustomerPortalPage() {
     unlocked_at: data?.unlockedAchievements?.find((ua: any) => ua.achievement_id === ach.id)?.unlocked_at
   }));
 
+  // Safe slug for links
+  const slug = (params as any).slug;
+
   return (
     <div className="min-h-screen bg-[#05070d] text-white p-6 space-y-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center justify-between w-full md:w-auto">
           <div>
@@ -127,7 +129,7 @@ function CustomerPortalPage() {
           </div>
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: (params as any).slug }}
+            params={{ slug }}
             className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
           >
             <ShieldCheck className="h-5 w-5" />
@@ -136,7 +138,7 @@ function CustomerPortalPage() {
         <div className="flex items-center gap-3">
           <Link 
             to="/$slug/portal/security"
-            params={{ slug: (params as any).slug }}
+            params={{ slug }}
             className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
           >
             <ShieldCheck className="h-4 w-4" />
@@ -153,7 +155,6 @@ function CustomerPortalPage() {
         </div>
       </div>
 
-      {/* Level Dashboard */}
       <LoyaltyLevelCard 
         currentXP={data?.customer?.xp || 0}
         currentLevel={currentLevel}
@@ -162,7 +163,6 @@ function CustomerPortalPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Achievements Section */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
@@ -176,7 +176,6 @@ function CustomerPortalPage() {
           <AchievementGrid achievements={achievements} />
         </div>
 
-        {/* Perks & Rewards */}
         <div className="space-y-6">
           <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
             <Sparkles className="h-6 w-6 text-gold" />
