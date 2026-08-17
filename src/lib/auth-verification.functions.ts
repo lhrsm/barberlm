@@ -105,37 +105,107 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       throw new Error("E-mail não verificado");
     }
 
-    // 2. Create Auth User
-    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      phone: data.phone,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: data.name,
-        phone: data.phone,
-        phone_normalized: data.phone,
-        identifier: data.email,
-        role: 'client'
-      }
-    });
+    // 2. Resolve or Create Auth User
+    // First, check if this customer already has a valid auth_user_id
+    let targetUserId: string | null = null;
+    
+    if (data.clientId) {
+      const { data: customer } = await supabaseAdmin
+        .from("customers")
+        .select("user_id, tenant_id")
+        .eq("id", data.clientId)
+        .maybeSingle();
 
-    if (authError || !authUser?.user) {
-      if (authError?.message?.includes("already registered")) {
-        throw new Error("Este e-mail já está cadastrado.");
+      if (customer) {
+        // Blindagem: Check for owner contamination
+        if (customer.user_id === customer.tenant_id) {
+          console.error("[AuthVerification] Identity collision detected: Customer pointing to owner ID", {
+            clientId: data.clientId,
+            ownerId: customer.tenant_id
+          });
+          // Clear the corrupt link first
+          await supabaseAdmin
+            .from("customers")
+            .update({ user_id: null, auth_migration_status: 'legacy' })
+            .eq("id", data.clientId);
+        } else {
+          targetUserId = customer.user_id;
+        }
       }
-      throw authError || new Error("Falha ao criar usuário de autenticação.");
     }
 
-    const userId = authUser.user.id;
+    // If we don't have a targetUserId, try to find an existing user by email
+    if (!targetUserId) {
+      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = users.find(u => u.email === data.email);
+      
+      if (existingUser) {
+        // Double check: Never allow taking over the owner account
+        if (existingUser.id === data.tenantId) {
+          console.error("[AuthVerification] AUTH_IDENTITY_COLLISION: Attempted to use owner account for customer onboarding", {
+            email: data.email,
+            tenantId: data.tenantId
+          });
+          throw new Error("Conflito de identidade: este e-mail pertence ao administrador.");
+        }
+        targetUserId = existingUser.id;
+      }
+    }
+
+    let userId: string;
+
+    if (!targetUserId) {
+      // Create New Auth User
+      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: data.name,
+          phone: data.phone,
+          phone_normalized: data.phone,
+          identifier: data.email,
+          role: 'client'
+        }
+      });
+
+      if (authError || !authUser?.user) {
+        if (authError?.message?.includes("already registered")) {
+          throw new Error("Este e-mail já está cadastrado.");
+        }
+        throw authError || new Error("Falha ao criar usuário de autenticação.");
+      }
+      userId = authUser.user.id;
+    } else {
+      // Update existing user password safely using admin API
+      userId = targetUserId;
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password: data.password,
+        user_metadata: {
+          full_name: data.name,
+          phone: data.phone,
+          phone_normalized: data.phone,
+          role: 'client'
+        }
+      });
+
+      if (updateError) {
+        throw new Error(`Erro ao atualizar credenciais: ${updateError.message}`);
+      }
+    }
 
     // 3. Update Profile & Link
-    // Check if profile exists for this userId (admin.createUser might create one via trigger)
     const { data: existingProfile } = await supabaseAdmin
       .from("profiles")
-      .select("id")
+      .select("id, identity_status")
       .eq("id", userId)
       .maybeSingle();
+
+    if (existingProfile?.identity_status === 'completed') {
+      // Idempotency check
+      console.log("[AuthVerification] Identity already configured for", userId);
+    }
 
     if (existingProfile) {
       await supabaseAdmin
