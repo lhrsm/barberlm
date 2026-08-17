@@ -25,8 +25,10 @@ export const clientLogin = createServerFn({ method: "POST" })
     let authResult;
     try {
       if (type === 'email') {
+        console.log(`[AuthClient] Calling signInWithPassword with email: ${value}`);
         authResult = await supabase.auth.signInWithPassword({ email: value, password });
       } else {
+        console.log(`[AuthClient] Calling signInWithPassword with phone: ${value}`);
         authResult = await supabase.auth.signInWithPassword({ phone: value, password });
       }
     } catch (e: any) {
