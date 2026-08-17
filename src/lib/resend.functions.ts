@@ -91,9 +91,17 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
     correlationId: z.string().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
+    const admin = await getAdmin();
+    
+    // Fetch global settings from database
+    const { data: settings } = await admin
+      .from("resend_settings" as any)
+      .select("*")
+      .maybeSingle();
+
     const RESEND_API_KEY = process.env['RESEND_API_KEY'];
-    const FROM_EMAIL = process.env['RESEND_FROM_EMAIL'] || 'noreply@notify.barbex.shop';
-    const FROM_NAME = process.env['RESEND_FROM_NAME'] || 'Barbex';
+    const FROM_EMAIL = settings?.from_email || process.env['RESEND_FROM_EMAIL'] || 'noreply@notify.barbex.shop';
+    const FROM_NAME = settings?.from_name || process.env['RESEND_FROM_NAME'] || 'Barbex';
 
     if (!RESEND_API_KEY) {
       console.error("[Resend] API key not found");
