@@ -32,7 +32,9 @@ import { useFinancesSummary } from "@/hooks/use-finances-summary";
 import { useFinancesActions } from "@/hooks/use-finances-actions";
 import { DefaultRouteError, DefaultRouteNotFound } from "@/components/route-boundaries";
 import { HelpDrawer } from "@/components/help-center/HelpDrawer";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 import { HelpCircle } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/finances")({
