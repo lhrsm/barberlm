@@ -43,7 +43,7 @@ function AuthPageComponent() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="mb-8 flex flex-col items-center">
-          <BarbexLogo size="2xl" showText={false} className="w-auto" markClassName="h-auto w-[220px] md:w-[256px]" />
+          <img src="/__l5e/assets-v1/09902c18-ce15-4559-987e-73b6866a0457/logo-barbex.png" alt="Barbex Logo" className="h-auto w-[220px] md:w-[256px] object-contain" />
           <h2 className="mt-4 text-[11px] font-black text-zinc-500 tracking-[0.2em] uppercase italic">Premium Experience</h2>
         </div>
 
