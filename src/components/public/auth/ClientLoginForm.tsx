@@ -257,6 +257,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <Button
                 type="submit"
                 disabled={loading}
+                onClick={(e) => {
+                  console.log("[ClientLoginForm] Submit button clicked");
+                  form.handleSubmit(onSubmit)(e);
+                }}
                 className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.98]"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Entrar"}
