@@ -248,12 +248,12 @@ const CalendarComponent = memo(() => {
 
     fetchData();
 
-    const tenantId = user.id;
+    const channelTenantId = tenantId || user.id;
     const channel = supabase
-      .channel(`appointments-calendar-${tenantId}`)
+      .channel(`appointments-calendar-${channelTenantId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${tenantId}` },
+        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${channelTenantId}` },
         () => {
           fetchData();
           refreshLimits();
