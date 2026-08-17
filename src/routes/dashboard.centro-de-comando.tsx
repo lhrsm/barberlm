@@ -147,17 +147,15 @@ function CentroDeComando() {
 
   if (loading && !stats) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="animate-spin text-gold" size={48} />
-        </div>
-      </AppLayout>
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="animate-spin text-gold" size={48} />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="p-4 md:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+    <div className="p-4 md:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
         <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-3">

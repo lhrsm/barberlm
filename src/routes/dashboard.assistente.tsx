@@ -49,11 +49,10 @@ function AIAssistantPage() {
 
   if (authLoading || tenantLoading || loadingConfig) {
     return (
-      <AppLayout>
-        <div className="flex h-[80vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" />
-        </div>
-      </AppLayout>
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" />
+      </div>
     );
   }
 
@@ -64,20 +63,16 @@ function AIAssistantPage() {
 
   if (!canView) {
     return (
-      <AppLayout>
-        <div className="flex h-[80vh] flex-col items-center justify-center text-center space-y-4">
-           <h2 className="text-2xl font-black text-white">Acesso Restrito</h2>
-           <p className="text-white/40 font-medium">Este módulo está em fase de testes internos.</p>
-        </div>
-      </AppLayout>
+      <div className="flex h-[80vh] flex-col items-center justify-center text-center space-y-4">
+         <h2 className="text-2xl font-black text-white">Acesso Restrito</h2>
+         <p className="text-white/40 font-medium">Este módulo está em fase de testes internos.</p>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="min-h-screen bg-[#05070d] pb-20 pt-4">
-        <AIComingSoonState />
-      </div>
-    </AppLayout>
+    <div className="min-h-screen bg-[#05070d] pb-20 pt-4">
+      <AIComingSoonState />
+    </div>
   );
 }
