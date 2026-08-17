@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { clientLogin, requestPasswordReset } from "@/lib/auth-client.functions";
+import { requestPasswordReset } from "@/lib/auth-client.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeIdentifier } from "@/utils/auth-identifier";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Informe seu e-mail ou telefone"),
@@ -57,88 +58,84 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
   }, [form.watch(), form.formState.isSubmitting]);
 
   const onSubmit = async (values: LoginFormValues) => {
-    console.log("[ClientLoginForm] onSubmit called with:", { identifier: values.identifier });
+    console.log("[ClientLoginForm] onSubmit (Direct Supabase Auth) called for:", values.identifier);
     setLoading(true);
     try {
-      console.log("[ClientLoginForm] Invoking loginFn...");
-      const result = await loginFn({
-        data: {
-          identifier: values.identifier,
+      const { type, value } = normalizeIdentifier(values.identifier);
+      
+      console.log(`[ClientLoginForm] Direct login attempt via Supabase: ${value} (${type})`);
+      
+      let authResult;
+      if (type === 'email') {
+        authResult = await supabase.auth.signInWithPassword({
+          email: value,
           password: values.password,
-          barbershopSlug,
-        }
-      });
-      console.log("[ClientLoginForm] loginFn result:", result);
-
-      if (result.status === 'migration_required') {
-        console.log("[ClientLoginForm] Migration required");
-        if (onMigrationRequired) {
-          onMigrationRequired({ userId: result.userId, phone: result.phone });
-        } else {
-          toast.error("Atualização de conta necessária. Entre em contato com a barbearia.");
-        }
+        });
+      } else {
+        // Telefone desabilitado temporariamente conforme PRD (Task 14)
+        toast.error("Login por telefone temporariamente indisponível. Utilize seu e-mail.");
+        setLoading(false);
         return;
       }
 
-      if ((result as any).status === 'mfa_required') {
-        console.log("[ClientLoginForm] MFA required");
-        setView('mfa');
-        return;
+      if (authResult.error) {
+        console.error("[ClientLoginForm] Supabase Auth error:", authResult.error);
+        throw new Error(authResult.error.message);
       }
 
+      console.log("[ClientLoginForm] Auth success, resolving identity...");
+      const { data: { user } } = authResult;
+      
+      if (!user) throw new Error("Usuário não encontrado após login");
 
-      if (result.status === 'success') {
-        console.log("[ClientLoginForm] Success, calling handleSuccess with result:", result);
-        handleSuccess(result);
+      // Resolve profile/identity AFTER successful auth
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role, tenant_id, identity_status, slug')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError || !profile) {
+        console.error("[ClientLoginForm] Identity resolution failed:", profileError);
+        throw new Error("Perfil não encontrado. Sua conta pode estar em migração.");
       }
 
+      handleSuccess({ status: 'success', user: { ...user, slug: profile.slug } });
     } catch (error: any) {
-      console.error("[ClientLoginForm] Login error caught:", error);
-      toast.error(error.message || "Telefone/e-mail ou senha inválidos.");
+      console.error("[ClientLoginForm] Login workflow error:", error);
+      toast.error(error.message || "Credenciais inválidas.");
     } finally {
-      console.log("[ClientLoginForm] onSubmit finished");
       setLoading(false);
     }
   };
 
   const handleSuccess = async (result?: any) => {
-    console.log("[ClientLoginForm] Login successful. Setting session manually...");
+    console.log("[ClientLoginForm] Login process successful.");
     
-    // 1. If we have a session in the result, set it manually.
-    if (result?.session) {
-      console.log("[ClientLoginForm] Setting session from result");
-      const { error: sessionError } = await supabase.auth.setSession(result.session);
-      if (sessionError) {
-        console.error("[ClientLoginForm] Error setting manual session:", sessionError);
-      }
-    }
-
-
-    // 1. Check if the client already has it
+    // Validamos a sessão imediatamente via getSession para garantir persistência
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
-      console.log("[ClientLoginForm] Session not in client yet, performing silent refresh/check...");
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.warn("[ClientLoginForm] Session not found in storage immediately. Retrying...");
+      await new Promise(resolve => setTimeout(resolve, 300));
       const { data: { session: retrySession } } = await supabase.auth.getSession();
-      
       if (!retrySession) {
-        console.warn("[ClientLoginForm] Session still not found. This might be due to SSR/Client boundary.");
+        toast.error("Erro ao persistir sessão. Tente novamente.");
+        return;
       }
     }
 
     toast.success("Login realizado com sucesso!");
     
-    // Dispatch custom event to trigger useAuth refresh if needed
+    // Gatilho para componentes que dependem do perfil
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
     const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : (result?.user?.slug ? `/${result.user.slug}/portal` : "/portal"));
-    console.log("[ClientLoginForm] Navigating to target path:", targetPath);
     
-    // Forced reload might be safer here to ensure all providers see the new cookies
-    setTimeout(() => {
-      window.location.href = targetPath;
-    }, 100);
+    console.log("[ClientLoginForm] Navigating via router to:", targetPath);
+    
+    // Usamos navigate do router em vez de window.location.href para manter o estado SPA
+    navigate({ to: targetPath as any });
   };
 
 
