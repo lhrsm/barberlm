@@ -156,10 +156,7 @@ function initializeAuth() {
 }
 
 export function useAuth() {
-  // Initial state is the same on server and on the client's first render →
-  // no hydration mismatch. We kick off initializeAuth() in useEffect so the
-  // global state only flips to loading=true AFTER hydration is complete.
-  const [state, setState] = useState({
+  const [state, setLocalState] = useState({
     user: globalUser,
     session: globalSession,
     profile: globalProfile,
@@ -167,13 +164,12 @@ export function useAuth() {
   });
 
   useEffect(() => {
-    const listener = (next: typeof state) => setState(next);
+    const listener = (next: typeof state) => setLocalState(next);
     listeners.add(listener);
 
     if (!initialized && typeof window !== 'undefined') {
       initializeAuth();
     } else {
-      // Sync once in case state already moved on.
       listener({
         user: globalUser,
         session: globalSession,
@@ -187,11 +183,22 @@ export function useAuth() {
     };
   }, []);
 
+  const logout = async () => {
+    console.warn('[AUTH_SIGNOUT_TRACE]', {
+      source: 'useAuth.logout',
+      pathname: window.location.pathname,
+      timestamp: Date.now()
+    });
+    await supabase.auth.signOut();
+    setState({ session: null, user: null, profile: null });
+  };
+
   return {
     user: state.user,
     session: state.session,
     profile: state.profile,
     role: state.profile?.role,
     loading: state.loading,
+    logout,
   };
 }
