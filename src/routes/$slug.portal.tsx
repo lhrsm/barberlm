@@ -25,12 +25,43 @@ function CustomerPortalGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Early exit if still loading initial auth state OR if we have a user but are still fetching their profile.
-    if (loading || (user && !profile)) return;
+    // 1. Skip if still in early initialization (loading is true)
+    if (loading) {
+      console.log('[PortalGuard] Still loading auth state...');
+      return;
+    }
+
+    // 2. If we have a user but no profile yet, wait for profile hydration
+    if (user && !profile) {
+      console.log('[PortalGuard] Session found, waiting for profile...');
+      return;
+    }
+
+    // 3. SEVERAL SECONDS LATER: If loading is false and NO user, then redirect to auth
+    if (!user) {
+      console.warn('[AUTH_REDIRECT_TRACE]', {
+        source: 'CustomerPortalGuard',
+        reason: 'No session after loading completed',
+        pathname: window.location.pathname,
+        sessionExists: false,
+        timestamp: Date.now()
+      });
+      // Small delay before redirecting to allow last-second hydration if any
+      const timer = setTimeout(() => {
+        // We check the latest auth state via supabase client directly if user is still null
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) {
+            window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+          }
+        });
+      }, 2000);
+      return () => clearTimeout(timer);
+
+    }
 
     console.warn('[AUTH_REDIRECT_TRACE]', {
       source: 'CustomerPortalGuard',
-      reason: !user ? 'No active session' : (profile?.identity_status === 'legacy' ? 'Legacy account' : 'None'),
+      reason: (profile?.identity_status === 'legacy' ? 'Legacy account' : 'None'),
       pathname: window.location.pathname,
       authUserId: user?.id,
       sessionExists: !!user,
@@ -39,14 +70,6 @@ function CustomerPortalGuard() {
       timestamp: Date.now()
     });
 
-    if (!user) {
-      console.warn("[PortalGuard] REDIRECT: No active session. Redirecting to login.");
-      const currentPath = window.location.pathname;
-      // Use window.location.href for a full reload to ensure the new route sees the session
-      window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
-      return;
-    }
-
     if (profile?.identity_status === 'legacy') {
       console.warn("[PortalGuard] REDIRECT: Legacy account detected. Redirecting to migration flow.");
       window.location.href = "/auth";
@@ -54,7 +77,8 @@ function CustomerPortalGuard() {
     }
 
     console.log("[PortalGuard] Access Granted.");
-  }, [user, loading, profile, navigate]);
+  }, [user, loading, profile]);
+
 
   // Concept: DISTINGUISH LOADING FROM UNAUTHENTICATED
   // Show loader while loading OR while we have a user but are still fetching their profile.
