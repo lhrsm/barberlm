@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { PixReceiptStep } from "@/components/calendar/appointment/PixReceiptStep";
+import { BookingAuthStep } from "@/components/public/booking/BookingAuthStep";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -157,6 +158,7 @@ function ShopPageComponent() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
+  const [showIdentityStep, setShowIdentityStep] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
@@ -1085,16 +1087,24 @@ function ShopPageComponent() {
           remaining_benefits: remaining,
           next_step: sub ? 'premium_chooser' : 'service_selection',
         });
-        setBookingStep(2);
+        const isMigrated = (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id;
+        
+        if (isMigrated) {
+          // Cliente já migrado ou com conta, segue o fluxo normal (já está identificado pelo telefone)
+          setBookingStep(2);
+        } else {
+          // Cliente Legado (tem telefone mas não tem conta auth)
+          setShowIdentityStep(true);
+        }
       } else {
-        // Novo cliente
+        // Novo cliente (não tem telefone no banco)
         if (!customerName || customerName.trim().length < 3) {
           toast.info("Por favor, informe seu nome completo.");
         } else {
           console.log('BOOKING DATA DEBUG: New customer proceeding', { customerName, customerPhone });
           setActiveSubscription(null);
           setBookingMode(null);
-          setBookingStep(2);
+          setShowIdentityStep(true);
         }
       }
     } catch (e: any) {
@@ -3493,7 +3503,7 @@ function ShopPageComponent() {
                   </Button>
                 )}
                 <DialogTitle className="text-xl font-bold tracking-tight text-black">
-                  {bookingStep === 1 && "Bem-vindo"}
+                  {bookingStep === 1 && (showIdentityStep ? "Segurança" : "Bem-vindo")}
                   {bookingStep === 2 && "O que faremos?"}
                   {bookingStep === 3 && "Quem atende?"}
                   {bookingStep === 4 && "Quando?"}
@@ -3504,7 +3514,7 @@ function ShopPageComponent() {
           )}
 
           <div className={cn("flex-1", bookingStep === 1 ? "" : "pr-1")}>
-            {bookingStep === 1 && (
+            {bookingStep === 1 && !showIdentityStep && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -3704,6 +3714,21 @@ function ShopPageComponent() {
                   </div>
                 </div>
               </motion.div>
+            )}
+
+            {bookingStep === 1 && showIdentityStep && (
+              <BookingAuthStep
+                customerName={customerName}
+                customerPhone={customerPhone}
+                customerId={customerId}
+                tenantId={shop.id}
+                onBack={() => setShowIdentityStep(false)}
+                onSuccess={(userId, email) => {
+                  setShowIdentityStep(false);
+                  setBookingStep(2);
+                  // Opcional: atualizar o perfil se necessário
+                }}
+              />
             )}
 
             {bookingStep === 2 && activeSubscription && !bookingMode && (() => {
