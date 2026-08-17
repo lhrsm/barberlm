@@ -38,73 +38,19 @@ export const clientLogin = createServerFn({ method: "POST" })
       throw new Error(`Erro de autenticação: ${authResult.error.message}`);
     }
     
-    const { data: { user, session } } = authResult;
-    if (!user) throw new Error("Usuário não encontrado após login");
-    
-    console.log(`[AuthClient] Login successful for user ${user.id}`);
-
-    // Resolve profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, role, tenant_id, identity_status')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (profileError || !profile) {
-      console.error("[AuthClient] Profile resolution failed for UID:", user.id);
-      throw new Error("Perfil não encontrado");
-    }
-
-    if (profile.identity_status === 'legacy') {
-      return { 
-        status: 'migration_required', 
-        userId: user.id,
-        phone: type === 'phone' ? value : null 
-      };
-    }
-
     return { 
-      status: 'success', 
-      session,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: profile.role,
-        tenantId: profile.tenant_id,
-        slug: profile.slug
-      }
-
+      session: authResult.data.session,
+      user: authResult.data.user
     };
   });
 
-
-
 export const requestPasswordReset = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
-    identifier: z.string(),
-    redirectTo: z.string()
+    email: z.string().email()
   }).parse(data))
   .handler(async ({ data }) => {
-    const { identifier, redirectTo } = data;
-    const { type, value } = normalizeIdentifier(identifier);
-
-    let email = value;
-
-    if (type === 'phone') {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('phone', value)
-        .maybeSingle();
-      
-      if (error || !profile?.email) {
-        return { message: "Se encontrarmos uma conta compatível, enviaremos as instruções de recuperação para o e-mail cadastrado." };
-      }
-      email = profile.email;
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo,
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: `${process.env.VITE_APP_URL || 'https://barberlm.lovable.app'}/auth/reset-password`,
     });
 
     if (error) {
@@ -129,12 +75,21 @@ export const updatePassword = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
     password: z.string().min(6)
   }).parse(data))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
+    // Blindagem: Usar o singleton supabase que é injetado com cookies pelo middleware
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error("[AuthClient] Tentativa de updatePassword sem sessão válida", userError);
+      throw new Error("Sessão expirada ou inválida. Por favor, solicite um novo link de recuperação.");
+    }
+
     const { error } = await supabase.auth.updateUser({
       password: data.password
     });
 
     if (error) {
+      console.error("[AuthClient] Erro ao atualizar senha via updateUser", error);
       throw new Error(error.message || "Erro ao atualizar senha");
     }
 

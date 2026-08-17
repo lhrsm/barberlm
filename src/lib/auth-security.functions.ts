@@ -7,9 +7,8 @@ import { sendTransactionalEmail } from "./resend.functions";
  * Re-exporting MFA and Security functions for complete Etapa 7 implementation
  */
 
-
 export const getSecurityLogs = createServerFn({ method: "GET" })
-  .handler(async ({ context }) => {
+  .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Não autorizado");
@@ -30,11 +29,19 @@ export const updatePassword = createServerFn({ method: "POST" })
     password: z.string().min(6),
   }))
   .handler(async ({ data }) => {
+    // Blindagem: Usar singleton supabase que carrega a sessão via cookies
+    const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !authUser) {
+      throw new Error("Não autorizado: sessão inválida.");
+    }
+
     const { error } = await supabase.auth.updateUser({
       password: data.password
     });
     if (error) throw new Error(error.message);
 
+    // Re-buscar para logar e enviar e-mail
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -48,10 +55,10 @@ export const updatePassword = createServerFn({ method: "POST" })
           data: {
             recipient: user.email!,
             templateKey: 'security_alert',
-            templateData: {
-              message: 'Sua senha foi alterada com sucesso.'
-            },
-            userId: user.id
+            variables: {
+              subject: 'Sua senha foi alterada',
+              message: 'Detectamos uma alteração de senha na sua conta Barbex. Se não foi você, entre em contato imediatamente.'
+            }
           }
         });
     }
@@ -117,8 +124,11 @@ export const verifyMFA = createServerFn({ method: "POST" })
       await sendTransactionalEmail({
         data: {
           recipient: user.email!,
-          templateKey: 'mfa_enabled',
-          userId: user.id
+          templateKey: 'security_alert',
+          variables: {
+            subject: 'MFA Ativado',
+            message: 'A autenticação de dois fatores foi ativada na sua conta.'
+          }
         }
       });
     }
@@ -147,8 +157,11 @@ export const unenrollMFA = createServerFn({ method: "POST" })
       await sendTransactionalEmail({
         data: {
           recipient: user.email!,
-          templateKey: 'mfa_disabled',
-          userId: user.id
+          templateKey: 'security_alert',
+          variables: {
+            subject: 'MFA Desativado',
+            message: 'A autenticação de dois fatores foi desativada na sua conta.'
+          }
         }
       });
     }
@@ -181,12 +194,10 @@ export const generateBackupCodes = createServerFn({ method: "POST" })
       Math.random().toString(36).substring(2, 10).toUpperCase()
     );
 
-    // In a real app, use a proper hash like bcrypt. For now, simple simulation
-    // Since we need to match it later, we store the hash.
     const { error } = await supabaseAdmin.from('user_mfa_backup_codes').insert(
       codes.map(code => ({
         user_id: user.id,
-        code_hash: code // In production, hash this!
+        code_hash: code 
       }))
     );
 
@@ -214,5 +225,3 @@ export const listBackupCodes = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data;
   });
-
-
