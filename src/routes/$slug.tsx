@@ -1454,7 +1454,7 @@ function ShopPageComponent() {
               barber_id: appt.barber_id,
               appointment_id: appt.id,
               tenant_id: shop.id,
-              user_id: shop.id,
+          user_id: user?.id || shop.id,
               date: new Date().toISOString().split('T')[0]
             }]);
           }
