@@ -80,15 +80,13 @@ function AuthIndexComponent() {
                   <Button 
                     variant="link" 
                     onClick={() => {
-                      // Tenta extrair o slug do contexto (pathname ou parâmetro)
                       const pathParts = window.location.pathname.split('/');
                       const possibleSlug = pathParts[1] !== 'auth' ? pathParts[1] : null;
                       
                       if (possibleSlug) {
                         window.location.href = `/${possibleSlug}/portal`;
                       } else {
-                        // Se não houver slug, redireciona para a aba de cliente mas ClientLoginForm
-                        // precisará de uma orientação futura se o slug for obrigatório.
+                        // Se não houver slug, redireciona para a aba de cliente do próprio /auth
                         navigate({ to: '/auth', search: { tab: 'client' } });
                       }
                     }}
