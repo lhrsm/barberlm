@@ -368,82 +368,88 @@ function ShopPageComponent() {
 
   // Reativo: Busca automática de cliente pelo WhatsApp
   useEffect(() => {
+    const controller = new AbortController();
+    
     async function findCustomer() {
-      if (!shop?.id || !customerPhone) return;
+      if (!shop?.id || !customerPhone) {
+        setIdentityState('IDLE');
+        return;
+      }
       
       const normalizedPhone = normalizePhone(customerPhone);
       const requestId = Math.random().toString(36).substring(7);
       
-      console.log('[CUSTOMER_NAME_TRACE] findCustomer started', { 
+      if (normalizedPhone.length < 10) {
+        setCustomerId(null);
+        setCustomerCashback(0);
+        setCustomerLoyaltyPoints(0);
+        setCustomerCredits(0);
+        setIdentityState('IDLE');
+        setIsSearchingCustomer(false);
+        return;
+      }
+
+      console.log('[BOOKING_CUSTOMER_STATE] Resolution started', { 
         requestId,
         rawPhone: customerPhone, 
         normalizedPhone, 
         tenantId: shop.id 
       });
       
-      // Clear previous identity state immediately to avoid leakage
-      setCustomerId(null);
-      setCustomerCashback(0);
-      setCustomerLoyaltyPoints(0);
-      setCustomerCredits(0);
-      
-      // DO NOT clear name if it's already in the form and we're looking up
-      // but if we want strict resolution from DB, we log it.
-      const currentNameBeforeClear = customerName;
-      
-      if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-        console.log('[CUSTOMER_NAME_TRACE] No portal session, name check', { currentNameBeforeClear });
-        // Only clear if we really want to force a refresh, but let's be careful not to flicker
-      }
-      
-      if (normalizedPhone.length < 10) {
-        setIsSearchingCustomer(false);
-        return;
-      }
-
       setIsSearchingCustomer(true);
+      setIdentityState('LOADING');
+
       try {
-        // Step 1: Query EXCLUSIVELY for current tenant and phone
         const { data: records, error } = await supabase
           .from('customers')
           .select('id, name, phone, email, balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
           .eq('phone', normalizedPhone)
-          .eq('user_id', shop.id); // Strict tenant isolation
+          .eq('user_id', shop.id);
 
         if (error) throw error;
-
-        console.log('[CUSTOMER_NAME_TRACE] query results', {
-          requestId,
-          count: records?.length || 0,
-          rows: records?.map(r => ({ id: r.id, name: r.name, tenant: r.user_id }))
-        });
+        if (controller.signal.aborted) return;
 
         const data = records && records.length > 0 ? records[0] : null;
 
         if (data) {
-          console.log('[CUSTOMER_NAME_TRACE] Customer matched, updating state', { 
+          console.log('[BOOKING_CUSTOMER_STATE] Found existing customer', { 
             requestId,
             customerId: data.id,
-            nameFromDB: data.name
+            name: data.name
           });
           
-          // Absolute Identity Binding
           setCustomerId(data.id);
-          if (data.name) {
-            setCustomerName(data.name);
-          }
+          if (data.name) setCustomerName(data.name);
           setCustomerCashback(Number(data.balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
+          // Identity Logic
+          const hasEmail = !!data.email;
+          const hasAuth = !!(data.auth_user_id || data.user_id);
+          const isCompleted = data.identity_status === 'completed' || data.auth_migration_status === 'completed';
+          
+          if (hasEmail && hasAuth && isCompleted) {
+            setIdentityState('READY');
+          } else {
+            setIdentityState('NEEDS_ONBOARDING');
+          }
+
           await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_NAME_TRACE] No customer found for this tenant', { requestId });
+          console.log('[BOOKING_CUSTOMER_STATE] New customer detected', { requestId });
+          setCustomerId(null);
+          setCustomerCashback(0);
+          setCustomerLoyaltyPoints(0);
+          setCustomerCredits(0);
+          setIdentityState('NEW_CUSTOMER');
         }
       } catch (err) {
-        console.error('[CUSTOMER_NAME_TRACE] Search error:', err);
+        console.error('[BOOKING_CUSTOMER_STATE] Error:', err);
       } finally {
-        setIsSearchingCustomer(false);
+        if (!controller.signal.aborted) {
+          setIsSearchingCustomer(false);
+        }
       }
     }
 
@@ -451,7 +457,10 @@ function ShopPageComponent() {
       const timer = setTimeout(() => {
         findCustomer();
       }, 500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        controller.abort();
+      };
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
 
