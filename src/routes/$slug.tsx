@@ -1958,11 +1958,12 @@ function ShopPageComponent() {
 
   const checkCustomerCashback = async (phone: string) => {
     const normalized = normalizePhone(phone);
-    console.log('DEBUG: checkCustomerCashback', { phone, normalized });
+    console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback', { phone, normalized });
     
     if (normalized.length >= 10) {
       setSubmitting(true);
       try {
+        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback query executing');
         const { data, error } = await supabase
           .from("customers")
           .select("id, cashback_balance, loyalty_points, name, credits, auth_migration_status, user_id")
@@ -1970,13 +1971,15 @@ function ShopPageComponent() {
           .eq("user_id", shop.id)
           .maybeSingle();
         
+        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback query result', { data, error });
+
         if (error) {
-          console.error('Error fetching customer:', error);
+          console.error('[CUSTOMER_LOOKUP_TRACE] Error fetching customer:', error);
           return null;
         }
 
         if (data) {
-          console.log('CUSTOMER RESULT FOUND', data);
+          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback FOUND customer', data.id);
           setCustomerCashback(data.cashback_balance || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
@@ -1984,8 +1987,7 @@ function ShopPageComponent() {
           setCustomerId(data.id);
           return data;
         } else {
-          console.log('CUSTOMER RESULT NOT FOUND');
-          // Se não encontrou cliente, limpa o ID e possivelmente o nome se não for sessão do portal
+          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback NOT FOUND');
           setCustomerId(null);
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
