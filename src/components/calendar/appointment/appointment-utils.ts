@@ -1,5 +1,15 @@
 export function resolveImageUrl(entity: any): string | null {
   if (!entity) return null;
+  
+  // Trata objetos do Supabase com tabelas relacionadas (ex: appointments.customers)
+  if (entity.customers && typeof entity.customers === 'object') {
+    return (entity.customers as any).avatar_url || null;
+  }
+  
+  if (entity.barbers && typeof entity.barbers === 'object') {
+    return (entity.barbers as any).avatar_url || null;
+  }
+
   return (
     entity.avatar_url ||
     entity.photo_url ||

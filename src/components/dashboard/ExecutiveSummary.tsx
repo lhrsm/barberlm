@@ -1,8 +1,10 @@
 import { useMemo, memo } from "react";
-import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock, Users, ArrowUpRight, TrendingUp } from "lucide-react";
+import { CalendarCheck, CircleDollarSign, Target, Cake, Clock, Users, ArrowUpRight, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { format, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   name?: string | null;
@@ -71,13 +73,19 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
           label="vs média mensal"
           variant="gold"
         />
-        <MetricCard
-          title="Agendamentos"
-          value={m.active}
-          icon={<CalendarCheck className="h-5 w-5" />}
-          label={`${m.completed} concluídos hoje`}
-          variant="default"
-        />
+        <div 
+          className="cursor-pointer transition-transform hover:scale-[1.02]" 
+          onClick={() => window.location.href = '/calendar'}
+          title="Ver na agenda"
+        >
+          <MetricCard
+            title="Agendamentos"
+            value={m.active}
+            icon={<CalendarCheck className="h-5 w-5" />}
+            label={`${m.completed} concluídos hoje`}
+            variant="default"
+          />
+        </div>
         <MetricCard
           title="Taxa de Ocupação"
           value={`${m.completionRate.toFixed(0)}%`}
@@ -93,6 +101,79 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
           variant="default"
         />
       </div>
+
+      {appointments.length > 0 && (
+        <Card className="glass border-white/5 rounded-3xl overflow-hidden mt-8">
+          <CardContent className="p-0">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-black text-white italic uppercase tracking-tighter">Próximos Atendimentos</h3>
+                <p className="text-xs text-zinc-500 font-medium">Fluxo operacional de hoje</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => window.location.href = '/calendar'}
+                className="text-gold hover:bg-gold/5 font-bold uppercase tracking-widest text-[10px]"
+              >
+                Ver Agenda Completa
+              </Button>
+            </div>
+            <div className="divide-y divide-white/5">
+              {appointments.slice(0, 5).map((appt) => (
+                <div 
+                  key={appt.id} 
+                  className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                  onClick={() => {
+                    // Dispara evento para abrir detalhes se o modal existir no contexto
+                    window.dispatchEvent(new CustomEvent('OPEN_APPOINTMENT_DETAILS', { detail: { id: appt.id } }));
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 flex flex-col items-center justify-center border border-white/10 group-hover:border-gold/30 transition-colors">
+                      <span className="text-[13px] font-black text-white leading-none">
+                        {format(parseISO(appt.start_time), 'HH:mm')}
+                      </span>
+                      <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-tighter mt-1">
+                        Início
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-white italic uppercase tracking-tight group-hover:text-gold transition-colors">
+                        {appt.customers?.name || "Cliente Final"}
+                      </p>
+                      <p className="text-[11px] text-zinc-500 font-medium">
+                        {appt.services?.name} • {appt.barbers?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge className={cn(
+                      "font-black uppercase text-[9px] px-2 py-0.5 rounded-lg border",
+                      appt.status === 'confirmed' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                      appt.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                      appt.status === 'cancelled' ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                      "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    )}>
+                      {appt.status}
+                    </Badge>
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-zinc-500 group-hover:text-gold transition-colors">
+                      <ArrowUpRight size={16} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {appointments.length > 5 && (
+              <div className="p-4 bg-white/[0.01] text-center">
+                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+                  + {appointments.length - 5} outros atendimentos hoje
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 });
