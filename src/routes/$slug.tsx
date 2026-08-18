@@ -3657,7 +3657,7 @@ function ShopPageComponent() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-base md:text-lg font-bold text-emerald-950 leading-tight">
-                                    OLÁ, {(customerName || '').split(' ')[0]?.toUpperCase() || 'CLIENTE'}! 👋
+                                    OLÁ, {(customerName || '').split(' ')?.filter(Boolean)[0]?.toUpperCase() || 'CLIENTE'}! 👋
                                   </h3>
                                   <p className="text-zinc-500 text-xs md:text-sm font-medium">
                                     Quase pronto! Configure seu acesso.
