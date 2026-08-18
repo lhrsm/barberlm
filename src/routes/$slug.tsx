@@ -3604,7 +3604,7 @@ function ShopPageComponent() {
                       </div>
 
                       <AnimatePresence mode="wait">
-                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && identityState !== 'IDLE' && (
+                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && identityState !== 'IDLE' && identityState !== 'LOADING' && (
                           <motion.div
                             key={customerId ? "found" : "new"}
                             initial={{ opacity: 0, y: 10 }}
