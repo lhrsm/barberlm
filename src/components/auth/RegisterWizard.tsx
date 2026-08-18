@@ -447,7 +447,7 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-auto md:mt-16 flex flex-col-reverse md:flex-row justify-between items-center pt-8 border-t border-white/5 gap-4">
+          <div className="mt-8 md:mt-16 flex flex-col-reverse md:flex-row justify-between items-center pt-8 border-t border-white/5 gap-4 shrink-0">
             <Button
               variant="ghost"
               onClick={step === 1 ? onClose : prevStep}
