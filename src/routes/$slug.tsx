@@ -431,7 +431,7 @@ function ShopPageComponent() {
           return;
         }
 
-        const data = records && records.length > 0 ? records[0] : null;
+        const data = records && Array.isArray(records) && records.length > 0 ? records[0] : null;
 
         if (data) {
           console.log('[BOOKING_CUSTOMER_STATE] Found existing customer', { 
@@ -1991,7 +1991,7 @@ function ShopPageComponent() {
           return null;
         }
 
-        const data = records && records.length > 0 ? records[0] : null;
+        const data = records && Array.isArray(records) && records.length > 0 ? records[0] : null;
 
         if (data) {
           console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback FOUND', { id: data.id, name: data.name });
