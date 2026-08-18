@@ -288,7 +288,7 @@ function LandingPage() {
 
 
       {/* Features Grid */}
-      <section id="recursos" className="py-24 bg-black relative overflow-hidden">
+      <section id="recursos" className="py-24 md:py-32 bg-black relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
           <img src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=1000&auto=format&fit=crop" alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-l from-black via-black/80 to-black" />
@@ -305,7 +305,7 @@ function LandingPage() {
               <motion.div 
                 key={i} 
                 whileHover={{ y: -5 }}
-                className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all backdrop-blur-sm"
+                className="p-8 rounded-[2rem] border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all backdrop-blur-sm"
               >
                 <f.icon className="text-gold mb-6" size={32} />
                 <h4 className="text-white font-black uppercase tracking-tight mb-2">{f.title}</h4>
@@ -325,11 +325,11 @@ function LandingPage() {
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Um único sistema para toda a operação</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-auto md:grid-rows-2 gap-6 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-20">
             {/* Main Feature */}
             <motion.div 
               whileHover={{ y: -5 }}
-              className="md:col-span-3 md:row-span-2 p-10 rounded-[2.5rem] border border-gold/20 bg-gradient-to-br from-zinc-900 to-black overflow-hidden group relative"
+              className="md:col-span-3 p-10 rounded-[2.5rem] border border-gold/20 bg-gradient-to-br from-zinc-900 to-black overflow-hidden group relative min-h-[400px]"
             >
               <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                 <Calendar size={120} className="text-gold" />
@@ -437,8 +437,9 @@ function LandingPage() {
           <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Tecnologia que <span className="text-gold">eleva</span> o seu negócio</h2>
         </div>
         
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -485,8 +486,9 @@ function LandingPage() {
 
 
         {/* Separator Image with Blended Background (Tradição & Futuro) */}
-        <div className="mt-24 w-full rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
+        <div className="mt-24 w-full rounded-[2.5rem] overflow-hidden relative border border-white/5 shadow-2xl max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[350px]">
+
             <div className="relative h-full overflow-hidden border-r border-white/5">
               <img 
                 src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop" 
