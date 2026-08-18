@@ -3604,7 +3604,7 @@ function ShopPageComponent() {
                       </div>
 
                       <AnimatePresence mode="wait">
-                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
+                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && identityState !== 'IDLE' && (
                           <motion.div
                             key={customerId ? "found" : "new"}
                             initial={{ opacity: 0, y: 10 }}
@@ -3612,7 +3612,7 @@ function ShopPageComponent() {
                             exit={{ opacity: 0, y: -10 }}
                             className="mt-3"
                           >
-                            {customerId && customerName ? (
+                            {(identityState === 'READY' || identityState === 'NEEDS_ONBOARDING') && customerId && customerName ? (
                               <div className="bg-green-50/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
                                 <div className="bg-green-100 dark:bg-green-800/50 p-2.5 rounded-full shrink-0">
                                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -3626,7 +3626,7 @@ function ShopPageComponent() {
                                   </p>
                                 </div>
                               </div>
-                            ) : (
+                            ) : identityState === 'NEW_CUSTOMER' ? (
                               <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
                                 <Input
@@ -3636,7 +3636,7 @@ function ShopPageComponent() {
                                   className="bg-white text-black border border-zinc-200 placeholder:text-zinc-400 rounded-xl h-12 text-base font-medium focus-visible:ring-gold/50"
                                 />
                               </div>
-                            )}
+                            ) : null}
                             {customerId && activeSubscription && (
                               <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3.5 shadow-md">
                                 <div className="flex items-center gap-2 mb-1.5">
