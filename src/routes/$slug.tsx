@@ -1145,6 +1145,7 @@ function ShopPageComponent() {
     if (!normalized || normalized.length < 10) {
       toast.error("Por favor, informe um WhatsApp válido com DDD.");
       setBookingStep(1);
+      setShowIdentityStep(false);
       return;
     }
 
