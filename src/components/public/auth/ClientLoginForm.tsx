@@ -187,18 +187,16 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="identifier" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Telefone ou E-mail</Label>
+                <Label htmlFor="identifier" className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">Telefone ou E-mail</Label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
+                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/60 group-focus-within:text-gold transition-colors" size={20} />
                   <Input
                     id="identifier"
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-[56px] pl-12 bg-white border-zinc-200 rounded-2xl text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
+                    className="h-[58px] md:h-[62px] pl-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
                   />
-
-
                 </div>
                 {form.formState.errors.identifier && (
                   <p className="text-[10px] text-red-500 font-bold ml-1">{form.formState.errors.identifier.message}</p>
@@ -207,7 +205,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
-                  <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Senha</Label>
+                  <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400">Senha</Label>
                   <button 
                     type="button" 
                     onClick={() => setView('forgot-password')}
@@ -217,20 +215,20 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   </button>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-gold transition-colors" size={20} />
+                  <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/60 group-focus-within:text-gold transition-colors" size={20} />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-[56px] pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
+                    className="h-[58px] md:h-[62px] pl-14 pr-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black transition-colors"
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -253,7 +251,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.98]"
+                className="w-full h-[56px] rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.97]"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Entrar"}
               </Button>
