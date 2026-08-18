@@ -1399,6 +1399,11 @@ function ShopPageComponent() {
         return res.data;
       });
 
+      console.log("[POST_BOOKING_TRACE] Appointments persisted", {
+        count: createdAppointments?.length,
+        ids: createdAppointments?.map(a => a?.id)
+      });
+
       // LGPD: register consent + update customer preferences (best-effort, non-blocking)
       try {
         const finalCustId = createdAppointments?.[0]?.customer_id || null;
