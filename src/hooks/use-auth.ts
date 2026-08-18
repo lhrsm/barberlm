@@ -80,7 +80,7 @@ async function fetchProfileData(userId: string) {
       full_name: profileData?.responsible_name ?? null,
       responsible_name: profileData?.responsible_name ?? null,
       display_name: profileData?.display_name ?? null,
-      slug: profileData?.slug ?? null,
+      slug: resolvedRole === 'client' ? null : (profileData?.slug ?? null),
       email: profileData?.email ?? null,
       identity_status: (profileData?.identity_status as IdentityStatus) ?? 'legacy',
     };
@@ -201,7 +201,7 @@ export function useAuth() {
 
   const logout = async () => {
     // Captura o slug antes de sair para permitir o redirecionamento dinâmico
-    const currentSlug = globalProfile?.slug;
+    const currentSlug = globalProfile?.role === 'client' ? null : globalProfile?.slug;
     await supabase.auth.signOut();
     setState({ session: null, user: null, profile: null, loading: false });
     
