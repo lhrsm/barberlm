@@ -373,11 +373,10 @@ function ShopPageComponent() {
       const normalizedPhone = normalizePhone(customerPhone);
       const requestId = Math.random().toString(36).substring(7);
       
-      console.log('[CUSTOMER_IDENTITY_TRACE] findCustomer started', { 
+      console.log('[CUSTOMER_RESOLUTION_TRACE] findCustomer started', { 
         requestId,
         rawPhone: customerPhone, 
         normalizedPhone, 
-        slug, 
         tenantId: shop.id 
       });
       
@@ -391,67 +390,52 @@ function ShopPageComponent() {
       }
       
       if (normalizedPhone.length < 10) {
+        setIsSearchingCustomer(false);
         return;
       }
 
       setIsSearchingCustomer(true);
       try {
-        const lookupTenantId = shop.id;
-        
-        // Step 1: Query all customers with this phone number across all tenants
+        // Step 1: Query EXCLUSIVELY for current tenant and phone
         const { data: records, error } = await supabase
           .from('customers')
-          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
-          .eq('phone', normalizedPhone);
+          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
+          .eq('phone', normalizedPhone)
+          .eq('user_id', shop.id); // Strict tenant isolation
 
         if (error) throw error;
 
-        // Step 2: Prioritize record for CURRENT shop
-        let data = records?.find(r => r.user_id === lookupTenantId);
-        let recoverySource = 'local';
-        
-        if (!data && records && records.length > 0) {
-          // Recovery: Found in another tenant
-          // We only use their name for pre-filling, but they will be a new local customer
-          data = records[0];
-          recoverySource = 'cross-tenant';
-          console.log('[CUSTOMER_IDENTITY_TRACE] Cross-tenant identity recovery', { 
-            requestId,
-            foundTenantId: data.user_id,
-            targetTenantId: lookupTenantId
-          });
-        }
+        console.log('[CUSTOMER_RESOLUTION_TRACE] query results', {
+          requestId,
+          count: records?.length || 0,
+          rows: records?.map(r => ({ id: r.id, name: r.name, tenant: r.user_id }))
+        });
+
+        const data = records && records.length > 0 ? records[0] : null;
 
         if (data) {
-          // If we recovered from another tenant, we keep the name but NOT the ID or balances
-          // because a customer must have a unique record per tenant in the 'customers' table.
-          if (recoverySource === 'local') {
-            setCustomerId(data.id);
-            setCustomerName(data.name || "");
-            setCustomerCashback(data.cashback_balance || 0);
-            setCustomerLoyaltyPoints(data.loyalty_points || 0);
-            setCustomerCredits(data.credits || 0);
-            
-            console.log('[CUSTOMER_IDENTITY_TRACE] Local customer matched', { 
-              requestId,
-              customerId: data.id,
-              name: data.name
-            });
-            
-            await fetchActiveSubscriptionFor(data.id);
-          } else {
-            // Cross-tenant: Only recover the name for UX
-            setCustomerName(data.name || "");
-            setCustomerId(null); // Important: will be created as new for this tenant
-            
-            console.log('[CUSTOMER_IDENTITY_TRACE] Cross-tenant name pre-filled', { 
-              requestId,
-              name: data.name
-            });
-          }
+          // Absolute Identity Binding
+          setCustomerId(data.id);
+          setCustomerName(data.name || "");
+          setCustomerCashback(data.cashback_balance || 0);
+          setCustomerLoyaltyPoints(data.loyalty_points || 0);
+          setCustomerCredits(data.credits || 0);
+          
+          console.log('[CUSTOMER_RESOLUTION_TRACE] Customer matched', { 
+            requestId,
+            customerId: data.id,
+            name: data.name
+          });
+          
+          await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_IDENTITY_TRACE] No customer found', { requestId });
+          console.log('[CUSTOMER_RESOLUTION_TRACE] No customer found for this tenant', { requestId });
         }
+      } catch (err) {
+        console.error('[CUSTOMER_RESOLUTION_TRACE] Search error:', err);
+      } finally {
+        setIsSearchingCustomer(false);
+      }
       } catch (err) {
         console.error('[CUSTOMER_IDENTITY_TRACE] Search error:', err);
       } finally {
