@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const getAdminAppointmentDetails = createServerFn({ method: "GET" })
-  .input(async (id: string) => id)
+  .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     const { data, error } = await supabaseAdmin
       .from("appointments")
