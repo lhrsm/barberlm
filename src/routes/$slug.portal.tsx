@@ -8,7 +8,8 @@ import {
   Settings, 
   LogOut,
   User as UserIcon,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { PortalNavigation } from "@/components/portal/premium/layout/PortalNavigation";
