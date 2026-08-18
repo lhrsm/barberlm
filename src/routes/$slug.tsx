@@ -345,7 +345,7 @@ function ShopPageComponent() {
           setCustomerPhone(parsedClient.phone); // PhoneInput handle formatting
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-          // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
+          // O identityState será resolvido pelo useEffect de findCustomer
         } catch (e) {
           console.error('Error parsing saved client session:', e);
         }
