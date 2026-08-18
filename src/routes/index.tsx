@@ -155,8 +155,9 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
 
           <Link to="/" className="flex items-center shrink-0">
-            <BarbexLogo size="lg" showText={false} className="md:size-lg" />
+            <BarbexLogo size="md" showText={false} className="w-[120px] md:w-[150px]" />
           </Link>
+
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-white/90">
             {["Recursos", "Planos", "FAQ"].map(item => (
@@ -176,12 +177,13 @@ function LandingPage() {
             
             <Button 
               variant="ghost" 
-              className="md:hidden text-white p-2 h-11 w-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10" 
+              className="md:hidden text-white p-2 h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10" 
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Abrir menu"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </Button>
+
           </div>
         </div>
       </header>
@@ -638,7 +640,7 @@ function LandingPage() {
           </div>
           
           <div className="relative group">
-            <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-6">
+            <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-6 md:p-8">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 {[
                   { label: "Receita Mensal", val: "R$ 42.850", icon: TrendingUp, color: "text-green-400" },
