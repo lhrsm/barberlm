@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Outlet, useLocation, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Outlet, useLocation, Link, RouteApi } from "@tanstack/react-router";
 import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +14,7 @@ import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { PixReceiptStep } from "@/components/calendar/appointment/PixReceiptStep";
 import { BookingAuthStep } from "@/components/public/booking/BookingAuthStep";
+import { BookingConfirmationCard } from "@/components/public/booking/BookingConfirmationCard";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1569,10 +1570,12 @@ function ShopPageComponent() {
       const sessionData = {
         phone: normalized,
         customer_id: finalCustId,
-        name: customerName
+        name: customerName,
+        tenant_id: shop.id
       };
       
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      localStorage.setItem(`last_booking_customer_id`, finalCustId);
       console.log('DEBUG: Persisted session before portal redirect', sessionData);
 
       // Premium success screen — when client used the subscription benefit
@@ -1637,24 +1640,23 @@ function ShopPageComponent() {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
         } else if (createdAppointments.length === 1) {
           const appt = createdAppointments[0] as any;
-          // Redirecionar para o portal se houver sessão, caso contrário para a página de gestão via token
-          const portalSession = localStorage.getItem(`client_portal_session_${slug}`);
-          if (portalSession) {
-            navigate({ to: `/${slug}/portal` as any, replace: true });
-          } else {
-            // O token de gestão não é mais legível na tabela pelo papel anônimo:
-            // é entregue apenas para o agendamento recém-criado, via RPC.
-            let token: string | null = null;
-            try {
-              const { data } = await supabase.rpc("get_new_appointment_management_token" as any, {
-                p_appointment_id: appt.id,
-              });
-              token = (Array.isArray(data) ? data[0] : data) ?? null;
-            } catch {
-              token = null;
-            }
-            navigate({ to: `/agendamento/${token || appt.id}` as any, search: { tenant: shop.id } as any, replace: true });
+          // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
+          // 1. Prioridade absoluta para o Portal do Cliente /$slug/portal
+          const portalUrl = `/${slug}/portal`;
+          
+          // Capturar token apenas para histórico, mas o destino é o portal
+          let token: string | null = null;
+          try {
+            const { data } = await supabase.rpc("get_new_appointment_management_token" as any, {
+              p_appointment_id: appt.id,
+            });
+            token = (Array.isArray(data) ? data[0] : data) ?? null;
+          } catch {
+            token = null;
           }
+
+          console.log('[BOOKING_REDIRECT] Finalizing to portal:', portalUrl);
+          navigate({ to: portalUrl as any, replace: true });
         } else {
           navigate({ to: `/${slug}/portal` as any, replace: true });
         }
@@ -3642,17 +3644,19 @@ function ShopPageComponent() {
                             exit={{ opacity: 0, y: -10 }}
                             className="mt-3"
                           >
-                            {(identityState === 'READY' || identityState === 'NEEDS_ONBOARDING') && customerId && customerName ? (
-                              <div className="bg-green-50/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
-                                <div className="bg-green-100 dark:bg-green-800/50 p-2.5 rounded-full shrink-0">
-                                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            {identityState === 'READY' && customerId && customerName ? (
+                              <BookingConfirmationCard name={customerName} />
+                            ) : identityState === 'NEEDS_ONBOARDING' && customerId && customerName ? (
+                              <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+                                <div className="bg-blue-100 p-2.5 rounded-full shrink-0">
+                                  <UserIcon className="h-5 w-5 text-blue-600" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-lg font-bold text-green-800 dark:text-green-300 uppercase tracking-tight truncate leading-tight italic">
+                                  <h3 className="text-lg font-bold text-blue-800 uppercase tracking-tight truncate leading-tight italic">
                                     OLÁ, {(customerName || '').split(' ')[0].toUpperCase()}! 👋
                                   </h3>
-                                  <p className="text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
-                                    Que bom ter você de volta!
+                                  <p className="text-blue-600 text-[10px] font-black uppercase tracking-widest opacity-80">
+                                    Quase pronto! Configure seu acesso.
                                   </p>
                                 </div>
                               </div>

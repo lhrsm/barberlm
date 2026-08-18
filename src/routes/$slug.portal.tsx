@@ -43,6 +43,7 @@ function CustomerPortalPage() {
     achievements: any[];
     unlockedAchievements: any[];
   } | null>(null);
+  const [lastCheck, setLastCheck] = useState(Date.now());
 
   // ProfileTab state
   const [customerName, setCustomerName] = useState("");
@@ -55,7 +56,7 @@ function CustomerPortalPage() {
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("*, loyalty_levels(*)")
-        .eq("user_id", user.id) 
+        .or(`user_id.eq.${user.id},auth_user_id.eq.${user.id}`)
         .eq("tenant_id", profile.tenant_id)
         .maybeSingle();
 
@@ -77,7 +78,7 @@ function CustomerPortalPage() {
         unlockedRes
       ] = await Promise.all([
         supabase.from("barbershops").select("*").eq("id", profile.tenant_id).maybeSingle(),
-        supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).order("start_time", { ascending: false }),
+        supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", customerData.tenant_id).order("start_time", { ascending: false }),
         supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
@@ -105,23 +106,28 @@ function CustomerPortalPage() {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
+      const now = Date.now();
+      const timeSinceLastCheck = now - lastCheck;
+      
       console.log("[PORTAL_VISIBILITY_TRACE]", {
         visibilityState: document.visibilityState,
         hasUser: !!user,
         hasProfile: !!profile,
         hasData: !!data,
+        timeSinceLastCheck,
         timestamp: new Date().toISOString()
       });
       
-      if (document.visibilityState === 'visible' && user && !data && !loading) {
-        console.log("[PORTAL_VISIBILITY_TRACE] Portal visible but no data. Triggering re-fetch.");
+      if (document.visibilityState === 'visible' && user && profile && timeSinceLastCheck > 5000) {
+        console.log("[PORTAL_VISIBILITY_TRACE] Portal visible, refreshing data.");
+        setLastCheck(now);
         loadPortalData();
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [user, profile, data, loading, loadPortalData]);
+  }, [user, profile, data, lastCheck, loadPortalData]);
 
   useEffect(() => {
     console.log("[PORTAL_BOOT_TRACE] Effect trigger", { 
