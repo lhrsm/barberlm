@@ -5,10 +5,20 @@ export const Route = createFileRoute('/api/public/cleanup-identity')({
   server: {
     handlers: {
       GET: async () => {
-        const result = await runIdentityCleanup();
-        return new Response(JSON.stringify(result), {
-          headers: { 'Content-Type': 'application/json' }
-        });
+        try {
+          const result = await runIdentityCleanup();
+          return new Response(JSON.stringify(result), {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-store'
+            }
+          });
+        } catch (err: any) {
+          return new Response(JSON.stringify({ success: false, error: err.message }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
       }
     }
   }
