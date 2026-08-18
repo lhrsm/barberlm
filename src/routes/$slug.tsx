@@ -1124,16 +1124,22 @@ function ShopPageComponent() {
                         ((currentCustomer as any)?.auth_user_id || (currentCustomer as any)?.user_id) &&
                         (currentCustomer as any)?.email;
 
-        console.log('[BOOKING_IDENTITY_TRACE] Decision', { isReady, nextStep: isReady ? 'BOOKING' : 'AUTH_SETUP' });
+        console.log('[BOOKING_IDENTITY_TRACE] Decision', { 
+          isReady, 
+          identityStatus: (currentCustomer as any)?.identity_status,
+          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
+          hasEmail: !!(currentCustomer as any)?.email
+        });
         
         if (isReady) {
-          // Cliente READY: Salta onboarding e vai direto para agendamento
           console.log('[BOOKING_IDENTITY_TRACE] Bypassing AUTH_SETUP for READY customer');
+          setShowIdentityStep(false);
           setBookingStep(2);
+          return; // Previne qualquer execução posterior que possa resetar o step
         } else {
-          // Cliente LEGADO ou PENDING: Precisa configurar ou completar acesso
           console.log('[BOOKING_IDENTITY_TRACE] Redirecting to AUTH_SETUP');
           setShowIdentityStep(true);
+          setBookingStep(1); // Garante que estamos no step 1 para mostrar o BookingAuthStep
         }
       } else {
         // Novo cliente (não tem telefone no banco)
@@ -3544,7 +3550,7 @@ function ShopPageComponent() {
                       if (bookingStep === 5 && paymentMethod) {
                         setPaymentMethod(null);
                       }
-                      setBookingStep(prev => prev - 1);
+                      console.log('[BOOKING_STEP_TRACE]', { source: 'manual_call', nextStep: prev => prev - 1, timestamp: new Date().toISOString() }); setBookingStep(prev => prev - 1);
                     }}
                   >
                     <ArrowLeft size={16} />
@@ -3773,18 +3779,20 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 1 && showIdentityStep && (
-              <BookingAuthStep
-                customerName={customerName}
-                customerPhone={customerPhone}
-                customerId={customerId}
-                tenantId={shop.id}
-                onBack={() => setShowIdentityStep(false)}
-                onSuccess={(userId, email) => {
-                  setShowIdentityStep(false);
-                  setBookingStep(2);
-                  // Opcional: atualizar o perfil se necessário
-                }}
-              />
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                <BookingAuthStep
+                  customerName={customerName}
+                  customerPhone={customerPhone}
+                  customerId={customerId}
+                  tenantId={shop.id}
+                  onBack={() => setShowIdentityStep(false)}
+                  onSuccess={(userId, email) => {
+                    console.log('[BOOKING_IDENTITY_TRACE] AuthStep Success', { userId, email });
+                    setShowIdentityStep(false);
+                    setBookingStep(2);
+                  }}
+                />
+              </div>
             )}
 
             {bookingStep === 2 && activeSubscription && !bookingMode && (() => {
@@ -4958,7 +4966,7 @@ function ShopPageComponent() {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
                   }
-                  setBookingStep(prev => prev - 1);
+                  console.log('[BOOKING_STEP_TRACE]', { source: 'manual_call', nextStep: prev => prev - 1, timestamp: new Date().toISOString() }); setBookingStep(prev => prev - 1);
                 }}
               >
                 <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
