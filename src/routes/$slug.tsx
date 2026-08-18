@@ -1082,7 +1082,7 @@ function ShopPageComponent() {
         .eq("user_id", shop.id);
 
       if (error) throw error;
-      currentCustomer = records && records.length > 0 ? records[0] : null;
+      currentCustomer = records && records.length > 0 ? (records[0] as any) : null;
 
       if (currentCustomer) {
         const resolvedCustomerId = currentCustomer.id;
