@@ -1073,90 +1073,46 @@ function ShopPageComponent() {
   };
 
   const handlePhoneCheck = async () => {
-    const normalized = normalizePhone(customerPhone);
-    console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck started', { 
+    console.log('[BOOKING_CUSTOMER_STATE] Transition check', { 
+      identityState, 
       customerPhone, 
-      normalized, 
       customerName, 
       customerId 
     });
 
-    if (!customerPhone || normalized.length < 8) {
+    if (identityState === 'LOADING') return;
+
+    if (!customerPhone || normalizePhone(customerPhone).length < 8) {
       toast.error("Por favor, informe um WhatsApp válido.");
       return;
     }
     
-    setSubmitting(true);
-    try {
-      // If we don't have a customerId yet, try one last check
-      let currentCustomer = null;
-      const normalized = normalizePhone(customerPhone);
-      
-      // Strict identity resolution: always fetch current tenant state
-      const { data: records, error } = await supabase
-        .from("customers")
-        .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
-        .eq("phone", normalized)
-        .eq("user_id", shop.id);
-
-      if (error) throw error;
-      const resolvedCustomer: any = records && records.length > 0 ? records[0] : null;
-
-      if (resolvedCustomer) {
-        const resolvedCustomerId = resolvedCustomer.id;
-        const finalName = resolvedCustomer.name || customerName;
-        
-        console.log('[CUSTOMER_RESOLUTION_TRACE] handlePhoneCheck success', { 
-          resolvedCustomerId, 
-          finalName,
-          email: resolvedCustomer.email
-        });
-        
-        setCustomerName(finalName);
-        setCustomerId(resolvedCustomerId);
-
-        await fetchActiveSubscriptionFor(resolvedCustomerId);
-        
-        // Define READY state based on definitive criteria
-        const hasEmail = !!resolvedCustomer.email;
-        const hasAuthLink = !!(resolvedCustomer.auth_user_id || resolvedCustomer.user_id);
-        const isCompleted = resolvedCustomer.identity_status === 'completed' || resolvedCustomer.auth_migration_status === 'completed';
-        
-        const isReady = hasEmail && hasAuthLink && isCompleted;
-
-        console.log('[CUSTOMER_RESOLUTION_TRACE] Identity Decision', { 
-          isReady,
-          hasEmail,
-          hasAuthLink,
-          isCompleted
-        });
-        
-        
-        if (isReady) {
-          setShowIdentityStep(false);
-          setBookingStep(2); // Step 2 = Service Selection
-          return;
-        } else {
-          setShowIdentityStep(true);
-          setBookingStep(1); // Stay on step 1 to show BookingAuthStep
-        }
-      } else {
-        // Novo cliente (não tem telefone no banco nesta barbearia)
-        if (!customerName || customerName.trim().length < 3) {
-          toast.info("Por favor, informe seu nome completo.");
-        } else {
-          console.log('[CUSTOMER_RESOLUTION_TRACE] New customer flow', { customerName, normalized });
-          setActiveSubscription(null);
-          setBookingMode(null);
-          setShowIdentityStep(true);
-          setBookingStep(1);
-        }
-      }
-    } catch (e: any) {
-      toast.error("Erro ao verificar identificação: " + e.message);
-    } finally {
-      setSubmitting(false);
+    // DECISION TREE
+    if (identityState === 'READY') {
+      console.log('[BOOKING_CUSTOMER_STATE] READY -> Skipping to Step 2');
+      setShowIdentityStep(false);
+      setBookingStep(2);
+      return;
     }
+
+    if (identityState === 'NEEDS_ONBOARDING') {
+      console.log('[BOOKING_CUSTOMER_STATE] NEEDS_ONBOARDING -> Showing AuthStep');
+      setShowIdentityStep(true);
+      return;
+    }
+
+    if (identityState === 'NEW_CUSTOMER') {
+      if (!customerName || customerName.trim().length < 3) {
+        toast.info("Por favor, informe seu nome completo.");
+        return;
+      }
+      console.log('[BOOKING_CUSTOMER_STATE] NEW_CUSTOMER -> Showing AuthStep');
+      setShowIdentityStep(true);
+      return;
+    }
+
+    // Fallback if search didn't run or IDLE
+    toast.info("Verificando seu cadastro...");
   };
 
 
