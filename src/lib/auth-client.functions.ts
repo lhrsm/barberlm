@@ -35,7 +35,10 @@ export const clientLogin = createServerFn({ method: "POST" })
 
     if (authResult.error) {
       console.error(`[AuthClient] Login failed for ${value}:`, authResult.error.message);
-      throw new Error(`Erro de autenticação: ${authResult.error.message}`);
+      const message = authResult.error.message === "Invalid login credentials"
+        ? "E-mail ou senha inválidos."
+        : authResult.error.message;
+      throw new Error(message);
     }
     
     return { 
