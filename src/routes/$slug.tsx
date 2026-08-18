@@ -1112,10 +1112,7 @@ function ShopPageComponent() {
           hasAuthLink,
           isCompleted
         });
-          hasEmail,
-          hasAuthLink,
-          isCompleted
-        });
+        
         
         if (isReady) {
           setShowIdentityStep(false);
