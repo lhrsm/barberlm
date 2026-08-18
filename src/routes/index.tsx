@@ -150,9 +150,10 @@ function LandingPage() {
       {/* Header */}
       <header className={cn(
         "fixed top-0 w-full z-50 transition-all duration-300 border-b",
-        isScrolled ? "bg-black/90 backdrop-blur-md border-gold/20 py-3" : "bg-transparent border-transparent py-5"
+        isScrolled ? "bg-black/95 backdrop-blur-md border-gold/20 h-20" : "bg-transparent border-transparent h-24"
       )}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+
           <Link to="/" className="flex items-center shrink-0">
             <BarbexLogo size="lg" showText={false} className="md:size-lg" />
           </Link>
@@ -186,7 +187,7 @@ function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 md:pt-48 pb-16 md:pb-24 px-5 sm:px-8 overflow-hidden">
+      <section className="relative pt-32 pb-16 md:pb-24 px-6 overflow-hidden">
         {/* Hero Background Image with Parallax-ready setup */}
         <div className="absolute inset-0 z-0">
           <img 
