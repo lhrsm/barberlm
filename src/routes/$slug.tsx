@@ -1082,16 +1082,16 @@ function ShopPageComponent() {
         .eq("user_id", shop.id);
 
       if (error) throw error;
-      currentCustomer = records && records.length > 0 ? (records[0] as any) : null;
+      const resolvedCustomer: any = records && records.length > 0 ? records[0] : null;
 
-      if (currentCustomer) {
-        const resolvedCustomerId = currentCustomer.id;
-        const finalName = currentCustomer.name || customerName;
+      if (resolvedCustomer) {
+        const resolvedCustomerId = resolvedCustomer.id;
+        const finalName = resolvedCustomer.name || customerName;
         
         console.log('[CUSTOMER_RESOLUTION_TRACE] handlePhoneCheck success', { 
           resolvedCustomerId, 
           finalName,
-          email: currentCustomer.email
+          email: resolvedCustomer.email
         });
         
         setCustomerName(finalName);
@@ -1100,14 +1100,18 @@ function ShopPageComponent() {
         await fetchActiveSubscriptionFor(resolvedCustomerId);
         
         // Define READY state based on definitive criteria
-        const hasEmail = !!currentCustomer.email;
-        const hasAuthLink = !!(currentCustomer.auth_user_id || currentCustomer.user_id);
-        const isCompleted = currentCustomer.identity_status === 'completed' || currentCustomer.auth_migration_status === 'completed';
+        const hasEmail = !!resolvedCustomer.email;
+        const hasAuthLink = !!(resolvedCustomer.auth_user_id || resolvedCustomer.user_id);
+        const isCompleted = resolvedCustomer.identity_status === 'completed' || resolvedCustomer.auth_migration_status === 'completed';
         
         const isReady = hasEmail && hasAuthLink && isCompleted;
 
         console.log('[CUSTOMER_RESOLUTION_TRACE] Identity Decision', { 
           isReady,
+          hasEmail,
+          hasAuthLink,
+          isCompleted
+        });
           hasEmail,
           hasAuthLink,
           isCompleted
