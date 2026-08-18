@@ -1120,9 +1120,11 @@ function ShopPageComponent() {
         
         if (isReady) {
           // Cliente READY: Salta onboarding e vai direto para agendamento
+          console.log('[BOOKING_IDENTITY_TRACE] Bypassing AUTH_SETUP for READY customer');
           setBookingStep(2);
         } else {
           // Cliente LEGADO ou PENDING: Precisa configurar ou completar acesso
+          console.log('[BOOKING_IDENTITY_TRACE] Redirecting to AUTH_SETUP');
           setShowIdentityStep(true);
         }
       } else {
