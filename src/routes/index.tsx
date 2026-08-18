@@ -380,7 +380,7 @@ function LandingPage() {
           </div>
 
           {/* Imagem 01: Operação sem fricção */}
-          <div className="grid md:grid-cols-2 gap-20 items-center">
+          <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-center">
             <div className="relative group">
               <LandingImage 
                 src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop"
@@ -432,7 +432,7 @@ function LandingPage() {
 
 
       {/* Prova Visual (Mockup Contextual) */}
-      <section className="py-24 px-6 overflow-hidden bg-[#05070d] relative">
+      <section className="py-24 md:py-32 px-6 overflow-hidden bg-[#05070d] relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
         <div className="max-w-7xl mx-auto text-center mb-16">
           <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Experiência de Uso</span>
@@ -539,8 +539,9 @@ function LandingPage() {
       </section>
 
       {/* Imagem 02: Tradição e cuidado */}
-      <section className="py-32 bg-zinc-950/50 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+      <section className="py-24 md:py-32 bg-zinc-950/50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 md:gap-24 items-center">
+
           <div className="space-y-8">
             <div className="space-y-4">
               <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Sobre Nós</span>
@@ -622,8 +623,9 @@ function LandingPage() {
       </CTASection>
 
       {/* Imagem 03: Financeiro & BI */}
-      <section className="py-32 px-6 bg-black relative">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+      <section className="py-24 md:py-32 px-6 bg-black relative">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 md:gap-24 items-center">
+
           <div className="space-y-8">
             <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Financeiro & BI</span>
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
