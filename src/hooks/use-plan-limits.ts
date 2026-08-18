@@ -74,7 +74,12 @@ export function usePlanLimits() {
   }, [tenantId]);
 
   async function fetchPlanAndUsage() {
-    if (!tenantId) return;
+    if (!tenantId) {
+      setLoading(false);
+      return;
+    }
+    
+    console.log("[PLAN_LIMITS_TRACE] Fetching for tenantId:", tenantId);
     setLoading(true);
 
     const monthStart = startOfMonth(new Date()).toISOString();

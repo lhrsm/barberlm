@@ -25,8 +25,9 @@ export function usePermissions() {
   const { user, role, loading: authLoading } = useAuth();
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
-    queryKey: ['user-permissions', user?.id],
+    queryKey: ['user-permissions', user?.id, role],
     queryFn: async () => {
+      console.log("[PERMISSIONS_TRACE] Fetching for role:", role, "userId:", user?.id);
       if (!user) return [];
 
       // Se for super_admin, retorna todas (simulado no front, validado no back)

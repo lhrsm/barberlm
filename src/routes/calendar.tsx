@@ -238,8 +238,21 @@ const CalendarComponent = memo(() => {
     ]);
 
     if (appRes.error) {
-      console.error("[Calendar] Fetch appointments error:", appRes.error);
+      console.error("[CALENDAR_BOOT_TRACE] Appointments fetch error:", appRes.error);
     }
+
+    console.log("[CALENDAR_BOOT_TRACE] Data fetched:", {
+      appointments: appRes.data?.length,
+      barbers: barbRes.data?.length,
+      customers: custRes.data?.length,
+      services: servRes.data?.length
+    });
+
+    if (appRes.data) setAppointments(appRes.data);
+    if (barbRes.data) setBarbers(barbRes.data);
+    if (custRes.data) setCustomers(custRes.data);
+    if (servRes.data) setServices(servRes.data);
+    setIsLoading(false);
 
     if (appRes.data) setAppointments(appRes.data);
     if (barbRes.data) setBarbers(barbRes.data);
@@ -248,11 +261,27 @@ const CalendarComponent = memo(() => {
   }
 
   useEffect(() => {
-    if (!user || role === 'super_admin') return;
-
+    console.log("[CALENDAR_BOOT_TRACE] Starting fetchData", { 
+      hasUser: !!user, 
+      role, 
+      tenantId, 
+      view, 
+      currentDate 
+    });
     fetchData();
+  }, [user, currentDate, view]);
 
-    const channelTenantId = tenantId || user.id;
+  async function fetchData() {
+    if (!user) {
+      console.log("[CALENDAR_BOOT_TRACE] No user, skipping fetchData");
+      return;
+    }
+    
+    setIsLoading(true);
+    console.log("[CALENDAR_BOOT_TRACE] Executing queries");
+
+    const start = startOfDay(view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 }));
+    const end = endOfDay(view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 }));
     const channel = supabase
       .channel(`appointments-calendar-${channelTenantId}`)
       .on(

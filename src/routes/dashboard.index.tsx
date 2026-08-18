@@ -60,6 +60,16 @@ function DashboardIndexComponent() {
   const [birthdayCustomers, setBirthdayCustomers] = useState<any[]>([]);
 
   useEffect(() => {
+    console.log("[DASHBOARD_BOOT_TRACE] Auth Check", { 
+      loading, 
+      authLoading, 
+      tenantLoading, 
+      planLoading, 
+      hasUser: !!user, 
+      role,
+      tenantId 
+    });
+
     if (loading) return;
 
     if (!user) {
@@ -80,7 +90,7 @@ function DashboardIndexComponent() {
         return;
       }
     }
-  }, [user, role, loading, navigate]);
+  }, [user, role, loading, navigate, authLoading, tenantLoading, planLoading, tenantId]);
 
   useEffect(() => {
     if (!tenantId) return;
