@@ -159,7 +159,20 @@ function CustomerPortalPage() {
     }
   };
 
-  if (authLoading || (user && loading)) {
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 text-gold animate-spin" />
+          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+            Autenticando...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user && loading) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -342,6 +355,16 @@ function CustomerPortalPage() {
         return <div>Em breve...</div>;
     }
   };
+
+  console.log("[PORTAL_BLACKSCREEN_TRACE] Rendering Portal Root", {
+    hasUser: !!user,
+    hasProfile: !!profile,
+    hasData: !!data,
+    loading,
+    authLoading,
+    activeTab,
+    visibility: document.visibilityState
+  });
 
   return (
     <div className="min-h-screen bg-[#05070d] text-white">

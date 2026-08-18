@@ -373,7 +373,7 @@ function ShopPageComponent() {
       const normalizedPhone = normalizePhone(customerPhone);
       const requestId = Math.random().toString(36).substring(7);
       
-      console.log('[CUSTOMER_RESOLUTION_TRACE] findCustomer started', { 
+      console.log('[CUSTOMER_NAME_TRACE] findCustomer started', { 
         requestId,
         rawPhone: customerPhone, 
         normalizedPhone, 
@@ -385,8 +385,14 @@ function ShopPageComponent() {
       setCustomerCashback(0);
       setCustomerLoyaltyPoints(0);
       setCustomerCredits(0);
+      
+      // DO NOT clear name if it's already in the form and we're looking up
+      // but if we want strict resolution from DB, we log it.
+      const currentNameBeforeClear = customerName;
+      
       if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-        setCustomerName("");
+        console.log('[CUSTOMER_NAME_TRACE] No portal session, name check', { currentNameBeforeClear });
+        // Only clear if we really want to force a refresh, but let's be careful not to flicker
       }
       
       if (normalizedPhone.length < 10) {
@@ -399,13 +405,13 @@ function ShopPageComponent() {
         // Step 1: Query EXCLUSIVELY for current tenant and phone
         const { data: records, error } = await supabase
           .from('customers')
-          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
+          .select('id, name, phone, email, balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
           .eq('phone', normalizedPhone)
           .eq('user_id', shop.id); // Strict tenant isolation
 
         if (error) throw error;
 
-        console.log('[CUSTOMER_RESOLUTION_TRACE] query results', {
+        console.log('[CUSTOMER_NAME_TRACE] query results', {
           requestId,
           count: records?.length || 0,
           rows: records?.map(r => ({ id: r.id, name: r.name, tenant: r.user_id }))
@@ -414,25 +420,27 @@ function ShopPageComponent() {
         const data = records && records.length > 0 ? records[0] : null;
 
         if (data) {
+          console.log('[CUSTOMER_NAME_TRACE] Customer matched, updating state', { 
+            requestId,
+            customerId: data.id,
+            nameFromDB: data.name
+          });
+          
           // Absolute Identity Binding
           setCustomerId(data.id);
-          setCustomerName(data.name || "");
-          setCustomerCashback(data.cashback_balance || 0);
+          if (data.name) {
+            setCustomerName(data.name);
+          }
+          setCustomerCashback(Number(data.balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
-          console.log('[CUSTOMER_RESOLUTION_TRACE] Customer matched', { 
-            requestId,
-            customerId: data.id,
-            name: data.name
-          });
-          
           await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_RESOLUTION_TRACE] No customer found for this tenant', { requestId });
+          console.log('[CUSTOMER_NAME_TRACE] No customer found for this tenant', { requestId });
         }
       } catch (err) {
-        console.error('[CUSTOMER_RESOLUTION_TRACE] Search error:', err);
+        console.error('[CUSTOMER_NAME_TRACE] Search error:', err);
       } finally {
         setIsSearchingCustomer(false);
       }
@@ -1969,40 +1977,38 @@ function ShopPageComponent() {
 
   const checkCustomerCashback = async (phone: string) => {
     const normalized = normalizePhone(phone);
-    console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback', { phone, normalized });
+    console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback', { phone, normalized });
     
     if (normalized.length >= 10) {
       setSubmitting(true);
       try {
         const { data: records, error } = await supabase
           .from("customers")
-          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, identity_status, auth_user_id, user_id")
-          .eq("phone", normalized);
+          .select("id, balance, loyalty_points, name, email, credits, auth_migration_status, identity_status, auth_user_id, user_id")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id); // Strict tenant isolation
         
         if (error) {
-          console.error('Error fetching customer for cashback:', error);
+          console.error('[CUSTOMER_NAME_TRACE] checkCustomerCashback Error:', error);
           return null;
         }
 
-        const data = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
+        const data = records && records.length > 0 ? records[0] : null;
 
         if (data) {
-          // Only use balances if same tenant
-          if (data.user_id === shop.id) {
-            setCustomerCashback(data.cashback_balance || 0);
-            setCustomerLoyaltyPoints(data.loyalty_points || 0);
-            setCustomerCredits(data.credits || 0);
-          }
+          console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback FOUND', { id: data.id, name: data.name });
+          setCustomerCashback(Number(data.balance) || 0);
+          setCustomerLoyaltyPoints(data.loyalty_points || 0);
+          setCustomerCredits(data.credits || 0);
           
-          if (data.name) setCustomerName(data.name);
+          if (data.name) {
+            setCustomerName(data.name);
+          }
           setCustomerId(data.id);
           return data;
         } else {
-          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback NOT FOUND');
+          console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback NOT FOUND');
           setCustomerId(null);
-          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-            setCustomerName("");
-          }
           setCustomerCashback(0);
           setCustomerLoyaltyPoints(0);
           return null;
@@ -3640,14 +3646,14 @@ function ShopPageComponent() {
                             exit={{ opacity: 0, y: -10 }}
                             className="mt-3"
                           >
-                            {customerId ? (
+                            {customerId && customerName ? (
                               <div className="bg-green-50/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
                                 <div className="bg-green-100 dark:bg-green-800/50 p-2.5 rounded-full shrink-0">
                                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-lg font-bold text-green-800 dark:text-green-300 uppercase tracking-tight truncate leading-tight">
-                                    OLÁ, {customerName.split(' ')[0]}! 👋
+                                  <h3 className="text-lg font-bold text-green-800 dark:text-green-300 uppercase tracking-tight truncate leading-tight italic">
+                                    OLÁ, {(customerName || '').split(' ')[0].toUpperCase()}! 👋
                                   </h3>
                                   <p className="text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
                                     Que bom ter você de volta!
