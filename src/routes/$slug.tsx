@@ -1963,27 +1963,19 @@ function ShopPageComponent() {
     if (normalized.length >= 10) {
       setSubmitting(true);
       try {
-        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback multi-tenant query executing');
         const { data: records, error } = await supabase
           .from("customers")
           .select("id, cashback_balance, loyalty_points, name, credits, auth_migration_status, user_id")
           .eq("phone", normalized);
         
-        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback query result', { count: records?.length, error });
-
         if (error) {
-          console.error('[CUSTOMER_LOOKUP_TRACE] Error fetching customer:', error);
+          console.error('Error fetching customer for cashback:', error);
           return null;
         }
 
         const data = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
 
         if (data) {
-          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback RESOLVED customer', {
-            id: data.id,
-            tenantMatch: data.user_id === shop.id
-          });
-          
           // Only use balances if same tenant
           if (data.user_id === shop.id) {
             setCustomerCashback(data.cashback_balance || 0);
