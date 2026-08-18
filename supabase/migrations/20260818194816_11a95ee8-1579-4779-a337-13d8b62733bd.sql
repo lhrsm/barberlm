@@ -1,0 +1,31 @@
+INSERT INTO public.appointments (
+    tenant_id,
+    customer_id,
+    barber_id,
+    service_id,
+    start_time,
+    end_time,
+    status,
+    total_price,
+    payment_method,
+    payment_status,
+    user_id,
+    source,
+    final_amount,
+    created_at
+) VALUES (
+    'c54ac1ac-49be-4505-b7a4-d257ed023f08',
+    '00e9ee44-4f68-42ae-bd65-3ea19eb3a9a4',
+    '24cc2b0d-ff7e-423f-8b38-d1fce0457a4f',
+    '94cf042e-d6cd-4f35-b094-8e4bf1b69dea',
+    NOW() + INTERVAL '1 day',
+    NOW() + INTERVAL '1 day' + INTERVAL '30 minutes',
+    'confirmed',
+    50.00,
+    'pix',
+    'pending',
+    '997746ee-723f-40e4-a6c6-5359eddd2a98',
+    'online',
+    50.00,
+    NOW()
+);
