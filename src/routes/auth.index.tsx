@@ -63,7 +63,14 @@ function AuthIndexComponent() {
                 <div className="text-center pt-4">
                   <Button 
                     variant="link" 
-                    onClick={() => navigate({ to: '/auth', search: { tab: undefined } })}
+                    onClick={() => {
+                      const currentSlug = window.location.pathname.split('/')[1];
+                      if (currentSlug && currentSlug !== 'auth') {
+                        navigate({ to: `/${currentSlug}/portal` as any });
+                      } else {
+                        navigate({ to: '/auth', search: { tab: undefined } });
+                      }
+                    }}
                     className="text-zinc-400 hover:text-gold text-[10px] font-black uppercase tracking-widest"
                   >
                     Acesso Administrativo
@@ -76,7 +83,15 @@ function AuthIndexComponent() {
                 <div className="text-center pt-6">
                   <Button 
                     variant="link" 
-                    onClick={() => navigate({ to: '/auth', search: { tab: 'client', redirect: undefined } })}
+                    onClick={() => {
+                      // Attempt to resolve slug from context or simply go to client portal if slug is known
+                      const currentSlug = window.location.pathname.split('/')[1];
+                      if (currentSlug && currentSlug !== 'auth') {
+                        navigate({ to: `/${currentSlug}/portal` as any });
+                      } else {
+                        navigate({ to: '/auth', search: { tab: 'client', redirect: undefined } });
+                      }
+                    }}
                     className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
                   >
                     Acesso para Clientes

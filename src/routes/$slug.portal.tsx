@@ -56,7 +56,7 @@ function CustomerPortalPage() {
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("*, loyalty_levels(*)")
-        .or(`user_id.eq.${user.id},auth_user_id.eq.${user.id}`)
+        .eq("user_id", user.id)
         .eq("tenant_id", profile.tenant_id)
         .maybeSingle();
 
