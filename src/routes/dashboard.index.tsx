@@ -6,6 +6,7 @@ import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
 import { WalkinModal } from "@/components/calendar/WalkinModal";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek } from "date-fns";
 import { AdminDashboardView } from "@/components/dashboard/views/AdminDashboardView";
 import { ManagerDashboardView } from "@/components/dashboard/views/ManagerDashboardView";
@@ -255,7 +256,26 @@ function DashboardIndexComponent() {
     if (barbersData.data) setBarbers(barbersData.data);
   }
 
-  if (loading || !user) return null;
+  // Show loading skeleton while initializing
+  if (loading || authLoading || tenantLoading) {
+    return (
+      <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center">
+        <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
+        <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+          Sincronizando Dashboard Executivo...
+        </p>
+      </div>
+    );
+  }
+
+  // Handle unauthorized or uninitialized states
+  if (!user || !tenantId) {
+    if (!authLoading && !user) {
+       console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
+       window.location.href = "/auth";
+    }
+    return null;
+  }
 
   const renderSpecializedView = () => {
     switch (role) {
