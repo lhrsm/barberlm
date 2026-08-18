@@ -93,15 +93,7 @@ function DashboardIndexComponent() {
   }, [user, role, loading, navigate, authLoading, tenantLoading, planLoading, tenantId]);
 
   useEffect(() => {
-    // Safety timeout for loading state
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn("[DASHBOARD_BOOT_TRACE] Loading timeout reached, forcing finish");
-        setLoading(false);
-      }
-    }, 8000);
-
-    if (!tenantId) return () => clearTimeout(timeout);
+    if (!tenantId) return;
 
     fetchStats();
     fetchTodayAppointments();
