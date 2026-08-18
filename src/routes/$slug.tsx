@@ -1112,8 +1112,8 @@ function ShopPageComponent() {
         console.log('[BOOKING_IDENTITY_TRACE] handlePhoneCheck data', trace);
 
         // IDENTIDADE READY: Já possui e-mail, auth_user_id e status completed
-        const isReady = (currentCustomer as any)?.identity_status === 'completed' && 
-                        (currentCustomer as any)?.auth_user_id &&
+        const isReady = ((currentCustomer as any)?.identity_status === 'completed' || (currentCustomer as any)?.auth_migration_status === 'completed') && 
+                        ((currentCustomer as any)?.auth_user_id || (currentCustomer as any)?.user_id) &&
                         (currentCustomer as any)?.email;
 
         console.log('[BOOKING_IDENTITY_TRACE] Decision', { isReady, nextStep: isReady ? 'BOOKING' : 'AUTH_SETUP' });
