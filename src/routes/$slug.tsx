@@ -1978,7 +1978,7 @@ function ShopPageComponent() {
       try {
         const { data: records, error } = await supabase
           .from("customers")
-          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, user_id")
+          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, identity_status, auth_user_id, user_id")
           .eq("phone", normalized);
         
         if (error) {
