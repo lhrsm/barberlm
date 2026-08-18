@@ -419,7 +419,7 @@ function ShopPageComponent() {
           .from('customers')
           .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, tenant_id')
           .eq('phone', normalizedPhone)
-          .eq('user_id', shop.id);
+          .eq('tenant_id', shop.id);
 
         console.log('[BOOKING_CUSTOMER_STATE] Query result', { requestId, recordsCount: records?.length, error });
 
