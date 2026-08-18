@@ -299,6 +299,15 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const shouldBlock = accessReady && isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin';
 
 
+  if (loading || authLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#05070d] flex-col gap-4">
+        <div className="h-12 w-12 rounded-full border-4 border-gold/10 border-t-gold animate-spin" />
+        <p className="text-gold/60 font-bold animate-pulse uppercase tracking-[0.2em] text-xs">Barbex Premium</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-[#05070d] text-white">
       {shouldBlock && <TrialExpiredBlock />}
