@@ -248,6 +248,27 @@ function CustomerPortalPage() {
             setClient={() => {}} // Legacy prop
           />
         );
+      case "security":
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="max-w-4xl mx-auto">
+              <Link to={`/${slug}/portal/security` as any}>
+                <Button variant="outline" className="w-full h-20 border-gold/20 bg-gold/5 text-gold hover:bg-gold/10 flex items-center justify-between px-8 rounded-2xl group transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gold/10 rounded-xl group-hover:scale-110 transition-transform">
+                      <ShieldCheck size={24} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-black uppercase tracking-widest italic text-lg">Central de Segurança</p>
+                      <p className="text-gold/60 text-xs font-bold">MFA, Sessões Ativas e Proteção de Dados</p>
+                    </div>
+                  </div>
+                  <ArrowLeft className="rotate-180 text-gold/40" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        );
       default:
         return <div>Em breve...</div>;
     }

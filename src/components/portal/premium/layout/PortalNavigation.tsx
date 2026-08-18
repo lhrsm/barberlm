@@ -48,7 +48,7 @@ export function PortalNavigation({
     { id: "coupons", label: "Cupons", icon: Ticket, show: couponsEnabled },
     { id: "finances", label: "Extrato", icon: TrendingUp },
     { id: "profile", label: "Perfil", icon: UserIcon },
-    { id: "privacy", label: "Privacidade", icon: ShieldCheck },
+    { id: "security", label: "Segurança", icon: ShieldCheck },
   ].filter(t => t.show !== false);
 
   return (
