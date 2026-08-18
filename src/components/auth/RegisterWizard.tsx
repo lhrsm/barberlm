@@ -207,7 +207,7 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="min-h-[400px]"
+              className="flex-1 overflow-y-auto min-h-0 py-2"
             >
               {step === 1 && (
                 <div className="space-y-8">
