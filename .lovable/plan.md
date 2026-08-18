@@ -1,81 +1,36 @@
-# Architectural Repair: Multi-Tenant Isolation & Slug Correction
+# Auditoria e Reparo Arquitetural Multi-Tenant e Identidade
 
-Address the issue where customers (clients) are incorrectly generating their own tenants and slugs, causing incorrect URL routing (e.g., `/louis-henrique-19/portal` instead of `/lm/portal`).
+Este plano visa corrigir as falhas críticas de roteamento, perda de slug e inconsistência de dados no Portal do Cliente e fluxos de autenticação, seguindo a Lovable Master Instruction — Barbex v2.
 
-## User Review Required
+## Auditoria de Dados (Louis & Carlos)
 
-> [!IMPORTANT]
-> The database trigger `handle_new_user` will be modified to prevent automatic tenant creation for users registered with the `role: 'client'`. I will also perform a targeted cleanup of the incorrect tenant and slug for Louis Menezes.
+- **Louis (louishenrique19@hotmail.com)**: Identificamos dois registros de customer. Um legado (vinculado a um `tenant_id` que parece ser o antigo ID de proprietário) e um novo (vinculado ao `tenant_id` da LM, `c54ac1ac-49be-4505-b7a4-d257ed023f08`). O vínculo Auth oficial é via `user_id` em `customers`.
+- **Carlos Menezes**: Possui um registro legado com `phone` 5571988939385.
+- **Inconsistência**: O erro "column customers.auth_user_id does not exist" confirma que o frontend está tentando usar uma coluna inexistente. A coluna correta é `user_id`.
 
-## Proposed Changes
+## Ações Técnicas
 
-### 1. Database Layer (Supabase)
-- **Modify Trigger `handle_new_user`**: Update the PL/pgSQL function to inspect `new.raw_user_meta_data->>'role'`. 
-    - If role is `'client'`, skip the `INSERT` into `public.barbershops` and do not generate/assign a `slug` in `public.profiles`.
-- **Data Cleanup**:
-    - Identify and remove the erroneous tenant `minha-barbearia` (ID: `2b922aa6-f218-4053-9036-6001d1bbb33d`).
-    - Remove the slug `louis-henrique-19` from the profile of user `997746ee-723f-40e4-a6c6-5359eddd2a98`.
+### 1. Correção do Schema e Consultas (Identity Fix)
+- Remover todas as referências a `auth_user_id` no codebase (especialmente em `src/routes/$slug.portal.tsx` e `src/lib/auth-verification.functions.ts`).
+- Padronizar o uso de `customers.user_id` como o vínculo único com `auth.users.id`.
+- Corrigir a query no Portal do Cliente para filtrar estritamente por `user_id` e `tenant_id`.
 
-### 2. Frontend Layer (React/TanStack)
-- **ClientLoginForm.tsx**: Refactor the redirect logic. 
-    - Stop using `result.user.slug` as a fallback for portal routing. 
-    - Strictly use the `barbershopSlug` from props (context-aware) or a generic `/portal` (if global).
-- **use-auth.ts**: Audit the `profile.slug` usage. Ensure that for `role: 'client'`, the slug is ignored or explicitly nullified in the hook state to prevent accidental usage in UI components.
-- **Route Resolution**: Audit `src/routes/$slug.tsx` and `src/routes/$slug.portal.tsx` to ensure they strictly resolve the tenant via the URL slug and do not permit "customer slugs" to act as tenant entry points.
+### 2. Blindagem de Roteamento (Slug Preservation)
+- **Portal URL**: Garantir que `/$slug/portal` seja a única porta de entrada para clientes.
+- **Auth Redirects**: Modificar o `ClientLoginForm` e o fluxo de logout para NUNCA redirecionar para `/portal` (global) ou `/auth`. Sempre usar `/${tenantSlug}/portal` ou `/${tenantSlug}`.
+- **Lost Slug Recovery**: Se um cliente cair em `/portal` ou `/auth` sem contexto, implementar lógica para recuperar o slug do tenant a partir da sessão ativa (se houver membership) ou orientar o usuário a voltar para a página da barbearia.
 
-### 3. Identity Engine Hardening
-- **finalizeAuthSetup**: Ensure that when linking a customer to an auth user, the `role` is explicitly passed as `'client'` to the admin Auth API so the corrected trigger behaves correctly.
+### 3. Remoção de Fluxos Legados
+- Desativar a aba "Cliente" em `/auth` ou torná-la um redirecionador para o slug contextual (se detectado).
+- Adicionar botão explícito "PORTAL DO CLIENTE" na landing page da barbearia (`/$slug`).
+- Garantir que após o agendamento o cliente seja levado para `/$slug/portal`.
 
-## Technical Details
+### 4. Implementação de Testes de Validação
+- Validar acesso anônimo em `/lm/portal`.
+- Validar login do Louis e persistência do slug `lm`.
+- Validar F5 e navegação em novas abas sem perda de contexto.
 
-### SQL Migration
-```sql
--- Update handle_new_user to be role-aware
-CREATE OR REPLACE FUNCTION public.handle_new_user()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  shop_name text;
-  generated_slug text;
-  user_role text;
-BEGIN
-  user_role := COALESCE(new.raw_user_meta_data->>'role', 'tenant_admin');
-  
-  -- Logic for tenant admins (barbershop owners)
-  IF user_role = 'tenant_admin' OR user_role = 'admin' OR user_role = 'super_admin' THEN
-    shop_name := COALESCE(new.raw_user_meta_data->>'business_name', 'Minha Barbearia');
-    generated_slug := generate_unique_slug(shop_name);
-
-    INSERT INTO public.profiles (id, business_name, responsible_name, email, role, status, slug)
-    VALUES (new.id, shop_name, new.raw_user_meta_data->>'responsible_name', new.email, user_role, 'active', generated_slug)
-    ON CONFLICT (id) DO UPDATE SET slug = COALESCE(profiles.slug, EXCLUDED.slug);
-
-    INSERT INTO public.barbershops (owner_id, name, slug)
-    VALUES (new.id, shop_name, generated_slug)
-    ON CONFLICT (owner_id) DO NOTHING;
-  ELSE
-    -- Logic for clients, staff, professionals (no tenant/slug creation)
-    INSERT INTO public.profiles (id, responsible_name, email, role, status, slug, tenant_id)
-    VALUES (new.id, new.raw_user_meta_data->>'responsible_name', new.email, user_role, 'active', NULL, (new.raw_user_meta_data->>'tenant_id')::uuid)
-    ON CONFLICT (id) DO UPDATE SET 
-      role = EXCLUDED.role,
-      tenant_id = COALESCE(profiles.tenant_id, EXCLUDED.tenant_id);
-  END IF;
-
-  INSERT INTO public.user_roles (user_id, role)
-  VALUES (new.id, user_role::app_role)
-  ON CONFLICT (user_id) DO NOTHING;
-
-  RETURN new;
-END;
-$function$;
-```
-
-## Acceptance Criteria
-- [ ] Clients do not have a `slug` in their `profiles` record.
-- [ ] No new `barbershops` are created when registering a client via the booking flow.
-- [ ] Louis Menezes (`louishenrique19@hotmail.com`) is redirected to `/lm/portal` after login, not `/louis-henrique-19/portal`.
-- [ ] The admin (`louisdabahia@gmail.com`) can still manage the `lm` tenant normally.
+## Detalhes Técnicos para o Usuário
+- Não criaremos a coluna `auth_user_id`. Corrigiremos o sistema para usar `user_id`, que já existe.
+- A URL `barbex.shop/portal` não será mais utilizada para clientes.
+- O redirecionamento após o login será forçado via `window.location.href` para garantir que o estado do TanStack Router seja limpo e o novo contexto carregado corretamente.
