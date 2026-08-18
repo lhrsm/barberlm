@@ -104,17 +104,41 @@ function CustomerPortalPage() {
   }, [user, profile?.tenant_id]);
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log("[PORTAL_VISIBILITY_TRACE]", {
+        visibilityState: document.visibilityState,
+        hasUser: !!user,
+        hasProfile: !!profile,
+        hasData: !!data,
+        timestamp: new Date().toISOString()
+      });
+      
+      if (document.visibilityState === 'visible' && user && !data && !loading) {
+        console.log("[PORTAL_VISIBILITY_TRACE] Portal visible but no data. Triggering re-fetch.");
+        loadPortalData();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user, profile, data, loading, loadPortalData]);
+
+  useEffect(() => {
+    console.log("[PORTAL_BOOT_TRACE] Effect trigger", { 
+      authLoading, 
+      hasUser: !!user, 
+      hasProfile: !!profile,
+      identityStatus: profile?.identity_status
+    });
+
     if (authLoading) return;
     
-    // Se não há usuário, não redirecionamos, o componente renderizará o formulário de login
     if (!user) {
       setLoading(false);
       return;
     }
 
     if (profile?.identity_status === 'legacy') {
-      // Clientes legado que conseguiram logar de alguma forma devem ser tratados
-      // Mas a arquitetura atual bloqueia isso no ClientLoginForm
       navigate({ to: `/${slug}` as any, replace: true });
       return;
     }
@@ -170,12 +194,48 @@ function CustomerPortalPage() {
 
   if (!profile || !data?.customer) {
     return (
-      <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <p className="text-gold font-black uppercase tracking-widest italic">Perfil não encontrado</p>
-          <Button onClick={handleLogout} variant="outline" className="border-gold text-gold hover:bg-gold/10">
-            Sair e tentar novamente
-          </Button>
+      <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full space-y-8 animate-in fade-in duration-700">
+          <div className="h-20 w-20 rounded-3xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-6">
+            <UserIcon className="h-10 w-10 text-gold/40" />
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">
+              {loading ? "Sincronizando..." : "Perfil não encontrado"}
+            </h1>
+            <p className="text-zinc-500 text-sm leading-relaxed">
+              {loading 
+                ? "Estamos preparando sua experiência premium. Por favor, aguarde um momento." 
+                : "Não conseguimos localizar seu cadastro neste estabelecimento. Tente atualizar a página ou entrar novamente."}
+            </p>
+          </div>
+          
+          <div className="flex flex-col gap-3 pt-4">
+            <Button 
+              onClick={() => loadPortalData()} 
+              variant="default" 
+              className="bg-gold hover:bg-gold/90 text-black font-black uppercase tracking-widest py-6 rounded-2xl"
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Tentar Novamente"}
+            </Button>
+            
+            <Button 
+              onClick={handleLogout} 
+              variant="ghost" 
+              className="text-gold/60 hover:text-gold hover:bg-gold/10 font-bold uppercase tracking-widest text-[10px]"
+            >
+              Sair da conta
+            </Button>
+          </div>
+
+          <div className="pt-8 border-t border-white/5 mt-8">
+            <Link to={`/${slug}` as any}>
+              <Button variant="link" className="text-zinc-600 hover:text-gold text-[10px] uppercase font-bold tracking-widest">
+                <ArrowLeft size={12} className="mr-2" /> Voltar para a Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );

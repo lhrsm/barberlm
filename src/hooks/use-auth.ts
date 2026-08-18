@@ -105,16 +105,26 @@ async function initializeAuth() {
 
     // 1. Subscribe to auth events
     supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[AUTH_TRACE] onAuthStateChange: ${event}`, { hasSession: !!session });
+      console.log(`[AUTH_TRACE] onAuthStateChange: ${event}`, { 
+        hasSession: !!session,
+        userId: session?.user?.id 
+      });
       
       if (event === 'SIGNED_OUT') {
         setState({ session: null, user: null, profile: null, loading: false });
-      } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
-          // Mantém loading=true até o perfil carregar
-          setState({ session, user: session.user, loading: true });
-          await fetchProfileData(session.user.id);
-          setState({ loading: false });
+          // If we already have a profile and it's the same user, don't clear it during refresh
+          const isSameUser = globalProfile?.id === session.user.id;
+          
+          if (!isSameUser || event === 'SIGNED_IN') {
+            setState({ session, user: session.user, loading: true });
+            await fetchProfileData(session.user.id);
+            setState({ loading: false });
+          } else {
+            // Just update the session/user without triggering a full loading state
+            setState({ session, user: session.user });
+          }
         } else if (event !== 'INITIAL_SESSION') {
           setState({ session: null, user: null, profile: null, loading: false });
         }
