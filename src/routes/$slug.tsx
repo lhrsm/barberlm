@@ -1099,17 +1099,24 @@ function ShopPageComponent() {
 
         const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
         
+        // [BOOKING_IDENTITY_TRACE] Diagnostic Payload
+        const trace = {
+          customerId: resolvedCustomerId,
+          hasEmail: !!(currentCustomer as any)?.email,
+          hasAuthUserId: !!(currentCustomer as any)?.auth_user_id,
+          identityStatus: (currentCustomer as any)?.identity_status,
+          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
+          currentTenantId: shop.id,
+          customerTenantId: (currentCustomer as any)?.user_id
+        };
+        console.log('[BOOKING_IDENTITY_TRACE] handlePhoneCheck data', trace);
+
         // IDENTIDADE READY: Já possui e-mail, auth_user_id e status completed
-        const isReady = (currentCustomer as any)?.auth_migration_status === 'completed' && 
-                        (currentCustomer as any)?.user_id &&
+        const isReady = (currentCustomer as any)?.identity_status === 'completed' && 
+                        (currentCustomer as any)?.auth_user_id &&
                         (currentCustomer as any)?.email;
 
-        console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck decision path', {
-          customer_id: resolvedCustomerId,
-          has_active_subscription: !!sub,
-          isReady,
-          auth_migration_status: (currentCustomer as any)?.auth_migration_status
-        });
+        console.log('[BOOKING_IDENTITY_TRACE] Decision', { isReady, nextStep: isReady ? 'BOOKING' : 'AUTH_SETUP' });
         
         if (isReady) {
           // Cliente READY: Salta onboarding e vai direto para agendamento
