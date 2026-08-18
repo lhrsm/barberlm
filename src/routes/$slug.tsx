@@ -1105,6 +1105,8 @@ function ShopPageComponent() {
         const parsedClient = JSON.parse(savedClient);
         setCustomerPhone(parsedClient.phone);
         setCustomerName(parsedClient.name);
+        setCustomerId(parsedClient.customer_id);
+        // O findCustomer resolverá o identityState
         setBookingStep(3); // Pula para escolha de profissional
       } catch (e) {
         setBookingStep(1);
