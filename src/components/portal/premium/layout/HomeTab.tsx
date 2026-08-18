@@ -58,9 +58,6 @@ export function HomeTab({
 
       {/* 2. Next Appointment Highlight */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-black uppercase italic tracking-tight text-white">Sua Próxima Visita</h3>
-        </div>
         <NextAppointmentCard 
           appointments={appointments}
           shop={shop}
@@ -68,8 +65,20 @@ export function HomeTab({
         />
       </div>
 
-      {/* 3. Quick Actions */}
+      {/* 3. Dedicated New Appointment CTA */}
+      <div className="flex justify-center md:justify-start">
+        <button
+          type="button"
+          onClick={onNewAppointment}
+          className="w-full md:w-auto inline-flex items-center justify-center gap-3 rounded-2xl px-8 py-4 text-base font-black uppercase tracking-[0.15em] bg-gold text-black hover:brightness-110 hover:-translate-y-1 transition-all shadow-[0_15px_35px_-10px_rgba(212,175,55,0.5)] active:scale-95"
+        >
+          Agendar Novo Horário
+        </button>
+      </div>
+
+      {/* 4. Quick Actions */}
       <QuickActions
+
         hasCashback={hasCashback}
         hasCredits={hasCredits}
         isSubscriber={isSubscriber}
