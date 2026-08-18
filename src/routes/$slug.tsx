@@ -3713,9 +3713,9 @@ function ShopPageComponent() {
                         boxShadow: '0 12px 28px rgba(245,158,11,.28)',
                       }}
                       onClick={handlePhoneCheck}
-                      disabled={!consentAccepted || !customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
+                      disabled={!consentAccepted || !customerPhone || isSearchingCustomer || (identityState === 'NEW_CUSTOMER' && (!customerName || customerName.trim().length < 3))}
                     >
-                      {submitting ? "Verificando..." : "Continuar agendamento"}
+                      {isSearchingCustomer ? "Verificando..." : "Continuar agendamento"}
                     </Button>
                   </div>
 
