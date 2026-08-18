@@ -1343,7 +1343,7 @@ function ShopPageComponent() {
           status: "confirmed",
           payment_status: isCoveredFull
             ? 'covered_by_subscription'
-            : (calculateTotal() === 0 ? 'paid' : 'pending'),
+            : (finalPaymentMethod === 'pix' || calculateTotal() === 0 ? 'paid' : 'pending'),
           payment_method: isCoveredFull
             ? 'subscription'
             : isCoveredPartial

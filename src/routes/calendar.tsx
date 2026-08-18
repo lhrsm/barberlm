@@ -357,7 +357,12 @@ const CalendarComponent = memo(() => {
         <ScrollArea className="flex-1">
           <div className="space-y-4 pb-10">
             {appointments.length === 0 ? (
-              <Card className="glass border-white/5 bg-[#0B1220] rounded-[32px] overflow-hidden"><CardContent className="flex flex-col items-center justify-center py-20"><CalendarIcon className="h-16 w-16 text-[#F59E0B]/20 mb-4" /><p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">Nenhum atendimento</p></CardContent></Card>
+              <Card className="glass border-white/5 bg-[#0B1220] rounded-[32px] overflow-hidden">
+                <CardContent className="flex flex-col items-center justify-center py-20">
+                  <CalendarIcon className="h-16 w-16 text-[#F59E0B]/20 mb-4" />
+                  <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">Nenhum atendimento</p>
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid gap-4">
                 {appointments.map(appt => (
