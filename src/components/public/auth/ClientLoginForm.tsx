@@ -138,8 +138,8 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     
     console.log("[ClientLoginForm] Navigating via router to:", targetPath);
     
-    // Usamos navigate do router em vez de window.location.href para manter o estado SPA
-    navigate({ to: targetPath as any });
+    // Usamos window.location.href para forçar uma recarga limpa e evitar estados residuais de auth
+    window.location.href = targetPath;
   };
 
 

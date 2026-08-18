@@ -263,13 +263,24 @@ function ResetPasswordPage() {
                 </div>
 
                 <Button
-                  asChild
+                  onClick={async () => {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    const { data: profile } = await supabase.from('profiles').select('role, slug').eq('id', user?.id).maybeSingle();
+                    
+                    if (profile?.role === 'client' && profile?.slug) {
+                      navigate({ to: `/${profile.slug}/portal` as any });
+                    } else if (profile?.role === 'client') {
+                      navigate({ to: '/portal' as any });
+                    } else {
+                      navigate({ to: '/auth' as any });
+                    }
+                  }}
                   className="w-full h-[56px] rounded-[16px] text-black font-black uppercase tracking-widest text-xs transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
                   style={{
                     background: "linear-gradient(135deg, #D4AF37, #B8860B)",
                   }}
                 >
-                  <Link to="/auth">Ir para o Login</Link>
+                  Ir para o Login
                 </Button>
               </motion.div>
             )}
