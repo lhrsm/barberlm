@@ -1402,7 +1402,13 @@ function ShopPageComponent() {
 
       console.log("[POST_BOOKING_TRACE] Appointments persisted", {
         count: createdAppointments?.length,
-        ids: createdAppointments?.map(a => a?.id)
+        ids: createdAppointments?.map(a => a?.id),
+        identities: createdAppointments?.map(a => ({
+          id: a.id,
+          user_id: a.user_id,
+          customer_id: a.customer_id,
+          tenant_id: a.tenant_id
+        }))
       });
 
       // LGPD: register consent + update customer preferences (best-effort, non-blocking)
