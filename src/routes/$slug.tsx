@@ -390,36 +390,59 @@ function ShopPageComponent() {
 
       setIsSearchingCustomer(true);
       try {
-        console.log('[CUSTOMER_LOOKUP_TRACE] Executing query', { 
+        const lookupTenantId = shop.id;
+        console.log('[CUSTOMER_LOOKUP_TRACE] Executing multi-tenant recovery query', { 
           table: 'customers', 
-          phone: normalizedPhone, 
-          user_id: shop.id 
+          phone: normalizedPhone,
+          shopTenantId: lookupTenantId
         });
         
-        const { data, error } = await supabase
+        // Multi-tenant recovery search: 
+        // 1. Try exact match for current shop
+        // 2. If not found, look for ANY record with this phone to recover identity
+        const { data: records, error } = await supabase
           .from('customers')
           .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
-          .eq('phone', normalizedPhone)
-          .eq('user_id', shop.id)
-          .maybeSingle();
+          .eq('phone', normalizedPhone);
 
-        console.log('[CUSTOMER_LOOKUP_TRACE] Query result', { data, error, rowsCount: data ? 1 : 0 });
+        console.log('[CUSTOMER_LOOKUP_TRACE] Query result records', { count: records?.length, error });
+
+        // Find record for CURRENT shop first
+        let data = records?.find(r => r.user_id === lookupTenantId);
+        
+        if (!data && records && records.length > 0) {
+          console.log('[CUSTOMER_LOOKUP_TRACE] Customer found in other tenant, initiating identity recovery', {
+            foundTenants: records.map(r => r.user_id)
+          });
+          // Pick the most complete record or just the first one if none for this shop
+          data = records[0];
+        }
 
         if (data) {
-          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER FOUND', { 
+          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER RESOLVED', { 
             customerId: data.id, 
             customerName: data.name,
-            identityStatus: (data as any).identity_status || 'not_available',
-            authMigrationStatus: data.auth_migration_status
+            recordTenantId: data.user_id,
+            matchType: data.user_id === lookupTenantId ? 'exact_tenant' : 'identity_recovery'
           });
+          
           setCustomerId(data.id);
           setCustomerName(data.name || "");
-          setCustomerCashback(data.cashback_balance || 0);
-          setCustomerLoyaltyPoints(data.loyalty_points || 0);
-          setCustomerCredits(data.credits || 0);
+          
+          // Only use balances if it's the same tenant
+          if (data.user_id === lookupTenantId) {
+            setCustomerCashback(data.cashback_balance || 0);
+            setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            setCustomerCredits(data.credits || 0);
+          } else {
+            setCustomerCashback(0);
+            setCustomerLoyaltyPoints(0);
+            setCustomerCredits(0);
+          }
+          
           await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER NOT FOUND', { normalizedPhone });
+          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER NOT FOUND ANYWHERE', { normalizedPhone });
           setCustomerId(null);
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             if (customerId) setCustomerName("");
@@ -452,6 +475,7 @@ function ShopPageComponent() {
         return;
       }
       setServiceEligibility({});
+      console.log('[CUSTOMER_LOOKUP_TRACE] Loading sub for', customerId);
       await fetchActiveSubscriptionFor(customerId);
     }
     loadActiveSub();
