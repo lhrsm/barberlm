@@ -342,7 +342,7 @@ function ShopPageComponent() {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
-          setCustomerPhone(parsedClient.phone); // PhoneInput handle formatting
+          setCustomerPhone(parsedClient.phone); 
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
           // O identityState será resolvido pelo useEffect de findCustomer
