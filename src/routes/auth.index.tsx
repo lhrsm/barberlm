@@ -80,9 +80,15 @@ function AuthIndexComponent() {
                   <Button 
                     variant="link" 
                     onClick={() => {
-                      // Redireciona para o portal global apenas se não houver contexto, 
-                      // mas ClientLoginForm cuidará da resolução.
-                      navigate({ to: '/auth', search: { tab: 'client' } });
+                      const pathParts = window.location.pathname.split('/');
+                      const possibleSlug = pathParts[1] !== 'auth' ? pathParts[1] : null;
+                      
+                      if (possibleSlug) {
+                        window.location.href = `/${possibleSlug}/portal`;
+                      } else {
+                        // Se não houver slug, redireciona para a aba de cliente do próprio /auth
+                        navigate({ to: '/auth', search: { tab: 'client' } });
+                      }
                     }}
                     className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
                   >

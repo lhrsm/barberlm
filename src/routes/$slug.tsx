@@ -1269,7 +1269,7 @@ function ShopPageComponent() {
           group_token: groupTokenValLocal,
           total_amount: calculateTotal(),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
-          status: 'active'
+          status: 'confirmed' as any
         }]).select().single();
 
         if (groupError) throw groupError;
@@ -1418,14 +1418,21 @@ function ShopPageComponent() {
       }
 
 
-      // 2.5 Create Finance Transactions for Paid Appointments (e.g. Full Credits/Cashback)
+      // 2.5 Create Finance Transactions for Paid Appointments (e.g. Full Credits/Cashback/PIX se houver confirmação)
+      // REGRA: Somente registros que REALMENTE representam entrada de dinheiro imediata ou baixa de crédito.
+      // Agendamentos "Pagar no Salão" (barbershop) ficam apenas como appointment pendente.
       for (const appt of createdAppointments) {
-        if (appt.payment_status === 'paid' && (appt.payment_method === 'credits' || appt.payment_method === 'cashback')) {
+        // Se for Pix, assumimos que o fluxo de checkout/comprovante já validou ou o admin validará.
+        // Se for créditos/cashback, a baixa no saldo do cliente já ocorreu acima, então registramos a "receita" por uso de crédito.
+        const isPaidNow = appt.payment_status === 'paid' || appt.payment_method === 'pix';
+        const isCreditPayment = appt.payment_method === 'credits' || appt.payment_method === 'cashback';
+        
+        if (isPaidNow && (isCreditPayment || appt.payment_method === 'pix')) {
           const item = finalCart.find(i => i.service_id === appt.service_id);
-          const amount = appt.total_price || 0;
+          const amount = appt.final_amount > 0 ? appt.final_amount : (appt.total_price || 0);
           
           if (amount > 0) {
-            console.log('DEBUG: Creating transaction for paid (credits/cashback) appointment', appt.id);
+            console.log('DEBUG: Creating transaction for paid appointment', { id: appt.id, method: appt.payment_method });
             await supabase.from("transactions").insert([{
               amount: amount,
               type: "income",
@@ -1635,29 +1642,10 @@ function ShopPageComponent() {
       const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
 
       const runRedirect = async () => {
-        // Redirecionamento usando navigate do TanStack Router com substituição de histórico
+        // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
+        // Destino obrigatório: Portal do Cliente /$slug/portal via window.location para garantir reload limpo
         if (isMultipleFinal && groupTokenFinal) {
-          navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
-        } else if (createdAppointments.length === 1) {
-          const appt = createdAppointments?.[0] as any;
-          // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
-          // 1. Prioridade absoluta para o Portal do Cliente /$slug/portal
-          const portalUrl = `/${slug}/portal`;
-          
-          // Capturar token apenas para histórico, mas o destino é o portal
-          let token: string | null = null;
-          try {
-            const { data } = await supabase.rpc("get_new_appointment_management_token" as any, {
-              p_appointment_id: appt.id,
-            });
-            token = (Array.isArray(data) ? data[0] : data) ?? null;
-          } catch {
-            token = null;
-          }
-
-          console.log('[BOOKING_REDIRECT] Finalizing to portal:', portalUrl);
-          // GARANTIR QUE SEMPRE REDIRECIONE PARA /$slug/portal COM RECARGA LIMPA
-          window.location.href = portalUrl;
+          window.location.href = `/agendamentos/grupo/${groupTokenFinal}?tenant=${shop.id}`;
         } else {
           window.location.href = `/${slug}/portal`;
         }

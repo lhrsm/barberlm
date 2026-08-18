@@ -140,7 +140,7 @@ function LandingPage() {
                   Testar Grátis
                 </Button>
                 <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white/70 font-black uppercase tracking-widest text-[10px]" asChild>
-                  <a href="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</a>
+                  <a href="/auth">Acessar Conta</a>
                 </Button>
               </div>
             </motion.div>
@@ -169,7 +169,7 @@ function LandingPage() {
           <div className="flex items-center gap-4">
             <div className="hidden md:flex gap-4">
               <Button variant="ghost" className="text-xs font-black uppercase tracking-widest text-white/90 hover:text-white" asChild>
-                <Link to="/auth" search={{ tab: "login" }}>Entrar</Link>
+                <a href="/auth">Entrar</a>
               </Button>
               <Button className="bg-gold text-black font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl hover:bg-gold/90" onClick={() => setShowRegisterWizard(true)}>
                 Testar Grátis
