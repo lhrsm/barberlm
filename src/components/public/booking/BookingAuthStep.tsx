@@ -141,7 +141,7 @@ export function BookingAuthStep({
         toast.success("Acesso configurado com sucesso!");
         onSuccess(res.userId as string, email);
       } else {
-        throw new Error(res.error || "Falha desconhecida");
+        throw new Error("Falha desconhecida");
       }
     } catch (error: any) {
       console.error('[BOOKING_ONBOARDING_TRACE] Finalize Error:', error);
