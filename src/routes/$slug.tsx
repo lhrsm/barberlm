@@ -1982,7 +1982,7 @@ function ShopPageComponent() {
           .from("customers")
           .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, tenant_id")
           .eq("phone", normalized)
-          .eq("user_id", shop.id); // Strict tenant isolation
+          .eq("tenant_id", shop.id); // Strict tenant isolation
         
         if (error) {
           console.error('[CUSTOMER_NAME_TRACE] checkCustomerCashback Error:', error);
