@@ -246,7 +246,7 @@ function CustomerPortalPage() {
             setSubmitting={setSubmitting}
             fetchClientData={() => loadPortalData()}
             slug={slug}
-            setClient={() => {}} // Legacy prop
+            setClient={() => {}} // Not used but kept for type compatibility
           />
         );
       case "security":
