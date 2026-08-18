@@ -196,7 +196,9 @@ export function ProfileTab({
                 const sessionData = JSON.parse(localStorage.getItem(`client_portal_session_${slug}`) || "{}");
                 sessionData.name = customerName;
                 localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
-                setClient(sessionData);
+                // setClient removed here to match parent state cleanup if needed, 
+                // but the toast and fetch are the priority.
+                window.dispatchEvent(new CustomEvent('profile-updated'));
                 
                 toast.success("Perfil atualizado com sucesso!");
                 fetchClientData(customerData.id);

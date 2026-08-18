@@ -30,7 +30,8 @@ interface ClientLoginFormProps {
 }
 
 export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientLoginFormProps) {
-  const { redirect } = useSearch({ from: '/auth' }) as { redirect?: string };
+  const search = useSearch({ strict: false }) as { redirect?: string };
+  const redirect = search.redirect;
   const [showPassword, setShowPassword] = useState(false);
   const [view, setView] = useState<'login' | 'forgot-password' | 'success' | 'mfa'>('login');
   const [loading, setLoading] = useState(false);
