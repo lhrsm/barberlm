@@ -436,11 +436,6 @@ function ShopPageComponent() {
       } finally {
         setIsSearchingCustomer(false);
       }
-      } catch (err) {
-        console.error('[CUSTOMER_IDENTITY_TRACE] Search error:', err);
-      } finally {
-        setIsSearchingCustomer(false);
-      }
     }
 
     if (bookingStep === 1 && isBookingOpen) {
