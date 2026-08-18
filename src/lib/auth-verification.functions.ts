@@ -106,7 +106,7 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
     }
 
     // 2. Resolve or Create Auth User
-    // First, check if this customer already has a valid auth_user_id
+    // First, check if this customer already has a valid user_id
     let targetUserId: string | null = null;
     
     if (data.clientId) {
