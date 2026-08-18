@@ -736,11 +736,12 @@ function LandingPage() {
       </CTASection>
 
       {/* Footer Final */}
-      <footer className="py-24 px-6 border-t border-white/5 bg-black">
+      <footer className="py-20 px-6 border-t border-white/5 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
-              <BarbexLogo size="lg" showText={false} />
+              <BarbexLogo size="md" showText={false} />
+
               <p className="text-slate-500 text-[11px] leading-relaxed max-w-xs uppercase tracking-widest font-black italic">
                 A plataforma completa de gestão, fidelização e inteligência para barbearias de alto nível.
               </p>

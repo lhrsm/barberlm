@@ -74,10 +74,10 @@ export function PortalFaq({
   ];
 
   return (
-    <section id="faq" className="py-32 bg-black relative">
+    <section id="faq" className="py-24 md:py-32 bg-black relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(212,175,55,0.05),transparent_50%)]" />
       
-      <div className="max-w-[900px] mx-auto px-6 relative">
+      <div className="max-w-4xl mx-auto px-6 relative">
         <div className="text-center mb-16 space-y-4">
           <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Dúvidas Frequentes</span>
           <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">FAQ Premium</h2>

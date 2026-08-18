@@ -109,7 +109,7 @@ export function CTASection({
 }: CTASectionProps) {
   return (
     <section className={cn(
-      "relative py-20 md:py-32 px-5 sm:px-8 overflow-hidden min-h-[400px] flex items-center",
+      "relative py-24 md:py-32 px-6 overflow-hidden min-h-[400px] flex items-center",
       variant === "primary" ? "bg-black" : "bg-[#05070d]",
       className
     )}>
