@@ -103,7 +103,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
       handleSuccess({ status: 'success', user: { ...user, slug: profile.slug } });
     } catch (error: any) {
       console.error("[ClientLoginForm] Login workflow error:", error);
-      toast.error(error.message || "Credenciais inválidas.");
+      const message = error.message === "Invalid login credentials" 
+        ? "E-mail ou senha inválidos." 
+        : error.message || "Credenciais inválidas.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
