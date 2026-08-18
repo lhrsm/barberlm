@@ -1635,28 +1635,10 @@ function ShopPageComponent() {
       const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
 
       const runRedirect = async () => {
-        // Redirecionamento usando navigate do TanStack Router com substituição de histórico
+        // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
+        // Destino obrigatório: Portal do Cliente /$slug/portal via window.location para garantir reload limpo
         if (isMultipleFinal && groupTokenFinal) {
-          navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
-        } else if (createdAppointments.length === 1) {
-          const appt = createdAppointments?.[0] as any;
-          // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
-          // Destino obrigatório: Portal do Cliente /$slug/portal via window.location para garantir reload limpo
-          window.location.href = `/${slug}/portal`;
-          return;
-          
-          // O código abaixo é mantido apenas como referência de token se necessário no futuro
-          let token: string | null = null;
-              p_appointment_id: appt.id,
-            });
-            token = (Array.isArray(data) ? data[0] : data) ?? null;
-          } catch {
-            token = null;
-          }
-
-          console.log('[BOOKING_REDIRECT] Finalizing to portal:', portalUrl);
-          // GARANTIR QUE SEMPRE REDIRECIONE PARA /$slug/portal COM RECARGA LIMPA
-          window.location.href = portalUrl;
+          window.location.href = `/agendamentos/grupo/${groupTokenFinal}?tenant=${shop.id}`;
         } else {
           window.location.href = `/${slug}/portal`;
         }
