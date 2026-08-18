@@ -1394,7 +1394,7 @@ function ShopPageComponent() {
 
       // LGPD: register consent + update customer preferences (best-effort, non-blocking)
       try {
-        const finalCustId = createdAppointments[0]?.customer_id || null;
+        const finalCustId = createdAppointments?.[0]?.customer_id || null;
         await supabase.from('privacy_consents').insert([{
           tenant_id: shop?.id || null,
           customer_id: finalCustId,
@@ -1632,7 +1632,7 @@ function ShopPageComponent() {
       setPaymentMethod(null);
       
       const isMultipleFinal = createdAppointments.length > 1;
-      const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
+      const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
 
       const runRedirect = async () => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
@@ -3657,7 +3657,7 @@ function ShopPageComponent() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-base md:text-lg font-bold text-emerald-950 leading-tight">
-                                    OLÁ, {(customerName || '').split(' ')[0].toUpperCase()}! 👋
+                                    OLÁ, {(customerName || '').split(' ')[0]?.toUpperCase() || 'CLIENTE'}! 👋
                                   </h3>
                                   <p className="text-zinc-500 text-xs md:text-sm font-medium">
                                     Quase pronto! Configure seu acesso.
@@ -5355,7 +5355,7 @@ function ShopPageComponent() {
 
                   if (!saleCustomerId && customerPhone && customerName) {
                     const normalized = normalizePhone(customerPhone);
-                    const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                    const defaultBarberId = selectedBarber?.id || barbers?.[0]?.id;
                     if (defaultBarberId) {
                       const { data: rpcCustId, error: createError } = await supabase.rpc('create_or_get_public_customer', {
                         p_slug: shop.slug,
@@ -5378,7 +5378,7 @@ function ShopPageComponent() {
                     return;
                   }
 
-                  const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                  const defaultBarberId = selectedBarber?.id || barbers?.[0]?.id;
                   const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([{
                     user_id: shop.id,
                     barber_id: defaultBarberId,
@@ -5575,7 +5575,7 @@ function ShopPageComponent() {
                     setIsPixVisible(true);
                   }}
                 >
-                  Continuar como {identifyFound.name.split(' ')[0]}
+                  Continuar como {identifyFound.name.split(' ')[0] || 'Cliente'}
                 </Button>
                 <button
                   type="button"
@@ -5601,7 +5601,7 @@ function ShopPageComponent() {
                   if (nm.length < 3) return toast.error("Informe seu nome completo.");
                   if (ph.length < 10) return toast.error("Informe um WhatsApp válido.");
                   if (!identifyForm.acceptTerms) return toast.error("É necessário aceitar os Termos e a Política.");
-                  const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                  const defaultBarberId = selectedBarber?.id || barbers?.[0]?.id;
                   if (!defaultBarberId) return toast.error("Barbearia sem profissionais cadastrados.");
                   setIdentifying(true);
                   try {
