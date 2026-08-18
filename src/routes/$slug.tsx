@@ -3425,6 +3425,8 @@ function ShopPageComponent() {
 
       </main>
     </>
+  ) : isPortalRoute ? (
+    <Outlet />
   ) : isProfessionalsRoute ? (
     <section id="profissionais-pagina" className="py-24 bg-black min-h-screen">
       <div className="max-w-6xl mx-auto px-4">
