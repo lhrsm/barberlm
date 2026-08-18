@@ -1418,14 +1418,21 @@ function ShopPageComponent() {
       }
 
 
-      // 2.5 Create Finance Transactions for Paid Appointments (e.g. Full Credits/Cashback)
+      // 2.5 Create Finance Transactions for Paid Appointments (e.g. Full Credits/Cashback/PIX se houver confirmação)
+      // REGRA: Somente registros que REALMENTE representam entrada de dinheiro imediata ou baixa de crédito.
+      // Agendamentos "Pagar no Salão" (barbershop) ficam apenas como appointment pendente.
       for (const appt of createdAppointments) {
-        if (appt.payment_status === 'paid' && (appt.payment_method === 'credits' || appt.payment_method === 'cashback')) {
+        // Se for Pix, assumimos que o fluxo de checkout/comprovante já validou ou o admin validará.
+        // Se for créditos/cashback, a baixa no saldo do cliente já ocorreu acima, então registramos a "receita" por uso de crédito.
+        const isPaidNow = appt.payment_status === 'paid' || appt.payment_method === 'pix';
+        const isCreditPayment = appt.payment_method === 'credits' || appt.payment_method === 'cashback';
+        
+        if (isPaidNow && (isCreditPayment || appt.payment_method === 'pix')) {
           const item = finalCart.find(i => i.service_id === appt.service_id);
-          const amount = appt.total_price || 0;
+          const amount = appt.final_amount > 0 ? appt.final_amount : (appt.total_price || 0);
           
           if (amount > 0) {
-            console.log('DEBUG: Creating transaction for paid (credits/cashback) appointment', appt.id);
+            console.log('DEBUG: Creating transaction for paid appointment', { id: appt.id, method: appt.payment_method });
             await supabase.from("transactions").insert([{
               amount: amount,
               type: "income",
