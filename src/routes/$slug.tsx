@@ -159,6 +159,7 @@ function ShopPageComponent() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
   const [showIdentityStep, setShowIdentityStep] = useState(false);
+  const [identityState, setIdentityState] = useState<'IDLE' | 'LOADING' | 'READY' | 'NEEDS_NAME' | 'NEEDS_ONBOARDING' | 'NEW_CUSTOMER'>('IDLE');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
@@ -341,10 +342,10 @@ function ShopPageComponent() {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
-          setCustomerPhone(parsedClient.phone); // PhoneInput handle formatting
+          setCustomerPhone(parsedClient.phone); 
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-          // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
+          // O identityState será resolvido pelo useEffect de findCustomer
         } catch (e) {
           console.error('Error parsing saved client session:', e);
         }
@@ -367,82 +368,88 @@ function ShopPageComponent() {
 
   // Reativo: Busca automática de cliente pelo WhatsApp
   useEffect(() => {
+    const controller = new AbortController();
+    
     async function findCustomer() {
-      if (!shop?.id || !customerPhone) return;
+      if (!shop?.id || !customerPhone) {
+        setIdentityState('IDLE');
+        return;
+      }
       
       const normalizedPhone = normalizePhone(customerPhone);
       const requestId = Math.random().toString(36).substring(7);
       
-      console.log('[CUSTOMER_NAME_TRACE] findCustomer started', { 
+      if (normalizedPhone.length < 10) {
+        setCustomerId(null);
+        setCustomerCashback(0);
+        setCustomerLoyaltyPoints(0);
+        setCustomerCredits(0);
+        setIdentityState('IDLE');
+        setIsSearchingCustomer(false);
+        return;
+      }
+
+      console.log('[BOOKING_CUSTOMER_STATE] Resolution started', { 
         requestId,
         rawPhone: customerPhone, 
         normalizedPhone, 
         tenantId: shop.id 
       });
       
-      // Clear previous identity state immediately to avoid leakage
-      setCustomerId(null);
-      setCustomerCashback(0);
-      setCustomerLoyaltyPoints(0);
-      setCustomerCredits(0);
-      
-      // DO NOT clear name if it's already in the form and we're looking up
-      // but if we want strict resolution from DB, we log it.
-      const currentNameBeforeClear = customerName;
-      
-      if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-        console.log('[CUSTOMER_NAME_TRACE] No portal session, name check', { currentNameBeforeClear });
-        // Only clear if we really want to force a refresh, but let's be careful not to flicker
-      }
-      
-      if (normalizedPhone.length < 10) {
-        setIsSearchingCustomer(false);
-        return;
-      }
-
       setIsSearchingCustomer(true);
+      setIdentityState('LOADING');
+
       try {
-        // Step 1: Query EXCLUSIVELY for current tenant and phone
         const { data: records, error } = await supabase
           .from('customers')
           .select('id, name, phone, email, balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
           .eq('phone', normalizedPhone)
-          .eq('user_id', shop.id); // Strict tenant isolation
+          .eq('user_id', shop.id);
 
         if (error) throw error;
-
-        console.log('[CUSTOMER_NAME_TRACE] query results', {
-          requestId,
-          count: records?.length || 0,
-          rows: records?.map(r => ({ id: r.id, name: r.name, tenant: r.user_id }))
-        });
+        if (controller.signal.aborted) return;
 
         const data = records && records.length > 0 ? records[0] : null;
 
         if (data) {
-          console.log('[CUSTOMER_NAME_TRACE] Customer matched, updating state', { 
+          console.log('[BOOKING_CUSTOMER_STATE] Found existing customer', { 
             requestId,
             customerId: data.id,
-            nameFromDB: data.name
+            name: data.name
           });
           
-          // Absolute Identity Binding
           setCustomerId(data.id);
-          if (data.name) {
-            setCustomerName(data.name);
-          }
+          if (data.name) setCustomerName(data.name);
           setCustomerCashback(Number(data.balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
+          // Identity Logic
+          const hasEmail = !!data.email;
+          const hasAuth = !!(data.auth_user_id || data.user_id);
+          const isCompleted = data.identity_status === 'completed' || data.auth_migration_status === 'completed';
+          
+          if (hasEmail && hasAuth && isCompleted) {
+            setIdentityState('READY');
+          } else {
+            setIdentityState('NEEDS_ONBOARDING');
+          }
+
           await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_NAME_TRACE] No customer found for this tenant', { requestId });
+          console.log('[BOOKING_CUSTOMER_STATE] New customer detected', { requestId });
+          setCustomerId(null);
+          setCustomerCashback(0);
+          setCustomerLoyaltyPoints(0);
+          setCustomerCredits(0);
+          setIdentityState('NEW_CUSTOMER');
         }
       } catch (err) {
-        console.error('[CUSTOMER_NAME_TRACE] Search error:', err);
+        console.error('[BOOKING_CUSTOMER_STATE] Error:', err);
       } finally {
-        setIsSearchingCustomer(false);
+        if (!controller.signal.aborted) {
+          setIsSearchingCustomer(false);
+        }
       }
     }
 
@@ -450,7 +457,10 @@ function ShopPageComponent() {
       const timer = setTimeout(() => {
         findCustomer();
       }, 500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        controller.abort();
+      };
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
 
@@ -956,41 +966,19 @@ function ShopPageComponent() {
       if (savedClient) {
         try {
           const parsedClient = JSON.parse(savedClient);
-          console.log('DEBUG: Pre-filling booking from portal session', parsedClient);
+          console.log('[BOOKING_CUSTOMER_STATE] Pre-filling booking from portal session', parsedClient);
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-
-          // Fetch fresh data for credits/cashback
-          if (parsedClient.customer_id) {
-            const { data } = await supabase
-              .from('customers')
-              .select('*')
-              .eq('id', parsedClient.customer_id)
-              .maybeSingle();
-            
-            if (data) {
-              console.log('DEBUG: Fresh customer data loaded for portal session', data);
-              setCustomerCashback(data.cashback_balance || 0);
-              setCustomerCredits(data.credits || 0);
-              setCustomerLoyaltyPoints(data.loyalty_points || 0);
-            }
-
-            // Force-refresh subscription so "Plano Ativo" renders consistently
-            // across browsers (avoids relying on stale client state).
-            try {
-              const fresh = await fetchActiveSubscriptionFor(parsedClient.customer_id);
-              console.log('[booking] fresh active subscription on open', fresh);
-            } catch (e) {
-              console.warn('[booking] failed to refresh subscription on open', e);
-            }
-          }
           
-          // Se já temos o customerId, pulamos a identificação (Step 1)
-          // Step 1: Boas-vindas/Telefone
-          // Step 2: Seleção de Serviço
-          console.log('DEBUG: Skipping to Step 2 as user is authenticated');
-          setBookingStep(2);
+          // O identityState será resolvido automaticamente pelo useEffect(findCustomer) 
+          // disparado pela mudança de isBookingOpen=true e customerPhone.
+          // Forçamos Step 2 apenas se já tivermos customerId.
+          if (parsedClient.customer_id) {
+            setBookingStep(2);
+          } else {
+            setBookingStep(1);
+          }
         } catch (e) {
           console.error("Error loading session:", e);
           setBookingStep(1);
@@ -1063,90 +1051,46 @@ function ShopPageComponent() {
   };
 
   const handlePhoneCheck = async () => {
-    const normalized = normalizePhone(customerPhone);
-    console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck started', { 
+    console.log('[BOOKING_CUSTOMER_STATE] Transition check', { 
+      identityState, 
       customerPhone, 
-      normalized, 
       customerName, 
       customerId 
     });
 
-    if (!customerPhone || normalized.length < 8) {
+    if (identityState === 'LOADING') return;
+
+    if (!customerPhone || normalizePhone(customerPhone).length < 8) {
       toast.error("Por favor, informe um WhatsApp válido.");
       return;
     }
     
-    setSubmitting(true);
-    try {
-      // If we don't have a customerId yet, try one last check
-      let currentCustomer = null;
-      const normalized = normalizePhone(customerPhone);
-      
-      // Strict identity resolution: always fetch current tenant state
-      const { data: records, error } = await supabase
-        .from("customers")
-        .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
-        .eq("phone", normalized)
-        .eq("user_id", shop.id);
-
-      if (error) throw error;
-      const resolvedCustomer: any = records && records.length > 0 ? records[0] : null;
-
-      if (resolvedCustomer) {
-        const resolvedCustomerId = resolvedCustomer.id;
-        const finalName = resolvedCustomer.name || customerName;
-        
-        console.log('[CUSTOMER_RESOLUTION_TRACE] handlePhoneCheck success', { 
-          resolvedCustomerId, 
-          finalName,
-          email: resolvedCustomer.email
-        });
-        
-        setCustomerName(finalName);
-        setCustomerId(resolvedCustomerId);
-
-        await fetchActiveSubscriptionFor(resolvedCustomerId);
-        
-        // Define READY state based on definitive criteria
-        const hasEmail = !!resolvedCustomer.email;
-        const hasAuthLink = !!(resolvedCustomer.auth_user_id || resolvedCustomer.user_id);
-        const isCompleted = resolvedCustomer.identity_status === 'completed' || resolvedCustomer.auth_migration_status === 'completed';
-        
-        const isReady = hasEmail && hasAuthLink && isCompleted;
-
-        console.log('[CUSTOMER_RESOLUTION_TRACE] Identity Decision', { 
-          isReady,
-          hasEmail,
-          hasAuthLink,
-          isCompleted
-        });
-        
-        
-        if (isReady) {
-          setShowIdentityStep(false);
-          setBookingStep(2); // Step 2 = Service Selection
-          return;
-        } else {
-          setShowIdentityStep(true);
-          setBookingStep(1); // Stay on step 1 to show BookingAuthStep
-        }
-      } else {
-        // Novo cliente (não tem telefone no banco nesta barbearia)
-        if (!customerName || customerName.trim().length < 3) {
-          toast.info("Por favor, informe seu nome completo.");
-        } else {
-          console.log('[CUSTOMER_RESOLUTION_TRACE] New customer flow', { customerName, normalized });
-          setActiveSubscription(null);
-          setBookingMode(null);
-          setShowIdentityStep(true);
-          setBookingStep(1);
-        }
-      }
-    } catch (e: any) {
-      toast.error("Erro ao verificar identificação: " + e.message);
-    } finally {
-      setSubmitting(false);
+    // DECISION TREE
+    if (identityState === 'READY') {
+      console.log('[BOOKING_CUSTOMER_STATE] READY -> Skipping to Step 2');
+      setShowIdentityStep(false);
+      setBookingStep(2);
+      return;
     }
+
+    if (identityState === 'NEEDS_ONBOARDING') {
+      console.log('[BOOKING_CUSTOMER_STATE] NEEDS_ONBOARDING -> Showing AuthStep');
+      setShowIdentityStep(true);
+      return;
+    }
+
+    if (identityState === 'NEW_CUSTOMER') {
+      if (!customerName || customerName.trim().length < 3) {
+        toast.info("Por favor, informe seu nome completo.");
+        return;
+      }
+      console.log('[BOOKING_CUSTOMER_STATE] NEW_CUSTOMER -> Showing AuthStep');
+      setShowIdentityStep(true);
+      return;
+    }
+
+    // Fallback if search didn't run or IDLE
+    toast.info("Verificando seu cadastro...");
   };
 
 
@@ -1161,6 +1105,8 @@ function ShopPageComponent() {
         const parsedClient = JSON.parse(savedClient);
         setCustomerPhone(parsedClient.phone);
         setCustomerName(parsedClient.name);
+        setCustomerId(parsedClient.customer_id);
+        // O findCustomer resolverá o identityState
         setBookingStep(3); // Pula para escolha de profissional
       } catch (e) {
         setBookingStep(1);
@@ -1199,6 +1145,7 @@ function ShopPageComponent() {
     if (!normalized || normalized.length < 10) {
       toast.error("Por favor, informe um WhatsApp válido com DDD.");
       setBookingStep(1);
+      setShowIdentityStep(false);
       return;
     }
 
@@ -3638,7 +3585,7 @@ function ShopPageComponent() {
                       </div>
 
                       <AnimatePresence mode="wait">
-                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
+                        {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && identityState !== 'IDLE' && identityState !== 'LOADING' && (
                           <motion.div
                             key={customerId ? "found" : "new"}
                             initial={{ opacity: 0, y: 10 }}
@@ -3646,7 +3593,7 @@ function ShopPageComponent() {
                             exit={{ opacity: 0, y: -10 }}
                             className="mt-3"
                           >
-                            {customerId && customerName ? (
+                            {(identityState === 'READY' || identityState === 'NEEDS_ONBOARDING') && customerId && customerName ? (
                               <div className="bg-green-50/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
                                 <div className="bg-green-100 dark:bg-green-800/50 p-2.5 rounded-full shrink-0">
                                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -3660,7 +3607,7 @@ function ShopPageComponent() {
                                   </p>
                                 </div>
                               </div>
-                            ) : (
+                            ) : identityState === 'NEW_CUSTOMER' ? (
                               <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
                                 <Input
@@ -3670,7 +3617,7 @@ function ShopPageComponent() {
                                   className="bg-white text-black border border-zinc-200 placeholder:text-zinc-400 rounded-xl h-12 text-base font-medium focus-visible:ring-gold/50"
                                 />
                               </div>
-                            )}
+                            ) : null}
                             {customerId && activeSubscription && (
                               <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3.5 shadow-md">
                                 <div className="flex items-center gap-2 mb-1.5">
@@ -3747,9 +3694,9 @@ function ShopPageComponent() {
                         boxShadow: '0 12px 28px rgba(245,158,11,.28)',
                       }}
                       onClick={handlePhoneCheck}
-                      disabled={!consentAccepted || !customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
+                      disabled={!consentAccepted || !customerPhone || isSearchingCustomer || (identityState === 'NEW_CUSTOMER' && (!customerName || customerName.trim().length < 3))}
                     >
-                      {submitting ? "Verificando..." : "Continuar agendamento"}
+                      {isSearchingCustomer ? "Verificando..." : "Continuar agendamento"}
                     </Button>
                   </div>
 
@@ -3768,7 +3715,7 @@ function ShopPageComponent() {
               </motion.div>
             )}
 
-            {bookingStep === 1 && showIdentityStep && (
+            {bookingStep === 1 && showIdentityStep && (identityState === 'NEEDS_ONBOARDING' || identityState === 'NEW_CUSTOMER') && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-300 h-full flex items-center justify-center p-4">
                 <BookingAuthStep
                   customerName={customerName}
