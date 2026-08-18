@@ -1547,7 +1547,7 @@ function ShopPageComponent() {
           emitAutomationEvent({
             tenantId: shop.id,
             event: 'appointment.created',
-            appointmentId: createdAppointments[0].id,
+            appointmentId: createdAppointments?.[0]?.id,
             customerId: finalCustId || undefined,
           });
         } else {
@@ -1583,8 +1583,8 @@ function ShopPageComponent() {
         (a: any) => a.subscription_id && (a.payment_method === 'subscription' || a.payment_method === 'subscription_plus_payment')
       );
       if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
-        const appt = createdAppointments[0] as any;
-        const item = finalCart.find((i) => i.service_id === appt.service_id) || finalCart[0];
+        const appt = createdAppointments?.[0] as any;
+        const item = finalCart.find((i) => i.service_id === appt?.service_id) || finalCart[0];
 
         // Refetch usage logs so the reserved log created by the DB trigger is included.
         const { data: freshLogs } = await supabase
@@ -1639,7 +1639,7 @@ function ShopPageComponent() {
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
         } else if (createdAppointments.length === 1) {
-          const appt = createdAppointments[0] as any;
+          const appt = createdAppointments?.[0] as any;
           // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
           // 1. Prioridade absoluta para o Portal do Cliente /$slug/portal
           const portalUrl = `/${slug}/portal`;
@@ -1665,8 +1665,8 @@ function ShopPageComponent() {
 
       // PIX: pede o comprovante antes de redirecionar
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
-        const firstAppt = createdAppointments[0] as any;
-        const firstItem = finalCart.find((i) => i.service_id === firstAppt.service_id) || finalCart[0];
+        const firstAppt = createdAppointments?.[0] as any;
+        const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart[0];
         setPixReceipt({
           appointmentId: firstAppt.id,
           amount: receiptAmount,
