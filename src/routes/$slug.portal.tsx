@@ -109,7 +109,7 @@ function CustomerPortalPage() {
 
       setCustomerName(customerData.name || "");
 
-      console.log("[PORTAL_BOOT_TRACE] Parallel data fetch starting", { customerId: customerData.id });
+      console.log("[PORTAL_BOOT_TRACE] Parallel data fetch starting", { customerId: customerData.id, tenantId: customerData.tenant_id, authUserId: user.id });
       
       const [
         shopRes,
@@ -133,7 +133,16 @@ function CustomerPortalPage() {
         shop: !!shopRes.data,
         apptsCount: apptsRes.data?.length,
         creditsCount: (creditsRes as any).data?.length,
-        cashbackCount: (cashbackRes as any).data?.length
+        cashbackCount: (cashbackRes as any).data?.length,
+        [PORTAL_APPOINTMENT_TRACE]: {
+          authUserId: user.id,
+          customerId: customerData.id,
+          tenantId: effectiveTenantId,
+          rawAppointmentsCount: apptsRes.data?.length,
+          futureAppointmentsCount: apptsRes.data?.filter((a: any) => new Date(a.start_time) >= new Date()).length,
+          pastAppointmentsCount: apptsRes.data?.filter((a: any) => new Date(a.start_time) < new Date()).length,
+          filters: { customer_id: customerData.id, tenant_id: customerData.tenant_id }
+        }
       });
 
       setData({
