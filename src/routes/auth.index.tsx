@@ -84,7 +84,7 @@ function AuthIndexComponent() {
                       const possibleSlug = pathParts[1] !== 'auth' ? pathParts[1] : null;
                       
                       if (possibleSlug) {
-                        window.location.href = `/${possibleSlug}/portal`;
+                        window.location.href = `https://barbex.shop/${possibleSlug}/portal`;
                       } else {
                         // Se não houver slug, redireciona para a aba de cliente do próprio /auth
                         navigate({ to: '/auth', search: { tab: 'client' } });
