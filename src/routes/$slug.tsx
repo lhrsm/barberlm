@@ -1986,26 +1986,34 @@ function ShopPageComponent() {
     if (normalized.length >= 10) {
       setSubmitting(true);
       try {
-        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback query executing');
-        const { data, error } = await supabase
+        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback multi-tenant query executing');
+        const { data: records, error } = await supabase
           .from("customers")
           .select("id, cashback_balance, loyalty_points, name, credits, auth_migration_status, user_id")
-          .eq("phone", normalized)
-          .eq("user_id", shop.id)
-          .maybeSingle();
+          .eq("phone", normalized);
         
-        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback query result', { data, error });
+        console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback query result', { count: records?.length, error });
 
         if (error) {
           console.error('[CUSTOMER_LOOKUP_TRACE] Error fetching customer:', error);
           return null;
         }
 
+        const data = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
+
         if (data) {
-          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback FOUND customer', data.id);
-          setCustomerCashback(data.cashback_balance || 0);
-          setCustomerLoyaltyPoints(data.loyalty_points || 0);
-          setCustomerCredits(data.credits || 0);
+          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback RESOLVED customer', {
+            id: data.id,
+            tenantMatch: data.user_id === shop.id
+          });
+          
+          // Only use balances if same tenant
+          if (data.user_id === shop.id) {
+            setCustomerCashback(data.cashback_balance || 0);
+            setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            setCustomerCredits(data.credits || 0);
+          }
+          
           if (data.name) setCustomerName(data.name);
           setCustomerId(data.id);
           return data;
