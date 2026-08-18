@@ -1236,6 +1236,7 @@ function ShopPageComponent() {
 
     setSubmitting(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       // 1. Ensure customer exists
       let finalCustId = customerId;
       console.log('TABLE:', 'customers');
@@ -1338,7 +1339,7 @@ function ShopPageComponent() {
         }
 
         const appointmentPayload: any = {
-          user_id: shop.id,
+          user_id: user?.id || shop.id,
           tenant_id: shop.id,
           customer_id: finalCustId,
           service_id: item.service_id,
@@ -1401,7 +1402,13 @@ function ShopPageComponent() {
 
       console.log("[POST_BOOKING_TRACE] Appointments persisted", {
         count: createdAppointments?.length,
-        ids: createdAppointments?.map(a => a?.id)
+        ids: createdAppointments?.map(a => a?.id),
+        identities: createdAppointments?.map(a => ({
+          id: a.id,
+          user_id: a.user_id,
+          customer_id: a.customer_id,
+          tenant_id: a.tenant_id
+        }))
       });
 
       // LGPD: register consent + update customer preferences (best-effort, non-blocking)
@@ -1453,7 +1460,7 @@ function ShopPageComponent() {
               barber_id: appt.barber_id,
               appointment_id: appt.id,
               tenant_id: shop.id,
-              user_id: shop.id,
+          user_id: user?.id || shop.id,
               date: new Date().toISOString().split('T')[0]
             }]);
           }

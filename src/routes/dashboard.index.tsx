@@ -184,7 +184,15 @@ function DashboardIndexComponent() {
 
     console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Results:", {
       count: data?.length,
-      ids: data?.map(a => a.id)
+      ids: data?.map(a => a.id),
+      ADMIN_APPOINTMENT_TRACE: {
+        tenantId,
+        ownerId: user?.id,
+        filters: { dayStart, dayEnd, status: ["scheduled", "confirmed", "completed", "in_progress", "pending"] },
+        rawRows: data?.length,
+        appointmentIds: data?.map(a => a.id),
+        renderedRows: data?.length
+      }
     });
 
     if (data) setTodayAppointments(data);
