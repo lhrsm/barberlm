@@ -3763,7 +3763,7 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 1 && showIdentityStep && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300 h-full flex items-center justify-center p-4">
                 <BookingAuthStep
                   customerName={customerName}
                   customerPhone={customerPhone}
@@ -3771,7 +3771,7 @@ function ShopPageComponent() {
                   tenantId={shop.id}
                   onBack={() => setShowIdentityStep(false)}
                   onSuccess={(userId, email) => {
-                    console.log('[BOOKING_IDENTITY_TRACE] AuthStep Success', { userId, email });
+                    console.log('[BOOKING_RESOLUTION_TRACE] AuthStep Success', { userId, email });
                     setShowIdentityStep(false);
                     setBookingStep(2);
                   }}
