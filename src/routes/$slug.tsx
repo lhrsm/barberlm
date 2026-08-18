@@ -159,7 +159,7 @@ function ShopPageComponent() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
   const [showIdentityStep, setShowIdentityStep] = useState(false);
-  const [identityState, setIdentityState] = useState<'IDLE' | 'LOADING' | 'READY' | 'NEEDS_NAME' | 'NEEDS_ONBOARDING' | 'NEW_CUSTOMER'>('IDLE');
+  const [identityState, setIdentityState] = useState<'IDLE' | 'LOADING' | 'READY' | 'NEEDS_ONBOARDING' | 'NEW_CUSTOMER' | 'LOOKUP_ERROR'>('IDLE');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
@@ -366,13 +366,27 @@ function ShopPageComponent() {
   }, [shop, customerPhone]);
 
 
+  // [BOOKING_STATE_MACHINE_TRACE] Logger helper
+  const updateIdentityState = (next: typeof identityState, reason: string, meta: any = {}) => {
+    setIdentityState(prev => {
+      console.log(`[BOOKING_STATE_MACHINE_TRACE] Transition: ${prev} -> ${next} | Reason: ${reason}`, {
+        rawPhone: customerPhone,
+        normalizedPhone: normalizePhone(customerPhone || ''),
+        tenantId: shop?.id,
+        ...meta
+      });
+      return next;
+    });
+  };
+
   // Reativo: Busca automática de cliente pelo WhatsApp
   useEffect(() => {
     const controller = new AbortController();
+    let isRequestFinished = false;
     
     async function findCustomer() {
       if (!shop?.id || !customerPhone) {
-        setIdentityState('IDLE');
+        updateIdentityState('IDLE', 'No shop or phone');
         return;
       }
       
@@ -380,11 +394,12 @@ function ShopPageComponent() {
       const requestId = Math.random().toString(36).substring(7);
       
       if (normalizedPhone.length < 10) {
+        console.log('[BOOKING_CUSTOMER_STATE] Phone too short, clearing state', { requestId, normalizedPhone });
         setCustomerId(null);
         setCustomerCashback(0);
         setCustomerLoyaltyPoints(0);
         setCustomerCredits(0);
-        setIdentityState('IDLE');
+        updateIdentityState('IDLE', 'Phone too short');
         setIsSearchingCustomer(false);
         return;
       }
@@ -397,17 +412,23 @@ function ShopPageComponent() {
       });
       
       setIsSearchingCustomer(true);
-      setIdentityState('LOADING');
+      updateIdentityState('LOADING', 'Search started', { requestId });
 
       try {
         const { data: records, error } = await supabase
           .from('customers')
-          .select('id, name, phone, email, balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
+          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, tenant_id')
           .eq('phone', normalizedPhone)
           .eq('user_id', shop.id);
 
+        console.log('[BOOKING_CUSTOMER_STATE] Query result', { requestId, recordsCount: records?.length, error });
+
         if (error) throw error;
-        if (controller.signal.aborted) return;
+        
+        if (controller.signal.aborted) {
+          console.log('[BOOKING_CUSTOMER_STATE] Request aborted', { requestId });
+          return;
+        }
 
         const data = records && records.length > 0 ? records[0] : null;
 
@@ -420,20 +441,24 @@ function ShopPageComponent() {
           
           setCustomerId(data.id);
           if (data.name) setCustomerName(data.name);
-          setCustomerCashback(Number(data.balance) || 0);
+          setCustomerCashback(Number(data.cashback_balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
-          // Identity Logic
+          // Identity Logic: No profile-based auth check here, just basic presence
           const hasEmail = !!data.email;
-          const hasAuth = !!(data.auth_user_id || data.user_id);
-          const isCompleted = data.identity_status === 'completed' || data.auth_migration_status === 'completed';
+          const hasAuth = !!data.id; // Basic check since they exist in customers
+          const isCompleted = (data as any).auth_migration_status === 'completed';
           
-          if (hasEmail && hasAuth && isCompleted) {
-            setIdentityState('READY');
-          } else {
-            setIdentityState('NEEDS_ONBOARDING');
-          }
+          const nextState = (hasEmail && hasAuth && isCompleted) ? 'READY' : 'NEEDS_ONBOARDING';
+          updateIdentityState(nextState, 'Customer found', { 
+            requestId, 
+            customerId: data.id, 
+            customerName: data.name,
+            hasEmail,
+            hasAuth,
+            isCompleted
+          });
 
           await fetchActiveSubscriptionFor(data.id);
         } else {
@@ -442,11 +467,13 @@ function ShopPageComponent() {
           setCustomerCashback(0);
           setCustomerLoyaltyPoints(0);
           setCustomerCredits(0);
-          setIdentityState('NEW_CUSTOMER');
+          updateIdentityState('NEW_CUSTOMER', 'No customer found', { requestId });
         }
       } catch (err) {
         console.error('[BOOKING_CUSTOMER_STATE] Error:', err);
+        updateIdentityState('LOOKUP_ERROR', 'Database error', { requestId, error: err });
       } finally {
+        isRequestFinished = true;
         if (!controller.signal.aborted) {
           setIsSearchingCustomer(false);
         }
@@ -454,10 +481,13 @@ function ShopPageComponent() {
     }
 
     if (bookingStep === 1 && isBookingOpen) {
+      console.log('[BOOKING_CUSTOMER_STATE] Effect triggered, starting debounce');
       const timer = setTimeout(() => {
+        console.log('[BOOKING_CUSTOMER_STATE] Debounce completed, calling findCustomer');
         findCustomer();
       }, 500);
       return () => {
+        console.log('[BOOKING_CUSTOMER_STATE] Effect cleanup, aborting controller');
         clearTimeout(timer);
         controller.abort();
       };
@@ -1059,12 +1089,24 @@ function ShopPageComponent() {
     });
 
     if (identityState === 'LOADING') return;
+    if (identityState === 'IDLE' && customerPhone && normalizePhone(customerPhone).length >= 10) {
+      toast.info("Aguarde a verificação do seu número...");
+      return;
+    }
 
     if (!customerPhone || normalizePhone(customerPhone).length < 8) {
       toast.error("Por favor, informe um WhatsApp válido.");
       return;
     }
     
+    // [BOOKING_STATE_MACHINE_TRACE] Button Action Logger
+    console.log('[BOOKING_STATE_MACHINE_TRACE] handlePhoneCheck action', {
+      state: identityState,
+      customerName,
+      customerPhone,
+      customerId
+    });
+
     // DECISION TREE
     if (identityState === 'READY') {
       console.log('[BOOKING_CUSTOMER_STATE] READY -> Skipping to Step 2');
@@ -1086,6 +1128,13 @@ function ShopPageComponent() {
       }
       console.log('[BOOKING_CUSTOMER_STATE] NEW_CUSTOMER -> Showing AuthStep');
       setShowIdentityStep(true);
+      return;
+    }
+
+    if (identityState === 'LOOKUP_ERROR') {
+      toast.error("Não foi possível verificar seu cadastro. Tente novamente.");
+      // Tentar novamente a busca
+      setIdentityState('IDLE');
       return;
     }
 
@@ -1931,7 +1980,7 @@ function ShopPageComponent() {
       try {
         const { data: records, error } = await supabase
           .from("customers")
-          .select("id, balance, loyalty_points, name, email, credits, auth_migration_status, identity_status, auth_user_id, user_id")
+          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, tenant_id")
           .eq("phone", normalized)
           .eq("user_id", shop.id); // Strict tenant isolation
         
@@ -1944,7 +1993,7 @@ function ShopPageComponent() {
 
         if (data) {
           console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback FOUND', { id: data.id, name: data.name });
-          setCustomerCashback(Number(data.balance) || 0);
+          setCustomerCashback(Number(data.cashback_balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
@@ -3617,6 +3666,11 @@ function ShopPageComponent() {
                                   className="bg-white text-black border border-zinc-200 placeholder:text-zinc-400 rounded-xl h-12 text-base font-medium focus-visible:ring-gold/50"
                                 />
                               </div>
+                            ) : identityState === 'LOOKUP_ERROR' ? (
+                              <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium text-center">
+                                Não foi possível verificar seu cadastro. <br/>
+                                <button onClick={() => setIdentityState('IDLE')} className="underline font-bold">Tentar novamente</button>
+                              </div>
                             ) : null}
                             {customerId && activeSubscription && (
                               <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3.5 shadow-md">
@@ -3694,9 +3748,9 @@ function ShopPageComponent() {
                         boxShadow: '0 12px 28px rgba(245,158,11,.28)',
                       }}
                       onClick={handlePhoneCheck}
-                      disabled={!consentAccepted || !customerPhone || isSearchingCustomer || (identityState === 'NEW_CUSTOMER' && (!customerName || customerName.trim().length < 3))}
+                      disabled={!consentAccepted || !customerPhone || isSearchingCustomer || (identityState === 'LOADING') || (identityState === 'NEW_CUSTOMER' && (!customerName || customerName.trim().length < 3))}
                     >
-                      {isSearchingCustomer ? "Verificando..." : "Continuar agendamento"}
+                      {isSearchingCustomer || identityState === 'LOADING' ? "Verificando..." : "Continuar agendamento"}
                     </Button>
                   </div>
 
