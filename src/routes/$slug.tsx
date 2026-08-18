@@ -372,12 +372,16 @@ function ShopPageComponent() {
       
       const normalizedPhone = normalizePhone(customerPhone);
       
-      console.log('BOOKING DATA DEBUG: phone changed', { customerPhone, normalizedPhone });
+      console.log('[CUSTOMER_LOOKUP_TRACE] findCustomer started', { 
+        rawPhone: customerPhone, 
+        normalizedPhone, 
+        slug, 
+        tenantId: shop.id 
+      });
       
-      // Busca internacional requer pelo menos 10 dígitos (DDD + Número)
       if (normalizedPhone.length < 10) {
+        console.log('[CUSTOMER_LOOKUP_TRACE] Phone too short', { normalizedPhone });
         setCustomerId(null);
-        // Only clear name if NOT in portal session
         if (!localStorage.getItem(`client_portal_session_${slug}`)) {
           setCustomerName("");
         }
@@ -386,6 +390,12 @@ function ShopPageComponent() {
 
       setIsSearchingCustomer(true);
       try {
+        console.log('[CUSTOMER_LOOKUP_TRACE] Executing query', { 
+          table: 'customers', 
+          phone: normalizedPhone, 
+          user_id: shop.id 
+        });
+        
         const { data, error } = await supabase
           .from('customers')
           .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
@@ -393,30 +403,30 @@ function ShopPageComponent() {
           .eq('user_id', shop.id)
           .maybeSingle();
 
-        console.log('BOOKING DATA DEBUG: customer query result', { data, error });
+        console.log('[CUSTOMER_LOOKUP_TRACE] Query result', { data, error, rowsCount: data ? 1 : 0 });
 
         if (data) {
-          console.log('CUSTOMER FOUND:', data.name);
+          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER FOUND', { 
+            customerId: data.id, 
+            customerName: data.name,
+            identityStatus: (data as any).identity_status || 'not_available',
+            authMigrationStatus: data.auth_migration_status
+          });
           setCustomerId(data.id);
           setCustomerName(data.name || "");
           setCustomerCashback(data.cashback_balance || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           await fetchActiveSubscriptionFor(data.id);
-          
-          // Removed auto-advancing behavior - user must click Continue
-          console.log('Customer identified, waiting for user to click Continue');
         } else {
-          console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
+          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER NOT FOUND', { normalizedPhone });
           setCustomerId(null);
-          // Se não encontrou e não estamos em sessão do portal, garante que o nome está limpo
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-            // Only clear name if it matches an old ID or was automatically filled
             if (customerId) setCustomerName("");
           }
         }
       } catch (err) {
-        console.error('Unexpected error finding customer:', err);
+        console.error('[CUSTOMER_LOOKUP_TRACE] Unexpected error', err);
       } finally {
         setIsSearchingCustomer(false);
       }
