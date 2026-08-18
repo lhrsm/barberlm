@@ -134,7 +134,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
     // Gatilho para componentes que dependem do perfil
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
-    const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : (result?.user?.slug ? `/${result.user.slug}/portal` : "/portal"));
+    const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : "/portal");
     
     console.log("[ClientLoginForm] Navigating via router to:", targetPath);
     
