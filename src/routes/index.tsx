@@ -209,16 +209,17 @@ function LandingPage() {
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: 0.1 }} 
-            className="text-[40px] leading-[0.95] sm:text-6xl md:text-8xl font-black uppercase italic tracking-tighter py-1 md:py-2 text-balance"
+            className="text-[40px] leading-[1.05] sm:text-6xl md:text-[80px] font-black uppercase italic tracking-tighter py-2 text-balance max-w-5xl mx-auto"
           >
-            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
+            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block text-gold">crescer<div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
           </motion.h1>
+
           
           <motion.p 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: 0.2 }} 
-            className="text-slate-400 text-base md:text-2xl max-w-3xl mx-auto leading-snug md:leading-tight font-medium"
+            className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium"
           >
             Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
@@ -229,11 +230,12 @@ function LandingPage() {
             transition={{ delay: 0.3 }} 
             className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center pt-6 md:pt-8"
           >
-            <Button className="h-14 md:h-16 px-8 md:px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-xs md:text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)] w-full sm:w-auto" onClick={() => setShowRegisterWizard(true)}>
+            <Button className="h-14 px-8 rounded-xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-xs shadow-lg shadow-gold/20 w-full sm:w-auto" onClick={() => setShowRegisterWizard(true)}>
               Começar teste grátis
             </Button>
-            <Button variant="outline" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-xs md:text-sm text-white w-full sm:w-auto" asChild>
+            <Button variant="outline" className="h-14 px-8 rounded-xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-xs text-white w-full sm:w-auto" asChild>
               <a href="#solucoes" className="flex items-center gap-2 justify-center">
+
                 <Play size={16} fill="currentColor" />
                 Ver Funcionalidades
               </a>
@@ -255,9 +257,10 @@ function LandingPage() {
 
 
       {/* System Mockup Visual */}
-      <section className="relative w-full px-6 max-w-7xl mx-auto overflow-hidden">
+      <section className="relative w-full px-6 max-w-[1100px] mx-auto overflow-hidden pb-24">
         <SystemMockup />
       </section>
+
 
 
 
