@@ -1071,9 +1071,6 @@ function ShopPageComponent() {
       // If we don't have a customerId yet, try one last check
       let currentCustomer = null;
       if (!customerId) {
-        console.log('[CUSTOMER_LOOKUP_TRACE] No customerId, performing final multi-tenant query', { 
-          phone: normalized 
-        });
         const { data: records } = await supabase
           .from("customers")
           .select("id, name, auth_migration_status, user_id")
