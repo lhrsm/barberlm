@@ -53,7 +53,7 @@ function AuthLayoutComponent() {
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={() => navigate({ to: "/" })}
+          onClick={() => window.history.back()}
           className="text-white/60 hover:text-gold transition-colors gap-2 font-bold uppercase tracking-widest text-[10px]"
         >
           <ChevronLeft size={16} />
