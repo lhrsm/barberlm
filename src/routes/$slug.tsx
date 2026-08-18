@@ -3648,16 +3648,18 @@ function ShopPageComponent() {
                           >
                             {identityState === 'READY' && customerId && customerName ? (
                               <BookingConfirmationCard name={customerName} />
+                            ) : identityState === 'READY' && customerId && !customerName ? (
+                              <BookingConfirmationCard name="Cliente" />
                             ) : identityState === 'NEEDS_ONBOARDING' && customerId && customerName ? (
-                              <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
-                                <div className="bg-blue-100 p-2.5 rounded-full shrink-0">
-                                  <UserIcon className="h-5 w-5 text-blue-600" />
+                              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                                <div className="h-10 w-10 shrink-0 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                                  <UserIcon size={20} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-lg font-bold text-blue-800 uppercase tracking-tight truncate leading-tight italic">
+                                  <h3 className="text-base md:text-lg font-bold text-emerald-950 leading-tight">
                                     OLÁ, {(customerName || '').split(' ')[0].toUpperCase()}! 👋
                                   </h3>
-                                  <p className="text-blue-600 text-[10px] font-black uppercase tracking-widest opacity-80">
+                                  <p className="text-zinc-500 text-xs md:text-sm font-medium">
                                     Quase pronto! Configure seu acesso.
                                   </p>
                                 </div>
