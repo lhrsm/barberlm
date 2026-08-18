@@ -1073,7 +1073,7 @@ function ShopPageComponent() {
       if (!customerId) {
         const { data: records } = await supabase
           .from("customers")
-          .select("id, name, auth_migration_status, user_id")
+          .select("id, name, email, auth_migration_status, user_id")
           .eq("phone", normalized);
         
         // Prefer exact tenant match, then first available for identity recovery
@@ -1098,18 +1098,24 @@ function ShopPageComponent() {
         if (resolvedCustomerId) setCustomerId(resolvedCustomerId);
 
         const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
+        
+        // IDENTIDADE READY: Já possui e-mail, auth_user_id e status completed
+        const isReady = (currentCustomer as any)?.auth_migration_status === 'completed' && 
+                        (currentCustomer as any)?.user_id &&
+                        (currentCustomer as any)?.email;
+
         console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck decision path', {
           customer_id: resolvedCustomerId,
           has_active_subscription: !!sub,
-          isMigrated: (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id || (customerId && !currentCustomer)
+          isReady,
+          auth_migration_status: (currentCustomer as any)?.auth_migration_status
         });
-        const isMigrated = (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id;
         
-        if (isMigrated) {
-          // Cliente já migrado ou com conta, segue o fluxo normal (já está identificado pelo telefone)
+        if (isReady) {
+          // Cliente READY: Salta onboarding e vai direto para agendamento
           setBookingStep(2);
         } else {
-          // Cliente Legado (tem telefone mas não tem conta auth)
+          // Cliente LEGADO ou PENDING: Precisa configurar ou completar acesso
           setShowIdentityStep(true);
         }
       } else {
@@ -1965,7 +1971,7 @@ function ShopPageComponent() {
       try {
         const { data: records, error } = await supabase
           .from("customers")
-          .select("id, cashback_balance, loyalty_points, name, credits, auth_migration_status, user_id")
+          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, user_id")
           .eq("phone", normalized);
         
         if (error) {

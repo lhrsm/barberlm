@@ -190,8 +190,17 @@ export function useAuth() {
 
 
   const logout = async () => {
+    // Captura o slug antes de sair para permitir o redirecionamento dinâmico
+    const currentSlug = globalProfile?.slug;
     await supabase.auth.signOut();
     setState({ session: null, user: null, profile: null, loading: false });
+    
+    // Se estivermos em um contexto de tenant, redirecionamos para a página da barbearia
+    if (currentSlug && typeof window !== 'undefined') {
+      // O AppLayout lidará com o redirecionamento se necessário, 
+      // mas podemos forçar um aqui se for disparado manualmente.
+      // navigate não está disponível no hook global, então deixamos para os componentes
+    }
   };
 
   return {

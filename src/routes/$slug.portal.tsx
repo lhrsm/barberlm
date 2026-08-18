@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,7 +7,8 @@ import {
   Bell, 
   Settings, 
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
 import { PortalNavigation } from "@/components/portal/premium/layout/PortalNavigation";
@@ -18,6 +19,7 @@ import { ProfileTab } from "@/components/portal/premium/tabs/ProfileTab";
 import { LoyaltyLevelCard } from "@/components/loyalty/LoyaltyLevelCard";
 import { AchievementGrid } from "@/components/loyalty/AchievementGrid";
 import { Button } from "@/components/ui/button";
+import { ClientLoginForm } from "@/components/public/auth/ClientLoginForm";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: CustomerPortalPage,
@@ -103,29 +105,30 @@ function CustomerPortalPage() {
   useEffect(() => {
     if (authLoading) return;
     
+    // Se não há usuário, não redirecionamos, o componente renderizará o formulário de login
     if (!user) {
-      const timer = setTimeout(() => {
-        navigate({ to: "/auth", search: { redirect: window.location.pathname } as any, replace: true });
-      }, 500);
-      return () => clearTimeout(timer);
+      setLoading(false);
+      return;
     }
 
     if (profile?.identity_status === 'legacy') {
-      navigate({ to: "/auth", replace: true });
+      // Clientes legado que conseguiram logar de alguma forma devem ser tratados
+      // Mas a arquitetura atual bloqueia isso no ClientLoginForm
+      navigate({ to: `/${slug}` as any, replace: true });
       return;
     }
 
     if (profile) {
       loadPortalData();
     }
-  }, [user, authLoading, profile, navigate, loadPortalData]);
+  }, [user, authLoading, profile, navigate, loadPortalData, slug]);
 
   const handleLogout = async () => {
     await logout();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: `/${slug}` as any, replace: true });
   };
 
-  if (authLoading || loading) {
+  if (authLoading || (user && loading)) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -138,8 +141,35 @@ function CustomerPortalPage() {
     );
   }
 
-  if (!user || !profile || !data?.customer) {
-    return null;
+  // Dual-purpose Route: Login or Dashboard
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 md:p-8">
+        <div className="w-full max-w-[480px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex justify-center mb-8">
+            <Link to={`/${slug}` as any}>
+              <Button variant="ghost" className="text-gold hover:text-gold/80 hover:bg-gold/10 gap-2 font-black uppercase tracking-widest text-[10px]">
+                <ArrowLeft size={16} /> Voltar para a barbearia
+              </Button>
+            </Link>
+          </div>
+          <ClientLoginForm barbershopSlug={slug} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile || !data?.customer) {
+    return (
+      <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <p className="text-gold font-black uppercase tracking-widest italic">Perfil não encontrado</p>
+          <Button onClick={handleLogout} variant="outline" className="border-gold text-gold hover:bg-gold/10">
+            Sair e tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const currentLevel = data.customer.loyalty_levels;
@@ -262,6 +292,16 @@ function CustomerPortalPage() {
             >
               <LogOut className="h-5 w-5" />
             </Button>
+            
+            <Link to={`/${slug}` as any} className="hidden md:block">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-gold/30 text-gold hover:bg-gold/10 rounded-xl text-[10px] font-black uppercase tracking-widest h-9"
+              >
+                Site
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
