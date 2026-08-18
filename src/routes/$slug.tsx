@@ -2876,7 +2876,7 @@ function ShopPageComponent() {
                   const svcName = t.appointments?.services?.name;
                   const custName = t.customers?.name || "Cliente";
                   const avatarUrl = t.customers?.avatar_url || t.customers?.photo_url || null;
-                  const initial = (custName.trim()[0] || "C").toUpperCase();
+                  const initial = (custName.trim()?.charAt(0) || "C").toUpperCase();
                   return (
                     <div key={t.id} className="rounded-2xl p-6 border border-gold/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-gold/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
                       <div className="flex items-center gap-1 mb-3">
@@ -5575,7 +5575,7 @@ function ShopPageComponent() {
                     setIsPixVisible(true);
                   }}
                 >
-                  Continuar como {identifyFound.name.split(' ')[0] || 'Cliente'}
+                  Continuar como {identifyFound.name.split(' ')?.filter(Boolean)[0] || 'Cliente'}
                 </Button>
                 <button
                   type="button"
