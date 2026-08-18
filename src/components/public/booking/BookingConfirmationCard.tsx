@@ -5,7 +5,7 @@ interface BookingConfirmationCardProps {
 }
 
 export function BookingConfirmationCard({ name }: BookingConfirmationCardProps) {
-  const firstName = (name || "").split(" ")[0].toUpperCase();
+  const firstName = (name || "").split(" ")?.filter(Boolean)[0]?.toUpperCase() || "CLIENTE";
   
   return (
     <div className="w-full p-4 md:p-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-500">

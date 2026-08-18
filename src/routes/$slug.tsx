@@ -431,7 +431,7 @@ function ShopPageComponent() {
           return;
         }
 
-        const data = records && records.length > 0 ? records[0] : null;
+        const data = records && Array.isArray(records) && records.length > 0 ? records[0] : null;
 
         if (data) {
           console.log('[BOOKING_CUSTOMER_STATE] Found existing customer', { 
@@ -1394,7 +1394,7 @@ function ShopPageComponent() {
 
       // LGPD: register consent + update customer preferences (best-effort, non-blocking)
       try {
-        const finalCustId = createdAppointments[0]?.customer_id || null;
+        const finalCustId = createdAppointments?.[0]?.customer_id || null;
         await supabase.from('privacy_consents').insert([{
           tenant_id: shop?.id || null,
           customer_id: finalCustId,
@@ -1547,7 +1547,7 @@ function ShopPageComponent() {
           emitAutomationEvent({
             tenantId: shop.id,
             event: 'appointment.created',
-            appointmentId: createdAppointments[0].id,
+            appointmentId: createdAppointments?.[0]?.id,
             customerId: finalCustId || undefined,
           });
         } else {
@@ -1583,8 +1583,8 @@ function ShopPageComponent() {
         (a: any) => a.subscription_id && (a.payment_method === 'subscription' || a.payment_method === 'subscription_plus_payment')
       );
       if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
-        const appt = createdAppointments[0] as any;
-        const item = finalCart.find((i) => i.service_id === appt.service_id) || finalCart[0];
+        const appt = createdAppointments?.[0] as any;
+        const item = finalCart.find((i) => i.service_id === appt?.service_id) || finalCart?.[0];
 
         // Refetch usage logs so the reserved log created by the DB trigger is included.
         const { data: freshLogs } = await supabase
@@ -1632,14 +1632,14 @@ function ShopPageComponent() {
       setPaymentMethod(null);
       
       const isMultipleFinal = createdAppointments.length > 1;
-      const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
+      const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
 
       const runRedirect = async () => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
         } else if (createdAppointments.length === 1) {
-          const appt = createdAppointments[0] as any;
+          const appt = createdAppointments?.[0] as any;
           // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
           // 1. Prioridade absoluta para o Portal do Cliente /$slug/portal
           const portalUrl = `/${slug}/portal`;
@@ -1665,8 +1665,8 @@ function ShopPageComponent() {
 
       // PIX: pede o comprovante antes de redirecionar
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
-        const firstAppt = createdAppointments[0] as any;
-        const firstItem = finalCart.find((i) => i.service_id === firstAppt.service_id) || finalCart[0];
+        const firstAppt = createdAppointments?.[0] as any;
+        const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
         setPixReceipt({
           appointmentId: firstAppt.id,
           amount: receiptAmount,
@@ -1991,7 +1991,7 @@ function ShopPageComponent() {
           return null;
         }
 
-        const data = records && records.length > 0 ? records[0] : null;
+        const data = records && Array.isArray(records) && records.length > 0 ? records[0] : null;
 
         if (data) {
           console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback FOUND', { id: data.id, name: data.name });
@@ -2876,7 +2876,7 @@ function ShopPageComponent() {
                   const svcName = t.appointments?.services?.name;
                   const custName = t.customers?.name || "Cliente";
                   const avatarUrl = t.customers?.avatar_url || t.customers?.photo_url || null;
-                  const initial = (custName.trim()[0] || "C").toUpperCase();
+                  const initial = (custName.trim()?.charAt(0) || "C").toUpperCase();
                   return (
                     <div key={t.id} className="rounded-2xl p-6 border border-gold/30 bg-gradient-to-br from-zinc-950 to-black shadow-[0_2px_12px_-4px_rgba(212,175,55,0.15)] hover:border-gold/60 hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.45)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
                       <div className="flex items-center gap-1 mb-3">
@@ -3657,7 +3657,7 @@ function ShopPageComponent() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-base md:text-lg font-bold text-emerald-950 leading-tight">
-                                    OLÁ, {(customerName || '').split(' ')[0].toUpperCase()}! 👋
+                                    OLÁ, {(customerName || '').split(' ')?.filter(Boolean)[0]?.toUpperCase() || 'CLIENTE'}! 👋
                                   </h3>
                                   <p className="text-zinc-500 text-xs md:text-sm font-medium">
                                     Quase pronto! Configure seu acesso.
@@ -5355,7 +5355,7 @@ function ShopPageComponent() {
 
                   if (!saleCustomerId && customerPhone && customerName) {
                     const normalized = normalizePhone(customerPhone);
-                    const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                    const defaultBarberId = selectedBarber?.id || barbers?.[0]?.id;
                     if (defaultBarberId) {
                       const { data: rpcCustId, error: createError } = await supabase.rpc('create_or_get_public_customer', {
                         p_slug: shop.slug,
@@ -5378,7 +5378,7 @@ function ShopPageComponent() {
                     return;
                   }
 
-                  const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                  const defaultBarberId = selectedBarber?.id || barbers?.[0]?.id;
                   const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([{
                     user_id: shop.id,
                     barber_id: defaultBarberId,
@@ -5575,7 +5575,7 @@ function ShopPageComponent() {
                     setIsPixVisible(true);
                   }}
                 >
-                  Continuar como {identifyFound.name.split(' ')[0]}
+                  Continuar como {identifyFound.name.split(' ')?.filter(Boolean)[0] || 'Cliente'}
                 </Button>
                 <button
                   type="button"
@@ -5601,7 +5601,7 @@ function ShopPageComponent() {
                   if (nm.length < 3) return toast.error("Informe seu nome completo.");
                   if (ph.length < 10) return toast.error("Informe um WhatsApp válido.");
                   if (!identifyForm.acceptTerms) return toast.error("É necessário aceitar os Termos e a Política.");
-                  const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                  const defaultBarberId = selectedBarber?.id || barbers?.[0]?.id;
                   if (!defaultBarberId) return toast.error("Barbearia sem profissionais cadastrados.");
                   setIdentifying(true);
                   try {
