@@ -13,7 +13,7 @@ const features = [
 
 export function PrivacyAndLGPDSection() {
   return (
-    <section className="py-24 px-6 bg-[#05070d]">
+    <section className="py-20 md:py-24 px-6 bg-[#05070d]">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 space-y-4">
           <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Privacidade</span>
@@ -30,7 +30,7 @@ export function PrivacyAndLGPDSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="p-8 rounded-3xl border border-white/5 bg-white/[0.02] hover:border-gold/20 transition-all"
+              className="p-8 rounded-[2rem] border border-white/5 bg-white/[0.02] hover:border-gold/20 transition-all"
             >
               <feature.icon className="text-gold mb-6" size={32} />
               <h4 className="text-white font-black uppercase tracking-tight mb-3">{feature.title}</h4>

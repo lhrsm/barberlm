@@ -150,12 +150,14 @@ function LandingPage() {
       {/* Header */}
       <header className={cn(
         "fixed top-0 w-full z-50 transition-all duration-300 border-b",
-        isScrolled ? "bg-black/90 backdrop-blur-md border-gold/20 py-3" : "bg-transparent border-transparent py-5"
+        isScrolled ? "bg-black/95 backdrop-blur-md border-gold/20 h-20" : "bg-transparent border-transparent h-24"
       )}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-12">
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+
           <Link to="/" className="flex items-center shrink-0">
-            <BarbexLogo size="lg" showText={false} className="md:size-lg" />
+            <BarbexLogo size="md" showText={false} className="w-[120px] md:w-[150px]" />
           </Link>
+
           
           <nav className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-white/90">
             {["Recursos", "Planos", "FAQ"].map(item => (
@@ -175,18 +177,19 @@ function LandingPage() {
             
             <Button 
               variant="ghost" 
-              className="md:hidden text-white p-2 h-11 w-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10" 
+              className="md:hidden text-white p-2 h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10" 
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Abrir menu"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </Button>
+
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 md:pt-48 pb-16 md:pb-24 px-5 sm:px-8 overflow-hidden">
+      <section className="relative pt-32 pb-16 md:pb-24 px-6 overflow-hidden">
         {/* Hero Background Image with Parallax-ready setup */}
         <div className="absolute inset-0 z-0">
           <img 
@@ -208,16 +211,17 @@ function LandingPage() {
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: 0.1 }} 
-            className="text-[40px] leading-[0.95] sm:text-6xl md:text-8xl font-black uppercase italic tracking-tighter py-1 md:py-2 text-balance"
+            className="text-[40px] leading-[1.05] sm:text-6xl md:text-[80px] font-black uppercase italic tracking-tighter py-2 text-balance max-w-5xl mx-auto"
           >
-            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block">crescer<div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
+            A plataforma <span className="text-gold">completa</span> para barbearias que querem <span className="relative inline-block text-gold">crescer<div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-1 bg-gold/30 rounded-full blur-[2px]" /></span>
           </motion.h1>
+
           
           <motion.p 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: 0.2 }} 
-            className="text-slate-400 text-base md:text-2xl max-w-3xl mx-auto leading-snug md:leading-tight font-medium"
+            className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium"
           >
             Centralize agenda, clientes, equipe, financeiro, loja, assinaturas, marketing e automações em uma única plataforma Enterprise.
           </motion.p>
@@ -228,11 +232,12 @@ function LandingPage() {
             transition={{ delay: 0.3 }} 
             className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center pt-6 md:pt-8"
           >
-            <Button className="h-14 md:h-16 px-8 md:px-10 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-xs md:text-sm shadow-[0_20px_40px_-10px_rgba(212,175,55,0.4)] w-full sm:w-auto" onClick={() => setShowRegisterWizard(true)}>
+            <Button className="h-14 px-8 rounded-xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 text-xs shadow-lg shadow-gold/20 w-full sm:w-auto" onClick={() => setShowRegisterWizard(true)}>
               Começar teste grátis
             </Button>
-            <Button variant="outline" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-xs md:text-sm text-white w-full sm:w-auto" asChild>
+            <Button variant="outline" className="h-14 px-8 rounded-xl border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 font-black uppercase tracking-widest text-xs text-white w-full sm:w-auto" asChild>
               <a href="#solucoes" className="flex items-center gap-2 justify-center">
+
                 <Play size={16} fill="currentColor" />
                 Ver Funcionalidades
               </a>
@@ -254,9 +259,10 @@ function LandingPage() {
 
 
       {/* System Mockup Visual */}
-      <section className="relative w-full px-6 max-w-7xl mx-auto overflow-hidden">
+      <section className="relative w-full px-6 max-w-[1100px] mx-auto overflow-hidden pb-24">
         <SystemMockup />
       </section>
+
 
 
 
@@ -284,7 +290,7 @@ function LandingPage() {
 
 
       {/* Features Grid */}
-      <section id="recursos" className="py-24 bg-black relative overflow-hidden">
+      <section id="recursos" className="py-24 md:py-32 bg-black relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
           <img src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=1000&auto=format&fit=crop" alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-l from-black via-black/80 to-black" />
@@ -301,7 +307,7 @@ function LandingPage() {
               <motion.div 
                 key={i} 
                 whileHover={{ y: -5 }}
-                className="p-8 rounded-3xl border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all backdrop-blur-sm"
+                className="p-8 rounded-[2rem] border border-white/5 bg-zinc-900/30 hover:border-gold/20 transition-all backdrop-blur-sm"
               >
                 <f.icon className="text-gold mb-6" size={32} />
                 <h4 className="text-white font-black uppercase tracking-tight mb-2">{f.title}</h4>
@@ -321,11 +327,11 @@ function LandingPage() {
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Um único sistema para toda a operação</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-auto md:grid-rows-2 gap-6 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-20">
             {/* Main Feature */}
             <motion.div 
               whileHover={{ y: -5 }}
-              className="md:col-span-3 md:row-span-2 p-10 rounded-[2.5rem] border border-gold/20 bg-gradient-to-br from-zinc-900 to-black overflow-hidden group relative"
+              className="md:col-span-3 p-10 rounded-[2.5rem] border border-gold/20 bg-gradient-to-br from-zinc-900 to-black overflow-hidden group relative min-h-[400px]"
             >
               <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                 <Calendar size={120} className="text-gold" />
@@ -374,7 +380,7 @@ function LandingPage() {
           </div>
 
           {/* Imagem 01: Operação sem fricção */}
-          <div className="grid md:grid-cols-2 gap-20 items-center">
+          <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-center">
             <div className="relative group">
               <LandingImage 
                 src="https://images.unsplash.com/photo-1599351431202-180f0b485ff8?q=80&w=2000&auto=format&fit=crop"
@@ -426,15 +432,16 @@ function LandingPage() {
 
 
       {/* Prova Visual (Mockup Contextual) */}
-      <section className="py-24 px-6 overflow-hidden bg-[#05070d] relative">
+      <section className="py-24 md:py-32 px-6 overflow-hidden bg-[#05070d] relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
         <div className="max-w-7xl mx-auto text-center mb-16">
           <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Experiência de Uso</span>
           <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Tecnologia que <span className="text-gold">eleva</span> o seu negócio</h2>
         </div>
         
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -481,8 +488,9 @@ function LandingPage() {
 
 
         {/* Separator Image with Blended Background (Tradição & Futuro) */}
-        <div className="mt-24 w-full rounded-[3rem] overflow-hidden relative border border-white/5 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
+        <div className="mt-24 w-full rounded-[2.5rem] overflow-hidden relative border border-white/5 shadow-2xl max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[350px]">
+
             <div className="relative h-full overflow-hidden border-r border-white/5">
               <img 
                 src="https://images.unsplash.com/photo-1593702275677-f916c8c96045?q=80&w=2000&auto=format&fit=crop" 
@@ -531,8 +539,9 @@ function LandingPage() {
       </section>
 
       {/* Imagem 02: Tradição e cuidado */}
-      <section className="py-32 bg-zinc-950/50 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+      <section className="py-24 md:py-32 bg-zinc-950/50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 md:gap-24 items-center">
+
           <div className="space-y-8">
             <div className="space-y-4">
               <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Sobre Nós</span>
@@ -614,8 +623,9 @@ function LandingPage() {
       </CTASection>
 
       {/* Imagem 03: Financeiro & BI */}
-      <section className="py-32 px-6 bg-black relative">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+      <section className="py-24 md:py-32 px-6 bg-black relative">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 md:gap-24 items-center">
+
           <div className="space-y-8">
             <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px]">Financeiro & BI</span>
             <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none">
@@ -632,7 +642,7 @@ function LandingPage() {
           </div>
           
           <div className="relative group">
-            <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-6">
+            <div className="relative rounded-[2.5rem] border border-gold/20 bg-zinc-950 overflow-hidden shadow-2xl p-6 md:p-8">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 {[
                   { label: "Receita Mensal", val: "R$ 42.850", icon: TrendingUp, color: "text-green-400" },
@@ -730,11 +740,12 @@ function LandingPage() {
       </CTASection>
 
       {/* Footer Final */}
-      <footer className="py-24 px-6 border-t border-white/5 bg-black">
+      <footer className="py-20 px-6 border-t border-white/5 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
-              <BarbexLogo size="lg" showText={false} />
+              <BarbexLogo size="md" showText={false} />
+
               <p className="text-slate-500 text-[11px] leading-relaxed max-w-xs uppercase tracking-widest font-black italic">
                 A plataforma completa de gestão, fidelização e inteligência para barbearias de alto nível.
               </p>
