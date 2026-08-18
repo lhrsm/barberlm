@@ -376,12 +376,10 @@ function ShopPageComponent() {
       
       // Busca internacional requer pelo menos 10 dígitos (DDD + Número)
       if (normalizedPhone.length < 10) {
-        if (bookingStep === 1) {
-          setCustomerId(null);
-          // Only clear name if NOT in portal session
-          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-            setCustomerName("");
-          }
+        setCustomerId(null);
+        // Only clear name if NOT in portal session
+        if (!localStorage.getItem(`client_portal_session_${slug}`)) {
+          setCustomerName("");
         }
         return;
       }
@@ -1067,8 +1065,9 @@ function ShopPageComponent() {
 
       if (resolvedCustomerId) {
         const name = customerName || (currentCustomer as any)?.name;
-        if (name) setCustomerName(name);
-        if ((currentCustomer as any)?.id) setCustomerId((currentCustomer as any).id);
+        const finalName = name || customerName;
+        if (finalName) setCustomerName(finalName);
+        if (resolvedCustomerId) setCustomerId(resolvedCustomerId);
 
         // CRITICAL: check active subscription BEFORE advancing to step 2
         // so the premium chooser renders instead of the regular service list.
@@ -1949,7 +1948,7 @@ function ShopPageComponent() {
       try {
         const { data, error } = await supabase
           .from("customers")
-          .select("id, cashback_balance, loyalty_points, name, credits")
+          .select("id, cashback_balance, loyalty_points, name, credits, auth_migration_status, user_id")
           .eq("phone", normalized)
           .eq("user_id", shop.id)
           .maybeSingle();
