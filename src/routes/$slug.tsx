@@ -1133,17 +1133,6 @@ function ShopPageComponent() {
           setBookingStep(1);
         }
       }
-      } else {
-        // Novo cliente (não tem telefone no banco)
-        if (!customerName || customerName.trim().length < 3) {
-          toast.info("Por favor, informe seu nome completo.");
-        } else {
-          console.log('BOOKING DATA DEBUG: New customer proceeding', { customerName, customerPhone });
-          setActiveSubscription(null);
-          setBookingMode(null);
-          setShowIdentityStep(true);
-        }
-      }
     } catch (e: any) {
       toast.error("Erro ao verificar identificação: " + e.message);
     } finally {
