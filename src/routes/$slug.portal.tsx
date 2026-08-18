@@ -134,7 +134,7 @@ function CustomerPortalPage() {
         apptsCount: apptsRes.data?.length,
         creditsCount: (creditsRes as any).data?.length,
         cashbackCount: (cashbackRes as any).data?.length,
-        [PORTAL_APPOINTMENT_TRACE]: {
+        PORTAL_APPOINTMENT_TRACE: {
           authUserId: user.id,
           customerId: customerData.id,
           tenantId: effectiveTenantId,
