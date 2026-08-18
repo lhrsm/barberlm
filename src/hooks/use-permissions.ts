@@ -30,9 +30,15 @@ export function usePermissions() {
       console.log("[PERMISSIONS_TRACE] Fetching for role:", role, "userId:", user?.id);
       if (!user) return [];
 
-      // Se for super_admin, retorna todas (simulado no front, validado no back)
+      // Se for super_admin, retorna todas
       if (role === 'super_admin') {
-        return ['*']; // Wildcard para todas
+        return ['*'];
+      }
+
+      // Se for tenant_admin, retorna todas as permissões administrativas por padrão
+      // Isso resolve o problema do menu sumindo após F5 se o banco demorar ou a query falhar
+      if (role === 'tenant_admin') {
+        return ['*'];
       }
 
       const { data, error } = await supabase
@@ -52,7 +58,8 @@ export function usePermissions() {
   });
 
   const hasPermission = (key: PermissionKey): boolean => {
-    if (role === 'super_admin') return true;
+    if (role === 'super_admin' || role === 'tenant_admin') return true;
+    
     // Permissivo enquanto carrega para evitar flicker no sidebar/UI
     if (authLoading || permissionsLoading) return true;
     if (!permissions) return false;
