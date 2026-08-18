@@ -42,7 +42,9 @@ export function NextAppointmentCard({
 }: Props) {
   const upcoming = appointments
     .filter(
-      (a) => ["scheduled", "confirmed"].includes(a.status) && new Date(a.start_time) >= new Date(),
+      (a) => 
+        ["scheduled", "confirmed"].includes(a.status) && 
+        (new Date(a.start_time) >= new Date(Date.now() - 2 * 60 * 60 * 1000)) // Inclui hoje até 2h atrás para garantir visibilidade operacional
     )
     .sort((a, b) => +new Date(a.start_time) - +new Date(b.start_time));
 

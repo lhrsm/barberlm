@@ -109,6 +109,8 @@ function CustomerPortalPage() {
 
       setCustomerName(customerData.name || "");
 
+      console.log("[PORTAL_BOOT_TRACE] Parallel data fetch starting", { customerId: customerData.id });
+      
       const [
         shopRes,
         apptsRes,
@@ -120,26 +122,33 @@ function CustomerPortalPage() {
       ] = await Promise.all([
         supabase.from("barbershops").select("*").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", customerData.tenant_id).order("start_time", { ascending: false }),
-        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
-        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
+        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(e => ({ data: [], error: e })),
+        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(e => ({ data: [], error: e })),
         supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
         supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
         supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
       ]);
 
+      console.log("[PORTAL_BOOT_TRACE] Parallel data fetch complete", {
+        shop: !!shopRes.data,
+        apptsCount: apptsRes.data?.length,
+        creditsCount: (creditsRes as any).data?.length,
+        cashbackCount: (cashbackRes as any).data?.length
+      });
+
       setData({
         customer: customerData,
         shop: shopRes.data,
         appointments: apptsRes.data || [],
-        creditTransactions: creditsRes.data || [],
-        cashbackTransactions: cashbackRes.data || [],
+        creditTransactions: (creditsRes as any).data || [],
+        cashbackTransactions: (cashbackRes as any).data || [],
         levels: levelsRes.data || [],
         achievements: achRes.data || [],
         unlockedAchievements: unlockedRes.data || []
       });
     } catch (err: any) {
-      console.error("Portal Load Error:", err);
-      toast.error("Erro ao carregar portal: " + err.message);
+      console.error("[PORTAL_BOOT_TRACE] Fatal error in loadPortalData:", err);
+      toast.error("Erro ao sincronizar portal: " + err.message);
     } finally {
       setLoading(false);
     }
