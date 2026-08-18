@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { 
   Scissors, 
@@ -80,17 +80,9 @@ export const Route = createFileRoute("/")({
 
 
 function LandingPage() {
-  const navigate = useNavigate();
-...
-  return (
-    <div className="min-h-screen bg-[#05070d] text-white selection:bg-gold selection:text-black">
-      {/* Visual Debug Tool (Remove before production) */}
-      <div className="hidden fixed bottom-4 right-4 z-[9999] bg-red-600 text-white p-4 rounded-xl text-xs max-w-md shadow-2xl border-2 border-white/20">
-        <p className="font-bold mb-2 uppercase tracking-widest">Identificação de Problemas</p>
-        <p className="opacity-90 leading-relaxed">
-          Ocorrendo erros de redirecionamento, falta de $slug e etc. no barbex.shop/$slug/portal e na transição do login administrativo para o portal do cliente.
-        </p>
-      </div>
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showRegisterWizard, setShowRegisterWizard] = useState(false);
 
       <AnimatePresence>
         {isMobileMenuOpen && (
