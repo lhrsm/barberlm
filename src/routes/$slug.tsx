@@ -1078,13 +1078,21 @@ function ShopPageComponent() {
         
         // Prefer exact tenant match, then first available for identity recovery
         currentCustomer = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
+      } else {
+        // We already have the customer from the debounce effect, but it might be missing fields
+        // Let's re-fetch or use what we have. For safety, re-fetch to ensure all fields are present for READY check.
+        const { data: records } = await supabase
+          .from("customers")
+          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
+          .eq("id", customerId);
+        currentCustomer = records?.[0] || null;
       }
 
       const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
-      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved ID', { 
+      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved', { 
         resolvedCustomerId, 
-        currentCustomerId: customerId, 
-        queryResultId: (currentCustomer as any)?.id 
+        hasCurrentCustomer: !!currentCustomer,
+        email: (currentCustomer as any)?.email
       });
 
       if (resolvedCustomerId) {
