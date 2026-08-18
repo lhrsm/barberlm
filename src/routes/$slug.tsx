@@ -1073,7 +1073,7 @@ function ShopPageComponent() {
       if (!customerId) {
         const { data: records } = await supabase
           .from("customers")
-          .select("id, name, email, auth_migration_status, user_id")
+          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
           .eq("phone", normalized);
         
         // Prefer exact tenant match, then first available for identity recovery
