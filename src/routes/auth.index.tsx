@@ -76,7 +76,7 @@ function AuthIndexComponent() {
                 <div className="text-center pt-6">
                   <Button 
                     variant="link" 
-                    onClick={() => navigate({ to: '/auth', search: { tab: 'client' } })}
+                    onClick={() => navigate({ to: '/auth', search: { tab: 'client', redirect: undefined } })}
                     className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
                   >
                     Acesso para Clientes
