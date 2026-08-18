@@ -37,7 +37,7 @@ function AuthIndexComponent() {
           <div className="absolute -inset-1 bg-gradient-to-b from-gold/20 to-transparent rounded-[32px] blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
           
           <div className={`relative ${isClientPortal ? 'bg-white' : 'bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5'} rounded-[32px] shadow-2xl overflow-visible p-8 md:p-10`}>
-            <div className="text-center space-y-3 mb-10">
+            <div className="text-center space-y-2 mb-8">
               <h2 className={`text-2xl md:text-3xl font-black ${isClientPortal ? 'text-zinc-900' : 'text-white'} tracking-tighter uppercase italic leading-none`}>
                 {isClientPortal ? 'PORTAL DO' : 'BEM-VINDO'} <span className="text-gold">{isClientPortal ? 'CLIENTE' : 'BARBEX'}</span>
               </h2>
@@ -76,9 +76,10 @@ function AuthIndexComponent() {
             ) : (
               <>
                 <AuthForm />
-                <div className="text-center pt-6">
+                <div className="flex flex-col items-center pt-8 space-y-4">
+                  <div className="w-full h-px bg-white/5" />
                   <Button 
-                    variant="link" 
+                    variant="outline" 
                     onClick={() => {
                       const pathParts = window.location.pathname.split('/');
                       const possibleSlug = pathParts[1] !== 'auth' ? pathParts[1] : null;
@@ -86,13 +87,12 @@ function AuthIndexComponent() {
                       if (possibleSlug) {
                         window.location.href = `https://barbex.shop/${possibleSlug}/portal`;
                       } else {
-                        // Se não houver slug, redireciona para a aba de cliente do próprio /auth
                         navigate({ to: '/auth', search: { tab: 'client' } });
                       }
                     }}
-                    className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
+                    className="w-full h-[52px] rounded-2xl border-gold/30 bg-transparent text-gold hover:bg-gold/5 font-black uppercase tracking-widest text-[10px] transition-all"
                   >
-                    Acesso para Clientes
+                    Acessar Portal do Cliente →
                   </Button>
                 </div>
               </>

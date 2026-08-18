@@ -4913,28 +4913,30 @@ function ShopPageComponent() {
                             </div>
                           )}
 
-                          <div className="space-y-3">
-                            <Button
-                              disabled={(!paymentMethod && calculateTotal() > 0) || submitting}
-                              onClick={handleFinalizeBooking}
-                              className="w-full h-14 rounded-xl bg-black hover:bg-zinc-800 text-white font-semibold shadow-md transition-all"
-                            >
-                              {submitting ? (
-                                <RefreshCcw className="animate-spin h-5 w-5 mr-2" />
-                              ) : (
-                                !paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && calculateSubscriptionCoverage() > 0 ? `Pagar diferença R$ ${calculateTotal().toFixed(2)}` : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))
-                              )}
-                            </Button>
-                            
-                            {paymentMethod && !submitting && (
-                              <Button 
-                                variant="outline" 
-                                className="w-full h-12 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200" 
-                                onClick={() => setPaymentMethod(null)}
+                          <div className="flex flex-col gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <Button
+                                disabled={(!paymentMethod && calculateTotal() > 0) || submitting}
+                                onClick={handleFinalizeBooking}
+                                className="w-full h-14 rounded-2xl bg-gold text-black hover:brightness-110 font-black uppercase tracking-widest text-xs transition-all active:scale-[0.97] order-1"
                               >
-                                Alterar forma de pagamento
+                                {submitting ? (
+                                  <RefreshCcw className="animate-spin h-5 w-5" />
+                                ) : (
+                                  !paymentMethod && calculateTotal() > 0 ? "Escolha o pagamento" : (calculateTotal() > 0 && calculateSubscriptionCoverage() > 0 ? `Pagar diferença R$ ${calculateTotal().toFixed(2)}` : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))
+                                )}
                               </Button>
-                            )}
+                              
+                              {paymentMethod && !submitting && (
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full h-14 bg-transparent text-zinc-900 hover:bg-zinc-50 border-zinc-200 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all order-2" 
+                                  onClick={() => setPaymentMethod(null)}
+                                >
+                                  Alterar forma de pagamento
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -4957,11 +4959,11 @@ function ShopPageComponent() {
           </div>
 
           {bookingStep > 1 && (
-            <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-zinc-100 shrink-0">
+            <div className="px-0 pt-4 mt-2 border-t border-zinc-100/50 shrink-0">
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="sm" 
-                className="bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
+                className="bg-transparent text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl font-bold transition-all duration-200 h-10 px-4"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
@@ -4969,14 +4971,9 @@ function ShopPageComponent() {
                   console.log('[BOOKING_STEP_TRACE]', { source: 'manual_call', nextStep: prev => prev - 1, timestamp: new Date().toISOString() }); setBookingStep(prev => prev - 1);
                 }}
               >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
+                <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
               </Button>
-              {bookingStep < 5 && (
-                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
-                  Passo {bookingStep} de 5
-                </div>
-              )}
-            </DialogFooter>
+            </div>
           )}
         </div>
       </DialogContent>
