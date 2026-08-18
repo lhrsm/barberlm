@@ -1073,18 +1073,26 @@ function ShopPageComponent() {
       if (!customerId) {
         const { data: records } = await supabase
           .from("customers")
-          .select("id, name, email, auth_migration_status, user_id")
+          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
           .eq("phone", normalized);
         
         // Prefer exact tenant match, then first available for identity recovery
         currentCustomer = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
+      } else {
+        // We already have the customer from the debounce effect, but it might be missing fields
+        // Let's re-fetch or use what we have. For safety, re-fetch to ensure all fields are present for READY check.
+        const { data: records } = await supabase
+          .from("customers")
+          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
+          .eq("id", customerId);
+        currentCustomer = records?.[0] || null;
       }
 
       const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
-      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved ID', { 
+      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved', { 
         resolvedCustomerId, 
-        currentCustomerId: customerId, 
-        queryResultId: (currentCustomer as any)?.id 
+        hasCurrentCustomer: !!currentCustomer,
+        email: (currentCustomer as any)?.email
       });
 
       if (resolvedCustomerId) {
@@ -1099,23 +1107,32 @@ function ShopPageComponent() {
 
         const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
         
+        // [BOOKING_IDENTITY_TRACE] Diagnostic Payload
+        const trace = {
+          customerId: resolvedCustomerId,
+          hasEmail: !!(currentCustomer as any)?.email,
+          hasAuthUserId: !!(currentCustomer as any)?.auth_user_id,
+          identityStatus: (currentCustomer as any)?.identity_status,
+          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
+          currentTenantId: shop.id,
+          customerTenantId: (currentCustomer as any)?.user_id
+        };
+        console.log('[BOOKING_IDENTITY_TRACE] handlePhoneCheck data', trace);
+
         // IDENTIDADE READY: Já possui e-mail, auth_user_id e status completed
-        const isReady = (currentCustomer as any)?.auth_migration_status === 'completed' && 
-                        (currentCustomer as any)?.user_id &&
+        const isReady = ((currentCustomer as any)?.identity_status === 'completed' || (currentCustomer as any)?.auth_migration_status === 'completed') && 
+                        ((currentCustomer as any)?.auth_user_id || (currentCustomer as any)?.user_id) &&
                         (currentCustomer as any)?.email;
 
-        console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck decision path', {
-          customer_id: resolvedCustomerId,
-          has_active_subscription: !!sub,
-          isReady,
-          auth_migration_status: (currentCustomer as any)?.auth_migration_status
-        });
+        console.log('[BOOKING_IDENTITY_TRACE] Decision', { isReady, nextStep: isReady ? 'BOOKING' : 'AUTH_SETUP' });
         
         if (isReady) {
           // Cliente READY: Salta onboarding e vai direto para agendamento
+          console.log('[BOOKING_IDENTITY_TRACE] Bypassing AUTH_SETUP for READY customer');
           setBookingStep(2);
         } else {
           // Cliente LEGADO ou PENDING: Precisa configurar ou completar acesso
+          console.log('[BOOKING_IDENTITY_TRACE] Redirecting to AUTH_SETUP');
           setShowIdentityStep(true);
         }
       } else {
@@ -1971,7 +1988,7 @@ function ShopPageComponent() {
       try {
         const { data: records, error } = await supabase
           .from("customers")
-          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, user_id")
+          .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, identity_status, auth_user_id, user_id")
           .eq("phone", normalized);
         
         if (error) {
