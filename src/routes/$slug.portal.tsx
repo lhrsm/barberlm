@@ -118,7 +118,7 @@ function CustomerPortalPage() {
         achRes,
         unlockedRes
       ] = await Promise.all([
-        supabase.from("barbershops").select("*").eq("id", profile.tenant_id).maybeSingle(),
+        supabase.from("barbershops").select("*").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", customerData.tenant_id).order("start_time", { ascending: false }),
         supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
