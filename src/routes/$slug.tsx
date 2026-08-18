@@ -388,7 +388,7 @@ function ShopPageComponent() {
       try {
         const { data, error } = await supabase
           .from('customers')
-          .select('*')
+          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
           .eq('phone', normalizedPhone)
           .eq('user_id', shop.id)
           .maybeSingle();
