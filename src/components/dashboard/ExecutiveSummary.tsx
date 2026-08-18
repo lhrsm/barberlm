@@ -1,8 +1,10 @@
 import { useMemo, memo } from "react";
-import { CalendarCheck, CircleDollarSign, Target, Sparkles, Cake, Clock, Users, ArrowUpRight, TrendingUp } from "lucide-react";
+import { CalendarCheck, CircleDollarSign, Target, Cake, Clock, Users, ArrowUpRight, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { format, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   name?: string | null;
@@ -175,10 +177,6 @@ export const ExecutiveSummary = memo(({ name, appointments, stats, birthdaysCoun
     </div>
   );
 });
-
-// Helper imports for the component
-import { format, parseISO } from "date-fns";
-import { Button } from "@/components/ui/button";
 
 interface MetricCardProps {
   title: string;
