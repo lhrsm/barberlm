@@ -3734,7 +3734,7 @@ function ShopPageComponent() {
               </motion.div>
             )}
 
-            {bookingStep === 1 && showIdentityStep && (
+            {bookingStep === 1 && showIdentityStep && (identityState === 'NEEDS_ONBOARDING' || identityState === 'NEW_CUSTOMER') && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-300 h-full flex items-center justify-center p-4">
                 <BookingAuthStep
                   customerName={customerName}
