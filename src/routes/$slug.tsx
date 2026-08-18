@@ -1338,7 +1338,7 @@ function ShopPageComponent() {
         }
 
         const appointmentPayload: any = {
-          user_id: shop.id,
+          user_id: user?.id || shop.id,
           tenant_id: shop.id,
           customer_id: finalCustId,
           service_id: item.service_id,
