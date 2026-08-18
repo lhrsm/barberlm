@@ -380,7 +380,6 @@ function ShopPageComponent() {
       });
       
       if (normalizedPhone.length < 10) {
-        console.log('[CUSTOMER_LOOKUP_TRACE] Phone too short', { normalizedPhone });
         setCustomerId(null);
         if (!localStorage.getItem(`client_portal_session_${slug}`)) {
           setCustomerName("");
@@ -391,11 +390,6 @@ function ShopPageComponent() {
       setIsSearchingCustomer(true);
       try {
         const lookupTenantId = shop.id;
-        console.log('[CUSTOMER_LOOKUP_TRACE] Executing multi-tenant recovery query', { 
-          table: 'customers', 
-          phone: normalizedPhone,
-          shopTenantId: lookupTenantId
-        });
         
         // Multi-tenant recovery search: 
         // 1. Try exact match for current shop
@@ -405,27 +399,15 @@ function ShopPageComponent() {
           .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
           .eq('phone', normalizedPhone);
 
-        console.log('[CUSTOMER_LOOKUP_TRACE] Query result records', { count: records?.length, error });
-
         // Find record for CURRENT shop first
         let data = records?.find(r => r.user_id === lookupTenantId);
         
         if (!data && records && records.length > 0) {
-          console.log('[CUSTOMER_LOOKUP_TRACE] Customer found in other tenant, initiating identity recovery', {
-            foundTenants: records.map(r => r.user_id)
-          });
           // Pick the most complete record or just the first one if none for this shop
           data = records[0];
         }
 
         if (data) {
-          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER RESOLVED', { 
-            customerId: data.id, 
-            customerName: data.name,
-            recordTenantId: data.user_id,
-            matchType: data.user_id === lookupTenantId ? 'exact_tenant' : 'identity_recovery'
-          });
-          
           setCustomerId(data.id);
           setCustomerName(data.name || "");
           
@@ -442,14 +424,13 @@ function ShopPageComponent() {
           
           await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_LOOKUP_TRACE] CUSTOMER NOT FOUND ANYWHERE', { normalizedPhone });
           setCustomerId(null);
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             if (customerId) setCustomerName("");
           }
         }
       } catch (err) {
-        console.error('[CUSTOMER_LOOKUP_TRACE] Unexpected error', err);
+        console.error('Unexpected error finding customer:', err);
       } finally {
         setIsSearchingCustomer(false);
       }
@@ -475,7 +456,6 @@ function ShopPageComponent() {
         return;
       }
       setServiceEligibility({});
-      console.log('[CUSTOMER_LOOKUP_TRACE] Loading sub for', customerId);
       await fetchActiveSubscriptionFor(customerId);
     }
     loadActiveSub();
