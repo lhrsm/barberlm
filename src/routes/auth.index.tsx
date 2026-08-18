@@ -76,9 +76,10 @@ function AuthIndexComponent() {
             ) : (
               <>
                 <AuthForm />
-                <div className="text-center pt-6">
+                <div className="flex flex-col items-center pt-8 space-y-4">
+                  <div className="w-full h-px bg-white/5" />
                   <Button 
-                    variant="link" 
+                    variant="outline" 
                     onClick={() => {
                       const pathParts = window.location.pathname.split('/');
                       const possibleSlug = pathParts[1] !== 'auth' ? pathParts[1] : null;
@@ -86,13 +87,12 @@ function AuthIndexComponent() {
                       if (possibleSlug) {
                         window.location.href = `https://barbex.shop/${possibleSlug}/portal`;
                       } else {
-                        // Se não houver slug, redireciona para a aba de cliente do próprio /auth
                         navigate({ to: '/auth', search: { tab: 'client' } });
                       }
                     }}
-                    className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
+                    className="w-full h-[52px] rounded-2xl border-gold/30 bg-transparent text-gold hover:bg-gold/5 font-black uppercase tracking-widest text-[10px] transition-all"
                   >
-                    Acesso para Clientes
+                    Acessar Portal do Cliente →
                   </Button>
                 </div>
               </>
