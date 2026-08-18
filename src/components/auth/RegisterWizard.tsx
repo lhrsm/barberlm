@@ -169,11 +169,11 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center bg-black/90 backdrop-blur-xl md:p-4 overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-[2.5rem] shadow-2xl relative overflow-hidden"
+        className="w-full md:max-w-4xl min-h-screen md:min-h-0 md:h-auto bg-zinc-950 border-x md:border border-white/10 md:rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col pb-[env(safe-area-inset-bottom)]"
       >
         {/* Progress Bar */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
@@ -192,9 +192,9 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
           ESC Sair
         </button>
 
-        <div className="p-8 md:p-12 lg:p-16">
-          <div className="flex justify-between items-center mb-12">
-            <BarbexLogo size="md" />
+        <div className="p-6 md:p-12 lg:p-16 flex-1 flex flex-col min-h-0">
+          <div className="flex justify-between items-center mb-8 md:mb-12 shrink-0">
+            <BarbexLogo size="md" className="scale-90 md:scale-100 origin-left" />
             <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">
               Passo {step} de 5
             </div>
@@ -207,7 +207,7 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="min-h-[400px]"
+              className="flex-1 overflow-y-auto min-h-0 py-2"
             >
               {step === 1 && (
                 <div className="space-y-8">
@@ -216,53 +216,53 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
                     <p className="text-slate-500">Comece informando os detalhes básicos do seu negócio.</p>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-1 md:space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome da Barbearia</Label>
-                      <div className="relative">
-                        <Store className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      <div className="relative group/field">
+                        <Store className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-gold transition-colors" size={18} />
                         <Input 
                           placeholder="Ex: Barbearia do João" 
-                          className="h-14 pl-12 bg-white/5 border-white/10 rounded-xl text-white"
+                          className="h-14 pl-12"
                           value={formData.businessName}
                           onChange={e => setFormData({...formData, businessName: e.target.value})}
                         />
                       </div>
                       {errors.businessName && <p className="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.businessName}</p>}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1 md:space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome do Responsável</Label>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      <div className="relative group/field">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-gold transition-colors" size={18} />
                         <Input 
                           placeholder="Seu nome completo" 
-                          className="h-14 pl-12 bg-white/5 border-white/10 rounded-xl text-white"
+                          className="h-14 pl-12"
                           value={formData.responsibleName}
                           onChange={e => setFormData({...formData, responsibleName: e.target.value})}
                         />
                       </div>
                       {errors.responsibleName && <p className="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.responsibleName}</p>}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1 md:space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">E-mail Profissional</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      <div className="relative group/field">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-gold transition-colors" size={18} />
                         <Input 
                           type="email"
                           placeholder="contato@empresa.com" 
-                          className="h-14 pl-12 bg-white/5 border-white/10 rounded-xl text-white"
+                          className="h-14 pl-12"
                           value={formData.email}
                           onChange={e => setFormData({...formData, email: e.target.value})}
                         />
                       </div>
                       {errors.email && <p className="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.email}</p>}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1 md:space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">WhatsApp</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      <div className="relative group/field">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-gold transition-colors" size={18} />
                         <Input 
                           placeholder="(00) 00000-0000" 
-                          className="h-14 pl-12 bg-white/5 border-white/10 rounded-xl text-white"
+                          className="h-14 pl-12"
                           value={formData.phone}
                           onChange={e => setFormData({...formData, phone: e.target.value})}
                         />
@@ -306,14 +306,14 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
                     <p className="text-slate-500">Crie uma senha forte para acessar seu painel.</p>
                   </div>
                   <div className="max-w-md mx-auto space-y-6 pt-8">
-                    <div className="space-y-2">
+                    <div className="space-y-1 md:space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Senha de Acesso</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      <div className="relative group/field">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-gold transition-colors" size={18} />
                         <Input 
                           type="password"
                           placeholder="••••••••" 
-                          className="h-14 pl-12 bg-white/5 border-white/10 rounded-xl text-white"
+                          className="h-14 pl-12"
                           value={formData.password}
                           onChange={e => setFormData({...formData, password: e.target.value})}
                         />
@@ -333,14 +333,14 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
                         <Progress value={getPasswordStrength(formData.password)} className="h-1 bg-white/5" />
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1 md:space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Confirmar Senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      <div className="relative group/field">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-gold transition-colors" size={18} />
                         <Input 
                           type="password"
                           placeholder="••••••••" 
-                          className="h-14 pl-12 bg-white/5 border-white/10 rounded-xl text-white"
+                          className="h-14 pl-12"
                           value={formData.confirmPassword}
                           onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
                         />
@@ -447,11 +447,11 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-16 flex justify-between items-center pt-8 border-t border-white/5">
+          <div className="mt-8 md:mt-16 flex flex-col-reverse md:flex-row justify-between items-center pt-8 border-t border-white/5 gap-4 shrink-0">
             <Button
               variant="ghost"
               onClick={step === 1 ? onClose : prevStep}
-              className="text-slate-500 hover:text-white font-black uppercase tracking-widest text-xs h-12 px-6"
+              className="text-slate-500 hover:text-white font-black uppercase tracking-widest text-xs h-12 px-6 w-full md:w-auto"
             >
               {step === 1 ? "Cancelar" : "Voltar"}
             </Button>
@@ -459,7 +459,7 @@ export function RegisterWizard({ onClose }: { onClose: () => void }) {
             <Button
               onClick={step === 5 ? handleFinish : nextStep}
               disabled={loading}
-              className="h-14 px-10 rounded-xl bg-gold text-black font-black uppercase tracking-widest text-xs shadow-lg hover:bg-gold/90"
+              className="h-14 px-10 rounded-xl bg-gold text-black font-black uppercase tracking-widest text-xs shadow-lg hover:bg-gold/90 w-full md:w-auto"
             >
               {loading ? "Processando..." : step === 5 ? "Finalizar Cadastro" : "Próximo Passo"}
               {!loading && <ChevronRight className="ml-2" size={16} />}
