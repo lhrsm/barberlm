@@ -152,7 +152,7 @@ function CustomerPortalPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 md:p-8">
-        <div className="w-full max-w-[480px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="w-full max-w-[480px] space-y-8">
           <div className="flex justify-center mb-8">
             <Link to={`/${slug}` as any}>
               <Button variant="ghost" className="text-gold hover:text-gold/80 hover:bg-gold/10 gap-2 font-black uppercase tracking-widest text-[10px]">
@@ -160,7 +160,9 @@ function CustomerPortalPage() {
               </Button>
             </Link>
           </div>
-          <ClientLoginForm barbershopSlug={slug} />
+          <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+            <ClientLoginForm barbershopSlug={slug} />
+          </div>
         </div>
       </div>
     );
