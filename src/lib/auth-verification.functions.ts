@@ -110,11 +110,16 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
     let targetUserId: string | null = null;
     
     if (data.clientId) {
-      const { data: customer } = await supabaseAdmin
+      console.log('[BOOKING_ONBOARDING_TRACE] Resolving user for clientId:', data.clientId);
+      const { data: customer, error: custError } = await supabaseAdmin
         .from("customers")
         .select("user_id, tenant_id")
         .eq("id", data.clientId)
         .maybeSingle();
+
+      if (custError) {
+        console.error('[BOOKING_ONBOARDING_TRACE] Error fetching customer:', custError);
+      }
 
       if (customer) {
         // Blindagem: Check for owner contamination
@@ -136,7 +141,8 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
 
     // If we don't have a targetUserId, try to find an existing user by email
     if (!targetUserId) {
-      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      const listRes = await supabaseAdmin.auth.admin.listUsers();
+      const users = listRes?.data?.users || [];
       const existingUser = users.find(u => u.email === data.email);
       
       if (existingUser) {

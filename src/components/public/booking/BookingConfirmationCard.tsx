@@ -5,18 +5,18 @@ interface BookingConfirmationCardProps {
 }
 
 export function BookingConfirmationCard({ name }: BookingConfirmationCardProps) {
-  const firstName = name.split(" ")[0].toUpperCase();
+  const firstName = (name || "").split(" ")[0].toUpperCase();
   
   return (
-    <div className="w-full p-6 bg-emerald-50 border border-emerald-200 rounded-[2rem] flex flex-col items-center text-center gap-3 animate-in fade-in zoom-in duration-500">
-      <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-        <CheckCircle2 size={24} />
+    <div className="w-full p-4 md:p-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="h-10 w-10 shrink-0 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+        <CheckCircle2 size={20} />
       </div>
-      <div className="space-y-1">
-        <h3 className="text-emerald-900 font-black text-xl italic uppercase tracking-tight">
+      <div className="flex-1 text-left">
+        <h3 className="text-emerald-950 font-bold text-base md:text-lg leading-tight">
           OLÁ, {firstName}! 👋
         </h3>
-        <p className="text-emerald-700/70 text-sm font-bold uppercase tracking-widest">
+        <p className="text-zinc-500 text-xs md:text-sm font-medium">
           Que bom ter você de volta!
         </p>
       </div>

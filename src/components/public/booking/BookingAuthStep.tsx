@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowLeft, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,17 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { requestEmailVerification, verifyEmailCode, finalizeAuthSetup } from "@/lib/auth-verification.functions";
+
+type OnboardingState = 
+  | 'NEEDS_EMAIL' 
+  | 'EMAIL_SENDING' 
+  | 'EMAIL_SENT' 
+  | 'VERIFYING_CODE' 
+  | 'CODE_VERIFIED' 
+  | 'NEEDS_PASSWORD' 
+  | 'FINALIZING' 
+  | 'READY' 
+  | 'ERROR';
 
 interface BookingAuthStepProps {
   customerName: string;
@@ -26,14 +37,17 @@ export function BookingAuthStep({
   onSuccess,
   onBack
 }: BookingAuthStepProps) {
-  const [step, setStep] = useState<'email' | 'verification' | 'password'>('email');
+  const [internalState, setInternalState] = useState<OnboardingState>('NEEDS_EMAIL');
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    console.log(`[BOOKING_ONBOARDING_TRACE] State Transition: ${internalState}`);
+  }, [internalState]);
 
   useEffect(() => {
     let interval: any;
@@ -48,7 +62,10 @@ export function BookingAuthStep({
       toast.error("E-mail inválido");
       return;
     }
-    setLoading(true);
+    
+    setInternalState('EMAIL_SENDING');
+    console.log('[BOOKING_ONBOARDING_TRACE] Requesting code for', email);
+    
     try {
       await requestEmailVerification({
         data: {
@@ -58,12 +75,12 @@ export function BookingAuthStep({
         }
       });
       toast.success("Código enviado para o seu e-mail!");
-      setStep('verification');
+      setInternalState('EMAIL_SENT');
       setTimer(60);
     } catch (error: any) {
+      console.error('[BOOKING_ONBOARDING_TRACE] Send Code Error:', error);
       toast.error(error.message || "Erro ao enviar código");
-    } finally {
-      setLoading(false);
+      setInternalState('NEEDS_EMAIL');
     }
   };
 
@@ -72,18 +89,24 @@ export function BookingAuthStep({
       toast.error("O código deve ter 6 dígitos");
       return;
     }
-    setLoading(true);
+    
+    setInternalState('VERIFYING_CODE');
+    console.log('[BOOKING_ONBOARDING_TRACE] Verifying code for', email);
+
     try {
       const res = await verifyEmailCode({ data: { email, code } });
       if (res.success) {
-        setStep('password');
+        setInternalState('CODE_VERIFIED');
+        // Small delay for UX before showing password field
+        setTimeout(() => setInternalState('NEEDS_PASSWORD'), 600);
       } else {
         toast.error(res.error || "Código inválido");
+        setInternalState('EMAIL_SENT');
       }
     } catch (error: any) {
+      console.error('[BOOKING_ONBOARDING_TRACE] Verify Code Error:', error);
       toast.error("Erro ao verificar código");
-    } finally {
-      setLoading(false);
+      setInternalState('EMAIL_SENT');
     }
   };
 
@@ -96,7 +119,10 @@ export function BookingAuthStep({
       toast.error("As senhas não coincidem");
       return;
     }
-    setLoading(true);
+    
+    setInternalState('FINALIZING');
+    console.log('[BOOKING_ONBOARDING_TRACE] Finalizing auth setup', { email, customerId, tenantId });
+
     try {
       const res = await finalizeAuthSetup({
         data: {
@@ -108,16 +134,23 @@ export function BookingAuthStep({
           tenantId
         }
       });
+      
       if (res.success) {
+        console.log('[BOOKING_ONBOARDING_TRACE] Success: User ID', res.userId);
+        setInternalState('READY');
         toast.success("Acesso configurado com sucesso!");
         onSuccess(res.userId as string, email);
+      } else {
+        throw new Error(res.error || "Falha desconhecida");
       }
     } catch (error: any) {
+      console.error('[BOOKING_ONBOARDING_TRACE] Finalize Error:', error);
       toast.error(error.message || "Erro ao finalizar configuração");
-    } finally {
-      setLoading(false);
+      setInternalState('NEEDS_PASSWORD');
     }
   };
+
+  const isLoading = ['EMAIL_SENDING', 'VERIFYING_CODE', 'FINALIZING'].includes(internalState);
 
   return (
     <div className="flex flex-col w-full max-w-[min(720px,calc(100vw-48px))] mx-auto bg-white rounded-[24px] md:rounded-[32px] border border-gold/20 shadow-xl overflow-hidden relative">
@@ -125,7 +158,8 @@ export function BookingAuthStep({
         <div className="flex items-center justify-between">
           <button 
             onClick={onBack} 
-            className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-black"
+            disabled={isLoading}
+            className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-black disabled:opacity-50"
           >
             <ArrowLeft size={18} />
             <span className="text-[10px] font-black uppercase tracking-widest">Voltar</span>
@@ -137,20 +171,20 @@ export function BookingAuthStep({
                 key={i} 
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
-                  ((step === 'email' && i === 1) || 
-                  (step === 'verification' && i <= 2) || 
-                  (step === 'password' && i <= 3))
+                  ((['NEEDS_EMAIL', 'EMAIL_SENDING'].includes(internalState) && i === 1) || 
+                  (['EMAIL_SENT', 'VERIFYING_CODE', 'CODE_VERIFIED'].includes(internalState) && i <= 2) || 
+                  (['NEEDS_PASSWORD', 'FINALIZING', 'READY'].includes(internalState) && i <= 3))
                   ? 'w-6 bg-gold' : 'w-1.5 bg-zinc-200'
                 )}
               />
             ))}
           </div>
 
-          <div className="w-10 h-10 -mr-2" /> {/* Spacer to center progress */}
+          <div className="w-10 h-10 -mr-2" />
         </div>
 
       <AnimatePresence mode="wait">
-        {step === 'email' && (
+        {(internalState === 'NEEDS_EMAIL' || internalState === 'EMAIL_SENDING') && (
           <motion.div
             key="email"
             initial={{ opacity: 0, x: 20 }}
@@ -173,6 +207,7 @@ export function BookingAuthStep({
                     placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
+                    disabled={isLoading}
                     className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                   />
                 </div>
@@ -180,16 +215,16 @@ export function BookingAuthStep({
 
               <Button 
                 onClick={handleSendCode}
-                disabled={loading || !email}
+                disabled={isLoading || !email}
                 className="w-full h-14 rounded-2xl bg-black text-white font-extrabold hover:bg-zinc-800 transition-all"
               >
-                {loading ? <Loader2 className="animate-spin" /> : "Enviar código de confirmação"}
+                {isLoading ? <Loader2 className="animate-spin" /> : "Enviar código de confirmação"}
               </Button>
             </div>
           </motion.div>
         )}
 
-        {step === 'verification' && (
+        {(internalState === 'EMAIL_SENT' || internalState === 'VERIFYING_CODE' || internalState === 'CODE_VERIFIED') && (
           <motion.div
             key="verification"
             initial={{ opacity: 0, x: 20 }}
@@ -214,6 +249,7 @@ export function BookingAuthStep({
                       maxLength={6}
                       value={code}
                       onChange={(val) => setCode(val)}
+                      disabled={isLoading || internalState === 'CODE_VERIFIED'}
                       inputMode="numeric"
                       render={({ slots }) => (
                         <InputOTPGroup className="gap-2">
@@ -233,10 +269,10 @@ export function BookingAuthStep({
 
                 <Button 
                   onClick={handleVerifyCode}
-                  disabled={loading || code.length !== 6}
+                  disabled={isLoading || code.length !== 6 || internalState === 'CODE_VERIFIED'}
                   className="w-full max-w-[360px] h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
                 >
-                  {loading ? <Loader2 className="animate-spin" /> : "Confirmar código"}
+                  {isLoading ? <Loader2 className="animate-spin" /> : internalState === 'CODE_VERIFIED' ? <CheckCircle2 /> : "Confirmar código"}
                 </Button>
               </div>
 
@@ -246,7 +282,8 @@ export function BookingAuthStep({
                 ) : (
                   <button 
                     onClick={handleSendCode} 
-                    className="text-xs text-gold font-bold hover:underline"
+                    disabled={isLoading}
+                    className="text-xs text-gold font-bold hover:underline disabled:opacity-50"
                   >
                     Não recebi o código. Reenviar agora.
                   </button>
@@ -254,8 +291,9 @@ export function BookingAuthStep({
               </div>
               
               <button 
-                onClick={() => setStep('email')}
-                className="w-full text-xs text-zinc-500 font-bold hover:text-black transition-colors"
+                onClick={() => setInternalState('NEEDS_EMAIL')}
+                disabled={isLoading}
+                className="w-full text-xs text-zinc-500 font-bold hover:text-black transition-colors disabled:opacity-50"
               >
                 Alterar e-mail
               </button>
@@ -263,7 +301,7 @@ export function BookingAuthStep({
           </motion.div>
         )}
 
-        {step === 'password' && (
+        {(internalState === 'NEEDS_PASSWORD' || internalState === 'FINALIZING' || internalState === 'READY') && (
           <motion.div
             key="password"
             initial={{ opacity: 0, x: 20 }}
@@ -287,6 +325,7 @@ export function BookingAuthStep({
                       placeholder="••••••••"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
+                      disabled={isLoading}
                       className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       autoComplete="new-password"
                     />
@@ -309,6 +348,7 @@ export function BookingAuthStep({
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
                       className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
                       autoComplete="new-password"
                     />
@@ -346,10 +386,10 @@ export function BookingAuthStep({
 
               <Button 
                 onClick={handleFinish}
-                disabled={loading || password.length < 6 || password !== confirmPassword}
+                disabled={isLoading || password.length < 6 || password !== confirmPassword}
                 className="w-full md:w-[260px] h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
               >
-                {loading ? <Loader2 className="animate-spin" /> : "Finalizar configuração"}
+                {isLoading ? <Loader2 className="animate-spin" /> : "Finalizar configuração"}
               </Button>
             </div>
           </motion.div>
