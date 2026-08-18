@@ -372,12 +372,15 @@ function ShopPageComponent() {
       
       const normalizedPhone = normalizePhone(customerPhone);
       
-      console.log('BOOKING DATA DEBUG: phone changed', { customerPhone, normalizedPhone });
+      console.log('[CUSTOMER_LOOKUP_TRACE] findCustomer started', { 
+        rawPhone: customerPhone, 
+        normalizedPhone, 
+        slug, 
+        tenantId: shop.id 
+      });
       
-      // Busca internacional requer pelo menos 10 dígitos (DDD + Número)
       if (normalizedPhone.length < 10) {
         setCustomerId(null);
-        // Only clear name if NOT in portal session
         if (!localStorage.getItem(`client_portal_session_${slug}`)) {
           setCustomerName("");
         }
@@ -386,32 +389,43 @@ function ShopPageComponent() {
 
       setIsSearchingCustomer(true);
       try {
-        const { data, error } = await supabase
+        const lookupTenantId = shop.id;
+        
+        // Multi-tenant recovery search: 
+        // 1. Try exact match for current shop
+        // 2. If not found, look for ANY record with this phone to recover identity
+        const { data: records, error } = await supabase
           .from('customers')
           .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
-          .eq('phone', normalizedPhone)
-          .eq('user_id', shop.id)
-          .maybeSingle();
+          .eq('phone', normalizedPhone);
 
-        console.log('BOOKING DATA DEBUG: customer query result', { data, error });
+        // Find record for CURRENT shop first
+        let data = records?.find(r => r.user_id === lookupTenantId);
+        
+        if (!data && records && records.length > 0) {
+          // Pick the most complete record or just the first one if none for this shop
+          data = records[0];
+        }
 
         if (data) {
-          console.log('CUSTOMER FOUND:', data.name);
           setCustomerId(data.id);
           setCustomerName(data.name || "");
-          setCustomerCashback(data.cashback_balance || 0);
-          setCustomerLoyaltyPoints(data.loyalty_points || 0);
-          setCustomerCredits(data.credits || 0);
-          await fetchActiveSubscriptionFor(data.id);
           
-          // Removed auto-advancing behavior - user must click Continue
-          console.log('Customer identified, waiting for user to click Continue');
+          // Only use balances if it's the same tenant
+          if (data.user_id === lookupTenantId) {
+            setCustomerCashback(data.cashback_balance || 0);
+            setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            setCustomerCredits(data.credits || 0);
+          } else {
+            setCustomerCashback(0);
+            setCustomerLoyaltyPoints(0);
+            setCustomerCredits(0);
+          }
+          
+          await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
           setCustomerId(null);
-          // Se não encontrou e não estamos em sessão do portal, garante que o nome está limpo
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-            // Only clear name if it matches an old ID or was automatically filled
             if (customerId) setCustomerName("");
           }
         }
@@ -1040,7 +1054,12 @@ function ShopPageComponent() {
 
   const handlePhoneCheck = async () => {
     const normalized = normalizePhone(customerPhone);
-    console.log('BOOKING DATA DEBUG: handlePhoneCheck', { customerPhone, normalized, customerName, customerId });
+    console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck started', { 
+      customerPhone, 
+      normalized, 
+      customerName, 
+      customerId 
+    });
 
     if (!customerPhone || normalized.length < 8) {
       toast.error("Por favor, informe um WhatsApp válido.");
@@ -1052,39 +1071,37 @@ function ShopPageComponent() {
       // If we don't have a customerId yet, try one last check
       let currentCustomer = null;
       if (!customerId) {
-        const { data } = await supabase
+        const { data: records } = await supabase
           .from("customers")
-          .select("id, name")
-          .eq("phone", normalized)
-          .eq("user_id", shop.id)
-          .maybeSingle();
-        currentCustomer = data;
+          .select("id, name, auth_migration_status, user_id")
+          .eq("phone", normalized);
+        
+        // Prefer exact tenant match, then first available for identity recovery
+        currentCustomer = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
       }
 
       const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
+      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved ID', { 
+        resolvedCustomerId, 
+        currentCustomerId: customerId, 
+        queryResultId: (currentCustomer as any)?.id 
+      });
 
       if (resolvedCustomerId) {
         const name = customerName || (currentCustomer as any)?.name;
         const finalName = name || customerName;
+        console.log('[CUSTOMER_LOOKUP_TRACE] EXISTING_CUSTOMER detected', { 
+          resolvedCustomerId, 
+          finalName 
+        });
         if (finalName) setCustomerName(finalName);
         if (resolvedCustomerId) setCustomerId(resolvedCustomerId);
 
-        // CRITICAL: check active subscription BEFORE advancing to step 2
-        // so the premium chooser renders instead of the regular service list.
         const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
-        const planUsed = sub?.uses_this_period || 0;
-        const planMax = sub?.plan?.max_uses_per_month;
-        const remaining = planMax ? Math.max(0, planMax - planUsed) : null;
-        console.log('[PREMIUM FLOW] phone check result', {
+        console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck decision path', {
           customer_id: resolvedCustomerId,
-          phone: normalized,
           has_active_subscription: !!sub,
-          subscription_id: sub?.id || null,
-          plan_id: sub?.plan_id || null,
-          plan_name: sub?.plan?.name || null,
-          subscription_status: sub?.status || null,
-          remaining_benefits: remaining,
-          next_step: sub ? 'premium_chooser' : 'service_selection',
+          isMigrated: (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id || (customerId && !currentCustomer)
         });
         const isMigrated = (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id;
         
@@ -1941,34 +1958,36 @@ function ShopPageComponent() {
 
   const checkCustomerCashback = async (phone: string) => {
     const normalized = normalizePhone(phone);
-    console.log('DEBUG: checkCustomerCashback', { phone, normalized });
+    console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback', { phone, normalized });
     
     if (normalized.length >= 10) {
       setSubmitting(true);
       try {
-        const { data, error } = await supabase
+        const { data: records, error } = await supabase
           .from("customers")
           .select("id, cashback_balance, loyalty_points, name, credits, auth_migration_status, user_id")
-          .eq("phone", normalized)
-          .eq("user_id", shop.id)
-          .maybeSingle();
+          .eq("phone", normalized);
         
         if (error) {
-          console.error('Error fetching customer:', error);
+          console.error('Error fetching customer for cashback:', error);
           return null;
         }
 
+        const data = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
+
         if (data) {
-          console.log('CUSTOMER RESULT FOUND', data);
-          setCustomerCashback(data.cashback_balance || 0);
-          setCustomerLoyaltyPoints(data.loyalty_points || 0);
-          setCustomerCredits(data.credits || 0);
+          // Only use balances if same tenant
+          if (data.user_id === shop.id) {
+            setCustomerCashback(data.cashback_balance || 0);
+            setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            setCustomerCredits(data.credits || 0);
+          }
+          
           if (data.name) setCustomerName(data.name);
           setCustomerId(data.id);
           return data;
         } else {
-          console.log('CUSTOMER RESULT NOT FOUND');
-          // Se não encontrou cliente, limpa o ID e possivelmente o nome se não for sessão do portal
+          console.log('[CUSTOMER_LOOKUP_TRACE] checkCustomerCashback NOT FOUND');
           setCustomerId(null);
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
