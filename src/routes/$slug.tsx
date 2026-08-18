@@ -966,41 +966,19 @@ function ShopPageComponent() {
       if (savedClient) {
         try {
           const parsedClient = JSON.parse(savedClient);
-          console.log('DEBUG: Pre-filling booking from portal session', parsedClient);
+          console.log('[BOOKING_CUSTOMER_STATE] Pre-filling booking from portal session', parsedClient);
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-
-          // Fetch fresh data for credits/cashback
-          if (parsedClient.customer_id) {
-            const { data } = await supabase
-              .from('customers')
-              .select('*')
-              .eq('id', parsedClient.customer_id)
-              .maybeSingle();
-            
-            if (data) {
-              console.log('DEBUG: Fresh customer data loaded for portal session', data);
-              setCustomerCashback(data.cashback_balance || 0);
-              setCustomerCredits(data.credits || 0);
-              setCustomerLoyaltyPoints(data.loyalty_points || 0);
-            }
-
-            // Force-refresh subscription so "Plano Ativo" renders consistently
-            // across browsers (avoids relying on stale client state).
-            try {
-              const fresh = await fetchActiveSubscriptionFor(parsedClient.customer_id);
-              console.log('[booking] fresh active subscription on open', fresh);
-            } catch (e) {
-              console.warn('[booking] failed to refresh subscription on open', e);
-            }
-          }
           
-          // Se já temos o customerId, pulamos a identificação (Step 1)
-          // Step 1: Boas-vindas/Telefone
-          // Step 2: Seleção de Serviço
-          console.log('DEBUG: Skipping to Step 2 as user is authenticated');
-          setBookingStep(2);
+          // O identityState será resolvido automaticamente pelo useEffect(findCustomer) 
+          // disparado pela mudança de isBookingOpen=true e customerPhone.
+          // Forçamos Step 2 apenas se já tivermos customerId.
+          if (parsedClient.customer_id) {
+            setBookingStep(2);
+          } else {
+            setBookingStep(1);
+          }
         } catch (e) {
           console.error("Error loading session:", e);
           setBookingStep(1);
