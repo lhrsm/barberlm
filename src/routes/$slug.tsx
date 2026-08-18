@@ -1269,7 +1269,7 @@ function ShopPageComponent() {
           group_token: groupTokenValLocal,
           total_amount: calculateTotal(),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
-          status: 'active'
+          status: 'confirmed' as any
         }]).select().single();
 
         if (groupError) throw groupError;
