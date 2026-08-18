@@ -240,26 +240,26 @@ export function AuthForm() {
 
 
         {loginMethod === "email" && (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                Senha
+              <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-400 ml-1">
+                Senha de Acesso
               </Label>
               <button
                 type="button"
                 onClick={() => setIsResetModalOpen(true)}
-                className="text-[9px] text-gold font-black uppercase tracking-widest hover:text-gold/80 transition-colors"
+                className="text-[9px] text-gold font-black uppercase tracking-[0.15em] hover:text-gold/80 transition-colors"
               >
                 Esqueci minha senha
               </button>
             </div>
             <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-gold transition-colors z-10" />
+              <Lock className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gold/60 group-focus-within:text-gold transition-colors z-10" />
               <Input
                 id="login-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="pl-12 pr-12 h-[56px] rounded-[16px] bg-white border-zinc-200 text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
+                className="pl-14 pr-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -268,13 +268,11 @@ export function AuthForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black transition-colors p-1 z-20"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors p-1 z-20"
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
-
-
             </div>
           </div>
         )}
