@@ -373,11 +373,10 @@ function ShopPageComponent() {
       const normalizedPhone = normalizePhone(customerPhone);
       const requestId = Math.random().toString(36).substring(7);
       
-      console.log('[CUSTOMER_IDENTITY_TRACE] findCustomer started', { 
+      console.log('[CUSTOMER_RESOLUTION_TRACE] findCustomer started', { 
         requestId,
         rawPhone: customerPhone, 
         normalizedPhone, 
-        slug, 
         tenantId: shop.id 
       });
       
@@ -391,69 +390,49 @@ function ShopPageComponent() {
       }
       
       if (normalizedPhone.length < 10) {
+        setIsSearchingCustomer(false);
         return;
       }
 
       setIsSearchingCustomer(true);
       try {
-        const lookupTenantId = shop.id;
-        
-        // Step 1: Query all customers with this phone number across all tenants
+        // Step 1: Query EXCLUSIVELY for current tenant and phone
         const { data: records, error } = await supabase
           .from('customers')
-          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
-          .eq('phone', normalizedPhone);
+          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, identity_status, auth_user_id, user_id')
+          .eq('phone', normalizedPhone)
+          .eq('user_id', shop.id); // Strict tenant isolation
 
         if (error) throw error;
 
-        // Step 2: Prioritize record for CURRENT shop
-        let data = records?.find(r => r.user_id === lookupTenantId);
-        let recoverySource = 'local';
-        
-        if (!data && records && records.length > 0) {
-          // Recovery: Found in another tenant
-          // We only use their name for pre-filling, but they will be a new local customer
-          data = records[0];
-          recoverySource = 'cross-tenant';
-          console.log('[CUSTOMER_IDENTITY_TRACE] Cross-tenant identity recovery', { 
-            requestId,
-            foundTenantId: data.user_id,
-            targetTenantId: lookupTenantId
-          });
-        }
+        console.log('[CUSTOMER_RESOLUTION_TRACE] query results', {
+          requestId,
+          count: records?.length || 0,
+          rows: records?.map(r => ({ id: r.id, name: r.name, tenant: r.user_id }))
+        });
+
+        const data = records && records.length > 0 ? records[0] : null;
 
         if (data) {
-          // If we recovered from another tenant, we keep the name but NOT the ID or balances
-          // because a customer must have a unique record per tenant in the 'customers' table.
-          if (recoverySource === 'local') {
-            setCustomerId(data.id);
-            setCustomerName(data.name || "");
-            setCustomerCashback(data.cashback_balance || 0);
-            setCustomerLoyaltyPoints(data.loyalty_points || 0);
-            setCustomerCredits(data.credits || 0);
-            
-            console.log('[CUSTOMER_IDENTITY_TRACE] Local customer matched', { 
-              requestId,
-              customerId: data.id,
-              name: data.name
-            });
-            
-            await fetchActiveSubscriptionFor(data.id);
-          } else {
-            // Cross-tenant: Only recover the name for UX
-            setCustomerName(data.name || "");
-            setCustomerId(null); // Important: will be created as new for this tenant
-            
-            console.log('[CUSTOMER_IDENTITY_TRACE] Cross-tenant name pre-filled', { 
-              requestId,
-              name: data.name
-            });
-          }
+          // Absolute Identity Binding
+          setCustomerId(data.id);
+          setCustomerName(data.name || "");
+          setCustomerCashback(data.cashback_balance || 0);
+          setCustomerLoyaltyPoints(data.loyalty_points || 0);
+          setCustomerCredits(data.credits || 0);
+          
+          console.log('[CUSTOMER_RESOLUTION_TRACE] Customer matched', { 
+            requestId,
+            customerId: data.id,
+            name: data.name
+          });
+          
+          await fetchActiveSubscriptionFor(data.id);
         } else {
-          console.log('[CUSTOMER_IDENTITY_TRACE] No customer found', { requestId });
+          console.log('[CUSTOMER_RESOLUTION_TRACE] No customer found for this tenant', { requestId });
         }
       } catch (err) {
-        console.error('[CUSTOMER_IDENTITY_TRACE] Search error:', err);
+        console.error('[CUSTOMER_RESOLUTION_TRACE] Search error:', err);
       } finally {
         setIsSearchingCustomer(false);
       }
@@ -1093,86 +1072,66 @@ function ShopPageComponent() {
     try {
       // If we don't have a customerId yet, try one last check
       let currentCustomer = null;
-      if (!customerId) {
-        const { data: records } = await supabase
-          .from("customers")
-          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
-          .eq("phone", normalized);
+      const normalized = normalizePhone(customerPhone);
+      
+      // Strict identity resolution: always fetch current tenant state
+      const { data: records, error } = await supabase
+        .from("customers")
+        .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
+        .eq("phone", normalized)
+        .eq("user_id", shop.id);
+
+      if (error) throw error;
+      const resolvedCustomer: any = records && records.length > 0 ? records[0] : null;
+
+      if (resolvedCustomer) {
+        const resolvedCustomerId = resolvedCustomer.id;
+        const finalName = resolvedCustomer.name || customerName;
         
-        // Prefer exact tenant match, then first available for identity recovery
-        currentCustomer = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
-      } else {
-        // We already have the customer from the debounce effect, but it might be missing fields
-        // Let's re-fetch or use what we have. For safety, re-fetch to ensure all fields are present for READY check.
-        const { data: records } = await supabase
-          .from("customers")
-          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
-          .eq("id", customerId);
-        currentCustomer = records?.[0] || null;
-      }
-
-      const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
-      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved', { 
-        resolvedCustomerId, 
-        hasCurrentCustomer: !!currentCustomer,
-        email: (currentCustomer as any)?.email
-      });
-
-      if (resolvedCustomerId) {
-        const name = customerName || (currentCustomer as any)?.name;
-        const finalName = name || customerName;
-        console.log('[CUSTOMER_LOOKUP_TRACE] EXISTING_CUSTOMER detected', { 
+        console.log('[CUSTOMER_RESOLUTION_TRACE] handlePhoneCheck success', { 
           resolvedCustomerId, 
-          finalName 
+          finalName,
+          email: resolvedCustomer.email
         });
-        if (finalName) setCustomerName(finalName);
-        if (resolvedCustomerId) setCustomerId(resolvedCustomerId);
-
-        const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
         
-        // [BOOKING_IDENTITY_TRACE] Diagnostic Payload
-        const trace = {
-          customerId: resolvedCustomerId,
-          hasEmail: !!(currentCustomer as any)?.email,
-          hasAuthUserId: !!(currentCustomer as any)?.auth_user_id,
-          identityStatus: (currentCustomer as any)?.identity_status,
-          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
-          currentTenantId: shop.id,
-          customerTenantId: (currentCustomer as any)?.user_id
-        };
-        console.log('[BOOKING_IDENTITY_TRACE] handlePhoneCheck data', trace);
+        setCustomerName(finalName);
+        setCustomerId(resolvedCustomerId);
 
-        // IDENTIDADE READY: Já possui e-mail, auth_user_id e status completed
-        const isReady = ((currentCustomer as any)?.identity_status === 'completed' || (currentCustomer as any)?.auth_migration_status === 'completed') && 
-                        ((currentCustomer as any)?.auth_user_id || (currentCustomer as any)?.user_id) &&
-                        (currentCustomer as any)?.email;
+        await fetchActiveSubscriptionFor(resolvedCustomerId);
+        
+        // Define READY state based on definitive criteria
+        const hasEmail = !!resolvedCustomer.email;
+        const hasAuthLink = !!(resolvedCustomer.auth_user_id || resolvedCustomer.user_id);
+        const isCompleted = resolvedCustomer.identity_status === 'completed' || resolvedCustomer.auth_migration_status === 'completed';
+        
+        const isReady = hasEmail && hasAuthLink && isCompleted;
 
-        console.log('[BOOKING_IDENTITY_TRACE] Decision', { 
-          isReady, 
-          identityStatus: (currentCustomer as any)?.identity_status,
-          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
-          hasEmail: !!(currentCustomer as any)?.email
+        console.log('[CUSTOMER_RESOLUTION_TRACE] Identity Decision', { 
+          isReady,
+          hasEmail,
+          hasAuthLink,
+          isCompleted
         });
+        
         
         if (isReady) {
-          console.log('[BOOKING_IDENTITY_TRACE] Bypassing AUTH_SETUP for READY customer');
           setShowIdentityStep(false);
-          setBookingStep(2);
-          return; // Previne qualquer execução posterior que possa resetar o step
+          setBookingStep(2); // Step 2 = Service Selection
+          return;
         } else {
-          console.log('[BOOKING_IDENTITY_TRACE] Redirecting to AUTH_SETUP');
           setShowIdentityStep(true);
-          setBookingStep(1); // Garante que estamos no step 1 para mostrar o BookingAuthStep
+          setBookingStep(1); // Stay on step 1 to show BookingAuthStep
         }
       } else {
-        // Novo cliente (não tem telefone no banco)
+        // Novo cliente (não tem telefone no banco nesta barbearia)
         if (!customerName || customerName.trim().length < 3) {
           toast.info("Por favor, informe seu nome completo.");
         } else {
-          console.log('BOOKING DATA DEBUG: New customer proceeding', { customerName, customerPhone });
+          console.log('[CUSTOMER_RESOLUTION_TRACE] New customer flow', { customerName, normalized });
           setActiveSubscription(null);
           setBookingMode(null);
           setShowIdentityStep(true);
+          setBookingStep(1);
         }
       }
     } catch (e: any) {
@@ -3682,15 +3641,17 @@ function ShopPageComponent() {
                             className="mt-3"
                           >
                             {customerId ? (
-                              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                  <CheckCircle2 className="text-emerald-600" size={20} />
+                              <div className="bg-green-50/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+                                <div className="bg-green-100 dark:bg-green-800/50 p-2.5 rounded-full shrink-0">
+                                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-base font-bold text-emerald-900 tracking-tight leading-tight truncate">
-                                    Olá, {customerName.split(' ')[0]}! 👋
+                                  <h3 className="text-lg font-bold text-green-800 dark:text-green-300 uppercase tracking-tight truncate leading-tight">
+                                    OLÁ, {customerName.split(' ')[0]}! 👋
                                   </h3>
-                                  <p className="text-[11px] text-emerald-700 font-medium">Que bom ter você de volta!</p>
+                                  <p className="text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
+                                    Que bom ter você de volta!
+                                  </p>
                                 </div>
                               </div>
                             ) : (
@@ -3802,7 +3763,7 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 1 && showIdentityStep && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300 h-full flex items-center justify-center p-4">
                 <BookingAuthStep
                   customerName={customerName}
                   customerPhone={customerPhone}
@@ -3810,7 +3771,7 @@ function ShopPageComponent() {
                   tenantId={shop.id}
                   onBack={() => setShowIdentityStep(false)}
                   onSuccess={(userId, email) => {
-                    console.log('[BOOKING_IDENTITY_TRACE] AuthStep Success', { userId, email });
+                    console.log('[BOOKING_RESOLUTION_TRACE] AuthStep Success', { userId, email });
                     setShowIdentityStep(false);
                     setBookingStep(2);
                   }}
