@@ -1091,17 +1091,16 @@ function ShopPageComponent() {
       // If we don't have a customerId yet, try one last check
       let currentCustomer = null;
       if (!customerId) {
-        console.log('[CUSTOMER_LOOKUP_TRACE] No customerId, performing final query', { 
-          phone: normalized, 
-          user_id: shop.id 
+        console.log('[CUSTOMER_LOOKUP_TRACE] No customerId, performing final multi-tenant query', { 
+          phone: normalized 
         });
-        const { data } = await supabase
+        const { data: records } = await supabase
           .from("customers")
           .select("id, name, auth_migration_status, user_id")
-          .eq("phone", normalized)
-          .eq("user_id", shop.id)
-          .maybeSingle();
-        currentCustomer = data;
+          .eq("phone", normalized);
+        
+        // Prefer exact tenant match, then first available for identity recovery
+        currentCustomer = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
       }
 
       const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
