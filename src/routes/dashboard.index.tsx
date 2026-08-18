@@ -161,6 +161,13 @@ function DashboardIndexComponent() {
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
+    console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Fetching appointments", { 
+      tenantId, 
+      dayStart, 
+      dayEnd,
+      selectedDate: selectedDate.toISOString()
+    });
+
     const { data, error } = await supabase
       .from("appointments")
       .select("*, customers(*), services(*), barbers(*)")
@@ -171,9 +178,15 @@ function DashboardIndexComponent() {
       .order("start_time", { ascending: false });
 
     if (error) {
-      console.error("[Dashboard] fetchTodayAppointments error:", error);
+      console.error("[DASHBOARD_APPOINTMENT_FORENSIC] Error:", error);
       return;
     }
+
+    console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Results:", {
+      count: data?.length,
+      ids: data?.map(a => a.id)
+    });
+
     if (data) setTodayAppointments(data);
   }
 
