@@ -70,6 +70,8 @@ export function CookieBanner() {
       };
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        // Force an event to notify other listeners (like Playwright scripts)
+        window.dispatchEvent(new Event('storage'));
       } catch {}
       setVisible(false);
       setShowCustomize(false);

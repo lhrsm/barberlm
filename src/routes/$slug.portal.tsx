@@ -125,8 +125,14 @@ function CustomerPortalPage() {
   }, [user, authLoading, profile, navigate, loadPortalData, slug]);
 
   const handleLogout = async () => {
-    await logout();
-    navigate({ to: `/${slug}` as any, replace: true });
+    try {
+      await logout();
+      // Use local redirect for consistency
+      window.location.href = `/${slug}`;
+    } catch (err) {
+      console.error("Logout error:", err);
+      navigate({ to: `/${slug}` as any, replace: true });
+    }
   };
 
   if (authLoading || (user && loading)) {
