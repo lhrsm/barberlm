@@ -114,15 +114,18 @@ async function initializeAuth() {
         setState({ session: null, user: null, profile: null, loading: false });
       } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
-          // If we already have a profile and it's the same user, don't clear it during refresh
           const isSameUser = globalProfile?.id === session.user.id;
           
           if (!isSameUser || event === 'SIGNED_IN') {
             setState({ session, user: session.user, loading: true });
-            await fetchProfileData(session.user.id);
+            const profile = await fetchProfileData(session.user.id);
+            if (!profile && event === 'SIGNED_IN') {
+              // Retry once if profile not found immediately after sign in
+              await new Promise(r => setTimeout(r, 500));
+              await fetchProfileData(session.user.id);
+            }
             setState({ loading: false });
           } else {
-            // Just update the session/user without triggering a full loading state
             setState({ session, user: session.user });
           }
         } else if (event !== 'INITIAL_SESSION') {
