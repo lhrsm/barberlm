@@ -185,6 +185,13 @@ function CustomerPortalPage() {
           <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
             Sincronizando sua Experiência...
           </p>
+          {/* Fallback para evitar loading infinito */}
+          <button 
+            onClick={() => setLoading(false)} 
+            className="mt-4 text-[9px] text-white/20 hover:text-white/40 uppercase tracking-widest font-bold"
+          >
+            Forçar Carregamento
+          </button>
         </div>
       </div>
     );
@@ -224,7 +231,7 @@ function CustomerPortalPage() {
             <p className="text-zinc-500 text-sm leading-relaxed">
               {loading 
                 ? "Estamos preparando sua experiência premium. Por favor, aguarde um momento." 
-                : "Não conseguimos localizar seu cadastro neste estabelecimento. Tente atualizar a página ou entrar novamente."}
+                : "Não conseguimos localizar seu cadastro como cliente neste estabelecimento. Isso pode ocorrer se você for um administrador sem perfil de cliente associado."}
             </p>
           </div>
           
