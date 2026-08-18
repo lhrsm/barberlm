@@ -1349,7 +1349,7 @@ function ShopPageComponent() {
           total_price: item.price,
           original_total: item.price,
           status: "confirmed",
-          payment_status: (isCoveredFull || finalPaymentMethod === 'pix' || calculateTotal() === 0)
+          payment_status: (isCoveredFull || calculateTotal() === 0)
             ? 'paid'
             : 'pending',
           payment_method: isCoveredFull

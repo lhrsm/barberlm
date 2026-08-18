@@ -242,7 +242,11 @@ function DashboardIndexComponent() {
     ]);
 
     const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
-    const dailyCashInflow = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0) || 0;
+    
+    // Apenas agendamentos com payment_status = 'paid' entram no Faturamento Realizado (Real Cash Inflow)
+    const dailyCashInflow = dailyAppointmentsData.data
+      ?.filter(appt => appt.payment_status === 'paid' || appt.status === 'completed')
+      ?.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0) || 0;
     const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
     const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_used || 0), 0) || 0;
     const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_earned || 0), 0) || 0;

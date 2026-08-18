@@ -164,6 +164,14 @@ function CustomerPortalPage() {
   }, [user, profile?.tenant_id]);
 
   useEffect(() => {
+    // Safety timeout for loading state
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn("[PORTAL_BOOT_TRACE] Loading timeout reached, forcing finish");
+        setLoading(false);
+      }
+    }, 8000);
+
     const handleVisibilityChange = () => {
       const now = Date.now();
       const timeSinceLastCheck = now - lastCheck;
