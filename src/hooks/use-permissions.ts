@@ -53,6 +53,8 @@ export function usePermissions() {
 
   const hasPermission = (key: PermissionKey): boolean => {
     if (role === 'super_admin') return true;
+    // Permissivo enquanto carrega para evitar flicker no sidebar/UI
+    if (authLoading || permissionsLoading) return true;
     if (!permissions) return false;
     if (permissions.includes('*')) return true;
     return permissions.includes(key);
