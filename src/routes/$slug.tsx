@@ -1050,7 +1050,12 @@ function ShopPageComponent() {
 
   const handlePhoneCheck = async () => {
     const normalized = normalizePhone(customerPhone);
-    console.log('BOOKING DATA DEBUG: handlePhoneCheck', { customerPhone, normalized, customerName, customerId });
+    console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck started', { 
+      customerPhone, 
+      normalized, 
+      customerName, 
+      customerId 
+    });
 
     if (!customerPhone || normalized.length < 8) {
       toast.error("Por favor, informe um WhatsApp válido.");
@@ -1062,9 +1067,13 @@ function ShopPageComponent() {
       // If we don't have a customerId yet, try one last check
       let currentCustomer = null;
       if (!customerId) {
+        console.log('[CUSTOMER_LOOKUP_TRACE] No customerId, performing final query', { 
+          phone: normalized, 
+          user_id: shop.id 
+        });
         const { data } = await supabase
           .from("customers")
-          .select("id, name")
+          .select("id, name, auth_migration_status, user_id")
           .eq("phone", normalized)
           .eq("user_id", shop.id)
           .maybeSingle();
@@ -1072,29 +1081,27 @@ function ShopPageComponent() {
       }
 
       const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
+      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved ID', { 
+        resolvedCustomerId, 
+        currentCustomerId: customerId, 
+        queryResultId: (currentCustomer as any)?.id 
+      });
 
       if (resolvedCustomerId) {
         const name = customerName || (currentCustomer as any)?.name;
         const finalName = name || customerName;
+        console.log('[CUSTOMER_LOOKUP_TRACE] EXISTING_CUSTOMER detected', { 
+          resolvedCustomerId, 
+          finalName 
+        });
         if (finalName) setCustomerName(finalName);
         if (resolvedCustomerId) setCustomerId(resolvedCustomerId);
 
-        // CRITICAL: check active subscription BEFORE advancing to step 2
-        // so the premium chooser renders instead of the regular service list.
         const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
-        const planUsed = sub?.uses_this_period || 0;
-        const planMax = sub?.plan?.max_uses_per_month;
-        const remaining = planMax ? Math.max(0, planMax - planUsed) : null;
-        console.log('[PREMIUM FLOW] phone check result', {
+        console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck decision path', {
           customer_id: resolvedCustomerId,
-          phone: normalized,
           has_active_subscription: !!sub,
-          subscription_id: sub?.id || null,
-          plan_id: sub?.plan_id || null,
-          plan_name: sub?.plan?.name || null,
-          subscription_status: sub?.status || null,
-          remaining_benefits: remaining,
-          next_step: sub ? 'premium_chooser' : 'service_selection',
+          isMigrated: (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id || (customerId && !currentCustomer)
         });
         const isMigrated = (currentCustomer as any)?.auth_migration_status === 'completed' || (currentCustomer as any)?.user_id;
         
