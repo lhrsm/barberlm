@@ -159,6 +159,7 @@ function ShopPageComponent() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
   const [showIdentityStep, setShowIdentityStep] = useState(false);
+  const [identityState, setIdentityState] = useState<'IDLE' | 'LOADING' | 'READY' | 'NEEDS_NAME' | 'NEEDS_ONBOARDING' | 'NEW_CUSTOMER'>('IDLE');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
