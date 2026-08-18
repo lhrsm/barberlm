@@ -1641,13 +1641,12 @@ function ShopPageComponent() {
         } else if (createdAppointments.length === 1) {
           const appt = createdAppointments?.[0] as any;
           // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
-          // 1. Prioridade absoluta para o Portal do Cliente /$slug/portal
-          const portalUrl = `/${slug}/portal`;
+          // Destino obrigatório: Portal do Cliente /$slug/portal via window.location para garantir reload limpo
+          window.location.href = `/${slug}/portal`;
+          return;
           
-          // Capturar token apenas para histórico, mas o destino é o portal
+          // O código abaixo é mantido apenas como referência de token se necessário no futuro
           let token: string | null = null;
-          try {
-            const { data } = await supabase.rpc("get_new_appointment_management_token" as any, {
               p_appointment_id: appt.id,
             });
             token = (Array.isArray(data) ? data[0] : data) ?? null;

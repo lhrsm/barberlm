@@ -144,15 +144,14 @@ function CustomerPortalPage() {
       return;
     }
 
-    if (profile?.identity_status === 'legacy') {
-      navigate({ to: `/${slug}` as any, replace: true });
-      return;
-    }
-
+    // Regra Crítica: Se o usuário é ADMIN/STAFF mas caiu no portal do cliente,
+    // devemos mantê-lo aqui se ele tiver um registro de cliente, ou redirecionar
+    // se for estritamente administrativo. Mas por ora, permitimos o acesso se autenticado.
+    
     if (profile) {
       loadPortalData();
     }
-  }, [user, authLoading, profile, navigate, loadPortalData, slug]);
+  }, [user, authLoading, profile, loadPortalData]);
 
   const handleLogout = async () => {
     try {
