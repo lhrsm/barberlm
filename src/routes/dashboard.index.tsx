@@ -211,8 +211,8 @@ function DashboardIndexComponent() {
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["scheduled", "confirmed", "completed", "in_progress"]).gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["scheduled", "confirmed", "completed", "in_progress"]).gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"]).gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"]).gte("start_time", monthStart).lte("start_time", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
@@ -220,15 +220,15 @@ function DashboardIndexComponent() {
       supabase.from("barbers").select("*").eq("tenant_id", tenantId).eq("active", true).limit(5),
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
-        .in("status", ["completed", "confirmed"])
+        .in("status", ["completed", "confirmed", "scheduled", "pending"])
         .gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("cashback_earned")
         .eq("tenant_id", tenantId)
-        .in("status", ["completed", "confirmed"])
+        .in("status", ["completed", "confirmed", "scheduled", "pending"])
         .gte("start_time", weekStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
-        .in("status", ["completed", "confirmed"])
+        .in("status", ["completed", "confirmed", "scheduled", "pending"])
         .gte("start_time", monthStart).lte("start_time", monthEnd),
       supabase.from("customers").select("cashback_balance").eq("tenant_id", tenantId)
     ]);
