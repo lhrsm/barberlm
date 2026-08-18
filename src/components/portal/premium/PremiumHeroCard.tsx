@@ -36,10 +36,10 @@ function greeting() {
 
 function computeTier(completedCount: number, isSubscriber: boolean) {
   if (isSubscriber) return { label: "Assinante Premium", icon: Crown, color: "#D4AF37" };
-  if (completedCount >= 30) return { label: "Cliente Diamante", icon: Gem, color: "#7DD3FC" };
-  if (completedCount >= 15) return { label: "Cliente Ouro", icon: Award, color: "#F5D061" };
-  if (completedCount >= 5) return { label: "Cliente VIP", icon: Star, color: "#C0C0C0" };
-  return { label: "Cliente Bronze", icon: Star, color: "#CD7F32" };
+  if (completedCount >= 30) return { label: "Nível Diamante", icon: Gem, color: "#7DD3FC" };
+  if (completedCount >= 15) return { label: "Nível Ouro", icon: Award, color: "#F5D061" };
+  if (completedCount >= 5) return { label: "Nível Prata", icon: Star, color: "#C0C0C0" };
+  return { label: "Nível Bronze", icon: Star, color: "#CD7F32" };
 }
 
 function calcSavings(appts: any[]) {
