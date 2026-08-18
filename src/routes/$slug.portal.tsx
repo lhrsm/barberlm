@@ -336,6 +336,7 @@ function CustomerPortalPage() {
         subscriptionsEnabled={false}
         storeEnabled={false}
         couponsEnabled={true}
+        slug={slug}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
