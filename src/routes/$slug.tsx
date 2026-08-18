@@ -1072,77 +1072,67 @@ function ShopPageComponent() {
     try {
       // If we don't have a customerId yet, try one last check
       let currentCustomer = null;
-      if (!customerId) {
-        const { data: records } = await supabase
-          .from("customers")
-          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
-          .eq("phone", normalized);
+      const normalized = normalizePhone(customerPhone);
+      
+      // Strict identity resolution: always fetch current tenant state
+      const { data: records, error } = await supabase
+        .from("customers")
+        .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
+        .eq("phone", normalized)
+        .eq("user_id", shop.id);
+
+      if (error) throw error;
+      currentCustomer = records && records.length > 0 ? records[0] : null;
+
+      if (currentCustomer) {
+        const resolvedCustomerId = currentCustomer.id;
+        const finalName = currentCustomer.name || customerName;
         
-        // Prefer exact tenant match, then first available for identity recovery
-        currentCustomer = records?.find(r => r.user_id === shop.id) || (records && records[0]) || null;
-      } else {
-        // We already have the customer from the debounce effect, but it might be missing fields
-        // Let's re-fetch or use what we have. For safety, re-fetch to ensure all fields are present for READY check.
-        const { data: records } = await supabase
-          .from("customers")
-          .select("id, name, email, auth_migration_status, identity_status, auth_user_id, user_id")
-          .eq("id", customerId);
-        currentCustomer = records?.[0] || null;
-      }
-
-      const resolvedCustomerId = customerId || (currentCustomer as any)?.id || null;
-      console.log('[CUSTOMER_LOOKUP_TRACE] handlePhoneCheck resolved', { 
-        resolvedCustomerId, 
-        hasCurrentCustomer: !!currentCustomer,
-        email: (currentCustomer as any)?.email
-      });
-
-      if (resolvedCustomerId) {
-        const name = customerName || (currentCustomer as any)?.name;
-        const finalName = name || customerName;
-        console.log('[CUSTOMER_LOOKUP_TRACE] EXISTING_CUSTOMER detected', { 
+        console.log('[CUSTOMER_RESOLUTION_TRACE] handlePhoneCheck success', { 
           resolvedCustomerId, 
-          finalName 
+          finalName,
+          email: currentCustomer.email
         });
-        if (finalName) setCustomerName(finalName);
-        if (resolvedCustomerId) setCustomerId(resolvedCustomerId);
-
-        const sub = await fetchActiveSubscriptionFor(resolvedCustomerId);
         
-        // [BOOKING_IDENTITY_TRACE] Diagnostic Payload
-        const trace = {
-          customerId: resolvedCustomerId,
-          hasEmail: !!(currentCustomer as any)?.email,
-          hasAuthUserId: !!(currentCustomer as any)?.auth_user_id,
-          identityStatus: (currentCustomer as any)?.identity_status,
-          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
-          currentTenantId: shop.id,
-          customerTenantId: (currentCustomer as any)?.user_id
-        };
-        console.log('[BOOKING_IDENTITY_TRACE] handlePhoneCheck data', trace);
+        setCustomerName(finalName);
+        setCustomerId(resolvedCustomerId);
 
-        // IDENTIDADE READY: Já possui e-mail, auth_user_id e status completed
-        const isReady = ((currentCustomer as any)?.identity_status === 'completed' || (currentCustomer as any)?.auth_migration_status === 'completed') && 
-                        ((currentCustomer as any)?.auth_user_id || (currentCustomer as any)?.user_id) &&
-                        (currentCustomer as any)?.email;
+        await fetchActiveSubscriptionFor(resolvedCustomerId);
+        
+        // Define READY state based on definitive criteria
+        const hasEmail = !!currentCustomer.email;
+        const hasAuthLink = !!(currentCustomer.auth_user_id || currentCustomer.user_id);
+        const isCompleted = currentCustomer.identity_status === 'completed' || currentCustomer.auth_migration_status === 'completed';
+        
+        const isReady = hasEmail && hasAuthLink && isCompleted;
 
-        console.log('[BOOKING_IDENTITY_TRACE] Decision', { 
-          isReady, 
-          identityStatus: (currentCustomer as any)?.identity_status,
-          authMigrationStatus: (currentCustomer as any)?.auth_migration_status,
-          hasEmail: !!(currentCustomer as any)?.email
+        console.log('[CUSTOMER_RESOLUTION_TRACE] Identity Decision', { 
+          isReady,
+          hasEmail,
+          hasAuthLink,
+          isCompleted
         });
         
         if (isReady) {
-          console.log('[BOOKING_IDENTITY_TRACE] Bypassing AUTH_SETUP for READY customer');
           setShowIdentityStep(false);
-          setBookingStep(2);
-          return; // Previne qualquer execução posterior que possa resetar o step
+          setBookingStep(2); // Step 2 = Service Selection
+          return;
         } else {
-          console.log('[BOOKING_IDENTITY_TRACE] Redirecting to AUTH_SETUP');
           setShowIdentityStep(true);
-          setBookingStep(1); // Garante que estamos no step 1 para mostrar o BookingAuthStep
+          setBookingStep(1); // Stay on step 1 to show BookingAuthStep
         }
+      } else {
+        // Novo cliente (não tem telefone no banco nesta barbearia)
+        if (!customerName || customerName.trim().length < 3) {
+          toast.info("Por favor, informe seu nome completo.");
+        } else {
+          console.log('[CUSTOMER_RESOLUTION_TRACE] New customer flow', { customerName, normalized });
+          setActiveSubscription(null);
+          setBookingMode(null);
+          setShowIdentityStep(true);
+          setBookingStep(1);
+        }
+      }
       } else {
         // Novo cliente (não tem telefone no banco)
         if (!customerName || customerName.trim().length < 3) {
