@@ -1236,6 +1236,7 @@ function ShopPageComponent() {
 
     setSubmitting(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       // 1. Ensure customer exists
       let finalCustId = customerId;
       console.log('TABLE:', 'customers');
