@@ -3641,15 +3641,17 @@ function ShopPageComponent() {
                             className="mt-3"
                           >
                             {customerId ? (
-                              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                  <CheckCircle2 className="text-emerald-600" size={20} />
+                              <div className="bg-green-50/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+                                <div className="bg-green-100 dark:bg-green-800/50 p-2.5 rounded-full shrink-0">
+                                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-base font-bold text-emerald-900 tracking-tight leading-tight truncate">
-                                    Olá, {customerName.split(' ')[0]}! 👋
+                                  <h3 className="text-lg font-bold text-green-800 dark:text-green-300 uppercase tracking-tight truncate leading-tight">
+                                    OLÁ, {customerName.split(' ')[0]}! 👋
                                   </h3>
-                                  <p className="text-[11px] text-emerald-700 font-medium">Que bom ter você de volta!</p>
+                                  <p className="text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
+                                    Que bom ter você de volta!
+                                  </p>
                                 </div>
                               </div>
                             ) : (
