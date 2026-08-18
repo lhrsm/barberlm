@@ -1189,6 +1189,13 @@ function ShopPageComponent() {
 
 
   const handleFinalizeBooking = async () => {
+    console.log("[POST_BOOKING_TRACE] Starting handleFinalizeBooking", {
+      tenantId: shop.id,
+      customerId,
+      bookingCartCount: bookingCart.length,
+      paymentMethod
+    });
+
     const normalized = normalizePhone(customerPhone);
     console.log('DEBUG: Finalizing booking with normalized phone:', { original: customerPhone, normalized });
 
@@ -1390,6 +1397,11 @@ function ShopPageComponent() {
           throw res.error;
         }
         return res.data;
+      });
+
+      console.log("[POST_BOOKING_TRACE] Appointments persisted", {
+        count: createdAppointments?.length,
+        ids: createdAppointments?.map(a => a?.id)
       });
 
       // LGPD: register consent + update customer preferences (best-effort, non-blocking)

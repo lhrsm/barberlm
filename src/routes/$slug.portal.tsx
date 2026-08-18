@@ -50,17 +50,58 @@ function CustomerPortalPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const loadPortalData = useCallback(async () => {
-    if (!user || !profile?.tenant_id) return;
-    
+    const traceMeta: any = { 
+      slug, 
+      userId: user?.id, 
+      profileId: profile?.id, 
+      profileTenantId: profile?.tenant_id 
+    };
+    console.log("[PORTAL_BOOT_TRACE] Starting loadPortalData", traceMeta);
+
+    if (!user) {
+      console.log("[PORTAL_BOOT_TRACE] No user, skipping data load");
+      setLoading(false);
+      return;
+    }
+
+    // Se o profile não tem tenant_id, tentamos descobrir pelo slug
+    let effectiveTenantId = profile?.tenant_id;
+    if (!effectiveTenantId && slug) {
+      console.log("[PORTAL_BOOT_TRACE] Profile has no tenant_id, resolving from slug:", slug);
+      const { data: shopData } = await supabase
+        .from("barbershops")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      
+      if (shopData) {
+        effectiveTenantId = shopData.id;
+        console.log("[PORTAL_BOOT_TRACE] Resolved tenantId from slug:", effectiveTenantId);
+      }
+    }
+
+    if (!effectiveTenantId) {
+      console.warn("[PORTAL_BOOT_TRACE] No tenant_id resolved, stopping portal load", { slug });
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log("[PORTAL_BOOT_TRACE] Fetching customer identity", { effectiveTenantId });
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("*, loyalty_levels(*)")
         .eq("user_id", user.id)
-        .eq("tenant_id", profile.tenant_id)
+        .eq("tenant_id", effectiveTenantId)
         .maybeSingle();
 
       if (customerError) throw customerError;
+      
+      console.log("[PORTAL_BOOT_TRACE] Customer identity result:", { 
+        found: !!customerData, 
+        customerId: customerData?.id 
+      });
+
       if (!customerData) {
         setLoading(false);
         return;
@@ -77,7 +118,7 @@ function CustomerPortalPage() {
         achRes,
         unlockedRes
       ] = await Promise.all([
-        supabase.from("barbershops").select("*").eq("id", profile.tenant_id).maybeSingle(),
+        supabase.from("barbershops").select("*").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", customerData.tenant_id).order("start_time", { ascending: false }),
         supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),

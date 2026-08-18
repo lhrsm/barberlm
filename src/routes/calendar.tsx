@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   RefreshCcw,
   UserPlus,
-  HelpCircle
+  HelpCircle,
+  Loader2
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
@@ -210,49 +211,79 @@ const CalendarComponent = memo(() => {
   }, [user, loading, role, navigate]);
 
   async function fetchData() {
-    if (!user) return;
-
-    const start = startOfDay(view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 }));
-    const end = endOfDay(view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 }));
-
-    let appQuery = supabase
-      .from("appointments")
-      .select("*, customers(*), services(*), barbers(*)")
-      .eq("tenant_id", tenantId)
-      .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show", "pending", "in_progress"])
-      .gte("start_time", start.toISOString())
-      .lte("start_time", end.toISOString());
+    if (!user) {
+      console.log("[CALENDAR_BOOT_TRACE] No user, skipping fetchData");
+      return;
+    }
     
-    if (role === 'barber') {
-      const targetId = user?.id || session?.barber_id;
-      if (targetId) {
-        appQuery = appQuery.eq('barber_id', targetId);
+    setIsLoading(true);
+    console.log("[CALENDAR_BOOT_TRACE] Executing queries", { tenantId, role });
+
+    try {
+      const start = startOfDay(view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 }));
+      const end = endOfDay(view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 }));
+
+      let appQuery = supabase
+        .from("appointments")
+        .select("*, customers(*), services(*), barbers(*)")
+        .eq("tenant_id", tenantId)
+        .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show", "pending", "in_progress"])
+        .gte("start_time", start.toISOString())
+        .lte("start_time", end.toISOString());
+      
+      if (role === 'barber') {
+        const targetId = user?.id || session?.barber_id;
+        if (targetId) {
+          appQuery = appQuery.eq('barber_id', targetId);
+        }
       }
+
+      const [appRes, barbRes, custRes, servRes] = await Promise.all([
+        appQuery.order("start_time", { ascending: false }),
+        supabase.from("barbers").select("*").eq("tenant_id", tenantId).order("name"),
+        supabase.from("customers").select("*").eq("tenant_id", tenantId).order("name"),
+        supabase.from("services").select("*").eq("tenant_id", tenantId).eq("active", true).order("name"),
+      ]);
+
+      if (appRes.error) {
+        console.error("[CALENDAR_BOOT_TRACE] Appointments fetch error:", appRes.error);
+      }
+
+      console.log("[CALENDAR_BOOT_TRACE] Data fetched:", {
+        appointments: appRes.data?.length,
+        barbers: barbRes.data?.length,
+        customers: custRes.data?.length,
+        services: servRes.data?.length
+      });
+
+      if (appRes.data) setAppointments(appRes.data);
+      if (barbRes.data) setBarbers(barbRes.data);
+      if (custRes.data) setCustomers(custRes.data);
+      if (servRes.data) setServices(servRes.data);
+    } catch (err) {
+      console.error("[CALENDAR_BOOT_TRACE] Crash in fetchData:", err);
+    } finally {
+      setIsLoading(false);
     }
-
-    const [appRes, barbRes, custRes, servRes] = await Promise.all([
-      appQuery.order("start_time", { ascending: false }),
-      supabase.from("barbers").select("*").eq("tenant_id", tenantId).order("name"),
-      supabase.from("customers").select("*").eq("tenant_id", tenantId).order("name"),
-      supabase.from("services").select("*").eq("tenant_id", tenantId).eq("active", true).order("name"),
-    ]);
-
-    if (appRes.error) {
-      console.error("[Calendar] Fetch appointments error:", appRes.error);
-    }
-
-    if (appRes.data) setAppointments(appRes.data);
-    if (barbRes.data) setBarbers(barbRes.data);
-    if (custRes.data) setCustomers(custRes.data);
-    if (servRes.data) setServices(servRes.data);
   }
+
+  useEffect(() => {
+    console.log("[CALENDAR_BOOT_TRACE] Starting fetchData", { 
+      hasUser: !!user, 
+      role, 
+      tenantId, 
+      view, 
+      currentDate 
+    });
+    fetchData();
+  }, [user, currentDate, view, tenantId]);
 
   useEffect(() => {
     if (!user || role === 'super_admin') return;
 
-    fetchData();
+    const channelTenantId = tenantId || user?.id;
+    if (!channelTenantId) return;
 
-    const channelTenantId = tenantId || user.id;
     const channel = supabase
       .channel(`appointments-calendar-${channelTenantId}`)
       .on(
@@ -270,7 +301,7 @@ const CalendarComponent = memo(() => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, currentDate, view]);
+  }, [user, tenantId]);
 
   const isToday = isSameDay(currentDate, new Date());
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
@@ -295,6 +326,7 @@ const CalendarComponent = memo(() => {
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-gold">Agenda</h1>
+            {isLoading && <Loader2 className="h-5 w-5 animate-spin text-gold/40" />}
           </div>
           <HelpDrawer config={calendarHelpConfig} />
         </div>
@@ -344,7 +376,7 @@ const CalendarComponent = memo(() => {
           </div>
         </div>
 
-        {isToday && view === 'day' && <WalkinQueuePanel tenantId={user.id} date={currentDate} refreshKey={appointments.length} onChange={() => fetchData()} />}
+        {isToday && view === 'day' && <WalkinQueuePanel tenantId={user?.id} date={currentDate} refreshKey={appointments.length} onChange={() => fetchData()} />}
 
         <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4">
           <div className="flex items-center justify-between gap-3">

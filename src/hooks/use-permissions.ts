@@ -25,8 +25,9 @@ export function usePermissions() {
   const { user, role, loading: authLoading } = useAuth();
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
-    queryKey: ['user-permissions', user?.id],
+    queryKey: ['user-permissions', user?.id, role],
     queryFn: async () => {
+      console.log("[PERMISSIONS_TRACE] Fetching for role:", role, "userId:", user?.id);
       if (!user) return [];
 
       // Se for super_admin, retorna todas (simulado no front, validado no back)
@@ -52,6 +53,8 @@ export function usePermissions() {
 
   const hasPermission = (key: PermissionKey): boolean => {
     if (role === 'super_admin') return true;
+    // Permissivo enquanto carrega para evitar flicker no sidebar/UI
+    if (authLoading || permissionsLoading) return true;
     if (!permissions) return false;
     if (permissions.includes('*')) return true;
     return permissions.includes(key);
