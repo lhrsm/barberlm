@@ -108,7 +108,6 @@ import { Route as LoyaltyCampaignsIdRouteImport } from './routes/loyalty.campaig
 import { Route as DashboardSettingsSecurityRouteImport } from './routes/dashboard.settings.security'
 import { Route as ApiPublicSendPushRouteImport } from './routes/api/public/send-push'
 import { Route as ApiPublicResendWebhookRouteImport } from './routes/api/public/resend-webhook'
-import { Route as ApiPublicCleanupIdentityRouteImport } from './routes/api/public/cleanup-identity'
 import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as SlugPortalSecurityRouteImport } from './routes/$slug.portal.security'
 import { Route as SlugEquipeBarberIdRouteImport } from './routes/$slug.equipe.$barberId'
@@ -623,12 +622,6 @@ const ApiPublicResendWebhookRoute = ApiPublicResendWebhookRouteImport.update({
   path: '/api/public/resend-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCleanupIdentityRoute =
-  ApiPublicCleanupIdentityRouteImport.update({
-    id: '/api/public/cleanup-identity',
-    path: '/api/public/cleanup-identity',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
   id: '/agendamentos/grupo/$token',
   path: '/agendamentos/grupo/$token',
@@ -809,7 +802,6 @@ export interface FileRoutesByFullPath {
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/$slug/portal/security': typeof SlugPortalSecurityRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
-  '/api/public/cleanup-identity': typeof ApiPublicCleanupIdentityRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
@@ -920,7 +912,6 @@ export interface FileRoutesByTo {
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/$slug/portal/security': typeof SlugPortalSecurityRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
-  '/api/public/cleanup-identity': typeof ApiPublicCleanupIdentityRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
@@ -1037,7 +1028,6 @@ export interface FileRoutesById {
   '/$slug/equipe/$barberId': typeof SlugEquipeBarberIdRoute
   '/$slug/portal/security': typeof SlugPortalSecurityRoute
   '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
-  '/api/public/cleanup-identity': typeof ApiPublicCleanupIdentityRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/send-push': typeof ApiPublicSendPushRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
@@ -1155,7 +1145,6 @@ export interface FileRouteTypes {
     | '/$slug/equipe/$barberId'
     | '/$slug/portal/security'
     | '/agendamentos/grupo/$token'
-    | '/api/public/cleanup-identity'
     | '/api/public/resend-webhook'
     | '/api/public/send-push'
     | '/dashboard/settings/security'
@@ -1266,7 +1255,6 @@ export interface FileRouteTypes {
     | '/$slug/equipe/$barberId'
     | '/$slug/portal/security'
     | '/agendamentos/grupo/$token'
-    | '/api/public/cleanup-identity'
     | '/api/public/resend-webhook'
     | '/api/public/send-push'
     | '/dashboard/settings/security'
@@ -1382,7 +1370,6 @@ export interface FileRouteTypes {
     | '/$slug/equipe/$barberId'
     | '/$slug/portal/security'
     | '/agendamentos/grupo/$token'
-    | '/api/public/cleanup-identity'
     | '/api/public/resend-webhook'
     | '/api/public/send-push'
     | '/dashboard/settings/security'
@@ -1449,7 +1436,6 @@ export interface RootRouteChildren {
   SubscriptionAddonsRoute: typeof SubscriptionAddonsRoute
   SubscriptionIndexRoute: typeof SubscriptionIndexRoute
   AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
-  ApiPublicCleanupIdentityRoute: typeof ApiPublicCleanupIdentityRoute
   ApiPublicResendWebhookRoute: typeof ApiPublicResendWebhookRoute
   ApiPublicSendPushRoute: typeof ApiPublicSendPushRoute
   SubscriptionCardValidateTokenRoute: typeof SubscriptionCardValidateTokenRoute
@@ -2160,13 +2146,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicResendWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/cleanup-identity': {
-      id: '/api/public/cleanup-identity'
-      path: '/api/public/cleanup-identity'
-      fullPath: '/api/public/cleanup-identity'
-      preLoaderRoute: typeof ApiPublicCleanupIdentityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/agendamentos/grupo/$token': {
       id: '/agendamentos/grupo/$token'
       path: '/agendamentos/grupo/$token'
@@ -2523,7 +2502,6 @@ const rootRouteChildren: RootRouteChildren = {
   SubscriptionAddonsRoute: SubscriptionAddonsRoute,
   SubscriptionIndexRoute: SubscriptionIndexRoute,
   AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
-  ApiPublicCleanupIdentityRoute: ApiPublicCleanupIdentityRoute,
   ApiPublicResendWebhookRoute: ApiPublicResendWebhookRoute,
   ApiPublicSendPushRoute: ApiPublicSendPushRoute,
   SubscriptionCardValidateTokenRoute: SubscriptionCardValidateTokenRoute,
