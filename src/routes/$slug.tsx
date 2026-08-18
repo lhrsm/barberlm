@@ -1584,7 +1584,7 @@ function ShopPageComponent() {
       );
       if (usedBenefit && activeSubscription && createdAppointments.length === 1) {
         const appt = createdAppointments?.[0] as any;
-        const item = finalCart.find((i) => i.service_id === appt?.service_id) || finalCart[0];
+        const item = finalCart.find((i) => i.service_id === appt?.service_id) || finalCart?.[0];
 
         // Refetch usage logs so the reserved log created by the DB trigger is included.
         const { data: freshLogs } = await supabase
@@ -1666,7 +1666,7 @@ function ShopPageComponent() {
       // PIX: pede o comprovante antes de redirecionar
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
         const firstAppt = createdAppointments?.[0] as any;
-        const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart[0];
+        const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
         setPixReceipt({
           appointmentId: firstAppt.id,
           amount: receiptAmount,
