@@ -1,20 +1,23 @@
-import { createFileRoute, useNavigate, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { 
+  Loader2, 
+  Bell, 
+  Settings, 
+  LogOut,
+  User as UserIcon
+} from "lucide-react";
+import { toast } from "sonner";
+import { PortalNavigation } from "@/components/portal/premium/layout/PortalNavigation";
+import { HomeTab } from "@/components/portal/premium/layout/HomeTab";
+import { AppointmentsTab } from "@/components/portal/premium/tabs/AppointmentsTab";
+import { FinancesTab } from "@/components/portal/premium/tabs/FinancesTab";
+import { ProfileTab } from "@/components/portal/premium/tabs/ProfileTab";
 import { LoyaltyLevelCard } from "@/components/loyalty/LoyaltyLevelCard";
 import { AchievementGrid } from "@/components/loyalty/AchievementGrid";
-import { 
-  Trophy, 
-  Sparkles, 
-  Crown, 
-  ShieldCheck, 
-  Activity,
-  ChevronRight,
-  Loader2
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: CustomerPortalPage,
@@ -22,207 +25,260 @@ export const Route = createFileRoute("/$slug/portal")({
 
 function CustomerPortalPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, profile } = useAuth();
+  const { user, loading: authLoading, profile, logout } = useAuth();
+  const { slug } = useParams({ from: "/$slug/portal" });
 
-  const params = useParams({ from: "/$slug/portal" });
+  const [activeTab, setActiveTab] = useState("home");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     customer: any;
+    shop: any;
+    appointments: any[];
+    creditTransactions: any[];
+    cashbackTransactions: any[];
     levels: any[];
     achievements: any[];
     unlockedAchievements: any[];
   } | null>(null);
 
+  // ProfileTab state
+  const [customerName, setCustomerName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadPortalData = useCallback(async () => {
+    if (!user || !profile?.tenant_id) return;
+    
+    try {
+      const { data: customerData, error: customerError } = await supabase
+        .from("customers")
+        .select("*, loyalty_levels(*)")
+        .eq("user_id", user.id) 
+        .eq("tenant_id", profile.tenant_id)
+        .maybeSingle();
+
+      if (customerError) throw customerError;
+      if (!customerData) {
+        setLoading(false);
+        return;
+      }
+
+      setCustomerName(customerData.name || "");
+
+      const [
+        shopRes,
+        apptsRes,
+        creditsRes,
+        cashbackRes,
+        levelsRes,
+        achRes,
+        unlockedRes
+      ] = await Promise.all([
+        supabase.from("barbershops").select("*").eq("id", profile.tenant_id).maybeSingle(),
+        supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).order("start_time", { ascending: false }),
+        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
+        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
+        supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
+        supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
+        supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
+      ]);
+
+      setData({
+        customer: customerData,
+        shop: shopRes.data,
+        appointments: apptsRes.data || [],
+        creditTransactions: creditsRes.data || [],
+        cashbackTransactions: cashbackRes.data || [],
+        levels: levelsRes.data || [],
+        achievements: achRes.data || [],
+        unlockedAchievements: unlockedRes.data || []
+      });
+    } catch (err: any) {
+      console.error("Portal Load Error:", err);
+      toast.error("Erro ao carregar portal: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, profile?.tenant_id]);
+
   useEffect(() => {
-    // 1. Aguardar hidratação da autenticação
     if (authLoading) return;
     
-    // 2. Se não há usuário, redirecionar para auth
     if (!user) {
-      console.warn('[AUTH_REDIRECT_TRACE] Portal access denied: No session');
-      const currentPath = window.location.pathname;
-      
-      // Pequeno delay para evitar falsos negativos se o authLoading flutuar
       const timer = setTimeout(() => {
-        navigate({ to: "/auth", search: { redirect: currentPath } as any, replace: true });
+        navigate({ to: "/auth", search: { redirect: window.location.pathname } as any, replace: true });
       }, 500);
-      
       return () => clearTimeout(timer);
     }
 
-    // 3. Se o perfil for legacy, redirecionar
     if (profile?.identity_status === 'legacy') {
-      console.warn('[AUTH_REDIRECT_TRACE] Portal access denied: Legacy identity');
       navigate({ to: "/auth", replace: true });
       return;
-    }
-
-
-    async function loadPortalData() {
-      try {
-        const { data: customerData, error: customerError } = await supabase
-          .from("customers")
-          .select("*, loyalty_levels(*)")
-          .eq("user_id", user!.id) 
-          .eq("tenant_id", profile?.tenant_id)
-          .maybeSingle();
-
-        if (customerError) throw customerError;
-
-        const [levelsRes, achRes, unlockedRes] = await Promise.all([
-          supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
-          supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
-          customerData 
-            ? supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
-            : Promise.resolve({ data: [] })
-        ]);
-
-        setData({
-          customer: customerData,
-          levels: levelsRes.data || [],
-          achievements: achRes.data || [],
-          unlockedAchievements: unlockedRes.data || []
-        });
-      } catch (err: any) {
-        toast.error("Erro ao carregar portal: " + err.message);
-      } finally {
-        setLoading(false);
-      }
     }
 
     if (profile) {
       loadPortalData();
     }
-  }, [user, authLoading, profile]);
+  }, [user, authLoading, profile, navigate, loadPortalData]);
 
-  if (authLoading || (user && !profile) || loading) {
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: "/auth", replace: true });
+  };
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 text-gold animate-spin" />
           <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-            Carregando Portal Premium...
+            Sincronizando sua Experiência...
           </p>
         </div>
       </div>
     );
   }
 
-  if (!user || !profile || profile.identity_status === 'legacy') {
+  if (!user || !profile || !data?.customer) {
     return null;
   }
 
-  const currentLevel = data?.customer?.loyalty_levels;
-  const levels = data?.levels || [];
+  const currentLevel = data.customer.loyalty_levels;
+  const levels = data.levels || [];
   const currentIndex = levels.findIndex((l: any) => l.id === currentLevel?.id);
   const nextLevel = currentIndex !== -1 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : undefined;
 
-  const achievements = (data?.achievements || []).map((ach: any) => ({
+  const achievements = data.achievements.map((ach: any) => ({
     ...ach,
-    unlocked: data?.unlockedAchievements?.some((ua: any) => ua.achievement_id === ach.id),
-    unlocked_at: data?.unlockedAchievements?.find((ua: any) => ua.achievement_id === ach.id)?.unlocked_at
+    unlocked: data.unlockedAchievements?.some((ua: any) => ua.achievement_id === ach.id),
+    unlocked_at: data.unlockedAchievements?.find((ua: any) => ua.achievement_id === ach.id)?.unlocked_at
   }));
 
-  // Safe slug for links
-  const slug = (params as any).slug;
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "home":
+        return (
+          <HomeTab
+            client={data.customer}
+            shop={data.shop}
+            customerData={data.customer}
+            mySubscription={null} // Will implement when subscription data is added
+            appointments={data.appointments}
+            sales={[]} // To be implemented if needed
+            loyaltyRewards={[]} // To be implemented
+            barbers={[]} // Needed for ProfissionalFavorito
+            products={[]} // Needed for ProdutosRecomendados
+            subscriptionsEnabled={false}
+            onNewAppointment={() => window.dispatchEvent(new CustomEvent("OPEN_BOOKING_MODAL"))}
+            onNavigate={setActiveTab}
+          />
+        );
+      case "appointments":
+        return (
+          <AppointmentsTab 
+            appointments={data.appointments}
+            onViewDetails={(id) => console.log("View details", id)}
+            onReview={(app) => console.log("Review", app)}
+          />
+        );
+      case "finances":
+        return (
+          <FinancesTab 
+            creditTransactions={data.creditTransactions}
+            cashbackTransactions={data.cashbackTransactions}
+          />
+        );
+      case "loyalty":
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <LoyaltyLevelCard 
+              currentXP={data.customer.xp || 0}
+              currentLevel={currentLevel}
+              nextLevel={nextLevel}
+              achievementsCount={data.unlockedAchievements?.length || 0}
+            />
+            <div className="space-y-6">
+              <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
+                Minhas Conquistas
+              </h2>
+              <AchievementGrid achievements={achievements} />
+            </div>
+          </div>
+        );
+      case "profile":
+        return (
+          <ProfileTab 
+            customerData={data.customer}
+            setCustomerData={(newData) => setData({ ...data, customer: newData })}
+            customerName={customerName}
+            setCustomerName={setCustomerName}
+            submitting={submitting}
+            setSubmitting={setSubmitting}
+            fetchClientData={() => loadPortalData()}
+            slug={slug}
+            setClient={() => {}} // Legacy prop
+          />
+        );
+      default:
+        return <div>Em breve...</div>;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#05070d] text-white p-6 space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <div>
-            <h1 className="text-4xl font-black uppercase italic tracking-tighter mb-2">
-              Meu Portal <span className="text-gold">Premium</span>
-            </h1>
-            <p className="text-zinc-400 font-medium">Bem-vindo de volta, {data?.customer?.name || 'Cliente'}.</p>
-          </div>
-          <Link 
-            to="/$slug/portal/security"
-            params={{ slug }}
-            className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gold"
-          >
-            <ShieldCheck className="h-5 w-5" />
-          </Link>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link 
-            to="/$slug/portal/security"
-            params={{ slug }}
-            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-gold hover:border-gold/20 transition-all text-xs font-bold uppercase tracking-widest"
-          >
-            <ShieldCheck className="h-4 w-4" />
-            Segurança
-          </Link>
-
-          <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Activity className="h-5 w-5 text-gold" />
+    <div className="min-h-screen bg-[#05070d] text-white">
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden">
+              {data.customer.avatar_url ? (
+                <img src={data.customer.avatar_url} alt={data.customer.name} className="h-full w-full object-cover" />
+              ) : (
+                <UserIcon className="h-6 w-6 text-gold" />
+              )}
+            </div>
             <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Saldo Atual</div>
-              <div className="text-xl font-black text-white">R$ 45,90 <span className="text-gold/50 text-xs">em créditos</span></div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/60">Bem-vindo à</p>
+              <h2 className="text-lg font-black text-white leading-none">{data.shop?.business_name || 'Barbearia'}</h2>
             </div>
           </div>
-        </div>
-      </div>
 
-      <LoyaltyLevelCard 
-        currentXP={data?.customer?.xp || 0}
-        currentLevel={currentLevel}
-        nextLevel={nextLevel}
-        achievementsCount={data?.unlockedAchievements?.length || 0}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
-              <Trophy className="h-6 w-6 text-gold" />
-              Minhas Conquistas
-            </h2>
-            <Button variant="link" className="text-gold text-xs font-black uppercase tracking-widest">
-              Ver Todas <ChevronRight className="h-4 w-4" />
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-gold rounded-xl transition-all">
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-zinc-400 hover:text-gold rounded-xl transition-all"
+              onClick={() => setActiveTab('profile')}
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-zinc-400 hover:text-red-400 rounded-xl transition-all"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
-          <AchievementGrid achievements={achievements} />
         </div>
+      </header>
 
-        <div className="space-y-6">
-          <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-gold" />
-            Vantagens VIP
-          </h2>
-          <div className="space-y-3">
-            {currentLevel?.benefits?.map((benefit: string, i: number) => (
-              <div 
-                key={i}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-white/5 to-transparent border border-white/5 hover:border-gold/20 transition-all group"
-              >
-                <div className="h-10 w-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="h-5 w-5 text-gold" />
-                </div>
-                <span className="text-sm font-bold text-zinc-300 leading-tight">{benefit}</span>
-              </div>
-            ))}
-            {(!currentLevel?.benefits || currentLevel.benefits.length === 0) && (
-              <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-zinc-800 text-zinc-500 italic text-sm">
-                Nenhuma vantagem disponível para seu nível atual. Suba para o nível Prata para desbloquear!
-              </div>
-            )}
-          </div>
+      {/* Navigation Tabs */}
+      <PortalNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isSubscriber={false}
+        subscriptionsEnabled={false}
+        storeEnabled={false}
+        couponsEnabled={true}
+      />
 
-          <div className="mt-8 rounded-2xl bg-gold p-6 text-black relative overflow-hidden group">
-            <div className="absolute top-0 right-0 opacity-10 -rotate-12 translate-x-4 -translate-y-4 group-hover:rotate-0 group-hover:translate-x-0 transition-transform duration-500">
-              <Crown size={120} />
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-lg font-black uppercase italic tracking-tighter mb-2">Clube Barbex Pro</h3>
-              <p className="text-sm font-bold mb-4 leading-tight opacity-80">Assine o plano mensal e ganhe XP em dobro em todos os serviços!</p>
-              <Button className="w-full bg-black text-white font-black uppercase tracking-widest text-[10px] h-10 rounded-xl hover:bg-zinc-900">
-                Saber Mais
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {renderTabContent()}
+      </main>
     </div>
   );
 }
