@@ -401,7 +401,7 @@ function ShopPageComponent() {
         // Step 1: Query all customers with this phone number across all tenants
         const { data: records, error } = await supabase
           .from('customers')
-          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id, identity_status')
+          .select('id, name, phone, email, cashback_balance, loyalty_points, credits, auth_migration_status, user_id')
           .eq('phone', normalizedPhone);
 
         if (error) throw error;
