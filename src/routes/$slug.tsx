@@ -3647,7 +3647,7 @@ function ShopPageComponent() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-lg font-bold text-green-800 dark:text-green-300 uppercase tracking-tight truncate leading-tight">
-                                    OLÁ, {customerName.split(' ')[0]}! 👋
+                                    OLÁ, {(customerName || '').split(' ')[0].toUpperCase()}! 👋
                                   </h3>
                                   <p className="text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
                                     Que bom ter você de volta!
