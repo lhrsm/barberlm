@@ -92,13 +92,6 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#05070d] text-white selection:bg-gold selection:text-black">
-      {/* Visual Debug Tool (Remove before production) */}
-      <div className="hidden fixed bottom-4 right-4 z-[9999] bg-red-600 text-white p-4 rounded-xl text-xs max-w-md shadow-2xl border-2 border-white/20">
-        <p className="font-bold mb-2 uppercase tracking-widest">Identificação de Problemas</p>
-        <p className="opacity-90 leading-relaxed">
-          Ocorrendo erros de redirecionamento, falta de $slug e etc. no barbex.shop/$slug/portal e na transição do login administrativo para o portal do cliente.
-        </p>
-      </div>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -147,7 +140,7 @@ function LandingPage() {
                   Testar Grátis
                 </Button>
                 <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white/70 font-black uppercase tracking-widest text-[10px]" asChild>
-                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</Link>
+                  <a href="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</a>
                 </Button>
               </div>
             </motion.div>

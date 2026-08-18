@@ -265,14 +265,36 @@ function ResetPasswordPage() {
                 <Button
                   onClick={async () => {
                     const { data: { user } } = await supabase.auth.getUser();
-                    const { data: profile } = await supabase.from('profiles').select('role, slug').eq('id', user?.id).maybeSingle();
-                    
-                    if (profile?.role === 'client' && profile?.slug) {
-                      navigate({ to: `/${profile.slug}/portal` as any });
-                    } else if (profile?.role === 'client') {
-                      navigate({ to: '/portal' as any });
-                    } else {
+                    if (!user) {
                       navigate({ to: '/auth' as any });
+                      return;
+                    }
+
+                    const { data: profile } = await supabase
+                      .from('profiles')
+                      .select('role, slug, tenant_id')
+                      .eq('id', user.id)
+                      .maybeSingle();
+                    
+                    if (profile?.role === 'client') {
+                      // Se for cliente, precisamos do slug do tenant
+                      if (profile.tenant_id) {
+                        const { data: shop } = await supabase
+                          .from('barbershops')
+                          .select('slug')
+                          .eq('id', profile.tenant_id)
+                          .maybeSingle();
+                        
+                        if (shop?.slug) {
+                          window.location.href = `/${shop.slug}/portal`;
+                          return;
+                        }
+                      }
+                      window.location.href = '/'; // Fallback
+                    } else if (profile?.slug) {
+                      window.location.href = `/dashboard`;
+                    } else {
+                      window.location.href = '/auth';
                     }
                   }}
                   className="w-full h-[56px] rounded-[16px] text-black font-black uppercase tracking-widest text-xs transition-all duration-300 hover:brightness-110 active:scale-[0.98]"

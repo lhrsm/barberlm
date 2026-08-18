@@ -197,11 +197,11 @@ function CustomerPortalPage() {
       <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 md:p-8">
         <div className="w-full max-w-[480px] space-y-8">
           <div className="flex justify-center mb-8">
-            <Link to={`/${slug}` as any}>
+            <a href={`/${slug}`}>
               <Button variant="ghost" className="text-gold hover:text-gold/80 hover:bg-gold/10 gap-2 font-black uppercase tracking-widest text-[10px]">
                 <ArrowLeft size={16} /> Voltar para a barbearia
               </Button>
-            </Link>
+            </a>
           </div>
           <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
             <ClientLoginForm barbershopSlug={slug} />
@@ -407,12 +407,15 @@ function CustomerPortalPage() {
               variant="ghost" 
               size="icon" 
               className="text-zinc-400 hover:text-red-400 rounded-xl transition-all"
-              onClick={handleLogout}
+              onClick={async () => {
+                await logout();
+                window.location.href = `/${slug}`;
+              }}
             >
               <LogOut className="h-5 w-5" />
             </Button>
             
-            <Link to={`/${slug}` as any} className="hidden md:block">
+            <a href={`/${slug}`} className="hidden md:block">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -420,7 +423,7 @@ function CustomerPortalPage() {
               >
                 Site
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </header>
