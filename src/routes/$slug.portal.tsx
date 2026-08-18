@@ -407,7 +407,10 @@ function CustomerPortalPage() {
               variant="ghost" 
               size="icon" 
               className="text-zinc-400 hover:text-red-400 rounded-xl transition-all"
-              onClick={handleLogout}
+              onClick={async () => {
+                await logout();
+                window.location.href = `/${slug}`;
+              }}
             >
               <LogOut className="h-5 w-5" />
             </Button>

@@ -1656,9 +1656,10 @@ function ShopPageComponent() {
           }
 
           console.log('[BOOKING_REDIRECT] Finalizing to portal:', portalUrl);
-          navigate({ to: portalUrl as any, replace: true });
+          // GARANTIR QUE SEMPRE REDIRECIONE PARA /$slug/portal COM RECARGA LIMPA
+          window.location.href = portalUrl;
         } else {
-          navigate({ to: `/${slug}/portal` as any, replace: true });
+          window.location.href = `/${slug}/portal`;
         }
       };
 

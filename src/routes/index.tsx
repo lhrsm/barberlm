@@ -147,7 +147,7 @@ function LandingPage() {
                   Testar Grátis
                 </Button>
                 <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white/70 font-black uppercase tracking-widest text-[10px]" asChild>
-                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</Link>
+                  <a href="/auth" onClick={() => setIsMobileMenuOpen(false)}>Acessar Conta</a>
                 </Button>
               </div>
             </motion.div>

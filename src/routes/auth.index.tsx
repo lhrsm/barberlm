@@ -65,11 +65,7 @@ function AuthIndexComponent() {
                     variant="link" 
                     onClick={() => {
                       const currentSlug = window.location.pathname.split('/')[1];
-                      if (currentSlug && currentSlug !== 'auth') {
-                        navigate({ to: `/${currentSlug}/portal` as any });
-                      } else {
-                        navigate({ to: '/auth', search: { tab: undefined } });
-                      }
+                      window.location.href = '/auth';
                     }}
                     className="text-zinc-400 hover:text-gold text-[10px] font-black uppercase tracking-widest"
                   >
@@ -84,13 +80,9 @@ function AuthIndexComponent() {
                   <Button 
                     variant="link" 
                     onClick={() => {
-                      // Attempt to resolve slug from context or simply go to client portal if slug is known
-                      const currentSlug = window.location.pathname.split('/')[1];
-                      if (currentSlug && currentSlug !== 'auth') {
-                        navigate({ to: `/${currentSlug}/portal` as any });
-                      } else {
-                        navigate({ to: '/auth', search: { tab: 'client', redirect: undefined } });
-                      }
+                      // Redireciona para o portal global apenas se não houver contexto, 
+                      // mas ClientLoginForm cuidará da resolução.
+                      navigate({ to: '/auth', search: { tab: 'client' } });
                     }}
                     className="text-zinc-500 hover:text-gold text-[10px] font-black uppercase tracking-widest"
                   >
