@@ -3648,6 +3648,8 @@ function ShopPageComponent() {
                           >
                             {identityState === 'READY' && customerId && customerName ? (
                               <BookingConfirmationCard name={customerName} />
+                            ) : identityState === 'READY' && customerId && !customerName ? (
+                              <BookingConfirmationCard name="Cliente" />
                             ) : identityState === 'NEEDS_ONBOARDING' && customerId && customerName ? (
                               <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
                                 <div className="h-10 w-10 shrink-0 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
