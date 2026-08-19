@@ -254,7 +254,9 @@ function DashboardIndexComponent() {
     const weeklyCashbackEarned = weeklyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_earned || 0), 0) || 0;
 
     const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
-    const monthlyCashInflow = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0) || 0;
+    const monthlyCashInflow = monthlyAppointmentsData.data
+      ?.filter(appt => appt.payment_status === 'paid' || appt.status === 'completed')
+      ?.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0) || 0;
     const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
     const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_used || 0), 0) || 0;
     const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.cashback_earned || 0), 0) || 0;
