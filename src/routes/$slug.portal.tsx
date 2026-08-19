@@ -368,7 +368,7 @@ function CustomerPortalPage() {
   }
 
 
-  const currentLevel = data.customer.loyalty_levels;
+  const currentLevel = data?.customer?.loyalty_levels;
   const levels = data.levels || [];
   const currentIndex = levels.findIndex((l: any) => l.id === currentLevel?.id);
   const nextLevel = currentIndex !== -1 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : undefined;
