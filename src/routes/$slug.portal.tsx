@@ -55,7 +55,7 @@ function CustomerPortalPage() {
   const [customerName, setCustomerName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const loadPortalData = useCallback(async () => {
+  const loadPortalData = useCallback(async (isBackground = false) => {
     const trace = (event: string, meta?: any) => {
       console.log(`[PORTAL_RESOLUTION_TRACE] ${event}`, {
         timestamp: new Date().toISOString(),
@@ -66,7 +66,15 @@ function CustomerPortalPage() {
       });
     };
 
-    trace("Starting loadPortalData");
+    trace("Starting loadPortalData", { isBackground });
+    
+    if (isBackground) {
+      setIsRefreshing(true);
+    } else {
+      setLoading(true);
+      setPortalState('INITIALIZING');
+    }
+
 
     if (!user) {
       trace("No user, stopping");
@@ -204,7 +212,9 @@ function CustomerPortalPage() {
       toast.error("Erro ao sincronizar portal: " + err.message);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
+
   }, [user, profile?.tenant_id, profile?.phone, slug]);
 
 
