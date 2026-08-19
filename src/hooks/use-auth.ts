@@ -84,6 +84,7 @@ async function fetchProfileData(userId: string) {
       slug: resolvedRole === 'client' ? null : (profileData?.slug ?? null),
       email: profileData?.email ?? null,
       identity_status: (profileData?.identity_status as IdentityStatus) ?? 'legacy',
+      phone: profileData?.phone ?? null,
     };
 
     setState({ profile: normalizedProfile });
