@@ -299,11 +299,25 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const shouldBlock = accessReady && isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin';
 
 
+  // [DEBUG_SSR_HYDRATION] Forcing hydration check logs
+  useEffect(() => {
+    console.log("[DASHBOARD_BOOT_TRACE] AppLayout: Hydrated", { 
+      loading, 
+      authLoading,
+      tenantId,
+      accessReady,
+      isExpired
+    });
+  }, [loading, authLoading, tenantId, accessReady, isExpired]);
+
   if (loading || authLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-blue-500/20 flex-col gap-4 border-8 border-blue-500" data-debug-layout="v2026-08-19-A">
         <div className="h-12 w-12 rounded-full border-4 border-gold/10 border-t-gold animate-spin" />
         <p className="text-gold/60 font-bold animate-pulse uppercase tracking-[0.2em] text-xs">Barbex Premium [LAYOUT CANARY]</p>
+        <span className="text-[8px] text-blue-400 opacity-50 font-mono">
+          L:{String(loading)} AL:{String(authLoading)} T:{String(!!tenantId)}
+        </span>
       </div>
     );
   }
