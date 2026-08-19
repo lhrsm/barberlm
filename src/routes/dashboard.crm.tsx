@@ -158,7 +158,7 @@ function CRM360Page() {
     setLoadingProfile(true);
     
     const [histRes, prodRes] = await Promise.all([
-      supabase.from("appointments").select("*, services(name), barbers(name)").eq("customer_id", customer.id).order("start_time", { ascending: false }),
+      supabase.from("appointments").select("*, services(name), barbers:barbers!appointments_barber_id_fkey(name)").eq("customer_id", customer.id).order("start_time", { ascending: false }),
       supabase.from("product_sales").select("*").eq("customer_id", customer.id).order("created_at", { ascending: false })
     ]);
     

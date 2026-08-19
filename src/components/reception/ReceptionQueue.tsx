@@ -68,7 +68,7 @@ export function ReceptionQueue({ date, barberId }: { date?: string; barberId?: s
       let apptQuery = supabase
         .from("appointments")
         .select(
-          "*, customers(*), barbers(*), services(*)",
+          "*, customers(*), barbers:barbers!appointments_barber_id_fkey(*), services(*)",
         )
         .eq("tenant_id", tenantId!)
         .gte("start_time", start)

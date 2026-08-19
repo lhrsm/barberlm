@@ -140,14 +140,21 @@ function CustomerPortalPage() {
           p_tenant_id: effectiveTenantId
         });
 
+        const isClaimSuccess =
+          claimRes &&
+          ((claimRes as any).status === 'SUCCESS' ||
+            (claimRes as any).success === true ||
+            (claimRes as any).status === 'ALREADY_CLAIMED');
+        const claimedCustomerId = (claimRes as any).customer_id;
+
         if (claimErr) {
           console.error("[PORTAL_RESOLUTION_TRACE] Claim RPC error:", claimErr);
-        } else if (claimRes && (claimRes as any).status === 'SUCCESS' && (claimRes as any).customer_id) {
-          trace("Claim RPC succeeded", { customerId: (claimRes as any).customer_id });
+        } else if (isClaimSuccess && claimedCustomerId) {
+          trace("Claim RPC succeeded", { customerId: claimedCustomerId });
           const { data: claimedCustomer, error: fetchClaimedErr } = await supabase
             .from("customers")
             .select("*, loyalty_levels(*)")
-            .eq("id", (claimRes as any).customer_id)
+            .eq("id", claimedCustomerId)
             .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
@@ -158,6 +165,16 @@ function CustomerPortalPage() {
           }
         } else {
           trace("Claim RPC returned non-success status", { claimRes });
+          // Fallback seguro: tentar buscar novamente caso a RPC já tenha atualizado auth_user_id
+          const { data: retryCustomer } = await supabase
+            .from("customers")
+            .select("*, loyalty_levels(*)")
+            .eq("auth_user_id" as any, user.id)
+            .eq("tenant_id", effectiveTenantId)
+            .maybeSingle();
+          if (retryCustomer) {
+            customerData = retryCustomer;
+          }
         }
       }
 
@@ -184,7 +201,7 @@ function CustomerPortalPage() {
         unlockedRes
       ] = await Promise.all([
         supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family").eq("id", effectiveTenantId).maybeSingle(),
-        supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
+        supabase.from("appointments").select("*, services(*), barbers:barbers!appointments_barber_id_fkey(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
         supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),

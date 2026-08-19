@@ -225,7 +225,7 @@ const CalendarComponent = memo(() => {
 
       let appQuery = supabase
         .from("appointments")
-        .select("*, customers(*), services(*), barbers(*)")
+        .select("*, customers(*), services(*), barbers:barbers!appointments_barber_id_fkey(*)")
         .eq("tenant_id", tenantId)
         .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show", "pending", "in_progress"])
         .gte("start_time", start.toISOString())

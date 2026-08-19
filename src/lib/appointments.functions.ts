@@ -6,7 +6,7 @@ export const getAdminAppointmentDetails = createServerFn({ method: "GET" })
   .handler(async ({ data: id }) => {
     const { data, error } = await supabaseAdmin
       .from("appointments")
-      .select("*, customers(*), services(*), barbers(*)")
+      .select("*, customers(*), services(*), barbers:barbers!appointments_barber_id_fkey(*)")
       .eq("id", id)
       .single();
 

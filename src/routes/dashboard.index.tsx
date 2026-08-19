@@ -123,16 +123,13 @@ function DashboardIndexComponent() {
         });
         
         setIsRefreshing(true);
-        // Sequential refresh for stability
-        fetchTodayAppointments()
-          .then(() => fetchStats())
-          .then(() => fetchBirthdayCustomers())
-          .then(() => refreshLimits())
-          .finally(() => {
-            setIsRefreshing(false);
-            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-          });
-
+        // Realtime update: atualizar somente agendamentos e estatísticas operacionais
+        Promise.allSettled([
+          fetchTodayAppointments(),
+          fetchStats()
+        ]).finally(() => {
+          setIsRefreshing(false);
+        });
       })
       .subscribe();
 
@@ -202,7 +199,7 @@ function DashboardIndexComponent() {
 
       const { data, error } = await supabase
         .from("appointments")
-        .select("*, customers(*), services(*), barbers(*)")
+        .select("*, customers(*), services(*), barbers:barbers!appointments_barber_id_fkey(*)")
         .eq("tenant_id", tenantId)
         .in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"])
         .gte("start_time", dayStart)
@@ -351,14 +348,24 @@ function DashboardIndexComponent() {
   }
 
 
-  // SSR Safety: Allow initial render during SSR even without user/tenantId
-  // The client-side hydration will handle the actual data loading and redirects
+  // SSR Safety & Hydration Fallback:
   if ((!user || !tenantId) && typeof window !== 'undefined') {
     if (!authLoading && !user) {
        console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
        window.location.href = "/auth";
+       return null;
     }
-    return null;
+    if (authLoading || tenantLoading) {
+      return (
+        <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
+          <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
+          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+            Sincronizando Dashboard Executivo...
+          </p>
+          <span className="text-[10px] text-zinc-800 opacity-30 uppercase tracking-widest font-mono mt-8">DEBUG DASHBOARD A ({CANARY_ID})</span>
+        </div>
+      );
+    }
   }
 
   const renderSpecializedView = () => {

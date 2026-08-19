@@ -50,7 +50,7 @@ function CentroDeComando() {
     const [apptsRes, barbersRes] = await Promise.all([
       supabase
         .from("appointments")
-        .select("*, customers(*), services(*), barbers(*)")
+        .select("*, customers(*), services(*), barbers:barbers!appointments_barber_id_fkey(*)")
         .eq("tenant_id", tenantId)
         .gte("start_time", dayStart)
         .lte("start_time", dayEnd)
