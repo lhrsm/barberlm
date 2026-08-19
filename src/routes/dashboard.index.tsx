@@ -338,7 +338,7 @@ function DashboardIndexComponent() {
 
 
   // Show loading skeleton while initializing ONLY on first boot
-  if (isInitialBoot && (loading || authLoading || tenantLoading)) {
+  if (isInitialBoot && (loading || authLoading || tenantLoading) && typeof window !== 'undefined') {
     return (
       <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center bg-red-500/10 border-4 border-red-500" data-debug-dashboard={CANARY_ID}>
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />

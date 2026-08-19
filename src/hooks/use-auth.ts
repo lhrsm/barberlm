@@ -24,7 +24,8 @@ interface Profile {
 let globalUser: User | null = null;
 let globalSession: Session | null = null;
 let globalProfile: Profile | null = null;
-let globalLoading = true; 
+let globalLoading = false; 
+if (typeof window === 'undefined') globalLoading = false; // Never loading during SSR to avoid blocking render
 let initialized = false;
 let initializationPromise: Promise<void> | null = null;
 const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
@@ -175,7 +176,7 @@ export function useAuth() {
     user: globalUser,
     session: globalSession,
     profile: globalProfile,
-    loading: initialized ? globalLoading : true,
+    loading: typeof window === 'undefined' ? false : (initialized ? globalLoading : true),
   });
 
   useEffect(() => {

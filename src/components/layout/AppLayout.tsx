@@ -310,7 +310,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
     });
   }, [loading, authLoading, tenantId, accessReady, isExpired]);
 
-  if (loading || authLoading) {
+  if ((loading || authLoading) && typeof window !== 'undefined') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-blue-500/20 flex-col gap-4 border-8 border-blue-500" data-debug-layout="v2026-08-19-A">
         <div className="h-12 w-12 rounded-full border-4 border-gold/10 border-t-gold animate-spin" />
