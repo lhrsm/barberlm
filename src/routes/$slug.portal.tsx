@@ -240,6 +240,7 @@ function CustomerPortalPage() {
   }, [portalState, data?.customer?.id, data?.shop?.id, loadPortalData]);
 
 
+
   useEffect(() => {
     // Safety check for loading state
     if (loading && user && data?.customer) {
