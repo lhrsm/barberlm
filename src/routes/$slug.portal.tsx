@@ -190,7 +190,7 @@ function CustomerPortalPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, profile?.tenant_id, slug, loadPortalData]);
+  }, [user, profile?.tenant_id, profile?.phone, slug]);
 
   useEffect(() => {
     // Safety check for loading state
