@@ -12,9 +12,9 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           "placeholder:text-slate-500",
           "hover:border-white/20 hover:bg-white/10",
           "focus-visible:outline-none focus-visible:border-gold focus-visible:ring-4 focus-visible:ring-gold/10 focus-visible:bg-white focus-visible:text-[#111111] focus-visible:placeholder:text-[#6B7280]",
-          "autofill:shadow-[0_0_0_1000px_white_inset] autofill:text-[#111111] [-webkit-text-fill-color:inherit] [-webkit-text-security:none]",
+          "autofill:shadow-[0_0_0_1000px_white_inset] autofill:text-[#111111] [-webkit-text-fill-color:inherit]",
           "[[data-state=open]_&]:text-[#111111] [[data-state=open]_&]:bg-white", // Target for when parent is focus-within or similar if needed
-          "[&:not(:placeholder-shown)]:text-white focus:[&:not(:placeholder-shown)]:text-[#111111] [text-security:none]",
+          "[&:not(:placeholder-shown)]:text-white focus:[&:not(:placeholder-shown)]:text-[#111111]",
           "disabled:cursor-not-allowed disabled:opacity-50 text-base md:text-sm", // Ensure 16px to avoid iOS zoom
           className,
         )}
