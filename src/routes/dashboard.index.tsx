@@ -177,7 +177,11 @@ function DashboardIndexComponent() {
       });
       setBirthdayCustomers(currentMonthBirthdays);
     }
+    } catch (error) {
+      console.error("[DASHBOARD_LOADING_TRACE] fetchBirthdayCustomers:error", error);
+    }
   }
+
 
   async function fetchTodayAppointments() {
     if (!tenantId) return;
