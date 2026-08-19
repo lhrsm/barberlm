@@ -476,15 +476,17 @@ function CustomerPortalPage() {
     }
   };
 
-  console.log("[PORTAL_BLACKSCREEN_TRACE] Rendering Portal Root", {
+  console.log("[PORTAL_RESOLUTION_TRACE] Render", {
+    portalState,
     hasUser: !!user,
     hasProfile: !!profile,
     hasData: !!data,
     loading,
     authLoading,
     activeTab,
-    visibility: document.visibilityState
+    visibility: typeof document !== 'undefined' ? document.visibilityState : 'unknown'
   });
+
 
   return (
     <div className="min-h-screen bg-[#05070d] text-white">
