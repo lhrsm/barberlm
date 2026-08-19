@@ -1647,16 +1647,6 @@ function ShopPageComponent() {
 
       // Reset and redirect
       const receiptAmount = calculateTotal();
-      setIsBookingOpen(false);
-      setBookingCart([]);
-      setSelectedProducts([]);
-      setBookingStep(1);
-      setBookingMode(null);
-      setAppliedCoupon(null);
-      setUseCashback(false);
-      setUseCredits(false);
-      setPaymentMethod(null);
-      
       const isMultipleFinal = createdAppointments.length > 1;
       const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
 
@@ -1670,11 +1660,14 @@ function ShopPageComponent() {
         }
       };
 
-
-      // PIX: pede o comprovante antes de redirecionar
+      // PIX: pede o comprovante ANTES de fechar a modal de agendamento e limpar o estado
+      // Isso evita o flash da modal de agendamento fechando e abrindo a de PIX logo em seguida.
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
         const firstAppt = createdAppointments?.[0] as any;
         const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
+        
+        setIsBookingOpen(false); // Fecha a modal principal agora que confirmamos o PIX
+        
         setPixReceipt({
           appointmentId: firstAppt.id,
           amount: receiptAmount,
@@ -1684,8 +1677,28 @@ function ShopPageComponent() {
           timeLabel: firstItem?.start_time || "",
           onDone: runRedirect,
         });
+        
+        // Limpa o resto do estado mas mantém o pixReceipt aberto
+        setBookingCart([]);
+        setSelectedProducts([]);
+        setBookingStep(1);
+        setBookingMode(null);
+        setAppliedCoupon(null);
+        setUseCashback(false);
+        setUseCredits(false);
+        setPaymentMethod(null);
         return;
       }
+
+      setIsBookingOpen(false);
+      setBookingCart([]);
+      setSelectedProducts([]);
+      setBookingStep(1);
+      setBookingMode(null);
+      setAppliedCoupon(null);
+      setUseCashback(false);
+      setUseCredits(false);
+      setPaymentMethod(null);
 
       setTimeout(runRedirect, 1500);
 
