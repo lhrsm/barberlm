@@ -1690,14 +1690,21 @@ function ShopPageComponent() {
         // Limpa o resto do estado mas mantém o pixReceipt aberto
         setBookingCart([]);
         setSelectedProducts([]);
-        setBookingStep(1);
         setBookingMode(null);
         setAppliedCoupon(null);
         setUseCashback(false);
         setUseCredits(false);
         setPaymentMethod(null);
+        
+        // Pequeno atraso para o reset do Step, evitando que a modal principal
+        // mude de conteúdo antes de terminar a animação de saída.
+        setTimeout(() => {
+          setBookingStep(1);
+          console.log('[PIX_FINALIZATION_TRACE] State fully reset');
+        }, 300);
         return;
       }
+
 
       setIsBookingOpen(false);
       setBookingCart([]);
