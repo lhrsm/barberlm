@@ -31,6 +31,8 @@ function CustomerPortalPage() {
   const { user, loading: authLoading, profile, logout } = useAuth();
   const { slug } = useParams({ from: "/$slug/portal" });
 
+  type PortalState = 'INITIALIZING' | 'AUTH_RESOLVED' | 'TENANT_RESOLVED' | 'CUSTOMER_RESOLVED' | 'DATA_READY' | 'ERROR' | 'NOT_FOUND';
+  const [portalState, setPortalState] = useState<PortalState>('INITIALIZING');
   const [activeTab, setActiveTab] = useState("home");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
@@ -44,6 +46,8 @@ function CustomerPortalPage() {
     unlockedAchievements: any[];
   } | null>(null);
   const [lastCheck, setLastCheck] = useState(Date.now());
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 
   // ProfileTab state
   const [customerName, setCustomerName] = useState("");
