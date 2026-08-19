@@ -209,7 +209,7 @@ export function AuthForm() {
                 id="login-email"
                 type="email"
                 autoComplete="email"
-                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -228,7 +228,7 @@ export function AuthForm() {
                 id="login-phone"
                 type="tel"
                 autoComplete="tel"
-                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -259,7 +259,7 @@ export function AuthForm() {
                 id="login-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="pl-14 pr-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
+                className="pl-14 pr-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

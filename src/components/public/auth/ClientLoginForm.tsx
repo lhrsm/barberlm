@@ -195,7 +195,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-[58px] md:h-[62px] pl-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
+                    className="h-[58px] md:h-[62px] pl-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
                   />
                 </div>
                 {form.formState.errors.identifier && (
@@ -222,7 +222,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-[58px] md:h-[62px] pl-14 pr-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-white/35 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
+                    className="h-[58px] md:h-[62px] pl-14 pr-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
                   />
 
                   <button
