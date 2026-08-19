@@ -367,6 +367,7 @@ function CustomerPortalPage() {
     );
   }
 
+  if (!data || !data.customer) return null;
 
   const currentLevel = data?.customer?.loyalty_levels;
   const levels = data.levels || [];
