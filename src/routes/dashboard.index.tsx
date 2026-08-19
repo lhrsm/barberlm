@@ -179,42 +179,39 @@ function DashboardIndexComponent() {
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
-    console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Fetching appointments", { 
-      tenantId, 
-      dayStart, 
-      dayEnd,
-      selectedDate: selectedDate.toISOString()
-    });
+    try {
+      console.log("[DASHBOARD_LOADING_TRACE]", { 
+        timestamp: new Date().toISOString(),
+        event: "fetchTodayAppointments:started",
+        tenantId, 
+        dayStart, 
+        dayEnd 
+      });
 
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*, customers(*), services(*), barbers(*)")
-      .eq("tenant_id", tenantId)
-      .in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"])
-      .gte("start_time", dayStart)
-      .lte("start_time", dayEnd)
-      .order("start_time", { ascending: false });
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, customers(*), services(*), barbers(*)")
+        .eq("tenant_id", tenantId)
+        .in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"])
+        .gte("start_time", dayStart)
+        .lte("start_time", dayEnd)
+        .order("start_time", { ascending: false });
 
-    if (error) {
-      console.error("[DASHBOARD_APPOINTMENT_FORENSIC] Error:", error);
-      return;
-    }
+      if (error) throw error;
 
-    console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Results:", {
-      count: data?.length,
-      ids: data?.map(a => a.id),
-      ADMIN_APPOINTMENT_TRACE: {
-        tenantId,
-        ownerId: user?.id,
-        filters: { dayStart, dayEnd, status: ["scheduled", "confirmed", "completed", "in_progress", "pending"] },
-        rawRows: data?.length,
-        appointmentIds: data?.map(a => a.id),
-        renderedRows: data?.length
+      if (data) {
+        setTodayAppointments(data);
+        console.log("[DASHBOARD_LOADING_TRACE]", {
+          timestamp: new Date().toISOString(),
+          event: "fetchTodayAppointments:success",
+          count: data.length
+        });
       }
-    });
-
-    if (data) setTodayAppointments(data);
+    } catch (error) {
+      console.error("[DASHBOARD_LOADING_TRACE] fetchTodayAppointments:error", error);
+    }
   }
+
 
   async function fetchStats() {
     if (!tenantId) return;
