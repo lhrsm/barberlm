@@ -54,25 +54,32 @@ function CustomerPortalPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const loadPortalData = useCallback(async () => {
-    const traceMeta: any = { 
-      slug, 
-      userId: user?.id, 
-      profileId: profile?.id, 
-      profileTenantId: profile?.tenant_id 
+    const trace = (event: string, meta?: any) => {
+      console.log(`[PORTAL_RESOLUTION_TRACE] ${event}`, {
+        timestamp: new Date().toISOString(),
+        portalState,
+        slug,
+        userId: user?.id,
+        ...meta
+      });
     };
-    console.log("[PORTAL_BOOT_TRACE] Starting loadPortalData", traceMeta);
+
+    trace("Starting loadPortalData");
 
     if (!user) {
-      console.log("[PORTAL_BOOT_TRACE] No user, skipping data load");
+      trace("No user, stopping");
+      setPortalState('UNAUTHENTICATED' as any);
       setLoading(false);
       return;
     }
 
-    // Se o profile não tem tenant_id, tentamos descobrir pelo slug
+    setPortalState('AUTH_RESOLVED');
+
+    // 1. Resolve Tenant
     let effectiveTenantId = profile?.tenant_id;
     if (!effectiveTenantId && slug) {
-      console.log("[PORTAL_BOOT_TRACE] Profile has no tenant_id, resolving from slug:", slug);
-      const { data: shopData } = await supabase
+      trace("Resolving tenant from slug");
+      const { data: shopData, error: shopErr } = await supabase
         .from("barbershops")
         .select("id")
         .eq("slug", slug)
@@ -80,20 +87,27 @@ function CustomerPortalPage() {
       
       if (shopData) {
         effectiveTenantId = shopData.id;
-        console.log("[PORTAL_BOOT_TRACE] Resolved tenantId from slug:", effectiveTenantId);
+        trace("Tenant resolved", { effectiveTenantId });
+      } else if (shopErr) {
+        trace("Tenant resolution error", { shopErr });
       }
     }
 
     if (!effectiveTenantId) {
-      console.warn("[PORTAL_BOOT_TRACE] No tenant_id resolved, stopping portal load", { slug });
+      trace("Tenant NOT resolved");
+      setPortalState('ERROR');
+      setErrorMessage("Estabelecimento não encontrado.");
       setLoading(false);
       return;
     }
 
+    setPortalState('TENANT_RESOLVED');
+
     try {
-      console.log("[PORTAL_BOOT_TRACE] Fetching customer identity", { effectiveTenantId, userId: user.id });
+      // 2. Resolve Customer
+      trace("Fetching customer identity");
       
-      // First try by user_id
+      // Strict lookup: tenant_id MUST match
       let { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("*, loyalty_levels(*)")
@@ -103,70 +117,44 @@ function CustomerPortalPage() {
 
       if (customerError) throw customerError;
       
-      // Fallback: If not found by user_id, try by phone if profile has it
+      // Fallback by phone (scoped to tenant)
       if (!customerData && profile?.phone) {
-        console.log("[PORTAL_BOOT_TRACE] Customer not found by user_id, trying fallback by phone:", profile.phone);
+        trace("Customer not found by user_id, trying phone fallback");
         const normalized = profile.phone.replace(/\D/g, '');
-        const { data: phoneMatch, error: phoneError } = await supabase
+        const { data: phoneMatch } = await supabase
           .from("customers")
           .select("*, loyalty_levels(*)")
           .eq("tenant_id", effectiveTenantId)
           .ilike("phone", `%${normalized}%`)
           .maybeSingle();
         
-        if (!phoneError && phoneMatch) {
-          console.log("[PORTAL_BOOT_TRACE] Fallback found customer by phone, linking user_id...");
+        if (phoneMatch) {
+          trace("Phone match found", { customerId: phoneMatch.id });
           customerData = phoneMatch;
           
-          // Self-heal: Link user_id if missing or different
+          // Link user_id if missing (Self-heal)
           if (!phoneMatch.user_id) {
-            console.log("[PORTAL_BOOT_TRACE] Self-healing user_id link...");
-            const { error: updateError } = await supabase
+            trace("Linking user_id to customer");
+            await supabase
               .from("customers")
               .update({ user_id: user.id })
               .eq("id", phoneMatch.id);
-            if (updateError) console.error("[PORTAL_BOOT_TRACE] Self-heal error:", updateError);
           }
         }
       }
-
-      console.log("[PORTAL_BOOT_TRACE] Customer identity result:", { 
-        found: !!customerData, 
-        customerId: customerData?.id,
-        authUserId: user.id
-      });
 
       if (!customerData) {
-        console.warn("[PORTAL_BOOT_TRACE] No customer record found for this identity, attempting sync...", { userId: user.id, tenantId: effectiveTenantId });
-        
-        // Se temos o profile mas não o customer, tentamos forçar uma sincronização rápida
-        if (profile?.phone) {
-          console.log("[PORTAL_BOOT_TRACE] Forcing customer sync via phone...");
-          const normalized = profile.phone.replace(/\D/g, '');
-          const { data: syncData, error: syncError } = await supabase
-            .from("customers")
-            .update({ user_id: user.id })
-            .eq("tenant_id", effectiveTenantId)
-            .ilike("phone", `%${normalized}%`)
-            .select()
-            .maybeSingle();
-            
-          if (!syncError && syncData) {
-            console.log("[PORTAL_BOOT_TRACE] Sync successful!");
-            customerData = syncData;
-          }
-        }
-        
-        if (!customerData) {
-          console.error("[PORTAL_BOOT_TRACE] Critical: Customer identity not found after sync attempt.");
-          setLoading(false);
-          return;
-        }
+        trace("Customer NOT found");
+        setPortalState('NOT_FOUND');
+        setLoading(false);
+        return;
       }
 
+      setPortalState('CUSTOMER_RESOLVED');
       setCustomerName(customerData.name || "");
 
-      console.log("[PORTAL_BOOT_TRACE] Parallel data fetch starting", { customerId: customerData.id, tenantId: customerData.tenant_id, authUserId: user.id });
+      // 3. Parallel Data Fetch
+      trace("Fetching parallel data", { customerId: customerData.id });
       
       const [
         shopRes,
@@ -178,7 +166,7 @@ function CustomerPortalPage() {
         unlockedRes
       ] = await Promise.all([
         supabase.from("barbershops").select("*").eq("id", effectiveTenantId).maybeSingle(),
-        supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).order("start_time", { ascending: false }),
+        supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
         supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
@@ -186,19 +174,12 @@ function CustomerPortalPage() {
         supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
       ]);
 
-      console.log("[PORTAL_BOOT_TRACE] Parallel data fetch complete", {
-        shop: !!shopRes.data,
+      trace("Data fetch complete", {
         apptsCount: apptsRes.data?.length,
-        creditsCount: (creditsRes as any).data?.length,
-        cashbackCount: (cashbackRes as any).data?.length,
-        PORTAL_APPOINTMENT_TRACE: {
-          authUserId: user.id,
+        [APPOINTMENT_VISIBILITY_TRACE]: {
           customerId: customerData.id,
           tenantId: effectiveTenantId,
-          rawAppointmentsCount: apptsRes.data?.length,
-          futureAppointmentsCount: apptsRes.data?.filter((a: any) => new Date(a.start_time) >= new Date()).length,
-          pastAppointmentsCount: apptsRes.data?.filter((a: any) => new Date(a.start_time) < new Date()).length,
-          filters: { customer_id: customerData.id, tenant_id: customerData.tenant_id }
+          appointments: apptsRes.data?.map(a => a.id)
         }
       });
 
@@ -212,13 +193,18 @@ function CustomerPortalPage() {
         achievements: achRes.data || [],
         unlockedAchievements: unlockedRes.data || []
       });
+      
+      setPortalState('DATA_READY');
     } catch (err: any) {
-      console.error("[PORTAL_BOOT_TRACE] Fatal error in loadPortalData:", err);
+      trace("Fatal error", { err });
+      setPortalState('ERROR');
+      setErrorMessage(err.message);
       toast.error("Erro ao sincronizar portal: " + err.message);
     } finally {
       setLoading(false);
     }
   }, [user, profile?.tenant_id, profile?.phone, slug]);
+
 
   useEffect(() => {
     // Safety check for loading state
@@ -340,7 +326,7 @@ function CustomerPortalPage() {
     );
   }
 
-  if (!profile || !data?.customer) {
+  if (!profile || portalState === 'NOT_FOUND' || (portalState === 'DATA_READY' && !data?.customer)) {
     return (
       <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 text-center">
         <div className="max-w-md w-full space-y-8 animate-in fade-in duration-700">
@@ -349,11 +335,11 @@ function CustomerPortalPage() {
           </div>
           <div className="space-y-4">
             <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">
-              {loading ? "Sincronizando..." : "Perfil não encontrado"}
+              {portalState === 'ERROR' ? "Erro de Conexão" : "Perfil não encontrado"}
             </h1>
             <p className="text-zinc-500 text-sm leading-relaxed">
-              {loading 
-                ? "Estamos preparando sua experiência premium. Por favor, aguarde um momento." 
+              {portalState === 'ERROR' 
+                ? (errorMessage || "Ocorreu um erro ao carregar seus dados. Por favor, tente novamente.")
                 : "Não conseguimos localizar seu cadastro como cliente neste estabelecimento. Isso pode ocorrer se você for um administrador sem perfil de cliente associado."}
             </p>
           </div>
@@ -376,18 +362,11 @@ function CustomerPortalPage() {
               Sair da conta
             </Button>
           </div>
-
-          <div className="pt-8 border-t border-white/5 mt-8">
-            <Link to={`/${slug}` as any}>
-              <Button variant="link" className="text-zinc-600 hover:text-gold text-[10px] uppercase font-bold tracking-widest">
-                <ArrowLeft size={12} className="mr-2" /> Voltar para a Home
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
     );
   }
+
 
   const currentLevel = data.customer.loyalty_levels;
   const levels = data.levels || [];
