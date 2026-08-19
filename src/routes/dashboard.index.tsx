@@ -311,26 +311,18 @@ function DashboardIndexComponent() {
     if (barbersData.data) setBarbers(barbersData.data);
   }
 
-  // Show loading skeleton while initializing
-  if (loading || authLoading || tenantLoading) {
+  // Show loading skeleton while initializing ONLY on first boot
+  if (isInitialBoot && (loading || authLoading || tenantLoading)) {
     return (
       <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
         <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
           Sincronizando Dashboard Executivo...
         </p>
-        <button 
-          onClick={() => {
-            console.log("[DASHBOARD_BOOT_TRACE] Manual override triggered");
-            window.location.reload();
-          }}
-          className="mt-4 text-[9px] text-white/20 hover:text-white/40 uppercase tracking-widest font-bold"
-        >
-          Recarregar se travar
-        </button>
       </div>
     );
   }
+
 
   // Handle unauthorized or uninitialized states
   if (!user || !tenantId) {
