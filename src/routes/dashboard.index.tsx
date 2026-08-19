@@ -22,7 +22,14 @@ function DashboardIndexComponent() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { refresh: refreshLimits, loading: planLoading } = usePlanLimits();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const loading = authLoading || tenantLoading || planLoading;
+  const [isInitialBoot, setIsInitialBoot] = useState(true);
+
+  useEffect(() => {
+    if (!loading) setIsInitialBoot(false);
+  }, [loading]);
+
   
   const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
@@ -60,14 +67,11 @@ function DashboardIndexComponent() {
   const [birthdayCustomers, setBirthdayCustomers] = useState<any[]>([]);
 
   useEffect(() => {
-    console.log("[DASHBOARD_BOOT_TRACE] Auth Check", { 
-      loading, 
-      authLoading, 
-      tenantLoading, 
-      planLoading, 
-      hasUser: !!user, 
-      role,
-      tenantId 
+    console.log("[DASHBOARD_LOADING_TRACE]", {
+      timestamp: new Date().toISOString(),
+      event: "Auth Check",
+      before: { authLoading, tenantLoading, planLoading, isInitialBoot, isRefreshing },
+      context: { hasUser: !!user, role, tenantId }
     });
 
     if (loading) return;
@@ -90,7 +94,8 @@ function DashboardIndexComponent() {
         return;
       }
     }
-  }, [user, role, loading, navigate, authLoading, tenantLoading, planLoading, tenantId]);
+  }, [user, role, loading, navigate, authLoading, tenantLoading, planLoading, tenantId, isInitialBoot, isRefreshing]);
+
 
   useEffect(() => {
     if (!tenantId) return;
@@ -106,13 +111,28 @@ function DashboardIndexComponent() {
         schema: 'public', 
         table: 'appointments', 
         filter: `tenant_id=eq.${tenantId}`
-      }, () => {
-        fetchTodayAppointments();
-        fetchStats();
-        refreshLimits();
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      }, (payload) => {
+        console.log("[DASHBOARD_LOADING_TRACE]", {
+          timestamp: new Date().toISOString(),
+          event: "postgres_changes:appointments",
+          appointmentId: payload.new?.id,
+          notificationId: payload.commit_timestamp
+        });
+        
+        setIsRefreshing(true);
+        // Sequential refresh for stability
+        fetchTodayAppointments()
+          .then(() => fetchStats())
+          .then(() => fetchBirthdayCustomers())
+          .then(() => refreshLimits())
+          .finally(() => {
+            setIsRefreshing(false);
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          });
+
       })
       .subscribe();
+
 
     return () => {
       supabase.removeChannel(channel);
@@ -121,16 +141,19 @@ function DashboardIndexComponent() {
 
   async function fetchBirthdayCustomers() {
     if (!tenantId) return;
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const todayDay = today.getDate();
     
-    const { data } = await supabase
-      .from("customers")
-      .select("id, name, phone, birth_date, avatar_url")
-      .eq("tenant_id", tenantId);
+    try {
+      const today = new Date();
+      const currentMonth = today.getMonth() + 1;
+      const todayDay = today.getDate();
+      
+      const { data } = await supabase
+        .from("customers")
+        .select("id, name, phone, birth_date, avatar_url")
+        .eq("tenant_id", tenantId);
 
-    if (data) {
+      if (data) {
+
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
         let month = 0;
@@ -154,52 +177,61 @@ function DashboardIndexComponent() {
       });
       setBirthdayCustomers(currentMonthBirthdays);
     }
+    } catch (error) {
+      console.error("[DASHBOARD_LOADING_TRACE] fetchBirthdayCustomers:error", error);
+    }
   }
+
 
   async function fetchTodayAppointments() {
     if (!tenantId) return;
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
-    console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Fetching appointments", { 
-      tenantId, 
-      dayStart, 
-      dayEnd,
-      selectedDate: selectedDate.toISOString()
-    });
+    try {
+      console.log("[DASHBOARD_LOADING_TRACE]", { 
+        timestamp: new Date().toISOString(),
+        event: "fetchTodayAppointments:started",
+        tenantId, 
+        dayStart, 
+        dayEnd 
+      });
 
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*, customers(*), services(*), barbers(*)")
-      .eq("tenant_id", tenantId)
-      .in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"])
-      .gte("start_time", dayStart)
-      .lte("start_time", dayEnd)
-      .order("start_time", { ascending: false });
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, customers(*), services(*), barbers(*)")
+        .eq("tenant_id", tenantId)
+        .in("status", ["scheduled", "confirmed", "completed", "in_progress", "pending"])
+        .gte("start_time", dayStart)
+        .lte("start_time", dayEnd)
+        .order("start_time", { ascending: false });
 
-    if (error) {
-      console.error("[DASHBOARD_APPOINTMENT_FORENSIC] Error:", error);
-      return;
-    }
+      if (error) throw error;
 
-    console.log("[DASHBOARD_APPOINTMENT_FORENSIC] Results:", {
-      count: data?.length,
-      ids: data?.map(a => a.id),
-      ADMIN_APPOINTMENT_TRACE: {
-        tenantId,
-        ownerId: user?.id,
-        filters: { dayStart, dayEnd, status: ["scheduled", "confirmed", "completed", "in_progress", "pending"] },
-        rawRows: data?.length,
-        appointmentIds: data?.map(a => a.id),
-        renderedRows: data?.length
+      if (data) {
+        setTodayAppointments(data);
+        console.log("[DASHBOARD_LOADING_TRACE]", {
+          timestamp: new Date().toISOString(),
+          event: "fetchTodayAppointments:success",
+          count: data.length
+        });
       }
-    });
-
-    if (data) setTodayAppointments(data);
+    } catch (error) {
+      console.error("[DASHBOARD_LOADING_TRACE] fetchTodayAppointments:error", error);
+    }
   }
+
 
   async function fetchStats() {
     if (!tenantId) return;
+    
+    try {
+      console.log("[DASHBOARD_LOADING_TRACE]", { 
+        timestamp: new Date().toISOString(),
+        event: "fetchStats:started",
+        tenantId 
+      });
+
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString();
@@ -291,28 +323,29 @@ function DashboardIndexComponent() {
     });
 
     if (barbersData.data) setBarbers(barbersData.data);
+    
+    console.log("[DASHBOARD_LOADING_TRACE]", {
+      timestamp: new Date().toISOString(),
+      event: "fetchStats:success"
+    });
+    } catch (error) {
+      console.error("[DASHBOARD_LOADING_TRACE] fetchStats:error", error);
+    }
   }
 
-  // Show loading skeleton while initializing
-  if (loading || authLoading || tenantLoading) {
+
+  // Show loading skeleton while initializing ONLY on first boot
+  if (isInitialBoot && (loading || authLoading || tenantLoading)) {
     return (
       <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
         <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
           Sincronizando Dashboard Executivo...
         </p>
-        <button 
-          onClick={() => {
-            console.log("[DASHBOARD_BOOT_TRACE] Manual override triggered");
-            window.location.reload();
-          }}
-          className="mt-4 text-[9px] text-white/20 hover:text-white/40 uppercase tracking-widest font-bold"
-        >
-          Recarregar se travar
-        </button>
       </div>
     );
   }
+
 
   // Handle unauthorized or uninitialized states
   if (!user || !tenantId) {
