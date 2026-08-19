@@ -5972,6 +5972,7 @@ export type Database = {
           opening_date: string | null
           payment_gateway_key: string | null
           payment_gateway_provider: string | null
+          phone: string | null
           pix_key: string | null
           pix_qr_code_url: string | null
           plan: string | null
@@ -6037,6 +6038,7 @@ export type Database = {
           opening_date?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
+          phone?: string | null
           pix_key?: string | null
           pix_qr_code_url?: string | null
           plan?: string | null
@@ -6102,6 +6104,7 @@ export type Database = {
           opening_date?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
+          phone?: string | null
           pix_key?: string | null
           pix_qr_code_url?: string | null
           plan?: string | null

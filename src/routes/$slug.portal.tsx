@@ -116,10 +116,12 @@ function CustomerPortalPage() {
           
           // Self-heal: Link user_id if missing or different
           if (!phoneMatch.user_id) {
-            await supabase
+            console.log("[PORTAL_BOOT_TRACE] Self-healing user_id link...");
+            const { error: updateError } = await supabase
               .from("customers")
               .update({ user_id: user.id })
               .eq("id", phoneMatch.id);
+            if (updateError) console.error("[PORTAL_BOOT_TRACE] Self-heal error:", updateError);
           }
         }
       }
@@ -151,8 +153,8 @@ function CustomerPortalPage() {
       ] = await Promise.all([
         supabase.from("barbershops").select("*").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).order("start_time", { ascending: false }),
-        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(e => ({ data: [], error: e })),
-        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(e => ({ data: [], error: e })),
+        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
+        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
         supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
         supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
@@ -197,7 +199,7 @@ function CustomerPortalPage() {
     if (loading && user && data?.customer) {
       setLoading(false);
     }
-  }, [user, data, loading]);
+  }, [user, profile?.tenant_id, profile?.phone, slug]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -480,7 +482,7 @@ function CustomerPortalPage() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden">
-              {data.customer.avatar_url ? (
+              {data?.customer?.avatar_url ? (
                 <img src={data.customer.avatar_url} alt={data.customer.name} className="h-full w-full object-cover" />
               ) : (
                 <UserIcon className="h-6 w-6 text-gold" />
