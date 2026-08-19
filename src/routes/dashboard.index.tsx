@@ -22,7 +22,14 @@ function DashboardIndexComponent() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { refresh: refreshLimits, loading: planLoading } = usePlanLimits();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const loading = authLoading || tenantLoading || planLoading;
+  const [isInitialBoot, setIsInitialBoot] = useState(true);
+
+  useEffect(() => {
+    if (!loading) setIsInitialBoot(false);
+  }, [loading]);
+
   
   const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
