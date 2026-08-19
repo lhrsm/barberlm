@@ -199,7 +199,7 @@ function CustomerPortalPage() {
     if (loading && user && data?.customer) {
       setLoading(false);
     }
-  }, [user, data, loading]);
+  }, [user, profile?.tenant_id, profile?.phone, slug]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
