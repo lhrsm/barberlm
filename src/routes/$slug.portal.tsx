@@ -218,8 +218,9 @@ function CustomerPortalPage() {
       const now = Date.now();
       const timeSinceLastCheck = now - lastCheck;
       
-      console.log("[PORTAL_VISIBILITY_TRACE]", {
+      console.log("[PORTAL_RESOLUTION_TRACE] Visibility Change", {
         visibilityState: document.visibilityState,
+        portalState,
         hasUser: !!user,
         hasProfile: !!profile,
         hasData: !!data,
@@ -228,11 +229,11 @@ function CustomerPortalPage() {
       });
       
       if (document.visibilityState === 'visible' && user && profile && timeSinceLastCheck > 5000) {
-        console.log("[PORTAL_VISIBILITY_TRACE] Portal visible, refreshing data.");
         setLastCheck(now);
         loadPortalData();
       }
     };
+
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
