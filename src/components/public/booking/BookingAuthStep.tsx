@@ -153,13 +153,13 @@ export function BookingAuthStep({
   const isLoading = ['EMAIL_SENDING', 'VERIFYING_CODE', 'FINALIZING'].includes(internalState);
 
   return (
-    <div className="flex flex-col w-full max-w-[min(720px,calc(100vw-48px))] mx-auto bg-white rounded-[24px] md:rounded-[32px] border border-gold/20 shadow-xl overflow-hidden relative">
+    <div className="flex flex-col w-full max-w-[min(720px,calc(100vw-48px))] mx-auto bg-[#0d0f14]/80 backdrop-blur-xl rounded-[24px] md:rounded-[32px] border border-white/5 shadow-xl overflow-hidden relative">
       <div className="p-6 md:p-8 space-y-6">
         <div className="flex items-center justify-between">
           <button 
             onClick={onBack} 
             disabled={isLoading}
-            className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-black disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-full hover:bg-white/5 transition-colors text-zinc-500 hover:text-white disabled:opacity-50"
           >
             <ArrowLeft size={18} />
             <span className="text-[10px] font-black uppercase tracking-widest">Voltar</span>
@@ -174,7 +174,7 @@ export function BookingAuthStep({
                   ((['NEEDS_EMAIL', 'EMAIL_SENDING'].includes(internalState) && i === 1) || 
                   (['EMAIL_SENT', 'VERIFYING_CODE', 'CODE_VERIFIED'].includes(internalState) && i <= 2) || 
                   (['NEEDS_PASSWORD', 'FINALIZING', 'READY'].includes(internalState) && i <= 3))
-                  ? 'w-6 bg-gold' : 'w-1.5 bg-zinc-200'
+                  ? 'w-6 bg-gold' : 'w-1.5 bg-white/10'
                 )}
               />
             ))}
@@ -193,7 +193,7 @@ export function BookingAuthStep({
             className="space-y-6"
           >
             <div className="space-y-2">
-              <h3 className="text-2xl md:text-[26px] font-black text-black tracking-tight italic uppercase leading-tight">Configurar seu acesso</h3>
+              <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight italic uppercase leading-tight">Configurar seu acesso</h3>
               <p className="text-zinc-500 text-sm leading-relaxed max-w-[420px]">Para sua segurança, precisamos validar seu e-mail e criar uma senha para futuros acessos.</p>
             </div>
 
@@ -208,7 +208,7 @@ export function BookingAuthStep({
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     disabled={isLoading}
-                    className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                    className="h-14 pl-12 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-600 focus:bg-[#151D2C] focus:text-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset]"
                   />
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function BookingAuthStep({
               <Button 
                 onClick={handleSendCode}
                 disabled={isLoading || !email}
-                className="w-full h-14 rounded-2xl bg-black text-white font-extrabold hover:bg-zinc-800 transition-all"
+                className="w-full h-14 rounded-2xl bg-gold text-black font-extrabold hover:bg-gold/90 transition-all"
               >
                 {isLoading ? <Loader2 className="animate-spin" /> : "Enviar código de confirmação"}
               </Button>
@@ -233,10 +233,10 @@ export function BookingAuthStep({
             className="space-y-6"
           >
             <div className="space-y-2">
-              <h3 className="text-2xl md:text-[26px] font-black text-black tracking-tight italic uppercase leading-tight">Confirme seu e-mail</h3>
+              <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight italic uppercase leading-tight">Confirme seu e-mail</h3>
               <div className="space-y-1">
                 <p className="text-zinc-500 text-sm leading-relaxed">Enviamos um código de 6 dígitos para:</p>
-                <p className="text-black font-black truncate text-base">{email}</p>
+                <p className="text-white font-black truncate text-base">{email}</p>
               </div>
             </div>
 
@@ -258,7 +258,7 @@ export function BookingAuthStep({
                               key={index}
                               index={index}
                               {...slot}
-                              className="w-11 h-13 md:w-12 md:h-14 text-xl font-black bg-white border-zinc-200 rounded-xl focus:ring-gold/10 focus:border-gold/60 transition-all"
+                              className="w-11 h-13 md:w-12 md:h-14 text-xl font-black bg-[#151D2C] border-white/10 text-white rounded-xl focus:ring-gold/10 focus:border-gold/60 transition-all"
                             />
                           ))}
                         </InputOTPGroup>
@@ -270,7 +270,7 @@ export function BookingAuthStep({
                 <Button 
                   onClick={handleVerifyCode}
                   disabled={isLoading || code.length !== 6 || internalState === 'CODE_VERIFIED'}
-                  className="w-full max-w-[360px] h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
+                  className="w-full max-w-[360px] h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg active:scale-[0.98]"
                 >
                   {isLoading ? <Loader2 className="animate-spin" /> : internalState === 'CODE_VERIFIED' ? <CheckCircle2 /> : "Confirmar código"}
                 </Button>
@@ -293,7 +293,7 @@ export function BookingAuthStep({
               <button 
                 onClick={() => setInternalState('NEEDS_EMAIL')}
                 disabled={isLoading}
-                className="w-full text-xs text-zinc-500 font-bold hover:text-black transition-colors disabled:opacity-50"
+                className="w-full text-xs text-zinc-500 font-bold hover:text-white transition-colors disabled:opacity-50"
               >
                 Alterar e-mail
               </button>
@@ -310,7 +310,7 @@ export function BookingAuthStep({
             className="space-y-6"
           >
             <div className="space-y-2">
-              <h3 className="text-2xl md:text-[26px] font-black text-black tracking-tight italic uppercase leading-tight">Crie sua senha</h3>
+              <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight italic uppercase leading-tight">Crie sua senha</h3>
               <p className="text-zinc-500 text-sm leading-relaxed max-w-[420px]">Agora defina uma senha segura para acessar seu portal no Barbex.</p>
             </div>
 
@@ -326,13 +326,13 @@ export function BookingAuthStep({
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       disabled={isLoading}
-                      className="h-14 pl-12 pr-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                      className="h-14 pl-12 pr-12 bg-[#151D2C] border-white/10 rounded-2xl text-white focus:bg-[#151D2C] focus:text-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset]"
                       autoComplete="new-password"
                     />
                     <button 
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -349,18 +349,18 @@ export function BookingAuthStep({
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                       disabled={isLoading}
-                      className="h-14 pl-12 bg-white border-zinc-200 rounded-2xl text-black focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all"
+                      className="h-14 pl-12 bg-[#151D2C] border-white/10 rounded-2xl text-white focus:bg-[#151D2C] focus:text-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset]"
                       autoComplete="new-password"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="p-5 bg-zinc-50 border border-zinc-100 rounded-[20px] space-y-3">
+              <div className="p-5 bg-white/5 border border-white/5 rounded-[20px] space-y-3">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
                   REQUISITOS DA SENHA
                 </div>
-                <ul className="grid grid-cols-1 gap-2 text-[13px] text-zinc-600 font-bold">
+                <ul className="grid grid-cols-1 gap-2 text-[13px] text-zinc-400 font-bold">
                   <li className="flex items-center gap-2.5">
                     {password.length >= 6 ? (
                       <CheckCircle2 size={16} className="text-emerald-500" />
@@ -387,7 +387,7 @@ export function BookingAuthStep({
               <Button 
                 onClick={handleFinish}
                 disabled={isLoading || password.length < 6 || password !== confirmPassword}
-                className="w-full md:w-[260px] h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-[0.98]"
+                className="w-full md:w-[260px] h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg active:scale-[0.98]"
               >
                 {isLoading ? <Loader2 className="animate-spin" /> : "Finalizar configuração"}
               </Button>
