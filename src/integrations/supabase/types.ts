@@ -10109,10 +10109,7 @@ export type Database = {
           status: string
         }[]
       }
-      claim_customer_profile: {
-        Args: { target_user_id: string }
-        Returns: boolean
-      }
+      claim_customer_profile: { Args: { p_tenant_id: string }; Returns: Json }
       cleanup_invalid_cashback: { Args: { p_tenant_id: string }; Returns: Json }
       clear_barbershop_financial_data: {
         Args: { p_tenant_id: string }
