@@ -1647,7 +1647,19 @@ function ShopPageComponent() {
 
       // Reset and redirect
       const receiptAmount = calculateTotal();
-      
+      const isMultipleFinal = createdAppointments.length > 1;
+      const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
+
+      const runRedirect = async () => {
+        // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
+        // Destino obrigatório: Portal do Cliente /$slug/portal via window.location para garantir reload limpo
+        if (isMultipleFinal && groupTokenFinal) {
+          window.location.href = `/agendamentos/grupo/${groupTokenFinal}?tenant=${shop.id}`;
+        } else {
+          window.location.href = `/${slug}/portal`;
+        }
+      };
+
       // PIX: pede o comprovante ANTES de fechar a modal de agendamento e limpar o estado
       // Isso evita o flash da modal de agendamento fechando e abrindo a de PIX logo em seguida.
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
@@ -1687,21 +1699,6 @@ function ShopPageComponent() {
       setUseCashback(false);
       setUseCredits(false);
       setPaymentMethod(null);
-      
-      const isMultipleFinal = createdAppointments.length > 1;
-      const groupTokenFinal = (createdAppointments?.[0] as any)?.group_token || groupTokenValLocal;
-
-      const runRedirect = async () => {
-        // REGRAS DE REDIRECIONAMENTO PÓS-AGENDAMENTO (TASK: BARBEX — AUDITORIA E CORREÇÃO PONTA A PONTA)
-        // Destino obrigatório: Portal do Cliente /$slug/portal via window.location para garantir reload limpo
-        if (isMultipleFinal && groupTokenFinal) {
-          window.location.href = `/agendamentos/grupo/${groupTokenFinal}?tenant=${shop.id}`;
-        } else {
-          window.location.href = `/${slug}/portal`;
-        }
-      };
-
-
 
       setTimeout(runRedirect, 1500);
 
