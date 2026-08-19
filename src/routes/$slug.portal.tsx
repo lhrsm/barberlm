@@ -190,7 +190,7 @@ function CustomerPortalPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, profile?.tenant_id]);
+  }, [user, profile?.tenant_id, slug, loadPortalData]);
 
   useEffect(() => {
     // Safety check for loading state
@@ -199,6 +199,7 @@ function CustomerPortalPage() {
     }
   }, [user, data, loading]);
 
+  useEffect(() => {
     const handleVisibilityChange = () => {
       const now = Date.now();
       const timeSinceLastCheck = now - lastCheck;
