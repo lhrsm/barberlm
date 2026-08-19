@@ -1666,8 +1666,12 @@ function ShopPageComponent() {
         const firstAppt = createdAppointments?.[0] as any;
         const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
         
-        setIsBookingOpen(false); // Fecha a modal principal agora que confirmamos o PIX
-        
+        console.log('[PIX_FINALIZATION_TRACE] Preparing for PIX receipt', { 
+          appointmentId: firstAppt.id, 
+          isBookingOpen: true 
+        });
+
+        // Primeiro abrimos a modal de PIX
         setPixReceipt({
           appointmentId: firstAppt.id,
           amount: receiptAmount,
@@ -1677,6 +1681,11 @@ function ShopPageComponent() {
           timeLabel: firstItem?.start_time || "",
           onDone: runRedirect,
         });
+
+        // O fechamento da modal principal e o reset do estado são feitos IMEDIATAMENTE após
+        // mas mantemos o bookingStep intacto por um breve momento para evitar o flash visual do reset
+        setIsBookingOpen(false); 
+
         
         // Limpa o resto do estado mas mantém o pixReceipt aberto
         setBookingCart([]);
