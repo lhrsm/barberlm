@@ -301,6 +301,15 @@ function DashboardIndexComponent() {
         <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
           Sincronizando Dashboard Executivo...
         </p>
+        <button 
+          onClick={() => {
+            console.log("[DASHBOARD_BOOT_TRACE] Manual override triggered");
+            window.location.reload();
+          }}
+          className="mt-4 text-[9px] text-white/20 hover:text-white/40 uppercase tracking-widest font-bold"
+        >
+          Recarregar se travar
+        </button>
       </div>
     );
   }

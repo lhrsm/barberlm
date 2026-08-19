@@ -133,9 +133,31 @@ function CustomerPortalPage() {
       });
 
       if (!customerData) {
-        console.error("[PORTAL_BOOT_TRACE] No customer record found for this identity", { userId: user.id, tenantId: effectiveTenantId });
-        setLoading(false);
-        return;
+        console.warn("[PORTAL_BOOT_TRACE] No customer record found for this identity, attempting sync...", { userId: user.id, tenantId: effectiveTenantId });
+        
+        // Se temos o profile mas não o customer, tentamos forçar uma sincronização rápida
+        if (profile?.phone) {
+          console.log("[PORTAL_BOOT_TRACE] Forcing customer sync via phone...");
+          const normalized = profile.phone.replace(/\D/g, '');
+          const { data: syncData, error: syncError } = await supabase
+            .from("customers")
+            .update({ user_id: user.id })
+            .eq("tenant_id", effectiveTenantId)
+            .ilike("phone", `%${normalized}%`)
+            .select()
+            .maybeSingle();
+            
+          if (!syncError && syncData) {
+            console.log("[PORTAL_BOOT_TRACE] Sync successful!");
+            customerData = syncData;
+          }
+        }
+        
+        if (!customerData) {
+          console.error("[PORTAL_BOOT_TRACE] Critical: Customer identity not found after sync attempt.");
+          setLoading(false);
+          return;
+        }
       }
 
       setCustomerName(customerData.name || "");

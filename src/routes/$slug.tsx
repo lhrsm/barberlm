@@ -1647,6 +1647,37 @@ function ShopPageComponent() {
 
       // Reset and redirect
       const receiptAmount = calculateTotal();
+      
+      // PIX: pede o comprovante ANTES de fechar a modal de agendamento e limpar o estado
+      // Isso evita o flash da modal de agendamento fechando e abrindo a de PIX logo em seguida.
+      if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
+        const firstAppt = createdAppointments?.[0] as any;
+        const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
+        
+        setIsBookingOpen(false); // Fecha a modal principal agora que confirmamos o PIX
+        
+        setPixReceipt({
+          appointmentId: firstAppt.id,
+          amount: receiptAmount,
+          customerId: finalCustId || null,
+          serviceName: firstItem?.service_name || null,
+          dateLabel: firstItem?.date ? format(parseISO(firstItem.date), "dd/MM/yyyy") : "",
+          timeLabel: firstItem?.start_time || "",
+          onDone: runRedirect,
+        });
+        
+        // Limpa o resto do estado mas mantém o pixReceipt aberto
+        setBookingCart([]);
+        setSelectedProducts([]);
+        setBookingStep(1);
+        setBookingMode(null);
+        setAppliedCoupon(null);
+        setUseCashback(false);
+        setUseCredits(false);
+        setPaymentMethod(null);
+        return;
+      }
+
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
@@ -1671,21 +1702,6 @@ function ShopPageComponent() {
       };
 
 
-      // PIX: pede o comprovante antes de redirecionar
-      if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
-        const firstAppt = createdAppointments?.[0] as any;
-        const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
-        setPixReceipt({
-          appointmentId: firstAppt.id,
-          amount: receiptAmount,
-          customerId: finalCustId || null,
-          serviceName: firstItem?.service_name || null,
-          dateLabel: firstItem?.date ? format(parseISO(firstItem.date), "dd/MM/yyyy") : "",
-          timeLabel: firstItem?.start_time || "",
-          onDone: runRedirect,
-        });
-        return;
-      }
 
       setTimeout(runRedirect, 1500);
 
