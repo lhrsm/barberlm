@@ -120,14 +120,16 @@ function DashboardIndexComponent() {
         });
         
         setIsRefreshing(true);
-        Promise.all([
-          fetchTodayAppointments(),
-          fetchStats(),
-          refreshLimits()
-        ]).finally(() => {
-          setIsRefreshing(false);
-          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-        });
+        // Sequential refresh for stability
+        fetchTodayAppointments()
+          .then(() => fetchStats())
+          .then(() => fetchBirthdayCustomers())
+          .then(() => refreshLimits())
+          .finally(() => {
+            setIsRefreshing(false);
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          });
+
       })
       .subscribe();
 
