@@ -4,6 +4,7 @@ import { format, parseISO, addMinutes, addDays } from "date-fns";
 import { AlertTriangle, CalendarPlus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -61,6 +62,7 @@ export function AppointmentModal({
   editingAppointmentId,
 }: AppointmentModalProps) {
   const { user, role } = useAuth();
+  const { tenantId: canonicalTenantId } = useTenant();
   const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
   const queryClient = useQueryClient();
 
@@ -147,15 +149,16 @@ export function AppointmentModal({
   }
 
   async function resolveTenantId() {
+    if (canonicalTenantId) return canonicalTenantId;
     if (!user) return null;
     let tenantId = user.id;
     if (role === "barber") {
       const { data: barberData } = await supabase
         .from("barbers")
-        .select("user_id")
+        .select("tenant_id, user_id")
         .eq("id", user.id)
         .single();
-      if (barberData) tenantId = barberData.user_id;
+      if (barberData) tenantId = barberData.tenant_id || barberData.user_id;
     }
     return tenantId;
   }
@@ -167,10 +170,10 @@ export function AppointmentModal({
     if (!tenantId) return;
 
     const [barbRes, custRes, servRes, barbServRes, profRes] = await Promise.all([
-      supabase.from("barbers").select("*").eq("user_id", tenantId).order("name"),
-      supabase.from("customers").select("*").eq("user_id", tenantId).order("name"),
-      supabase.from("services").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
-      supabase.from("barber_services").select("*").eq("user_id", tenantId),
+      supabase.from("barbers").select("*").eq("tenant_id", tenantId).order("name"),
+      supabase.from("customers").select("*").eq("tenant_id", tenantId).order("name"),
+      supabase.from("services").select("*").eq("tenant_id", tenantId).eq("active", true).order("name"),
+      supabase.from("barber_services").select("*").eq("tenant_id", tenantId),
       supabase
         .from("profiles")
         .select("business_name, slot_buffer_minutes, whatsapp_number, pix_key")
@@ -383,6 +386,7 @@ export function AppointmentModal({
         .insert([
           {
             user_id: tenantId,
+            tenant_id: tenantId,
             barber_id: selectedBarber,
             name: newCustomer.name,
             phone: newCustomer.phone,

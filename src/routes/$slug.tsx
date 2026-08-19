@@ -18,7 +18,7 @@ import { BookingConfirmationCard } from "@/components/public/booking/BookingConf
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { format, addMinutes, parseISO, isSameDay } from "date-fns";
+import { format, addMinutes, parseISO, isSameDay, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -709,16 +709,17 @@ function ShopPageComponent() {
     if (!shop?.id) return;
     setLoadingDayData(true);
     try {
-      const startOfDay = `${date}T00:00:00Z`;
-      const endOfDay = `${date}T23:59:59Z`;
+      const parsedDate = parseISO(date);
+      const start = startOfDay(parsedDate).toISOString();
+      const end = endOfDay(parsedDate).toISOString();
       
       const { data } = await supabase
         .from("appointments")
         .select("id, barber_id, start_time, end_time, status")
-        .eq("user_id", shop.id)
+        .eq("tenant_id", shop.id)
         .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
-        .gte("start_time", startOfDay)
-        .lte("start_time", endOfDay);
+        .gte("start_time", start)
+        .lte("start_time", end);
         
       setDayAppointments(data || []);
     } catch (error) {
@@ -1339,7 +1340,7 @@ function ShopPageComponent() {
         }
 
         const appointmentPayload: any = {
-          user_id: user?.id || shop.id,
+          user_id: shop.id,
           tenant_id: shop.id,
           customer_id: finalCustId,
           service_id: item.service_id,
@@ -1460,7 +1461,7 @@ function ShopPageComponent() {
               barber_id: appt.barber_id,
               appointment_id: appt.id,
               tenant_id: shop.id,
-          user_id: user?.id || shop.id,
+              user_id: shop.id,
               date: new Date().toISOString().split('T')[0]
             }]);
           }

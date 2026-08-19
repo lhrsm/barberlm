@@ -279,16 +279,13 @@ const CalendarComponent = memo(() => {
   }, [user, currentDate, view, tenantId]);
 
   useEffect(() => {
-    if (!user || role === 'super_admin') return;
-
-    const channelTenantId = tenantId || user?.id;
-    if (!channelTenantId) return;
+    if (!tenantId) return;
 
     const channel = supabase
-      .channel(`appointments-calendar-${channelTenantId}`)
+      .channel(`appointments-calendar-${tenantId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${channelTenantId}` },
+        { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${tenantId}` },
         () => {
           fetchData();
           refreshLimits();
@@ -301,7 +298,7 @@ const CalendarComponent = memo(() => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, tenantId]);
+  }, [tenantId]);
 
   const isToday = isSameDay(currentDate, new Date());
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
@@ -376,7 +373,7 @@ const CalendarComponent = memo(() => {
           </div>
         </div>
 
-        {isToday && view === 'day' && <WalkinQueuePanel tenantId={user?.id} date={currentDate} refreshKey={appointments.length} onChange={() => fetchData()} />}
+        {isToday && view === 'day' && <WalkinQueuePanel tenantId={tenantId} date={currentDate} refreshKey={appointments.length} onChange={() => fetchData()} />}
 
         <div className="rounded-3xl border border-[#F59E0B]/15 bg-[#0B1220] p-4">
           <div className="flex items-center justify-between gap-3">

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { hasConflict, OVERLAP_MESSAGE } from "@/lib/availability";
@@ -32,6 +33,7 @@ interface Props {
 
 export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
   const { user } = useAuth();
+  const { tenantId } = useTenant();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -49,18 +51,18 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open || !user) return;
+    if (!open || !tenantId) return;
     (async () => {
       const [b, s, c] = await Promise.all([
-        supabase.from("barbers").select("id, name").eq("user_id", user.id).order("name"),
-        supabase.from("services").select("id, name, price, duration_minutes").eq("user_id", user.id).eq("active", true).order("name"),
-        supabase.from("customers").select("id, name, phone").eq("user_id", user.id).order("name").limit(200),
+        supabase.from("barbers").select("id, name").eq("tenant_id", tenantId).order("name"),
+        supabase.from("services").select("id, name, price, duration_minutes").eq("tenant_id", tenantId).eq("active", true).order("name"),
+        supabase.from("customers").select("id, name, phone").eq("tenant_id", tenantId).order("name").limit(200),
       ]);
       setBarbers(b.data || []);
       setServices(s.data || []);
       setCustomers(c.data || []);
     })();
-  }, [open, user]);
+  }, [open, tenantId]);
 
   useEffect(() => {
     if (!open) {
@@ -88,6 +90,7 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
 
   async function ensureCustomer(): Promise<string | null> {
     if (customerId) return customerId;
+    if (!tenantId) return null;
     if (!newCustomer.name.trim() || !newCustomer.phone.trim()) {
       toast.error("Informe nome e telefone do cliente");
       return null;
@@ -95,7 +98,8 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
     const { data, error } = await supabase
       .from("customers")
       .insert({
-        user_id: user!.id,
+        tenant_id: tenantId,
+        user_id: tenantId,
         name: newCustomer.name.trim(),
         phone: newCustomer.phone.trim(),
         email: newCustomer.email.trim() || null,
@@ -110,7 +114,7 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
   }
 
   async function handleSubmit() {
-    if (!user) return;
+    if (!user || !tenantId) return;
     if (!barberId) return toast.error("Selecione o profissional");
     if (!serviceId || !selectedService) return toast.error("Selecione o serviço");
     if (!date || !time) return toast.error("Informe data e horário");
@@ -131,10 +135,8 @@ export function WalkinModal({ open, onOpenChange, onSuccess }: Props) {
         return;
       }
 
-
-
       const { data, error } = await supabase.rpc("create_walkin_appointment" as any, {
-        p_tenant_id: user.id,
+        p_tenant_id: tenantId,
         p_barber_id: barberId,
         p_customer_id: cid,
         p_service_id: serviceId,
