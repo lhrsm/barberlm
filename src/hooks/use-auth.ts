@@ -48,7 +48,7 @@ async function fetchProfileData(userId: string) {
   try {
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select("id, role, tenant_id, business_name, responsible_name, display_name, slug, email, identity_status")
+      .select("id, role, tenant_id, business_name, responsible_name, display_name, slug, email, identity_status, phone")
       .eq("id", userId)
       .maybeSingle();
 
