@@ -301,9 +301,9 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
   if (loading || authLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#05070d] flex-col gap-4">
+      <div className="flex h-screen w-full items-center justify-center bg-blue-500/20 flex-col gap-4 border-8 border-blue-500" data-debug-layout="v2026-08-19-A">
         <div className="h-12 w-12 rounded-full border-4 border-gold/10 border-t-gold animate-spin" />
-        <p className="text-gold/60 font-bold animate-pulse uppercase tracking-[0.2em] text-xs">Barbex Premium</p>
+        <p className="text-gold/60 font-bold animate-pulse uppercase tracking-[0.2em] text-xs">Barbex Premium [LAYOUT CANARY]</p>
       </div>
     );
   }

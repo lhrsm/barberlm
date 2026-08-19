@@ -83,7 +83,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="antialiased selection:bg-gold/30">
+        <div data-canary-root="v2026-08-19-A" className="hidden">ROOT CANARY A</div>
         {children}
         <Scripts />
       </body>
