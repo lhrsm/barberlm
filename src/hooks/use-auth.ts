@@ -17,6 +17,7 @@ interface Profile {
   slug: string | null;
   email: string | null;
   identity_status: IdentityStatus;
+  phone: string | null;
 }
 
 // Global state shared across useAuth instances.
