@@ -4937,7 +4937,7 @@ function ShopPageComponent() {
                               {paymentMethod && !submitting && (
                                 <Button 
                                   variant="outline" 
-                                  className="w-full h-14 bg-transparent text-zinc-900 hover:bg-zinc-50 border-zinc-200 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all order-2" 
+                                  className="w-full h-14 bg-transparent text-zinc-900 hover:bg-zinc-100 hover:text-zinc-950 hover:border-zinc-300 active:scale-[0.98] border-zinc-200 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all order-2" 
                                   onClick={() => setPaymentMethod(null)}
                                 >
                                   Alterar forma de pagamento
