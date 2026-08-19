@@ -435,7 +435,12 @@ function CustomerPortalPage() {
         return (
           <ProfileTab 
             customerData={data.customer}
-            setCustomerData={(newData) => setData({ ...data, customer: newData })}
+            setCustomerData={(newData) => {
+              if (data) {
+                setData({ ...data, customer: newData });
+              }
+            }}
+
             customerName={customerName}
             setCustomerName={setCustomerName}
             submitting={submitting}
