@@ -219,11 +219,33 @@ function CustomerPortalPage() {
 
 
   useEffect(() => {
+    if (portalState !== 'DATA_READY' || !data?.customer?.id || !shop?.id) return;
+
+    const channel = supabase
+      .channel(`portal_updates_${data.customer.id}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'appointments', 
+        filter: `customer_id=eq.${data.customer.id}` 
+      }, () => {
+        console.log("[PORTAL_RESOLUTION_TRACE] Realtime update triggered");
+        loadPortalData(true);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [portalState, data?.customer?.id, shop?.id, loadPortalData]);
+
+  useEffect(() => {
     // Safety check for loading state
     if (loading && user && data?.customer) {
       setLoading(false);
     }
-  }, [user, profile?.tenant_id, profile?.phone, slug]);
+  }, [loading, user, data?.customer]);
+
 
   useEffect(() => {
     const handleVisibilityChange = () => {
