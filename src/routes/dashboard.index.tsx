@@ -217,6 +217,14 @@ function DashboardIndexComponent() {
 
   async function fetchStats() {
     if (!tenantId) return;
+    
+    try {
+      console.log("[DASHBOARD_LOADING_TRACE]", { 
+        timestamp: new Date().toISOString(),
+        event: "fetchStats:started",
+        tenantId 
+      });
+
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString();
