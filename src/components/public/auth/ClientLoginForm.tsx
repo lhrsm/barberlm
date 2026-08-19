@@ -181,8 +181,8 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             className="space-y-6"
           >
             <div className="text-center space-y-1 mb-2">
-              <h2 className="text-2xl md:text-3xl font-black text-black tracking-tight uppercase italic">Acesse sua conta</h2>
-              <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">Portal do Cliente Barbex</p>
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase italic">Acesse sua conta</h2>
+              <p className="text-gold text-xs font-bold tracking-widest uppercase">Portal do Cliente Barbex</p>
             </div>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -195,7 +195,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-[58px] md:h-[62px] pl-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
+                    className="h-[52px] md:h-[56px] pl-14 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 focus-visible:bg-[#151D2C] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold transition-all"
                   />
                 </div>
                 {form.formState.errors.identifier && (
@@ -223,13 +223,13 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-[58px] md:h-[62px] pl-14 pr-14 bg-[#15171B] border-white/10 rounded-[18px] text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:ring-1 focus-visible:ring-gold/20 focus-visible:border-gold transition-all"
+                    className="h-[52px] md:h-[56px] pl-14 pr-14 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 focus-visible:bg-[#151D2C] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold transition-all"
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -244,24 +244,23 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   type="checkbox"
                   id="remember"
                   {...form.register("remember")}
-                  className="w-4 h-4 rounded border-zinc-300 text-gold focus:ring-gold"
+                  className="w-4 h-4 rounded border-zinc-700 bg-[#151D2C] text-gold focus:ring-gold"
                 />
-                <Label htmlFor="remember" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer">Manter conectado</Label>
+                <Label htmlFor="remember" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 cursor-pointer">Manter conectado</Label>
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-[56px] rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.97]"
+                className="w-full h-[52px] rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg shadow-gold/10 active:scale-[0.98]"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Entrar"}
               </Button>
 
-
               <div className="pt-2 text-center">
                 <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-tight">
                   Ainda não configurou seu acesso? <br/>
-                  <span className="text-black">Utilize o fluxo de agendamento para localizar seu cadastro.</span>
+                  <span className="text-gold">Utilize o fluxo de agendamento para localizar seu cadastro.</span>
                 </p>
               </div>
             </form>
@@ -279,17 +278,17 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             <div className="space-y-2">
               <button 
                 onClick={() => setView('login')}
-                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-black flex items-center gap-1 transition-colors"
+                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-gold flex items-center gap-1 transition-colors"
               >
                 <ArrowRight className="rotate-180" size={12} /> Voltar ao login
               </button>
-              <h2 className="text-3xl font-black text-black tracking-tight">Recuperar acesso</h2>
-              <p className="text-zinc-500 text-sm font-medium">Enviaremos instruções para o seu e-mail.</p>
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase italic">Recuperar acesso</h2>
+              <p className="text-zinc-400 text-sm font-medium">Enviaremos instruções para o seu e-mail.</p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Telefone ou E-mail</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Telefone ou E-mail</Label>
                 <Input
                   placeholder="+55 (71) 99999-9999 ou e-mail"
                   value={form.watch("identifier")}
@@ -321,15 +320,14 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                       form.setValue("identifier", val);
                     }
                   }}
-                  className="h-14 bg-white border-zinc-200 rounded-2xl text-[#111111] placeholder:text-[#6B7280] focus-visible:bg-white focus-visible:ring-gold/10 focus-visible:border-gold/60 transition-all [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset] [&:-webkit-autofill]:text-[#111111]"
+                  className="h-[52px] bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 focus-visible:bg-[#151D2C] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold transition-all"
                 />
-
               </div>
 
               <Button
                 onClick={handleForgotPassword}
                 disabled={loading || !form.watch("identifier")}
-                className="w-full h-14 rounded-2xl bg-black text-white font-black uppercase tracking-widest hover:bg-zinc-800 transition-all"
+                className="w-full h-[52px] rounded-2xl bg-gold text-black font-black uppercase tracking-widest hover:bg-gold/90 transition-all"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Enviar instruções"}
               </Button>
@@ -345,21 +343,21 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             className="flex flex-col items-center justify-center py-6 text-center"
           >
             <div className="mb-6 relative">
-              <div className="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-50 animate-pulse" />
-              <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center text-emerald-500 border border-emerald-100 shadow-xl shadow-emerald-500/10">
-                <CheckCircle2 size={48} strokeWidth={1.5} />
+              <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl opacity-50 animate-pulse" />
+              <div className="relative w-20 h-20 bg-[#151D2C] rounded-full flex items-center justify-center text-emerald-400 border border-emerald-500/30 shadow-xl shadow-emerald-500/10">
+                <CheckCircle2 size={40} strokeWidth={1.5} />
               </div>
             </div>
             
             <div className="space-y-3 mb-8 px-4">
-              <h2 className="text-3xl font-black text-black tracking-tight uppercase italic leading-none">E-mail Enviado</h2>
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase italic leading-none">E-mail Enviado</h2>
               <div className="space-y-2">
-                <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest opacity-80">
+                <p className="text-gold text-xs font-bold uppercase tracking-widest">
                   Instruções encaminhadas com sucesso
                 </p>
                 <div className="h-px w-12 bg-gold/30 mx-auto" />
                 <p className="text-zinc-400 text-xs font-medium leading-relaxed max-w-[280px] mx-auto">
-                  Enviamos o link de recuperação para o seu e-mail cadastrado. Por favor, verifique também sua pasta de <span className="text-zinc-600 font-bold uppercase">spam</span>.
+                  Enviamos o link de recuperação para o seu e-mail cadastrado. Por favor, verifique também sua pasta de spam.
                 </p>
               </div>
             </div>
@@ -367,7 +365,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
             <div className="w-full space-y-4 px-6">
               <Button
                 onClick={() => setView('login')}
-                className="h-14 w-full bg-black text-white font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-800 transition-all shadow-lg shadow-black/10 active:scale-[0.98] border border-white/10"
+                className="h-[52px] w-full bg-gold text-black font-black uppercase tracking-widest rounded-2xl hover:bg-gold/90 transition-all shadow-lg shadow-gold/10 active:scale-[0.98]"
               >
                 Entendi
               </Button>
@@ -378,10 +376,10 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   disabled={loading}
                   className="group flex items-center justify-center gap-2 mx-auto"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gold group-hover:text-gold-dark transition-colors">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-gold transition-colors">
                     Não recebeu?
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-black/40 group-hover:text-gold transition-colors border-b border-black/10 group-hover:border-gold pb-0.5">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gold group-hover:text-gold-light transition-colors border-b border-gold/30 group-hover:border-gold pb-0.5">
                     {loading ? "Enviando..." : "Reenviar link"}
                   </span>
                 </button>

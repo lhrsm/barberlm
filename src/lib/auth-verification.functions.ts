@@ -113,7 +113,7 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       console.log('[BOOKING_ONBOARDING_TRACE] Resolving user for clientId:', data.clientId);
       const { data: customer, error: custError } = await supabaseAdmin
         .from("customers")
-        .select("user_id, tenant_id")
+        .select("id, tenant_id")
         .eq("id", data.clientId)
         .maybeSingle();
 
@@ -122,20 +122,7 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       }
 
       if (customer) {
-        // Blindagem: Check for owner contamination
-        if (customer.user_id === customer.tenant_id) {
-          console.error("[AuthVerification] Identity collision detected: Customer pointing to owner ID", {
-            clientId: data.clientId,
-            ownerId: customer.tenant_id
-          });
-          // Clear the corrupt link first
-          await supabaseAdmin
-            .from("customers")
-            .update({ user_id: null, auth_migration_status: 'legacy' })
-            .eq("id", data.clientId);
-        } else {
-          targetUserId = customer.user_id;
-        }
+        targetUserId = (customer as any).auth_user_id || null;
       }
     }
 
@@ -244,10 +231,10 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       await supabaseAdmin
         .from("customers")
         .update({
-          user_id: userId,
+          auth_user_id: userId,
           email: data.email,
           auth_migration_status: 'completed'
-        })
+        } as any)
         .eq("id", data.clientId);
     } else {
       // Try to find customer by phone and link it
@@ -262,10 +249,10 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
         await supabaseAdmin
           .from("customers")
           .update({
-            user_id: userId,
+            auth_user_id: userId,
             email: data.email,
             auth_migration_status: 'completed'
-          })
+          } as any)
           .eq("id", customerByPhone.id);
       }
     }

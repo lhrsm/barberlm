@@ -21,6 +21,7 @@ import { LoyaltyLevelCard } from "@/components/loyalty/LoyaltyLevelCard";
 import { AchievementGrid } from "@/components/loyalty/AchievementGrid";
 import { Button } from "@/components/ui/button";
 import { ClientLoginForm } from "@/components/public/auth/ClientLoginForm";
+import { normalizePhone } from "@/utils/phone";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: CustomerPortalPage,
@@ -88,18 +89,18 @@ function CustomerPortalPage() {
 
     setPortalState('AUTH_RESOLVED');
 
-    // 1. Resolve Tenant
+    // 1. Resolve Tenant from profiles.slug (canonical tenant)
     let effectiveTenantId = profile?.tenant_id;
     if (!effectiveTenantId && slug) {
-      trace("Resolving tenant from slug");
-      const { data: shopData, error: shopErr } = await supabase
-        .from("barbershops")
+      trace("Resolving tenant from slug via profiles");
+      const { data: shopProfile, error: shopErr } = await supabase
+        .from("profiles")
         .select("id")
         .eq("slug", slug)
         .maybeSingle();
       
-      if (shopData) {
-        effectiveTenantId = shopData.id;
+      if (shopProfile) {
+        effectiveTenantId = shopProfile.id;
         trace("Tenant resolved", { effectiveTenantId });
       } else if (shopErr) {
         trace("Tenant resolution error", { shopErr });
@@ -118,41 +119,45 @@ function CustomerPortalPage() {
 
     try {
       // 2. Resolve Customer
-      trace("Fetching customer identity");
+      trace("Fetching customer identity via auth_user_id");
       
-      // Strict lookup: tenant_id MUST match
+      // Strict lookup: by authenticated user's auth_user_id in this tenant
       let { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("*, loyalty_levels(*)")
-        .eq("user_id", user.id)
+        .eq("auth_user_id" as any, user.id)
         .eq("tenant_id", effectiveTenantId)
         .maybeSingle();
 
-      if (customerError) throw customerError;
+      if (customerError) {
+        console.error("[PORTAL_RESOLUTION_TRACE] Customer auth_user_id query error:", customerError);
+      }
       
-      // Fallback by phone (scoped to tenant)
-      if (!customerData && profile?.phone) {
-        trace("Customer not found by user_id, trying phone fallback");
-        const normalized = profile.phone.replace(/\D/g, '');
-        const { data: phoneMatch } = await supabase
-          .from("customers")
-          .select("*, loyalty_levels(*)")
-          .eq("tenant_id", effectiveTenantId)
-          .ilike("phone", `%${normalized}%`)
-          .maybeSingle();
-        
-        if (phoneMatch) {
-          trace("Phone match found", { customerId: phoneMatch.id });
-          customerData = phoneMatch;
-          
-          // Link user_id if missing (Self-heal)
-          if (!phoneMatch.user_id) {
-            trace("Linking user_id to customer");
-            await supabase
-              .from("customers")
-              .update({ user_id: user.id })
-              .eq("id", phoneMatch.id);
+      // Fallback: Se ainda não vinculado, tentar claim seguro via RPC por e-mail autenticado
+      if (!customerData) {
+        trace("Customer not linked by auth_user_id, attempting claim_customer_profile RPC");
+        const { data: claimRes, error: claimErr } = await (supabase.rpc as any)("claim_customer_profile", {
+          p_tenant_id: effectiveTenantId
+        });
+
+        if (claimErr) {
+          console.error("[PORTAL_RESOLUTION_TRACE] Claim RPC error:", claimErr);
+        } else if (claimRes && (claimRes as any).status === 'SUCCESS' && (claimRes as any).customer_id) {
+          trace("Claim RPC succeeded", { customerId: (claimRes as any).customer_id });
+          const { data: claimedCustomer, error: fetchClaimedErr } = await supabase
+            .from("customers")
+            .select("*, loyalty_levels(*)")
+            .eq("id", (claimRes as any).customer_id)
+            .eq("tenant_id", effectiveTenantId)
+            .maybeSingle();
+
+          if (fetchClaimedErr) {
+            console.error("[PORTAL_RESOLUTION_TRACE] Error fetching claimed customer:", fetchClaimedErr);
+          } else if (claimedCustomer) {
+            customerData = claimedCustomer;
           }
+        } else {
+          trace("Claim RPC returned non-success status", { claimRes });
         }
       }
 
@@ -178,7 +183,7 @@ function CustomerPortalPage() {
         achRes,
         unlockedRes
       ] = await Promise.all([
-        supabase.from("barbershops").select("*").eq("id", effectiveTenantId).maybeSingle(),
+        supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
         supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
         supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
@@ -187,8 +192,14 @@ function CustomerPortalPage() {
         supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
       ]);
 
+      if (apptsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Appointments fetch error:", apptsRes.error);
+      if (creditsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Credits fetch error:", creditsRes.error);
+      if (cashbackRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Cashback fetch error:", cashbackRes.error);
+
       trace("Data fetch complete", {
         apptsCount: apptsRes.data?.length,
+        creditsCount: creditsRes.data?.length,
+        cashbackCount: cashbackRes.data?.length,
         APPOINTMENT_VISIBILITY_TRACE: {
           customerId: customerData.id,
           tenantId: effectiveTenantId,
@@ -211,14 +222,14 @@ function CustomerPortalPage() {
     } catch (err: any) {
       trace("Fatal error", { err });
       setPortalState('ERROR');
-      setErrorMessage(err.message);
-      toast.error("Erro ao sincronizar portal: " + err.message);
+      setErrorMessage(err.message || "Erro desconhecido ao carregar dados");
+      toast.error("Erro ao sincronizar portal: " + (err.message || "Erro desconhecido"));
     } finally {
       setLoading(false);
       setIsRefreshing(false);
     }
 
-  }, [user, profile?.tenant_id, profile?.phone, slug]);
+  }, [user, profile?.tenant_id, profile?.phone, profile?.email, slug]);
 
 
   useEffect(() => {
@@ -285,7 +296,7 @@ function CustomerPortalPage() {
       authLoading, 
       hasUser: !!user, 
       hasProfile: !!profile,
-      identityStatus: profile?.identity_status
+      slug
     });
 
     if (authLoading) return;
@@ -295,14 +306,8 @@ function CustomerPortalPage() {
       return;
     }
 
-    // Regra Crítica: Se o usuário é ADMIN/STAFF mas caiu no portal do cliente,
-    // devemos mantê-lo aqui se ele tiver um registro de cliente, ou redirecionar
-    // se for estritamente administrativo. Mas por ora, permitimos o acesso se autenticado.
-    
-    if (profile) {
-      loadPortalData();
-    }
-  }, [user, authLoading, profile, loadPortalData]);
+    loadPortalData();
+  }, [user, authLoading, slug, loadPortalData]);
 
   const handleLogout = async () => {
     try {
@@ -362,7 +367,7 @@ function CustomerPortalPage() {
               </Button>
             </a>
           </div>
-          <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <div className="bg-[#0B1220] border border-[#F59E0B]/20 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <ClientLoginForm barbershopSlug={slug} />
           </div>
         </div>
@@ -370,7 +375,7 @@ function CustomerPortalPage() {
     );
   }
 
-  if (!profile || portalState === 'NOT_FOUND' || (portalState === 'DATA_READY' && !data?.customer)) {
+  if (portalState === 'ERROR' || portalState === 'NOT_FOUND' || (portalState === 'DATA_READY' && !data?.customer)) {
     return (
       <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 text-center">
         <div className="max-w-md w-full space-y-8 animate-in fade-in duration-700">
