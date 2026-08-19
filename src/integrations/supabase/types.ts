@@ -4222,6 +4222,7 @@ export type Database = {
           auth_migration_status:
             | Database["public"]["Enums"]["identity_status"]
             | null
+          auth_user_id: string | null
           avatar_url: string | null
           barber_id: string | null
           birth_date: string | null
@@ -4260,6 +4261,7 @@ export type Database = {
           auth_migration_status?:
             | Database["public"]["Enums"]["identity_status"]
             | null
+          auth_user_id?: string | null
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
@@ -4298,6 +4300,7 @@ export type Database = {
           auth_migration_status?:
             | Database["public"]["Enums"]["identity_status"]
             | null
+          auth_user_id?: string | null
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
@@ -10105,6 +10108,10 @@ export type Database = {
           start_time: string
           status: string
         }[]
+      }
+      claim_customer_profile: {
+        Args: { target_user_id: string }
+        Returns: boolean
       }
       cleanup_invalid_cashback: { Args: { p_tenant_id: string }; Returns: Json }
       clear_barbershop_financial_data: {
