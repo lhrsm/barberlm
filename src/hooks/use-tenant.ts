@@ -37,9 +37,8 @@ export function useTenant() {
     ? null 
     : (impersonatedId || 
        membership?.tenant_id || 
-       (profile?.role === 'super_admin' ? null : 
-        (profile?.tenant_id || 
-         (profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null)))));
+       (profile?.tenant_id || 
+        (profile?.role === 'admin' || profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null))));
 
     if (typeof window !== 'undefined') {
       console.log("[useTenant] Debug:", { 

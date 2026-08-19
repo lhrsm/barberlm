@@ -17,6 +17,7 @@ interface Profile {
   slug: string | null;
   email: string | null;
   identity_status: IdentityStatus;
+  phone: string | null;
 }
 
 // Global state shared across useAuth instances.
@@ -47,7 +48,7 @@ async function fetchProfileData(userId: string) {
   try {
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select("id, role, tenant_id, business_name, responsible_name, display_name, slug, email, identity_status")
+      .select("id, role, tenant_id, business_name, responsible_name, display_name, slug, email, identity_status, phone")
       .eq("id", userId)
       .maybeSingle();
 
@@ -83,6 +84,7 @@ async function fetchProfileData(userId: string) {
       slug: resolvedRole === 'client' ? null : (profileData?.slug ?? null),
       email: profileData?.email ?? null,
       identity_status: (profileData?.identity_status as IdentityStatus) ?? 'legacy',
+      phone: profileData?.phone ?? null,
     };
 
     setState({ profile: normalizedProfile });

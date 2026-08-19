@@ -87,8 +87,10 @@ function CustomerPortalPage() {
     }
 
     try {
-      console.log("[PORTAL_BOOT_TRACE] Fetching customer identity", { effectiveTenantId });
-      const { data: customerData, error: customerError } = await supabase
+      console.log("[PORTAL_BOOT_TRACE] Fetching customer identity", { effectiveTenantId, userId: user.id });
+      
+      // First try by user_id
+      let { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("*, loyalty_levels(*)")
         .eq("user_id", user.id)
@@ -97,12 +99,39 @@ function CustomerPortalPage() {
 
       if (customerError) throw customerError;
       
+      // Fallback: If not found by user_id, try by phone if profile has it
+      if (!customerData && profile?.phone) {
+        console.log("[PORTAL_BOOT_TRACE] Customer not found by user_id, trying fallback by phone:", profile.phone);
+        const normalized = profile.phone.replace(/\D/g, '');
+        const { data: phoneMatch, error: phoneError } = await supabase
+          .from("customers")
+          .select("*, loyalty_levels(*)")
+          .eq("tenant_id", effectiveTenantId)
+          .ilike("phone", `%${normalized}%`)
+          .maybeSingle();
+        
+        if (!phoneError && phoneMatch) {
+          console.log("[PORTAL_BOOT_TRACE] Fallback found customer by phone, linking user_id...");
+          customerData = phoneMatch;
+          
+          // Self-heal: Link user_id if missing or different
+          if (!phoneMatch.user_id) {
+            await supabase
+              .from("customers")
+              .update({ user_id: user.id })
+              .eq("id", phoneMatch.id);
+          }
+        }
+      }
+
       console.log("[PORTAL_BOOT_TRACE] Customer identity result:", { 
         found: !!customerData, 
-        customerId: customerData?.id 
+        customerId: customerData?.id,
+        authUserId: user.id
       });
 
       if (!customerData) {
+        console.error("[PORTAL_BOOT_TRACE] No customer record found for this identity", { userId: user.id, tenantId: effectiveTenantId });
         setLoading(false);
         return;
       }
@@ -161,17 +190,16 @@ function CustomerPortalPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, profile?.tenant_id]);
+  }, [user, profile?.tenant_id, profile?.phone, slug]);
 
   useEffect(() => {
-    // Safety timeout for loading state
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn("[PORTAL_BOOT_TRACE] Loading timeout reached, forcing finish");
-        setLoading(false);
-      }
-    }, 8000);
+    // Safety check for loading state
+    if (loading && user && data?.customer) {
+      setLoading(false);
+    }
+  }, [user, data, loading]);
 
+  useEffect(() => {
     const handleVisibilityChange = () => {
       const now = Date.now();
       const timeSinceLastCheck = now - lastCheck;
