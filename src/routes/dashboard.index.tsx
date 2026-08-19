@@ -351,8 +351,9 @@ function DashboardIndexComponent() {
   }
 
 
-  // Handle unauthorized or uninitialized states
-  if (!user || !tenantId) {
+  // SSR Safety: Allow initial render during SSR even without user/tenantId
+  // The client-side hydration will handle the actual data loading and redirects
+  if ((!user || !tenantId) && typeof window !== 'undefined') {
     if (!authLoading && !user) {
        console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
        window.location.href = "/auth";
