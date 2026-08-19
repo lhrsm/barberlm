@@ -141,16 +141,19 @@ function DashboardIndexComponent() {
 
   async function fetchBirthdayCustomers() {
     if (!tenantId) return;
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const todayDay = today.getDate();
     
-    const { data } = await supabase
-      .from("customers")
-      .select("id, name, phone, birth_date, avatar_url")
-      .eq("tenant_id", tenantId);
+    try {
+      const today = new Date();
+      const currentMonth = today.getMonth() + 1;
+      const todayDay = today.getDate();
+      
+      const { data } = await supabase
+        .from("customers")
+        .select("id, name, phone, birth_date, avatar_url")
+        .eq("tenant_id", tenantId);
 
-    if (data) {
+      if (data) {
+
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
         let month = 0;
