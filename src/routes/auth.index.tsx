@@ -36,9 +36,9 @@ function AuthIndexComponent() {
           {/* Glow Effect */}
           <div className="absolute -inset-1 bg-gradient-to-b from-gold/20 to-transparent rounded-[32px] blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
           
-          <div className={`relative ${isClientPortal ? 'bg-white' : 'bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5'} rounded-[32px] shadow-2xl overflow-visible p-8 md:p-10`}>
+          <div className={`relative ${isClientPortal ? 'bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5' : 'bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5'} rounded-[32px] shadow-2xl overflow-visible p-8 md:p-10`}>
             <div className="text-center space-y-2 mb-8">
-              <h2 className={`text-2xl md:text-3xl font-black ${isClientPortal ? 'text-zinc-900' : 'text-white'} tracking-tighter uppercase italic leading-none`}>
+              <h2 className={`text-2xl md:text-3xl font-black ${isClientPortal ? 'text-white' : 'text-white'} tracking-tighter uppercase italic leading-none`}>
                 {isClientPortal ? 'PORTAL DO' : 'BEM-VINDO'} <span className="text-gold">{isClientPortal ? 'CLIENTE' : 'BARBEX'}</span>
               </h2>
               <p className={`${isClientPortal ? 'text-zinc-400' : 'text-zinc-500'} text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed max-w-[240px] mx-auto`}>
@@ -115,7 +115,7 @@ function AuthIndexComponent() {
 
             {/* Security Footer */}
             <div className="mt-10 flex flex-col items-center text-center space-y-2 opacity-50">
-              <div className={`flex items-center gap-2 text-[10px] font-black ${isClientPortal ? 'text-zinc-900' : 'text-white'} uppercase tracking-widest`}>
+              <div className={`flex items-center gap-2 text-[10px] font-black ${isClientPortal ? 'text-white' : 'text-white'} uppercase tracking-widest`}>
                 <ShieldCheck size={14} className="text-gold" />
                 Ambiente Seguro
               </div>
