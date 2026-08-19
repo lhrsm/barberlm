@@ -4864,7 +4864,7 @@ function ShopPageComponent() {
                                     <Button 
                                       variant="outline" 
                                       size="lg" 
-                                      className="w-full h-12 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
+                                      className="w-full h-12 bg-white text-black hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-sm active:scale-[0.98] border border-zinc-200 rounded-xl font-medium transition-all duration-200 group/copy"
                                       onClick={() => {
                                         navigator.clipboard.writeText(shop.pix_key);
                                         toast.success("Chave PIX copiada!");
