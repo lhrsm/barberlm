@@ -176,7 +176,7 @@ function CustomerPortalPage() {
 
       trace("Data fetch complete", {
         apptsCount: apptsRes.data?.length,
-        [APPOINTMENT_VISIBILITY_TRACE]: {
+        APPOINTMENT_VISIBILITY_TRACE: {
           customerId: customerData.id,
           tenantId: effectiveTenantId,
           appointments: apptsRes.data?.map(a => a.id)
