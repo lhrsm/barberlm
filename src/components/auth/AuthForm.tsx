@@ -258,7 +258,7 @@ export function AuthForm() {
               <Input
                 id="login-password"
                 type={showPassword ? "text" : "password"}
-                style={{ WebkitTextSecurity: showPassword ? "none" : "disc" }}
+                style={{ ["WebkitTextSecurity" as any]: showPassword ? "none" : "disc" }}
                 autoComplete="current-password"
                 className="pl-14 pr-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all"
                 placeholder="••••••••"

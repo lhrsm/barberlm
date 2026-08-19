@@ -219,7 +219,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    style={{ WebkitTextSecurity: showPassword ? "none" : "disc" }}
+                    style={{ ["WebkitTextSecurity" as any]: showPassword ? "none" : "disc" }}
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
