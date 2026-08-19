@@ -111,13 +111,26 @@ function DashboardIndexComponent() {
         schema: 'public', 
         table: 'appointments', 
         filter: `tenant_id=eq.${tenantId}`
-      }, () => {
-        fetchTodayAppointments();
-        fetchStats();
-        refreshLimits();
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      }, (payload) => {
+        console.log("[DASHBOARD_LOADING_TRACE]", {
+          timestamp: new Date().toISOString(),
+          event: "postgres_changes:appointments",
+          appointmentId: payload.new?.id,
+          notificationId: payload.commit_timestamp
+        });
+        
+        setIsRefreshing(true);
+        Promise.all([
+          fetchTodayAppointments(),
+          fetchStats(),
+          refreshLimits()
+        ]).finally(() => {
+          setIsRefreshing(false);
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        });
       })
       .subscribe();
+
 
     return () => {
       supabase.removeChannel(channel);
