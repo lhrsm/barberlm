@@ -35,7 +35,9 @@ function CustomerPortalPage() {
   const [portalState, setPortalState] = useState<PortalState>('INITIALIZING');
   const [activeTab, setActiveTab] = useState("home");
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [data, setData] = useState<{
+
     customer: any;
     shop: any;
     appointments: any[];
@@ -230,9 +232,10 @@ function CustomerPortalPage() {
       
       if (document.visibilityState === 'visible' && user && profile && timeSinceLastCheck > 5000) {
         setLastCheck(now);
-        loadPortalData();
+        loadPortalData(true); // Background refresh on visibility change
       }
     };
+
 
 
     document.addEventListener("visibilitychange", handleVisibilityChange);

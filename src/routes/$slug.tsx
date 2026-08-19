@@ -1685,6 +1685,8 @@ function ShopPageComponent() {
         // O fechamento da modal principal e o reset do estado são feitos IMEDIATAMENTE após
         // mas mantemos o bookingStep intacto por um breve momento para evitar o flash visual do reset
         setIsBookingOpen(false); 
+        setBookingStep(bookingStep); // Explicitly keep current step during closing animation
+
 
         
         // Limpa o resto do estado mas mantém o pixReceipt aberto
