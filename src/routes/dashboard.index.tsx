@@ -316,7 +316,16 @@ function DashboardIndexComponent() {
     });
 
     if (barbersData.data) setBarbers(barbersData.data);
+    
+    console.log("[DASHBOARD_LOADING_TRACE]", {
+      timestamp: new Date().toISOString(),
+      event: "fetchStats:success"
+    });
+    } catch (error) {
+      console.error("[DASHBOARD_LOADING_TRACE] fetchStats:error", error);
+    }
   }
+
 
   // Show loading skeleton while initializing ONLY on first boot
   if (isInitialBoot && (loading || authLoading || tenantLoading)) {
