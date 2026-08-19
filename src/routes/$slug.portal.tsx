@@ -36,6 +36,9 @@ function CustomerPortalPage() {
   const [activeTab, setActiveTab] = useState("home");
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Canary Visual Temporário
+  const CANARY_ID = "v2026-08-19-A";
   const [data, setData] = useState<{
 
     customer: any;
@@ -314,12 +317,13 @@ function CustomerPortalPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
+      <div className="min-h-screen bg-[#05070d] flex items-center justify-center" data-debug-portal={CANARY_ID}>
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 text-gold animate-spin" />
           <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
             Autenticando...
           </p>
+          <span className="text-[10px] text-white/10 uppercase tracking-widest font-mono mt-8">DEBUG PORTAL A ({CANARY_ID})</span>
         </div>
       </div>
     );
@@ -327,12 +331,13 @@ function CustomerPortalPage() {
 
   if (user && loading) {
     return (
-      <div className="min-h-screen bg-[#05070d] flex items-center justify-center">
+      <div className="min-h-screen bg-[#05070d] flex items-center justify-center" data-debug-portal={CANARY_ID}>
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 text-gold animate-spin" />
           <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
             Sincronizando sua Experiência...
           </p>
+          <span className="text-[10px] text-white/10 uppercase tracking-widest font-mono mt-8">DEBUG PORTAL A ({CANARY_ID})</span>
           {/* Fallback para evitar loading infinito */}
           <button 
             onClick={() => setLoading(false)} 
@@ -529,7 +534,12 @@ function CustomerPortalPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#05070d] text-white">
+    <div className="min-h-screen bg-[#05070d] text-white" data-debug-portal={CANARY_ID}>
+      {/* Marcador de Diagnóstico Discreto */}
+      <div className="fixed bottom-2 left-2 z-[9999] pointer-events-none opacity-20 hover:opacity-100 transition-opacity">
+        <span className="text-[10px] font-mono text-zinc-500">A</span>
+      </div>
+
       {/* Premium Header */}
       <header className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">

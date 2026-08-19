@@ -26,6 +26,9 @@ function DashboardIndexComponent() {
   const loading = authLoading || tenantLoading || planLoading;
   const [isInitialBoot, setIsInitialBoot] = useState(true);
 
+  // Canary Visual Temporário
+  const CANARY_ID = "v2026-08-19-A";
+
   useEffect(() => {
     if (!loading) setIsInitialBoot(false);
   }, [loading]);
@@ -335,20 +338,22 @@ function DashboardIndexComponent() {
 
 
   // Show loading skeleton while initializing ONLY on first boot
-  if (isInitialBoot && (loading || authLoading || tenantLoading)) {
+  if (isInitialBoot && (loading || authLoading || tenantLoading) && typeof window !== 'undefined') {
     return (
-      <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center">
+      <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
         <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
           Sincronizando Dashboard Executivo...
         </p>
+        <span className="text-[10px] text-zinc-800 opacity-30 uppercase tracking-widest font-mono mt-8">DEBUG DASHBOARD A ({CANARY_ID})</span>
       </div>
     );
   }
 
 
-  // Handle unauthorized or uninitialized states
-  if (!user || !tenantId) {
+  // SSR Safety: Allow initial render during SSR even without user/tenantId
+  // The client-side hydration will handle the actual data loading and redirects
+  if ((!user || !tenantId) && typeof window !== 'undefined') {
     if (!authLoading && !user) {
        console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
        window.location.href = "/auth";
@@ -397,7 +402,11 @@ function DashboardIndexComponent() {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8">
+    <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8" data-debug-dashboard={CANARY_ID}>
+      {/* Marcador de Diagnóstico Discreto */}
+      <div className="fixed bottom-2 right-2 z-[9999] pointer-events-none opacity-20 hover:opacity-100 transition-opacity">
+        <span className="text-[10px] font-mono text-zinc-500">A</span>
+      </div>
       {renderSpecializedView()}
       <WalkinModal 
         open={isWalkinOpen} 

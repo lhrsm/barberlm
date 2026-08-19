@@ -299,7 +299,18 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const shouldBlock = accessReady && isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin';
 
 
-  if (loading || authLoading) {
+  // [DEBUG_SSR_HYDRATION] Forcing hydration check logs
+  useEffect(() => {
+    console.log("[DASHBOARD_BOOT_TRACE] AppLayout: Hydrated", { 
+      loading, 
+      authLoading,
+      tenantId,
+      accessReady,
+      isExpired
+    });
+  }, [loading, authLoading, tenantId, accessReady, isExpired]);
+
+  if ((loading || authLoading) && typeof window !== 'undefined') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#05070d] flex-col gap-4">
         <div className="h-12 w-12 rounded-full border-4 border-gold/10 border-t-gold animate-spin" />
