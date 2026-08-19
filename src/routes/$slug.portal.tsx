@@ -219,7 +219,7 @@ function CustomerPortalPage() {
 
 
   useEffect(() => {
-    if (portalState !== 'DATA_READY' || !data?.customer?.id || !shop?.id) return;
+    if (portalState !== 'DATA_READY' || !data?.customer?.id || !data?.shop?.id) return;
 
     const channel = supabase
       .channel(`portal_updates_${data.customer.id}`)
@@ -237,7 +237,8 @@ function CustomerPortalPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [portalState, data?.customer?.id, shop?.id, loadPortalData]);
+  }, [portalState, data?.customer?.id, data?.shop?.id, loadPortalData]);
+
 
   useEffect(() => {
     // Safety check for loading state
@@ -267,6 +268,7 @@ function CustomerPortalPage() {
         loadPortalData(true); // Background refresh on visibility change
       }
     };
+
 
 
 
@@ -522,6 +524,7 @@ function CustomerPortalPage() {
     activeTab,
     visibility: typeof document !== 'undefined' ? document.visibilityState : 'unknown'
   });
+
 
 
   return (
