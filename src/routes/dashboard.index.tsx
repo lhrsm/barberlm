@@ -340,10 +340,10 @@ function DashboardIndexComponent() {
   // Show loading skeleton while initializing ONLY on first boot
   if (isInitialBoot && (loading || authLoading || tenantLoading) && typeof window !== 'undefined') {
     return (
-      <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center bg-red-500/10 border-4 border-red-500" data-debug-dashboard={CANARY_ID}>
+      <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
         <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-          Sincronizando Dashboard Executivo... [CANARY ACTIVE]
+          Sincronizando Dashboard Executivo...
         </p>
         <span className="text-[10px] text-zinc-800 opacity-30 uppercase tracking-widest font-mono mt-8">DEBUG DASHBOARD A ({CANARY_ID})</span>
       </div>
