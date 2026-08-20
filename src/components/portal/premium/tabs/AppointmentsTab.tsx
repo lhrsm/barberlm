@@ -1,12 +1,13 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { History, Scissors, Calendar, User as UserIcon, Clock, Filter, Search, X, Sparkles, CheckCircle2, Star, HelpCircle } from "lucide-react";
+import { History, Scissors, Calendar, User as UserIcon, Clock, Filter, Search, X, Sparkles, CheckCircle2, Star } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { resolveReviewState } from "@/lib/review.utils";
 
 type Props = {
   appointments: any[];
@@ -14,49 +15,6 @@ type Props = {
   onReview: (app: any) => void;
   onSkipReview?: (app: any) => void;
 };
-
-type ReviewDecisionState = 'PENDING_DECISION' | 'REVIEW_SUBMITTED' | 'REVIEW_SKIPPED' | 'UNKNOWN' | 'NOT_APPLICABLE';
-
-interface AppointmentReviewMeta {
-  state: ReviewDecisionState;
-  moderationStatus?: 'pending' | 'approved' | 'rejected';
-}
-
-function getAppointmentReviewState(app: any): AppointmentReviewMeta {
-  if (app.status !== "completed") {
-    return { state: "NOT_APPLICABLE" };
-  }
-
-  // 1. Fail-closed: se a query de review falhou no portal (Hotfix 09/10A)
-  if (app.reviewStatus === "unknown") {
-    return { state: "UNKNOWN" };
-  }
-
-  // 2. Recusa explícita do cliente (Hotfix 11)
-  if (app.review_decision === "skipped") {
-    return { state: "REVIEW_SKIPPED" };
-  }
-
-  // 3. Avaliação enviada (via appointment_reviews, flag ou reviewStatus)
-  const review = app.appointment_reviews || app.review;
-  const hasSubmittedReview = !!(
-    (review && (review.submitted_at || review.id)) ||
-    app.review_decision === "submitted" ||
-    app._review_id ||
-    app.reviewStatus === "reviewed"
-  );
-
-  if (hasSubmittedReview) {
-    const moderation = review?.testimonial_status || (app._review_id ? "approved" : "pending");
-    return {
-      state: "REVIEW_SUBMITTED",
-      moderationStatus: moderation as "pending" | "approved" | "rejected",
-    };
-  }
-
-  // 4. Concluído sem decisão: aguardando ação opcional do cliente
-  return { state: "PENDING_DECISION" };
-}
 
 export function AppointmentsTab({ appointments, onViewDetails, onReview, onSkipReview }: Props) {
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -103,7 +61,7 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview, onSkipR
             const isCompleted = app.status === "completed";
             const isCancelled = app.status === "cancelled";
             const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
-            const reviewMeta = getAppointmentReviewState(app);
+            const reviewMeta = resolveReviewState(app);
 
             return (
               <motion.div

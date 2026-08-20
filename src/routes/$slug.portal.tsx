@@ -298,7 +298,7 @@ function CustomerPortalPage() {
         }
       }
 
-      // Enriquecimento dos agendamentos com estado fail-closed
+      // Enriquecimento dos agendamentos com estado fail-closed e decisão canônica
       const enrichedAppointments = (((apptsRes as any)?.data || [])).map((a: any) => {
         const matchingReview: any = reviewsOk ? reviewsByApptId.get(a.id) : null;
         const reviewStatus: 'reviewed' | 'not_reviewed' | 'unknown' =
@@ -308,8 +308,12 @@ function CustomerPortalPage() {
             ? 'reviewed'
             : 'not_reviewed';
 
+        // Preserva estritamente a decisão gravada no banco ou sincronizada
+        const review_decision = a.review_decision || (matchingReview ? 'submitted' : null);
+
         return {
           ...a,
+          review_decision: a.review_decision || review_decision,
           _review_id: matchingReview?.id || null,
           review: matchingReview || null,
           reviewStatus
@@ -876,6 +880,20 @@ function CustomerPortalPage() {
         appointment={reviewAppointment}
         tenantId={data?.shop?.id || data?.customer?.tenant_id || ""}
         onSubmitted={() => {
+          const submittedId = reviewAppointment?.id;
+          if (submittedId) {
+            setData((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                appointments: prev.appointments.map((a: any) =>
+                  a.id === submittedId
+                    ? { ...a, review_decision: "submitted", _review_id: "pending", reviewStatus: "reviewed" }
+                    : a
+                ),
+              };
+            });
+          }
           setReviewOpen(false);
           setReviewAppointment(null);
           loadPortalData(true);
@@ -889,7 +907,21 @@ function CustomerPortalPage() {
             if (!open) setSkipAppointment(null);
           }}
           appointment={skipAppointment}
-          onSkipped={() => {
+          onSkipped={(app) => {
+            const skippedId = app?.id || skipAppointment?.id;
+            if (skippedId) {
+              setData((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  appointments: prev.appointments.map((a: any) =>
+                    a.id === skippedId
+                      ? { ...a, review_decision: "skipped" }
+                      : a
+                  ),
+                };
+              });
+            }
             setSkipAppointment(null);
             loadPortalData(true);
           }}

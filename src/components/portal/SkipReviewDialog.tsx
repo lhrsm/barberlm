@@ -3,13 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 
 interface SkipReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   appointment: any;
-  onSkipped?: () => void;
+  onSkipped?: (appointment: any) => void;
 }
 
 export function SkipReviewDialog({
@@ -25,28 +25,23 @@ export function SkipReviewDialog({
   const handleConfirmSkip = async () => {
     setSubmitting(true);
     try {
-      // 1. Tenta executar a RPC segura
-      let { error } = await (supabase.rpc as any)("set_appointment_review_decision", {
+      // Chamada canônica da RPC segura
+      const { data, error } = await (supabase.rpc as any)("set_appointment_review_decision", {
         p_appointment_id: appointment.id,
         p_decision: "skipped",
       });
 
-      // 2. Fallback caso a RPC ainda não esteja em cache/disponível
       if (error) {
-        console.warn("[SKIP_REVIEW] RPC fallback to direct update:", error.message);
-        const { error: updateErr } = await (supabase as any)
-          .from("appointments")
-          .update({ review_decision: "skipped" })
-          .eq("id", appointment.id);
+        throw new Error(error.message || "Erro ao registrar recusa de avaliação no servidor.");
+      }
 
-        if (updateErr) {
-          console.error("[SKIP_REVIEW] Direct update error:", updateErr.message);
-        }
+      if (!data || (data as any).success !== true) {
+        throw new Error((data as any)?.error || "Operação não confirmada pelo servidor.");
       }
 
       toast.success("Decisão registrada: você optou por não avaliar este atendimento.");
       onOpenChange(false);
-      onSkipped?.();
+      onSkipped?.(appointment);
     } catch (e: any) {
       console.error("[SKIP_REVIEW] Error skipping review:", e);
       toast.error("Erro ao registrar decisão: " + (e.message || "Tente novamente"));
