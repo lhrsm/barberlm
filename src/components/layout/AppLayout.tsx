@@ -309,7 +309,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
     });
   }, [loading, authLoading, tenantId, accessReady, isExpired]);
 
-  if ((loading || authLoading) && typeof window !== 'undefined') {
+  if (!user && (loading || authLoading) && typeof window !== 'undefined') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#05070d] flex-col gap-4">
         <div className="h-12 w-12 rounded-full border-4 border-gold/10 border-t-gold animate-spin" />

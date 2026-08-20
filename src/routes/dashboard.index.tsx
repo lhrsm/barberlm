@@ -86,7 +86,7 @@ function DashboardIndexComponent() {
         pathname: window.location.pathname,
         timestamp: Date.now()
       });
-      window.location.href = "/auth";
+      navigate({ to: "/auth" as any, replace: true });
       return;
     }
 
@@ -352,7 +352,7 @@ function DashboardIndexComponent() {
   if ((!user || !tenantId) && typeof window !== 'undefined') {
     if (!authLoading && !user) {
        console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
-       window.location.href = "/auth";
+       navigate({ to: "/auth" as any, replace: true });
        return null;
     }
     if (isCriticalBoot) {

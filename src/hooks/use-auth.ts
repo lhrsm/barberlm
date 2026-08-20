@@ -117,10 +117,10 @@ async function initializeAuth() {
         setState({ session: null, user: null, profile: null, loading: false });
       } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
-          const isSameUser = globalProfile?.id === session.user.id;
+          const isSameUser = Boolean(globalProfile?.id === session.user.id && globalUser?.id === session.user.id && globalProfile !== null);
           
-          if (!isSameUser || event === 'SIGNED_IN') {
-            setState({ session, user: session.user, loading: true });
+          if (!isSameUser || (!globalUser && event === 'SIGNED_IN')) {
+            setState({ session, user: session.user, profile: null, loading: true });
             const profile = await fetchProfileData(session.user.id);
             if (!profile && event === 'SIGNED_IN') {
               // Retry once if profile not found immediately after sign in
@@ -130,6 +130,9 @@ async function initializeAuth() {
             setState({ loading: false });
           } else {
             setState({ session, user: session.user });
+            if (event === 'USER_UPDATED' || !globalProfile) {
+              fetchProfileData(session.user.id);
+            }
           }
         } else if (event !== 'INITIAL_SESSION') {
           setState({ session: null, user: null, profile: null, loading: false });

@@ -97,7 +97,9 @@ function RootComponent() {
     const client = new QueryClient({
       defaultOptions: { 
         queries: { 
-          staleTime: 1000,
+          staleTime: 5 * 60 * 1000,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: true,
           retry: 1 
         } 
       },
