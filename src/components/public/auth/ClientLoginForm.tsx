@@ -195,7 +195,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="+55 (71) 99999-9999 ou e-mail"
                     {...form.register("identifier")}
                     autoComplete="username"
-                    className="h-[52px] md:h-[56px] pl-14 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 caret-gold [color-scheme:dark] focus:text-white focus:bg-[#151D2C] focus-visible:text-white focus-visible:bg-[#151D2C] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset] transition-all"
+                    className="h-[52px] md:h-[56px] pl-14 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 caret-gold [color-scheme:dark] focus:text-white focus:bg-[#1C2535] focus-visible:text-white focus-visible:bg-[#1C2535] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset] transition-all"
                   />
                 </div>
                 {form.formState.errors.identifier && (
@@ -223,7 +223,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                     placeholder="••••••••"
                     {...form.register("password")}
                     autoComplete="current-password"
-                    className="h-[52px] md:h-[56px] pl-14 pr-14 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 caret-gold [color-scheme:dark] focus:text-white focus:bg-[#151D2C] focus-visible:text-white focus-visible:bg-[#151D2C] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset] transition-all"
+                    className="h-[52px] md:h-[56px] pl-14 pr-14 bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 caret-gold [color-scheme:dark] focus:text-white focus:bg-[#1C2535] focus-visible:text-white focus-visible:bg-[#1C2535] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset] transition-all"
                   />
 
                   <button
@@ -320,7 +320,7 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
                       form.setValue("identifier", val);
                     }
                   }}
-                  className="h-[52px] bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 caret-gold [color-scheme:dark] focus:bg-[#151D2C] focus:text-white focus-visible:text-white focus-visible:bg-[#151D2C] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset] transition-all"
+                  className="h-[52px] bg-[#151D2C] border-white/10 rounded-2xl text-white placeholder:text-zinc-500 caret-gold [color-scheme:dark] focus:bg-[#1C2535] focus:text-white focus-visible:text-white focus-visible:bg-[#1C2535] focus-visible:ring-1 focus-visible:ring-gold/30 focus-visible:border-gold autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#151D2C_inset] transition-all"
                 />
               </div>
 
