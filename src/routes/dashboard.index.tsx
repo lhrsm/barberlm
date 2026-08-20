@@ -23,15 +23,15 @@ function DashboardIndexComponent() {
   const navigate = useNavigate();
   const { refresh: refreshLimits, loading: planLoading } = usePlanLimits();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const loading = authLoading || tenantLoading || planLoading;
+  const isCriticalBoot = authLoading || tenantLoading;
   const [isInitialBoot, setIsInitialBoot] = useState(true);
 
   // Canary Visual Temporário
   const CANARY_ID = "v2026-08-19-A";
 
   useEffect(() => {
-    if (!loading) setIsInitialBoot(false);
-  }, [loading]);
+    if (!isCriticalBoot) setIsInitialBoot(false);
+  }, [isCriticalBoot]);
 
   
   const [isWalkinOpen, setIsWalkinOpen] = useState(false);
@@ -77,7 +77,7 @@ function DashboardIndexComponent() {
       context: { hasUser: !!user, role, tenantId }
     });
 
-    if (loading) return;
+    if (isCriticalBoot) return;
 
     if (!user) {
       console.warn('[AUTH_REDIRECT_TRACE]', {
@@ -97,7 +97,7 @@ function DashboardIndexComponent() {
         return;
       }
     }
-  }, [user, role, loading, navigate, authLoading, tenantLoading, planLoading, tenantId, isInitialBoot, isRefreshing]);
+  }, [user, role, isCriticalBoot, navigate, authLoading, tenantLoading, planLoading, tenantId, isInitialBoot, isRefreshing]);
 
 
   useEffect(() => {
@@ -334,8 +334,8 @@ function DashboardIndexComponent() {
   }
 
 
-  // Show loading skeleton while initializing ONLY on first boot
-  if (isInitialBoot && (loading || authLoading || tenantLoading) && typeof window !== 'undefined') {
+  // Show loading skeleton while initializing ONLY on first critical boot
+  if (isInitialBoot && isCriticalBoot && typeof window !== 'undefined') {
     return (
       <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
@@ -355,7 +355,7 @@ function DashboardIndexComponent() {
        window.location.href = "/auth";
        return null;
     }
-    if (authLoading || tenantLoading) {
+    if (isCriticalBoot) {
       return (
         <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
           <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />

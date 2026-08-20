@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "./use-tenant";
 import { startOfMonth, endOfMonth, differenceInDays } from "date-fns";
@@ -47,171 +47,181 @@ export const PLAN_LIMITS = {
 
 export function usePlanLimits() {
   const { tenantId } = useTenant();
-  const [plan, setPlan] = useState<PlanType>("free");
-  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
-  const [subscription, setSubscription] = useState<{
-    status: string | null;
-    currentPeriodEnd: string | null;
-    cancelAtPeriodEnd: boolean;
-    stripeCustomerId: string | null;
-    priceId: string | null;
-  } | null>(null);
-  const [usage, setUsage] = useState({
-    barbers: 0,
-    services: 0,
-    products: 0,
-    monthlyAppointments: 0,
-    whatsappConnections: 0,
-  });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (tenantId) {
-      fetchPlanAndUsage();
-    } else {
-      setLoading(false);
-    }
-  }, [tenantId]);
+  const { data, isLoading: queryLoading, refetch } = useQuery({
+    queryKey: ["plan-limits", tenantId],
+    queryFn: async () => {
+      if (!tenantId) return null;
 
-  async function fetchPlanAndUsage() {
-    if (!tenantId) {
-      setLoading(false);
-      return;
-    }
-    
-    console.log("[PLAN_LIMITS_TRACE] Fetching for tenantId:", tenantId);
-    setLoading(true);
+      const monthStart = startOfMonth(new Date()).toISOString();
+      const monthEnd = endOfMonth(new Date()).toISOString();
 
-    const monthStart = startOfMonth(new Date()).toISOString();
-    const monthEnd = endOfMonth(new Date()).toISOString();
-
-    try {
       const [profileRes, subRes, countsRes] = await Promise.all([
-        supabase.from("profiles").select("plan, effective_plan, selected_plan, created_at, trial_end, status").eq("id", tenantId).maybeSingle(),
-        supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-        Promise.all([
+        supabase
+          .from("profiles")
+          .select("plan, effective_plan, selected_plan, created_at, trial_end, status")
+          .eq("id", tenantId)
+          .maybeSingle(),
+        supabase
+          .from("subscriptions")
+          .select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id")
+          .eq("user_id", tenantId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        Promise.allSettled([
           supabase.from("barbers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
           supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
           supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
-          supabase.from("appointments").select("*", { count: "exact", head: true })
+          supabase
+            .from("appointments")
+            .select("*", { count: "exact", head: true })
             .eq("tenant_id", tenantId)
             .neq("status", "cancelled")
             .gte("start_time", monthStart)
             .lte("start_time", monthEnd),
           supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
-        ])
+        ]),
       ]);
 
-      const [barbRes, servRes, prodRes, appRes, whatsappRes] = countsRes;
+      let currentPlan: PlanType = "free";
+      let trialEndStr: string | null = null;
 
       if (profileRes.data) {
-        console.log("[usePlanLimits] Profile data:", profileRes.data);
-        
-        // Regra Principal: Durante trial effective_plan = PRO mesmo que selected_plan = ELITE
-        const trialEndStr = profileRes.data.trial_end;
+        trialEndStr = profileRes.data.trial_end;
         const now = new Date();
         const trialEnd = trialEndStr ? new Date(trialEndStr) : null;
         const trialActive = trialEnd && trialEnd > now;
-        
-        let currentPlan: PlanType = "free";
-        
+
         const profilePlan = (profileRes.data.plan as string)?.toLowerCase();
         const effectivePlan = (profileRes.data.effective_plan as string)?.toLowerCase();
-        
+
         if (trialActive) {
           currentPlan = "pro";
-        } else if (effectivePlan && effectivePlan !== 'free') {
+        } else if (effectivePlan && effectivePlan !== "free") {
           currentPlan = effectivePlan as PlanType;
         } else {
-          currentPlan = profilePlan as PlanType || "free";
+          currentPlan = (profilePlan as PlanType) || "free";
         }
-        
-        setPlan(currentPlan);
-        setTrialEndsAt(trialEndStr || null);
       }
 
+      let subData: {
+        status: string | null;
+        currentPeriodEnd: string | null;
+        cancelAtPeriodEnd: boolean;
+        stripeCustomerId: string | null;
+        priceId: string | null;
+      } | null = null;
+
       if (subRes.data) {
-        console.log("[usePlanLimits] Subscription data found:", subRes.data);
-        setSubscription({
+        subData = {
           status: subRes.data.status || null,
           currentPeriodEnd: subRes.data.current_period_end || null,
           cancelAtPeriodEnd: !!subRes.data.cancel_at_period_end,
           stripeCustomerId: subRes.data.stripe_customer_id || null,
           priceId: subRes.data.price_id || null,
-        });
+        };
 
-        // Se tem assinatura ativa ou em trial no stripe, isso sobrescreve o plano do profile
-        const isSubscribed = ['active', 'trialing', 'past_due'].includes(subRes.data.status || '');
+        const isSubscribed = ["active", "trialing", "past_due"].includes(subRes.data.status || "");
         if (isSubscribed && subRes.data.price_id) {
-          const planFromPrice = subRes.data.price_id.split('_')[0] as PlanType;
+          const planFromPrice = subRes.data.price_id.split("_")[0] as PlanType;
           if (["starter", "pro", "elite"].includes(planFromPrice)) {
-            setPlan(planFromPrice);
+            currentPlan = planFromPrice;
           }
         }
-      } else {
-        console.log("[usePlanLimits] No subscription found for user");
       }
 
-      setUsage({
-        barbers: barbRes.count || 0,
-        services: servRes.count || 0,
-        products: prodRes.count || 0,
-        monthlyAppointments: appRes.count || 0,
-        whatsappConnections: whatsappRes.count || 0,
-      });
-    } catch (error) {
-      console.error("[usePlanLimits] Error fetching data:", error);
-    } finally {
-      console.log("[usePlanLimits] Fetch complete");
-      setLoading(false);
-    }
-  }
+      const [barbRes, servRes, prodRes, appRes, whatsappRes] = countsRes;
 
-  const limits = (plan && PLAN_LIMITS[plan]) ? PLAN_LIMITS[plan] : PLAN_LIMITS.free;
+      const parseCount = (r: PromiseSettledResult<any>): { count: number; ok: boolean } => {
+        if (r.status === "fulfilled" && !r.value?.error && r.value?.count != null) {
+          return { count: Number(r.value.count), ok: true };
+        }
+        return { count: 0, ok: false };
+      };
 
-  const trialDaysRemaining = trialEndsAt 
+      const parsedBarbers = parseCount(barbRes);
+      const parsedServices = parseCount(servRes);
+      const parsedProducts = parseCount(prodRes);
+      const parsedAppointments = parseCount(appRes);
+      const parsedWhatsapp = parseCount(whatsappRes);
+
+      const usageData = {
+        barbers: parsedBarbers.count,
+        services: parsedServices.count,
+        products: parsedProducts.count,
+        monthlyAppointments: parsedAppointments.count,
+        whatsappConnections: parsedWhatsapp.count,
+      };
+
+      const usageStatusData = {
+        barbers: parsedBarbers.ok,
+        services: parsedServices.ok,
+        products: parsedProducts.ok,
+        monthlyAppointments: parsedAppointments.ok,
+        whatsappConnections: parsedWhatsapp.ok,
+      };
+
+      return {
+        plan: currentPlan,
+        trialEndsAt: trialEndStr,
+        subscription: subData,
+        usage: usageData,
+        usageStatus: usageStatusData,
+      };
+    },
+    enabled: !!tenantId,
+    staleTime: 1000 * 60 * 2, // 2 minutos de cache compartilhado por tenant
+  });
+
+  const plan = data?.plan || "free";
+  const trialEndsAt = data?.trialEndsAt || null;
+  const subscription = data?.subscription || null;
+  const usage = data?.usage || {
+    barbers: 0,
+    services: 0,
+    products: 0,
+    monthlyAppointments: 0,
+    whatsappConnections: 0,
+  };
+  const loading = !!tenantId && queryLoading;
+
+  const limits = plan && PLAN_LIMITS[plan] ? PLAN_LIMITS[plan] : PLAN_LIMITS.free;
+
+  const trialDaysRemaining = trialEndsAt
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
     : 0;
 
-  // Logic for detailed subscription status as requested by user
   const subStatus = (subscription?.status || "").toLowerCase();
-
-  // Rule: exists active subscription if status is 'active', 'paid', 'trialing' or 'past_due'
-  // OR if explicitly marked as active in profile (using common field names or plan)
-  const hasActiveSubscription = 
-    ['active', 'paid', 'trialing', 'past_due'].includes(subStatus) || 
-    (plan && plan !== 'free');
+  const hasActiveSubscription =
+    ["active", "paid", "trialing", "past_due"].includes(subStatus) || (plan && plan !== "free");
 
   const isTrialValid = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
-
-  // Final access rule: can access if trial is valid OR has active subscription
-  // O SaaS não possui plano free. Bloqueio somente se trial expirou E não há assinatura.
-  // REMOVI O BLOQUEIO DA ROTA PROFISSIONAL AQUI - ela deve ser controlada pela lógica de login do profissional
   const canAccess = hasActiveSubscription || isTrialValid;
-  
-  // Bloqueio APENAS se canAccess for falso
   const isExpired = !canAccess;
-
-  useEffect(() => {
-    if (!loading && tenantId) {
-      console.log("%c[usePlanLimits] ACCESS LOGIC DEBUG (v8)", "background: #222; color: #bada55; font-size: 14px; padding: 4px;", {
-        tenantId,
-        plan,
-        subscriptionStatus: subStatus,
-        hasActiveSubscription,
-        isTrialValid,
-        canAccess,
-        isExpired,
-        trialEndsAt,
-        shouldBeBlocked: isExpired
-      });
-    }
-  }, [loading, tenantId, plan, subStatus, hasActiveSubscription, isTrialValid, canAccess, isExpired, trialEndsAt]);
 
   const checkLimit = (type: keyof typeof usage) => {
     if (!limits) return false;
-    // @ts-ignore
-    return usage[type] < limits[type];
+
+    const limitValue = limits[type];
+
+    // A. Se o limite for Infinity, é ilimitado -> sempre permitido (mesmo se contagem falhar)
+    if (limitValue === Infinity) return true;
+
+    // B. Se o limite for zero (recurso não permitido no plano), bloqueia
+    if (limitValue === 0) return false;
+
+    // C. FAIL-CLOSED: Se a contagem falhou ou os dados ainda não foram obtidos, não autoriza
+    if (!data || data.usageStatus?.[type] === false) {
+      return false;
+    }
+
+    // D. Se a contagem real foi obtida com sucesso:
+    return usage[type] < limitValue;
+  };
+
+  const refresh = async () => {
+    await refetch();
   };
 
   return {
@@ -225,6 +235,6 @@ export function usePlanLimits() {
     isExpired,
     subscription,
     checkLimit,
-    refresh: fetchPlanAndUsage,
+    refresh,
   };
 }

@@ -126,7 +126,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId, isLoading: tenantLoading } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
-  const { isExpired, loading: planLoading } = usePlanLimits();
+  const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
@@ -197,8 +197,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // PROTEÇÃO CRÍTICA: Não agir enquanto estiver em loading ou hidratando
-    if (loading || authLoading || planLoading || tenantLoading) {
-      console.log('[AUTH_REDIRECT_TRACE] Waiting for hydration...', { loading, authLoading, planLoading, tenantLoading });
+    if (loading || authLoading || tenantLoading) {
+      console.log('[AUTH_REDIRECT_TRACE] Waiting for hydration...', { loading, authLoading, tenantLoading });
       return;
     }
 
@@ -229,7 +229,7 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
         navigate({ to: `/${slug}/portal` as any });
       }
     }
-  }, [pathname, navigate, role, user, loading, authLoading, planLoading, tenantLoading, isImpersonating, slug]);
+  }, [pathname, navigate, role, user, loading, authLoading, tenantLoading, isImpersonating, slug]);
 
 
   useEffect(() => {
@@ -286,7 +286,6 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
   }, [session, profLogout, navigate, pathname]);
 
 
-  const { isTrial, subscription, plan, trialEndsAt } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
   // Condição mestre de bloqueio visual:
