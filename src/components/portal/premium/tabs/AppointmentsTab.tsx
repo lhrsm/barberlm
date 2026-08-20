@@ -16,8 +16,8 @@ type Props = {
 
 export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props) {
   const [searchTerm, setSearchTerm] = React.useState("");
-  
-  const filtered = appointments.filter(app => 
+
+  const filtered = appointments.filter(app =>
     app.services?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     app.barbers?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -59,7 +59,7 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
             const isCompleted = app.status === "completed";
             const isCancelled = app.status === "cancelled";
             const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
-            
+
             return (
               <motion.div
                 key={app.id}
@@ -87,15 +87,15 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-1.5">
                       <span className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <Calendar size={14} className="text-gold/60" /> 
+                        <Calendar size={14} className="text-gold/60" />
                         {format(parseISO(app.start_time), "dd 'de' MMM", { locale: ptBR })}
                       </span>
                       <span className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <Clock size={14} className="text-gold/60" /> 
+                        <Clock size={14} className="text-gold/60" />
                         {format(parseISO(app.start_time), "HH:mm")}
                       </span>
                       <span className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <UserIcon size={14} className="text-gold/60" /> 
+                        <UserIcon size={14} className="text-gold/60" />
                         {app.barbers?.name}
                       </span>
                     </div>
@@ -117,7 +117,25 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
                     )}
                   </div>
 
-                  {isCompleted && !app._review_id && (
+                  {isCompleted && app.reviewStatus === 'reviewed' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReview(app);
+                      }}
+                      className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/20 transition-all"
+                      title="Clique para ver sua avaliação"
+                    >
+                      <Sparkles size={12} />
+                      <span>
+                        {app.review?.testimonial_status === 'pending'
+                          ? "Avaliado • Em moderação"
+                          : "✓ Avaliado"}
+                      </span>
+                    </button>
+                  )}
+
+                  {isCompleted && app.reviewStatus === 'not_reviewed' && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -129,9 +147,12 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
                     </button>
                   )}
 
-                  {isCompleted && app._review_id && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                      <Sparkles size={12} /> Avaliado
+                  {isCompleted && app.reviewStatus === 'unknown' && (
+                    <div
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-500 uppercase tracking-wider"
+                      title="Status de avaliação temporariamente indisponível"
+                    >
+                      <span>Avaliação Indisponível</span>
                     </div>
                   )}
                 </div>

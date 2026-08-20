@@ -2,10 +2,10 @@ import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-r
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { 
-  Loader2, 
-  Bell, 
-  Settings, 
+import {
+  Loader2,
+  Bell,
+  Settings,
   LogOut,
   User as UserIcon,
   ArrowLeft,
@@ -18,14 +18,16 @@ import { HomeTab } from "@/components/portal/premium/layout/HomeTab";
 import { AppointmentsTab } from "@/components/portal/premium/tabs/AppointmentsTab";
 import { FinancesTab } from "@/components/portal/premium/tabs/FinancesTab";
 import { ProfileTab } from "@/components/portal/premium/tabs/ProfileTab";
-import { LoyaltyLevelCard } from "@/components/loyalty/LoyaltyLevelCard";
-import { AchievementGrid } from "@/components/loyalty/AchievementGrid";
+import { CouponsTab } from "@/components/portal/premium/tabs/CouponsTab";
+import { SecurityTab } from "@/components/portal/premium/tabs/SecurityTab";
+import { LoyaltyTab } from "@/components/portal/premium/tabs/LoyaltyTab";
 import { Button } from "@/components/ui/button";
 import { ClientLoginForm } from "@/components/public/auth/ClientLoginForm";
 import { normalizePhone } from "@/utils/phone";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { RescheduleWizard, type RescheduleWizardAppointment } from "@/components/reschedule/RescheduleWizard";
 import { ReviewModal } from "@/components/portal/ReviewModal";
+import { Scissors } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +66,10 @@ function CustomerPortalPage() {
     levels: any[];
     achievements: any[];
     unlockedAchievements: any[];
+    reviews: any[];
+    coupons: any[];
+    reviewsStatus: 'success' | 'error';
+    couponsStatus: 'success' | 'error';
   } | null>(null);
   const [lastCheck, setLastCheck] = useState(Date.now());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -92,7 +98,7 @@ function CustomerPortalPage() {
     };
 
     trace("Starting loadPortalData", { isBackground });
-    
+
     const isSilent = isBackground || (data && portalState === 'DATA_READY');
     if (isSilent) {
       setIsRefreshing(true);
@@ -120,7 +126,7 @@ function CustomerPortalPage() {
         .select("id")
         .eq("slug", slug)
         .maybeSingle();
-      
+
       if (shopProfile) {
         effectiveTenantId = shopProfile.id;
         trace("Tenant resolved from slug", { effectiveTenantId });
@@ -146,7 +152,7 @@ function CustomerPortalPage() {
     try {
       // 2. Resolve Customer
       trace("Fetching customer identity via auth_user_id");
-      
+
       // Strict lookup: by authenticated user's auth_user_id in this tenant
       let { data: customerData, error: customerError } = await supabase
         .from("customers")
@@ -158,7 +164,7 @@ function CustomerPortalPage() {
       if (customerError) {
         console.error("[PORTAL_RESOLUTION_TRACE] Customer auth_user_id query error:", customerError);
       }
-      
+
       // Fallback: Se ainda não vinculado, tentar claim seguro via RPC por e-mail autenticado
       if (!customerData) {
         trace("Customer not linked by auth_user_id, attempting claim_customer_profile RPC");
@@ -224,12 +230,14 @@ function CustomerPortalPage() {
           trace("Authenticated session is admin/staff on customer portal", { role, profileRole: profile?.role });
           setPortalState('ADMIN_SESSION_ON_CUSTOMER_PORTAL');
           setLoading(false);
+          setIsRefreshing(false);
           return;
         }
 
         trace("Customer NOT found");
         setPortalState('NOT_FOUND');
         setLoading(false);
+        setIsRefreshing(false);
         return;
       }
 
@@ -237,8 +245,6 @@ function CustomerPortalPage() {
       setCustomerName(customerData.name || "");
 
       // 3. Parallel Data Fetch
-      trace("Fetching parallel data", { customerId: customerData.id });
-      
       const [
         shopRes,
         apptsRes,
@@ -246,43 +252,83 @@ function CustomerPortalPage() {
         cashbackRes,
         levelsRes,
         achRes,
-        unlockedRes
+        unlockedRes,
+        reviewsRes,
+        couponsRes
       ] = await Promise.all([
         supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers:barbers!appointments_barber_id_fkey(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
-        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
-        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }),
-        supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }),
-        supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }),
-        supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)
+        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(() => ({ data: [] })),
+        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(() => ({ data: [] })),
+        supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }).catch(() => ({ data: [] })),
+        supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }).catch(() => ({ data: [] })),
+        supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id).catch(() => ({ data: [] })),
+        supabase.from("appointment_reviews").select("*").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).catch(() => ({ data: null, error: true })),
+        supabase.from("coupons").select("*").eq("tenant_id", effectiveTenantId).order("created_at", { ascending: false }).catch(() => ({ data: null, error: true }))
       ]);
 
-      if (apptsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Appointments fetch error:", apptsRes.error);
-      if (creditsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Credits fetch error:", creditsRes.error);
-      if (cashbackRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Cashback fetch error:", cashbackRes.error);
+      if (apptsRes && 'error' in apptsRes && apptsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Appointments fetch error:", apptsRes.error);
+
+      // Verificação estrita de integridade de reviews
+      const reviewsOk = Boolean(reviewsRes && !('error' in reviewsRes && reviewsRes.error) && Array.isArray((reviewsRes as any).data));
+      const couponsOk = Boolean(couponsRes && !('error' in couponsRes && couponsRes.error) && Array.isArray((couponsRes as any).data));
+
+      // Mapeamento em lote de avaliações com resolução determinística de duplicatas históricas (mais recente prevalece)
+      const reviewsByApptId = new Map<string, any>();
+      if (reviewsOk) {
+        const sortedReviews = [...(((reviewsRes as any)?.data) || [])].sort((a: any, b: any) => {
+          const tA = new Date(a.created_at || a.submitted_at || 0).getTime();
+          const tB = new Date(b.created_at || b.submitted_at || 0).getTime();
+          return tB - tA;
+        });
+        for (const r of sortedReviews) {
+          if (r.appointment_id && !reviewsByApptId.has(r.appointment_id)) {
+            reviewsByApptId.set(r.appointment_id, r);
+          }
+        }
+      }
+
+      // Enriquecimento dos agendamentos com estado fail-closed
+      const enrichedAppointments = (((apptsRes as any)?.data || [])).map((a: any) => {
+        const matchingReview: any = reviewsOk ? reviewsByApptId.get(a.id) : null;
+        const reviewStatus: 'reviewed' | 'not_reviewed' | 'unknown' =
+          !reviewsOk
+            ? 'unknown'
+            : matchingReview
+            ? 'reviewed'
+            : 'not_reviewed';
+
+        return {
+          ...a,
+          _review_id: matchingReview?.id || null,
+          review: matchingReview || null,
+          reviewStatus
+        };
+      });
 
       trace("Data fetch complete", {
-        apptsCount: apptsRes.data?.length,
-        creditsCount: creditsRes.data?.length,
-        cashbackCount: cashbackRes.data?.length,
-        APPOINTMENT_VISIBILITY_TRACE: {
-          customerId: customerData.id,
-          tenantId: effectiveTenantId,
-          appointments: apptsRes.data?.map(a => a.id)
-        }
+        apptsCount: enrichedAppointments.length,
+        reviewsOk,
+        couponsOk,
+        reviewedCount: reviewsOk ? (reviewsRes as any).data?.length : 'ERROR',
+        couponsCount: couponsOk ? (couponsRes as any).data?.length : 'ERROR',
       });
 
       setData({
         customer: customerData,
-        shop: shopRes.data,
-        appointments: apptsRes.data || [],
-        creditTransactions: (creditsRes as any).data || [],
-        cashbackTransactions: (cashbackRes as any).data || [],
-        levels: levelsRes.data || [],
-        achievements: achRes.data || [],
-        unlockedAchievements: unlockedRes.data || []
+        shop: shopRes?.data,
+        appointments: enrichedAppointments,
+        creditTransactions: (creditsRes as any)?.data || [],
+        cashbackTransactions: (cashbackRes as any)?.data || [],
+        levels: (levelsRes as any)?.data || [],
+        achievements: (achRes as any)?.data || [],
+        unlockedAchievements: (unlockedRes as any)?.data || [],
+        reviews: reviewsOk ? (reviewsRes as any)?.data || [] : [],
+        coupons: couponsOk ? (couponsRes as any)?.data || [] : [],
+        reviewsStatus: reviewsOk ? 'success' : 'error',
+        couponsStatus: couponsOk ? 'success' : 'error'
       });
-      
+
       setPortalState('DATA_READY');
     } catch (err: any) {
       trace("Fatal error", { err });
@@ -302,11 +348,11 @@ function CustomerPortalPage() {
 
     const channel = supabase
       .channel(`portal_updates_${data.customer.id}`)
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'appointments', 
-        filter: `customer_id=eq.${data.customer.id}` 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'appointments',
+        filter: `customer_id=eq.${data.customer.id}`
       }, () => {
         console.log("[PORTAL_RESOLUTION_TRACE] Realtime update triggered");
         loadPortalData(true);
@@ -332,7 +378,7 @@ function CustomerPortalPage() {
     const handleVisibilityChange = () => {
       const now = Date.now();
       const timeSinceLastCheck = now - lastCheck;
-      
+
       console.log("[PORTAL_RESOLUTION_TRACE] Visibility Change", {
         visibilityState: document.visibilityState,
         portalState,
@@ -342,7 +388,7 @@ function CustomerPortalPage() {
         timeSinceLastCheck,
         timestamp: new Date().toISOString()
       });
-      
+
       if (
         document.visibilityState === 'visible' &&
         user &&
@@ -360,15 +406,15 @@ function CustomerPortalPage() {
   }, [user, profile, data, portalState, lastCheck, loadPortalData]);
 
   useEffect(() => {
-    console.log("[PORTAL_BOOT_TRACE] Effect trigger", { 
-      authLoading, 
-      hasUser: !!user, 
+    console.log("[PORTAL_BOOT_TRACE] Effect trigger", {
+      authLoading,
+      hasUser: !!user,
       hasProfile: !!profile,
       slug
     });
 
     if (authLoading) return;
-    
+
     if (!user) {
       setLoading(false);
       return;
@@ -412,8 +458,8 @@ function CustomerPortalPage() {
           </p>
           <span className="text-[10px] text-white/10 uppercase tracking-widest font-mono mt-8">DEBUG PORTAL A ({CANARY_ID})</span>
           {/* Fallback para evitar loading infinito */}
-          <button 
-            onClick={() => setLoading(false)} 
+          <button
+            onClick={() => setLoading(false)}
             className="mt-4 text-[9px] text-white/20 hover:text-white/40 uppercase tracking-widest font-bold"
           >
             Forçar Carregamento
@@ -542,25 +588,25 @@ function CustomerPortalPage() {
               {portalState === 'ERROR' ? "Erro de Conexão" : "Perfil não encontrado"}
             </h1>
             <p className="text-zinc-500 text-sm leading-relaxed">
-              {portalState === 'ERROR' 
+              {portalState === 'ERROR'
                 ? (errorMessage || "Ocorreu um erro ao carregar seus dados. Por favor, tente novamente.")
                 : "Não conseguimos localizar seu cadastro como cliente neste estabelecimento. Isso pode ocorrer se você for um administrador sem perfil de cliente associado."}
             </p>
           </div>
-          
+
           <div className="flex flex-col gap-3 pt-4">
-            <Button 
-              onClick={() => loadPortalData()} 
-              variant="default" 
+            <Button
+              onClick={() => loadPortalData()}
+              variant="default"
               className="bg-gold hover:bg-gold/90 text-black font-black uppercase tracking-widest py-6 rounded-2xl"
               disabled={loading}
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Tentar Novamente"}
             </Button>
-            
-            <Button 
-              onClick={handleLogout} 
-              variant="ghost" 
+
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
               className="text-gold/60 hover:text-gold hover:bg-gold/10 font-bold uppercase tracking-widest text-[10px]"
             >
               Sair da conta
@@ -613,7 +659,7 @@ function CustomerPortalPage() {
         );
       case "appointments":
         return (
-          <AppointmentsTab 
+          <AppointmentsTab
             appointments={data.appointments}
             onViewDetails={(id) => {
               setSelectedAppointmentId(id);
@@ -627,38 +673,41 @@ function CustomerPortalPage() {
         );
       case "finances":
         return (
-          <FinancesTab 
+          <FinancesTab
             creditTransactions={data.creditTransactions}
             cashbackTransactions={data.cashbackTransactions}
           />
         );
       case "loyalty":
         return (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <LoyaltyLevelCard 
-              currentXP={data.customer.xp || 0}
-              currentLevel={currentLevel}
-              nextLevel={nextLevel}
-              achievementsCount={data.unlockedAchievements?.length || 0}
-            />
-            <div className="space-y-6">
-              <h2 className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
-                Minhas Conquistas
-              </h2>
-              <AchievementGrid achievements={achievements} />
-            </div>
-          </div>
+          <LoyaltyTab
+            customerData={data.customer}
+            appointments={data.appointments}
+            creditTransactions={data.creditTransactions}
+            cashbackTransactions={data.cashbackTransactions}
+            reviews={data.reviews}
+            reviewsStatus={data.reviewsStatus}
+            shopName={data.shop?.business_name}
+          />
+        );
+      case "coupons":
+        return (
+          <CouponsTab
+            coupons={data.coupons}
+            couponsStatus={data.couponsStatus}
+            shopSlug={slug}
+            shopName={data.shop?.business_name}
+          />
         );
       case "profile":
         return (
-          <ProfileTab 
+          <ProfileTab
             customerData={data.customer}
             setCustomerData={(newData) => {
               if (data) {
                 setData({ ...data, customer: newData });
               }
             }}
-
             customerName={customerName}
             setCustomerName={setCustomerName}
             submitting={submitting}
@@ -670,24 +719,12 @@ function CustomerPortalPage() {
         );
       case "security":
         return (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="max-w-4xl mx-auto">
-              <Link to={`/${slug}/portal/security` as any}>
-                <Button variant="outline" className="w-full h-20 border-gold/20 bg-gold/5 text-gold hover:bg-gold/10 flex items-center justify-between px-8 rounded-2xl group transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gold/10 rounded-xl group-hover:scale-110 transition-transform">
-                      <ShieldCheck size={24} />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-black uppercase tracking-widest italic text-lg">Central de Segurança</p>
-                      <p className="text-gold/60 text-xs font-bold">MFA, Sessões Ativas e Proteção de Dados</p>
-                    </div>
-                  </div>
-                  <ArrowLeft className="rotate-180 text-gold/40" />
-                </Button>
-              </Link>
-            </div>
-          </div>
+          <SecurityTab
+            user={user}
+            customerData={data.customer}
+            shopName={data.shop?.business_name}
+            onLogout={handleLogout}
+          />
         );
       default:
         return <div>Em breve...</div>;
@@ -705,8 +742,6 @@ function CustomerPortalPage() {
     visibility: typeof document !== 'undefined' ? document.visibilityState : 'unknown'
   });
 
-
-
   return (
     <div className="min-h-screen bg-[#05070d] text-white" data-debug-portal={CANARY_ID}>
       {/* Marcador de Diagnóstico Discreto */}
@@ -718,16 +753,29 @@ function CustomerPortalPage() {
       <header className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden">
-              {data?.customer?.avatar_url ? (
-                <img src={data.customer.avatar_url} alt={data.customer.name} className="h-full w-full object-cover" />
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+              {data.shop?.barbershop_logo_url || data.shop?.logo_url ? (
+                <img
+                  src={data.shop.barbershop_logo_url || data.shop.logo_url}
+                  alt={data.shop?.business_name || 'Barbearia'}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
               ) : (
-                <UserIcon className="h-6 w-6 text-gold" />
+                <span className="text-gold font-black text-sm">
+                  {data.shop?.business_name ? data.shop.business_name.substring(0, 2).toUpperCase() : <Scissors className="h-6 w-6 text-gold" />}
+                </span>
               )}
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/60">Bem-vindo à</p>
-              <h2 className="text-lg font-black text-white leading-none">{data.shop?.business_name || 'Barbearia'}</h2>
+            <div className="min-w-0">
+              <h2 className="text-base md:text-lg font-black text-white leading-tight truncate">
+                {data.shop?.business_name || 'Barbearia'}
+              </h2>
+              <p className="text-[11px] font-bold text-zinc-400 truncate">
+                Olá, <span className="text-gold font-extrabold">{data.customer.name?.split(' ')[0] || 'Cliente'}</span>
+              </p>
             </div>
           </div>
 
@@ -735,17 +783,17 @@ function CustomerPortalPage() {
             <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-gold rounded-xl transition-all">
               <Bell className="h-5 w-5" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-zinc-400 hover:text-gold rounded-xl transition-all"
               onClick={() => setActiveTab('profile')}
             >
               <Settings className="h-5 w-5" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-zinc-400 hover:text-red-400 rounded-xl transition-all"
               onClick={async () => {
                 await logout();
@@ -754,11 +802,11 @@ function CustomerPortalPage() {
             >
               <LogOut className="h-5 w-5" />
             </Button>
-            
+
             <a href={`/${slug}`} className="hidden md:block">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="border-gold/30 text-gold hover:bg-gold/10 rounded-xl text-[10px] font-black uppercase tracking-widest h-9"
               >
                 Site
@@ -769,7 +817,7 @@ function CustomerPortalPage() {
       </header>
 
       {/* Navigation Tabs */}
-      <PortalNavigation 
+      <PortalNavigation
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isSubscriber={false}

@@ -152,7 +152,7 @@ export function PremiumHeroCard({
             {customerData?.avatar_url ? (
               <img
                 src={customerData.avatar_url}
-                alt={client?.name}
+                alt={client?.name || 'Cliente'}
                 className={cn(
                   "h-20 w-20 md:h-24 md:w-24 rounded-2xl object-cover border-2",
                   isSubscriber ? "border-gold" : "border-white/20",
