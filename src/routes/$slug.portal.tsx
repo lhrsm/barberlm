@@ -27,6 +27,7 @@ import { normalizePhone } from "@/utils/phone";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { RescheduleWizard, type RescheduleWizardAppointment } from "@/components/reschedule/RescheduleWizard";
 import { ReviewModal } from "@/components/portal/ReviewModal";
+import { SkipReviewDialog } from "@/components/portal/SkipReviewDialog";
 import { Scissors } from "lucide-react";
 import {
   AlertDialog,
@@ -79,8 +80,9 @@ function CustomerPortalPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rescheduleAppointment, setRescheduleAppointment] = useState<RescheduleWizardAppointment | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [reviewAppointment, setReviewAppointment] = useState<any>(null);
+  const [reviewAppointment, setReviewAppointment] = useState<any | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [skipAppointment, setSkipAppointment] = useState<any | null>(null);
 
   // ProfileTab state
   const [customerName, setCustomerName] = useState("");
@@ -265,7 +267,7 @@ function CustomerPortalPage() {
         couponsRes
       ] = await Promise.all([
         supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family").eq("id", effectiveTenantId).maybeSingle(),
-        supabase.from("appointments").select("*, services(*), barbers:barbers!appointments_barber_id_fkey(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
+        supabase.from("appointments").select("*, services(*), barbers:barbers!appointments_barber_id_fkey(*), appointment_reviews(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
         safeQuery(supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false })),
         safeQuery(supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false })),
         safeQuery(supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true })),
@@ -663,6 +665,7 @@ function CustomerPortalPage() {
               setReviewAppointment(app);
               setReviewOpen(true);
             }}
+            onSkipReview={(app) => setSkipAppointment(app)}
           />
         );
       case "appointments":
@@ -677,6 +680,7 @@ function CustomerPortalPage() {
               setReviewAppointment(app);
               setReviewOpen(true);
             }}
+            onSkipReview={(app) => setSkipAppointment(app)}
           />
         );
       case "finances":
@@ -865,11 +869,32 @@ function CustomerPortalPage() {
 
       <ReviewModal
         open={reviewOpen}
-        onOpenChange={setReviewOpen}
+        onOpenChange={(open) => {
+          setReviewOpen(open);
+          if (!open) setReviewAppointment(null);
+        }}
         appointment={reviewAppointment}
-        tenantId={data?.shop?.id || ""}
-        onSubmitted={() => loadPortalData(true)}
+        tenantId={data?.shop?.id || data?.customer?.tenant_id || ""}
+        onSubmitted={() => {
+          setReviewOpen(false);
+          setReviewAppointment(null);
+          loadPortalData(true);
+        }}
       />
+
+      {skipAppointment && (
+        <SkipReviewDialog
+          open={!!skipAppointment}
+          onOpenChange={(open) => {
+            if (!open) setSkipAppointment(null);
+          }}
+          appointment={skipAppointment}
+          onSkipped={() => {
+            setSkipAppointment(null);
+            loadPortalData(true);
+          }}
+        />
+      )}
     </div>
   );
 }

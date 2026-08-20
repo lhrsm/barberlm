@@ -43,7 +43,9 @@ export function MemberDashboard({
   const credits = Number(customerData?.credits || 0);
   const cashback = Number(customerData?.cashback_balance || 0);
   const loyaltyPoints = Number(customerData?.loyalty_points || 0);
-  const reviewsGiven = appointments.filter((a) => a._review_id).length;
+  const reviewsGiven = appointments.filter(
+    (a) => (a.appointment_reviews && (a.appointment_reviews.submitted_at || a.appointment_reviews.id)) || a._review_id
+  ).length;
   const unclaimed = (loyaltyRewards || []).filter((r: any) => !r.redeemed_at).length;
   const savings = appointments
     .filter((a) => a.status === "completed")

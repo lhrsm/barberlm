@@ -64,6 +64,7 @@ function PublicReviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [skipped, setSkipped] = useState(false);
 
   const [shopRating, setShopRating] = useState(5);
   const [barberRating, setBarberRating] = useState(5);
@@ -81,7 +82,20 @@ function PublicReviewPage() {
         setError("invalid");
       } else {
         setData(res);
-        if ((res as any).already_submitted) setSubmitted(true);
+        if ((res as any).already_submitted) {
+          setSubmitted(true);
+        } else if ((res as any).appointment_id) {
+          // Verificar se o cliente já recusou esta avaliação no portal
+          const { data: appt } = await supabase
+            .from("appointments")
+            .select("review_decision")
+            .eq("id", (res as any).appointment_id)
+            .maybeSingle();
+
+          if (appt?.review_decision === "skipped") {
+            setSkipped(true);
+          }
+        }
       }
       setLoading(false);
     })();
@@ -101,7 +115,10 @@ function PublicReviewPage() {
         _service_id: (data as any)?.service_id ?? null,
       });
       if (e) {
-        if (e.message?.includes("invalid_or_expired_token")) {
+        if (e.message?.includes("review_decision_already_skipped")) {
+          setSkipped(true);
+          toast.info("Você optou por não avaliar este atendimento.");
+        } else if (e.message?.includes("invalid_or_expired_token")) {
           toast.error("Link inválido ou expirado.");
         } else {
           toast.error("Erro ao enviar: " + e.message);
@@ -198,6 +215,23 @@ function PublicReviewPage() {
               pixKey={data.barber_pix_key}
             />
           )}
+        </div>
+      </div>
+    );
+  }
+
+  if (skipped) {
+    return (
+      <div className="min-h-screen bg-[#05070d] py-8 px-4 text-white">
+        <div className="max-w-lg mx-auto space-y-6">
+          <div className="rounded-2xl border border-zinc-700/50 bg-zinc-900/50 p-8 text-center">
+            <CheckCircle2 className="h-14 w-14 text-zinc-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-black mb-2 text-zinc-200">Etapa Encerrada</h1>
+            <p className="text-zinc-400 text-sm">
+              Você optou por não avaliar este atendimento na{" "}
+              <span className="font-bold text-zinc-300">{data.barbershop_name}</span>.
+            </p>
+          </div>
         </div>
       </div>
     );

@@ -64,16 +64,34 @@ export const Route = createFileRoute("/api/public/hooks/review-reminders")({
           };
 
           try {
-            // Double-check: customer really hasn't reviewed (any review row for this appointment/customer)
-            const { data: anyReview } = await supabase
-              .from("appointment_reviews")
-              .select("id, submitted_at")
-              .eq("appointment_id", r.appointment_id)
-              .not("submitted_at", "is", null)
-              .limit(1)
-              .maybeSingle();
-            if (anyReview) {
+            // Double-check: must be strictly completed and pending
+            const [{ data: anyReview }, { data: appt }] = await Promise.all([
+              supabase
+                .from("appointment_reviews")
+                .select("id, submitted_at")
+                .eq("appointment_id", r.appointment_id)
+                .not("submitted_at", "is", null)
+                .limit(1)
+                .maybeSingle(),
+              supabase
+                .from("appointments")
+                .select("id, status, review_decision")
+                .eq("id", r.appointment_id)
+                .maybeSingle(),
+            ]);
+
+            if (anyReview || appt?.review_decision === "submitted") {
               await mark("review_already_submitted");
+              continue;
+            }
+
+            if (appt?.review_decision === "skipped") {
+              await mark("review_skipped_by_customer");
+              continue;
+            }
+
+            if (!appt || appt.status !== "completed" || appt.review_decision !== "pending") {
+              await mark("review_not_pending", { status: appt?.status, review_decision: appt?.review_decision });
               continue;
             }
 

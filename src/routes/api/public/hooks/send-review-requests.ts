@@ -39,9 +39,10 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
         const { data: appts, error } = await supabase
           .from("appointments")
           .select(
-            "id, tenant_id, customer_id, barber_id, service_id, start_time, completed_at, status",
+            "id, tenant_id, customer_id, barber_id, service_id, start_time, completed_at, status, review_decision",
           )
           .eq("status", "completed")
+          .eq("review_decision", "pending")
           .not("customer_id", "is", null)
           .lte("completed_at", cutoff)
           .limit(50);
@@ -66,19 +67,31 @@ export const Route = createFileRoute("/api/public/hooks/send-review-requests")({
               .maybeSingle();
             if (existingLog) continue;
 
-            // Skip if already reviewed
+            // Skip if already reviewed or skipped by customer
             const { data: existingReview } = await supabase
               .from("appointment_reviews")
               .select("id, submitted_at")
               .eq("appointment_id", appt.id)
               .maybeSingle();
-            if (existingReview?.submitted_at) {
+
+            if (existingReview?.submitted_at || appt.review_decision === "submitted") {
               await supabase.from("review_automation_logs").insert({
                 tenant_id: appt.tenant_id,
                 appointment_id: appt.id,
                 customer_id: appt.customer_id,
                 status: "skipped",
                 reason: "already_submitted",
+              });
+              continue;
+            }
+
+            if (appt.review_decision === "skipped") {
+              await supabase.from("review_automation_logs").insert({
+                tenant_id: appt.tenant_id,
+                appointment_id: appt.id,
+                customer_id: appt.customer_id,
+                status: "skipped",
+                reason: "skipped_by_customer",
               });
               continue;
             }

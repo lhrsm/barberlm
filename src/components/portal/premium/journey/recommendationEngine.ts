@@ -174,7 +174,13 @@ export function generateRecommendations(input: EngineInput): Recommendation[] {
   const lastCompleted = appointments
     .filter((a) => a.status === "completed")
     .sort((a, b) => +new Date(b.start_time) - +new Date(a.start_time))[0];
-  if (lastCompleted && !lastCompleted.appointment_reviews) {
+  if (
+    lastCompleted &&
+    !lastCompleted.appointment_reviews &&
+    lastCompleted.review_decision !== "skipped" &&
+    lastCompleted.review_decision !== "submitted" &&
+    !lastCompleted._review_id
+  ) {
     out.push({
       id: "review",
       icon: "Star",

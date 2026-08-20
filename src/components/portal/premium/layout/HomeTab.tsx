@@ -21,6 +21,7 @@ type Props = {
   onNavigate: (tab: string) => void;
   onViewDetails?: (id: string) => void;
   onReview?: (app: any) => void;
+  onSkipReview?: (app: any) => void;
 };
 
 /**
@@ -43,6 +44,7 @@ export function HomeTab({
   onNavigate,
   onViewDetails,
   onReview,
+  onSkipReview,
 }: Props) {
   const hasCashback = Number(customerData?.cashback_balance || 0) > 0;
   const hasCredits = Number(customerData?.credits || 0) > 0;
@@ -115,10 +117,10 @@ export function HomeTab({
             appointments={appointments.slice(0, 3)} 
             onViewDetails={onViewDetails || (() => onNavigate('appointments'))}
             onReview={onReview || (() => onNavigate('appointments'))}
+            onSkipReview={onSkipReview}
           />
         </div>
       </div>
     </div>
   );
 }
-

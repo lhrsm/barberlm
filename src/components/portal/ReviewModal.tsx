@@ -81,6 +81,12 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
   const readOnly = isApproved;
 
   const handleSubmit = async () => {
+    if (appointment.review_decision === "skipped") {
+      toast.info("Você optou por não avaliar este atendimento.");
+      onOpenChange(false);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = {
@@ -109,6 +115,9 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
       if (error) {
         if (error.code === "23505") {
           toast.error("Você já avaliou este atendimento.");
+        } else if (error.message?.includes("review_decision_already_skipped")) {
+          toast.info("Você optou por não avaliar este atendimento.");
+          onOpenChange(false);
         } else throw error;
       } else {
         toast.success(existing?.id ? "Avaliação atualizada!" : "Obrigado pela sua avaliação!");
@@ -129,10 +138,6 @@ export function ReviewModal({ open, onOpenChange, appointment, tenantId, onSubmi
             allow_public_display: allowPublic,
           },
         });
-        // Do NOT emit a second "review.received" event here — the internal
-        // notification flag `notify_review_received` is already triggered by
-        // review.excellent / review.bad via the event→flag map on the server,
-        // and firing both caused duplicated shop alerts.
         onOpenChange(false);
         onSubmitted?.();
       }

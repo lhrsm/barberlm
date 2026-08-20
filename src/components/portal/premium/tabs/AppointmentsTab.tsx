@@ -1,20 +1,64 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { History, Scissors, Calendar, User as UserIcon, Clock, Filter, Search, X, Sparkles } from "lucide-react";
+import { History, Scissors, Calendar, User as UserIcon, Clock, Filter, Search, X, Sparkles, CheckCircle2, Star, HelpCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type Props = {
   appointments: any[];
   onViewDetails: (id: string) => void;
   onReview: (app: any) => void;
+  onSkipReview?: (app: any) => void;
 };
 
-export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props) {
+type ReviewDecisionState = 'PENDING_DECISION' | 'REVIEW_SUBMITTED' | 'REVIEW_SKIPPED' | 'UNKNOWN' | 'NOT_APPLICABLE';
+
+interface AppointmentReviewMeta {
+  state: ReviewDecisionState;
+  moderationStatus?: 'pending' | 'approved' | 'rejected';
+}
+
+function getAppointmentReviewState(app: any): AppointmentReviewMeta {
+  if (app.status !== "completed") {
+    return { state: "NOT_APPLICABLE" };
+  }
+
+  // 1. Fail-closed: se a query de review falhou no portal (Hotfix 09/10A)
+  if (app.reviewStatus === "unknown") {
+    return { state: "UNKNOWN" };
+  }
+
+  // 2. Recusa explícita do cliente (Hotfix 11)
+  if (app.review_decision === "skipped") {
+    return { state: "REVIEW_SKIPPED" };
+  }
+
+  // 3. Avaliação enviada (via appointment_reviews, flag ou reviewStatus)
+  const review = app.appointment_reviews || app.review;
+  const hasSubmittedReview = !!(
+    (review && (review.submitted_at || review.id)) ||
+    app.review_decision === "submitted" ||
+    app._review_id ||
+    app.reviewStatus === "reviewed"
+  );
+
+  if (hasSubmittedReview) {
+    const moderation = review?.testimonial_status || (app._review_id ? "approved" : "pending");
+    return {
+      state: "REVIEW_SUBMITTED",
+      moderationStatus: moderation as "pending" | "approved" | "rejected",
+    };
+  }
+
+  // 4. Concluído sem decisão: aguardando ação opcional do cliente
+  return { state: "PENDING_DECISION" };
+}
+
+export function AppointmentsTab({ appointments, onViewDetails, onReview, onSkipReview }: Props) {
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const filtered = appointments.filter(app =>
@@ -59,6 +103,7 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
             const isCompleted = app.status === "completed";
             const isCancelled = app.status === "cancelled";
             const isSubCovered = app.payment_method === 'subscription' || app.payment_status === 'covered_by_subscription';
+            const reviewMeta = getAppointmentReviewState(app);
 
             return (
               <motion.div
@@ -102,8 +147,8 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
                   </div>
                 </div>
 
-                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3">
-                  <div className="flex flex-wrap items-center gap-2 justify-end">
+                <div className="flex flex-col sm:items-end justify-between sm:justify-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     {isCancelled ? (
                       <Badge variant="destructive" className="font-black uppercase text-[10px] tracking-widest px-3">Cancelado</Badge>
                     ) : isCompleted ? (
@@ -117,39 +162,63 @@ export function AppointmentsTab({ appointments, onViewDetails, onReview }: Props
                     )}
                   </div>
 
-                  {isCompleted && app.reviewStatus === 'reviewed' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReview(app);
-                      }}
-                      className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/20 transition-all"
-                      title="Clique para ver sua avaliação"
-                    >
-                      <Sparkles size={12} />
-                      <span>
-                        {app.review?.testimonial_status === 'pending'
-                          ? "Avaliado • Em moderação"
-                          : "✓ Avaliado"}
-                      </span>
-                    </button>
+                  {/* Fluxo de Avaliação Opcional e Estados Pós-Conclusão */}
+                  {reviewMeta.state === "PENDING_DECISION" && (
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReview(app);
+                        }}
+                        className="inline-flex items-center justify-center gap-2 h-10 sm:h-9 px-4 rounded-xl bg-gold text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-[0_8px_20px_rgba(212,175,55,0.3)] min-h-[44px] sm:min-h-[36px]"
+                      >
+                        <Star size={13} className="fill-black" />
+                        Avaliar Agora
+                      </button>
+
+                      {onSkipReview && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSkipReview(app);
+                          }}
+                          className="inline-flex items-center justify-center gap-1.5 h-10 sm:h-9 px-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 bg-transparent text-[10px] font-bold uppercase tracking-wider active:scale-95 transition-all min-h-[44px] sm:min-h-[36px]"
+                        >
+                          Não quero avaliar
+                        </button>
+                      )}
+                    </div>
                   )}
 
-                  {isCompleted && app.reviewStatus === 'not_reviewed' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReview(app);
-                      }}
-                      className="inline-flex items-center gap-2 h-9 px-5 rounded-xl bg-gold text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-[0_8px_20px_rgba(212,175,55,0.3)]"
-                    >
-                      Avaliar Agora
-                    </button>
+                  {reviewMeta.state === "REVIEW_SKIPPED" && (
+                    <Badge className="bg-zinc-800/80 text-zinc-400 border-zinc-700/50 font-bold uppercase text-[10px] tracking-wider px-3 py-1 self-start sm:self-auto">
+                      Sem avaliação
+                    </Badge>
                   )}
 
-                  {isCompleted && app.reviewStatus === 'unknown' && (
+                  {reviewMeta.state === "REVIEW_SUBMITTED" && (
+                    <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                      {reviewMeta.moderationStatus === "approved" ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-black uppercase text-[10px] tracking-widest px-3 py-1 flex items-center gap-1.5">
+                          <CheckCircle2 size={12} /> ✓ Avaliado
+                        </Badge>
+                      ) : reviewMeta.moderationStatus === "rejected" ? (
+                        <Badge className="bg-amber-500/10 text-amber-300/80 border-amber-500/20 font-bold uppercase text-[10px] tracking-wider px-3 py-1 flex items-center gap-1.5">
+                          Avaliação enviada
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 font-black uppercase text-[10px] tracking-wider px-3 py-1 flex items-center gap-1.5">
+                          <Sparkles size={12} /> Avaliação enviada • Em moderação
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  {reviewMeta.state === "UNKNOWN" && (
                     <div
-                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-500 uppercase tracking-wider"
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-500 uppercase tracking-wider self-start sm:self-auto"
                       title="Status de avaliação temporariamente indisponível"
                     >
                       <span>Avaliação Indisponível</span>

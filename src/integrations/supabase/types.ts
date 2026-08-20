@@ -856,6 +856,7 @@ export type Database = {
           reminder_sent: boolean | null
           reminder_sent_at: string | null
           rescheduled_from_id: string | null
+          review_decision: string | null
           service_amount: number | null
           service_id: string | null
           source: string | null
@@ -931,6 +932,7 @@ export type Database = {
           reminder_sent?: boolean | null
           reminder_sent_at?: string | null
           rescheduled_from_id?: string | null
+          review_decision?: string | null
           service_amount?: number | null
           service_id?: string | null
           source?: string | null
@@ -1006,6 +1008,7 @@ export type Database = {
           reminder_sent?: boolean | null
           reminder_sent_at?: string | null
           rescheduled_from_id?: string | null
+          review_decision?: string | null
           service_amount?: number | null
           service_id?: string | null
           source?: string | null
