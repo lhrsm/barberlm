@@ -135,14 +135,11 @@ export function AppointmentDetailsModal({
         mode
       });
 
-      // REGRA: Modal simples só se NÃO houver nenhum valor envolvido
-      const hasFinancialValues = 
-        finStatus.has_paid_pix || 
-        finStatus.has_used_credits || 
-        finStatus.has_used_cashback || 
-        finStatus.requires_financial_decision ||
-        (finStatus.paid_pix_amount > 0) ||
-        (finStatus.used_credit_amount > 0);
+      // REGRA: Modal simples se NÃO houver nenhum valor efetivamente pago/usado
+      const hasFinancialValues =
+        Boolean(finStatus.has_paid_pix) ||
+        (Boolean(finStatus.has_used_credits) && Number(finStatus.used_credit_amount) > 0) ||
+        (Boolean(finStatus.has_used_cashback) && Number(finStatus.used_cashback_amount) > 0);
 
       if (hasFinancialValues) {
         setCancellationStep('financial_decision');
@@ -159,16 +156,13 @@ export function AppointmentDetailsModal({
 
   const handleConfirmSimpleCancel = async () => {
     if (!appointment) return;
-    
+
     // Trava de segurança robusta no frontend
     const finStatus = financialStatus || await getFinancialStatus(appointment.id);
-    const hasFinancialValues = 
-      finStatus.has_paid_pix || 
-      finStatus.has_used_credits || 
-      finStatus.has_used_cashback || 
-      finStatus.requires_financial_decision ||
-      (finStatus.paid_pix_amount > 0) ||
-      (finStatus.used_credit_amount > 0);
+    const hasFinancialValues =
+      Boolean(finStatus.has_paid_pix) ||
+      (Boolean(finStatus.has_used_credits) && Number(finStatus.used_credit_amount) > 0) ||
+      (Boolean(finStatus.has_used_cashback) && Number(finStatus.used_cashback_amount) > 0);
 
     if (mode === 'customer' && hasFinancialValues) {
       console.warn("Bloqueio de segurança: Cancelamento simples impedido em agendamento com valores.");
@@ -290,31 +284,10 @@ export function AppointmentDetailsModal({
     const Icon = config.icon;
 
     return (
-      <div className="flex flex-col gap-2">
-        <Badge className={cn("w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg", config.color, config.textColor)}>
-          <Icon size={12} />
-          {getStatusLabel(status)}
-        </Badge>
-        {status !== 'cancelled' && (() => {
-          const isSubCovered = appointment.payment_method === 'subscription' || appointment.payment_status === 'covered_by_subscription';
-          if (isSubCovered) {
-            return (
-              <Badge className="w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg bg-gold/10 border-gold/40 text-gold">
-                <DollarSign size={12} /> Incluso no Plano
-              </Badge>
-            );
-          }
-          return (
-            <Badge className={cn(
-              "w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg",
-              appointment.payment_status === 'paid' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"
-            )}>
-              <DollarSign size={12} />
-              {appointment.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
-            </Badge>
-          );
-        })()}
-      </div>
+      <Badge className={cn("w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg", config.color, config.textColor)}>
+        <Icon size={12} />
+        {getStatusLabel(status)}
+      </Badge>
     );
   };
 
@@ -340,15 +313,15 @@ export function AppointmentDetailsModal({
 
   if (!appointment) return null;
 
-  const showConfirm = ["awaiting_confirmation", "scheduled", "awaiting_payment", "pending", "confirmed"].includes(appointment.status);
+  const showConfirm = ["awaiting_confirmation", "pending"].includes(appointment.status);
   const showComplete = ["confirmed", "scheduled", "pending", "awaiting_payment"].includes(appointment.status);
   const showCancel = ["scheduled", "pending", "awaiting_payment", "confirmed", "awaiting_confirmation"].includes(appointment.status);
   const showReschedule = ["scheduled", "pending", "awaiting_payment", "confirmed", "awaiting_confirmation"].includes(appointment.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden bg-[#0b0f17] border border-gold/20 rounded-3xl shadow-2xl text-white">
-        <DialogHeader className="p-8 pb-6 border-b border-gold/10">
+      <DialogContent className="w-[calc(100vw-32px)] max-w-[640px] max-h-[calc(100dvh-32px)] p-0 overflow-hidden flex flex-col bg-[#0b0f17] border border-gold/20 rounded-3xl shadow-2xl text-white">
+        <DialogHeader className="p-6 md:p-8 pb-4 border-b border-gold/10 shrink-0">
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-5">
@@ -362,7 +335,7 @@ export function AppointmentDetailsModal({
                   <DialogTitle className="text-2xl font-black tracking-tight text-white">
                     {appointment.customers?.name || "Cliente Final"}
                   </DialogTitle>
-                  <div className="flex flex-col gap-2 mt-1">
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
                     {getStatusBadge(appointment.status)}
                     {appointment.status !== 'cancelled' && (() => {
                       const isSubCovered = appointment.payment_method === 'subscription' || appointment.payment_status === 'covered_by_subscription';
@@ -389,9 +362,6 @@ export function AppointmentDetailsModal({
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-white hover:bg-white/5" onClick={() => onOpenChange(false)}>
-                <X size={20} />
-              </Button>
             </div>
           </div>
         </DialogHeader>
@@ -649,64 +619,64 @@ export function AppointmentDetailsModal({
 
           {/* Financial Decision Modal */}
           <Dialog open={cancellationStep === 'financial_decision'} onOpenChange={(open) => !open && setCancellationStep('none')}>
-            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
-              <DialogHeader className="text-center">
-                <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <DollarSign className="text-gold w-8 h-8" />
+            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] w-[calc(100vw-32px)] max-w-md p-6 md:p-8 overflow-x-hidden">
+              <DialogHeader className="text-center space-y-2">
+                <div className="w-14 h-14 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-2 border border-gold/20">
+                  <DollarSign className="text-gold w-7 h-7" />
                 </div>
-                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">
-                  {financialStatus?.has_paid_pix && (financialStatus?.has_used_credits || financialStatus?.has_used_cashback)
-                    ? "Este agendamento possui Pix e créditos vinculados"
-                    : financialStatus?.has_used_credits || financialStatus?.has_used_cashback 
-                    ? "Crédito utilizado neste agendamento" 
-                    : "O que deseja fazer com o valor pago?"}
+                <DialogTitle className="text-lg md:text-xl font-black tracking-tight uppercase italic text-white">
+                  O que deseja fazer com o valor pago?
                 </DialogTitle>
-                <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
-                  {financialStatus?.has_paid_pix && (financialStatus?.has_used_credits || financialStatus?.has_used_cashback)
-                    ? "Os créditos serão devolvidos automaticamente ao seu saldo. Escolha o que deseja fazer com o valor pago via Pix."
-                    : financialStatus?.has_used_credits || financialStatus?.has_used_cashback 
-                    ? `Este agendamento utilizou R$ ${Number(financialStatus.used_credit_amount + financialStatus.used_cashback_amount).toFixed(2)} em créditos. Ao cancelar, esse valor será devolvido ao seu saldo.`
-                    : "Este agendamento possui um pagamento Pix. Escolha como deseja tratar esse valor."}
-                  
-                  <div className="mt-4 space-y-1">
-                    {financialStatus && financialStatus.paid_pix_amount > 0 && (
-                      <p className="text-white font-bold">Valor Pix: R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</p>
-                    )}
-                    {financialStatus && financialStatus.used_credit_amount > 0 && (
-                      <p className="text-emerald-500 font-bold">Créditos a devolver: R$ {Number(financialStatus.used_credit_amount).toFixed(2)}</p>
-                    )}
-                    {financialStatus && financialStatus.used_cashback_amount > 0 && (
-                      <p className="text-emerald-500 font-bold">Cashback a devolver: R$ {Number(financialStatus.used_cashback_amount).toFixed(2)}</p>
-                    )}
-                  </div>
+                <DialogDescription className="text-gray-400 text-xs font-medium leading-relaxed">
+                  Escolha a destinação do valor pago neste agendamento.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-3 mt-6">
-                <Button 
-                  className="w-full h-14 bg-gold hover:bg-gold/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
-                  onClick={handleConfirmCreditCancel}
-                  disabled={actionLoading}
-                >
-                  {financialStatus?.has_paid_pix 
-                    ? "Transformar Pix em Crédito" 
-                    : "Confirmar cancelamento e devolver crédito"}
-                </Button>
-                
-                {financialStatus?.has_paid_pix && (
-                  <Button 
-                    variant="outline"
-                    className="w-full h-14 border-gold/20 hover:bg-gold/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
-                    onClick={() => setCancellationStep('pix_refund_form')}
+              <div className="space-y-3 mt-4">
+                {/* Card Créditos */}
+                <div className="p-4 rounded-2xl border border-gold/30 bg-gold/5 space-y-2 text-left">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black uppercase text-gold tracking-wider">Créditos Barbex</span>
+                    <span className="text-sm font-black text-white">
+                      R$ {Number(
+                        (financialStatus?.has_paid_pix ? financialStatus?.paid_pix_amount : 0) +
+                        (financialStatus?.used_credit_amount || 0) +
+                        (financialStatus?.used_cashback_amount || 0)
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400">O valor retorna integralmente para o saldo do cliente.</p>
+                  <Button
+                    className="w-full h-11 bg-gold hover:bg-gold/90 text-black font-black uppercase text-xs rounded-xl mt-1 tracking-wider"
+                    onClick={handleConfirmCreditCancel}
                     disabled={actionLoading}
                   >
-                    Solicitar Estorno do Pix
+                    Devolver em Créditos
                   </Button>
+                </div>
+
+                {/* Card Estorno Pix */}
+                {financialStatus?.has_paid_pix && Number(financialStatus.paid_pix_amount) > 0 && (
+                  <div className="p-4 rounded-2xl border border-white/10 bg-white/5 space-y-2 text-left">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-black uppercase text-zinc-300 tracking-wider">Estorno Pix</span>
+                      <span className="text-sm font-black text-white">R$ {Number(financialStatus.paid_pix_amount).toFixed(2)}</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400">Solicitar devolução para a conta bancária do titular.</p>
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 border-gold/40 hover:bg-gold/10 text-gold font-black uppercase text-xs rounded-xl mt-1 tracking-wider"
+                      onClick={() => setCancellationStep('pix_refund_form')}
+                      disabled={actionLoading}
+                    >
+                      Solicitar Estorno Pix
+                    </Button>
+                  </div>
                 )}
-                
-                <Button 
+
+                <Button
                   variant="ghost"
-                  className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+                  className="w-full h-10 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white mt-1"
                   onClick={() => setCancellationStep('none')}
                 >
                   Voltar
@@ -715,35 +685,36 @@ export function AppointmentDetailsModal({
             </DialogContent>
           </Dialog>
 
-
           {/* Pix Refund Form Dialog */}
           <Dialog open={cancellationStep === 'pix_refund_form'} onOpenChange={(open) => !open && setCancellationStep('financial_decision')}>
-            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] sm:max-w-md p-8">
-              <DialogHeader className="text-center">
-                <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <DollarSign className="text-gold w-8 h-8" />
+            <DialogContent className="bg-[#0b0f17] border border-gold/20 text-white rounded-[2rem] w-[calc(100vw-32px)] max-w-md p-6 md:p-8 overflow-x-hidden">
+              <DialogHeader className="text-center space-y-2">
+                <div className="w-14 h-14 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-2 border border-gold/20">
+                  <DollarSign className="text-gold w-7 h-7" />
                 </div>
-                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Dados para Estorno Pix</DialogTitle>
-                <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
+                <DialogTitle className="text-lg md:text-xl font-black tracking-tight uppercase italic text-white">
+                  Dados para Estorno Pix
+                </DialogTitle>
+                <DialogDescription className="text-gray-400 text-xs font-medium leading-relaxed">
                   Informe os dados da conta onde deseja receber o estorno do valor pago via Pix (R$ {financialStatus && Number(financialStatus.paid_pix_amount).toFixed(2)}).
                 </DialogDescription>
               </DialogHeader>
-              
-              <div className="space-y-4 mt-6">
-                <div className="space-y-2">
+
+              <div className="space-y-3 mt-3">
+                <div className="space-y-1">
                   <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nome do Titular</Label>
-                  <Input 
+                  <Input
                     placeholder="Nome completo"
-                    className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-gold outline-none"
+                    className="h-11 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-xs focus:border-gold outline-none"
                     value={refundData.holderName}
                     onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="space-y-1">
                     <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Tipo de Chave</Label>
-                    <select 
-                      className="w-full h-12 bg-[#05070d] border border-white/10 rounded-xl px-4 text-white text-sm outline-none"
+                    <select
+                      className="w-full h-11 bg-[#05070d] border border-white/10 rounded-xl px-3 text-white text-xs outline-none"
                       value={refundData.pixType}
                       onChange={(e) => setRefundData({...refundData, pixType: e.target.value})}
                     >
@@ -754,27 +725,27 @@ export function AppointmentDetailsModal({
                       <option value="random">Aleatória</option>
                     </select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Chave Pix</Label>
-                    <Input 
+                    <Input
                       placeholder="Chave Pix"
-                      className="h-12 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-sm focus:border-gold outline-none"
+                      className="h-11 bg-[#05070d] border-white/10 rounded-xl px-4 text-white text-xs focus:border-gold outline-none"
                       value={refundData.pixKey}
                       onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
                     />
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={handleConfirmRefundCancel}
                   disabled={actionLoading || !refundData.pixKey || !refundData.holderName}
-                  className="w-full h-14 bg-gold text-black font-black uppercase italic tracking-tighter rounded-2xl shadow-lg mt-2"
+                  className="w-full h-12 bg-gold hover:bg-gold/90 text-black font-black uppercase text-xs rounded-xl shadow-lg mt-2 tracking-wider"
                 >
-                  {actionLoading ? "Processando..." : "Confirmar Solicitação"}
+                  {actionLoading ? "Processando..." : "Confirmar Solicitação de Estorno"}
                 </Button>
-                <Button 
+                <Button
                   variant="ghost"
                   onClick={() => setCancellationStep('financial_decision')}
-                  className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+                  className="w-full h-10 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
                 >
                   Voltar
                 </Button>
@@ -782,10 +753,8 @@ export function AppointmentDetailsModal({
             </DialogContent>
           </Dialog>
 
-
-
           {showReschedule && (
-            <Button 
+            <Button
               variant="default"
               className="rounded-xl bg-transparent hover:bg-yellow-950/20 text-yellow-500 border border-yellow-900/50 font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
               onClick={() => {
@@ -799,7 +768,7 @@ export function AppointmentDetailsModal({
           )}
 
           {mode === 'admin' && showConfirm && (
-            <Button 
+            <Button
               className="rounded-xl bg-gold hover:bg-[#B8962E] text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all active:scale-95"
               onClick={() => updateStatus('confirmed')}
               disabled={actionLoading}
@@ -820,13 +789,27 @@ export function AppointmentDetailsModal({
           )}
 
           {mode === 'admin' && showComplete && (
-            <Button 
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95"
-              onClick={() => updateStatus('completed')}
-              disabled={actionLoading}
-            >
-              Concluir
-            </Button>
+            (appointment.payment_status === 'paid' || appointment.payment_status === 'covered_by_subscription' || ((appointment.total_price === 0 || appointment.final_amount === 0))) ? (
+              <Button
+                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95"
+                onClick={() => updateStatus('completed')}
+                disabled={actionLoading}
+              >
+                Concluir
+              </Button>
+            ) : (
+              <div className="flex flex-col items-end gap-1">
+                <Button
+                  disabled={true}
+                  className="rounded-xl bg-emerald-950/40 text-emerald-500/50 border border-emerald-900/30 font-black uppercase text-[10px] tracking-widest px-6 h-12 cursor-not-allowed"
+                >
+                  Concluir
+                </Button>
+                <span className="text-[9px] font-bold text-amber-400 tracking-tight">
+                  Confirme o pagamento para concluir
+                </span>
+              </div>
+            )
           )}
 
           {mode === 'admin' && appointment.status !== 'cancelled' && appointment.payment_status !== 'paid' && (

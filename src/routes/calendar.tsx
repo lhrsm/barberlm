@@ -31,7 +31,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate, Link, createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,6 +192,26 @@ const CalendarComponent = memo(() => {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
+  const currentDateRef = useRef(currentDate);
+  currentDateRef.current = currentDate;
+
+  const viewRef = useRef(view);
+  viewRef.current = view;
+
+  const tenantIdRef = useRef(tenantId);
+  tenantIdRef.current = tenantId;
+
+  const userRef = useRef(user);
+  userRef.current = user;
+
+  const roleRef = useRef(role);
+  roleRef.current = role;
+
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  const latestFetchIdRef = useRef(0);
+
   const canAddAppointment = checkLimit("monthlyAppointments");
 
   useEffect(() => {
@@ -210,29 +230,37 @@ const CalendarComponent = memo(() => {
     }
   }, [user, loading, role, navigate]);
 
-  async function fetchData() {
-    if (!user) {
-      console.log("[CALENDAR_BOOT_TRACE] No user, skipping fetchData");
+  const fetchData = useCallback(async () => {
+    const curUser = userRef.current;
+    const curTenant = tenantIdRef.current;
+    const curRole = roleRef.current;
+    const curDate = currentDateRef.current;
+    const curView = viewRef.current;
+    const curSession = sessionRef.current;
+
+    if (!curUser || !curTenant) {
+      console.log("[CALENDAR_BOOT_TRACE] No user or tenant, skipping fetchData");
       return;
     }
-    
+
+    const fetchId = ++latestFetchIdRef.current;
     setIsLoading(true);
-    console.log("[CALENDAR_BOOT_TRACE] Executing queries", { tenantId, role });
+    console.log("[CALENDAR_BOOT_TRACE] Executing queries", { fetchId, tenantId: curTenant, role: curRole, date: curDate });
 
     try {
-      const start = startOfDay(view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 }));
-      const end = endOfDay(view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 }));
+      const start = startOfDay(curView === "day" ? curDate : startOfWeek(curDate, { weekStartsOn: 0 }));
+      const end = endOfDay(curView === "day" ? curDate : endOfWeek(curDate, { weekStartsOn: 0 }));
 
       let appQuery = supabase
         .from("appointments")
         .select("*, customers(*), services(*), barbers:barbers!appointments_barber_id_fkey(*)")
-        .eq("tenant_id", tenantId)
+        .eq("tenant_id", curTenant)
         .in("status", ["scheduled", "confirmed", "completed", "cancelled", "no_show", "pending", "in_progress"])
         .gte("start_time", start.toISOString())
         .lte("start_time", end.toISOString());
-      
-      if (role === 'barber') {
-        const targetId = user?.id || session?.barber_id;
+
+      if (curRole === 'barber') {
+        const targetId = curUser?.id || curSession?.barber_id;
         if (targetId) {
           appQuery = appQuery.eq('barber_id', targetId);
         }
@@ -240,32 +268,33 @@ const CalendarComponent = memo(() => {
 
       const [appRes, barbRes, custRes, servRes] = await Promise.all([
         appQuery.order("start_time", { ascending: false }),
-        supabase.from("barbers").select("*").eq("tenant_id", tenantId).order("name"),
-        supabase.from("customers").select("*").eq("tenant_id", tenantId).order("name"),
-        supabase.from("services").select("*").eq("tenant_id", tenantId).eq("active", true).order("name"),
+        supabase.from("barbers").select("*").eq("tenant_id", curTenant).order("name"),
+        supabase.from("customers").select("*").eq("tenant_id", curTenant).order("name"),
+        supabase.from("services").select("*").eq("tenant_id", curTenant).eq("active", true).order("name"),
       ]);
+
+      if (fetchId !== latestFetchIdRef.current) {
+        console.log("[CALENDAR_BOOT_TRACE] Stale response discarded", { fetchId, latest: latestFetchIdRef.current });
+        return;
+      }
 
       if (appRes.error) {
         console.error("[CALENDAR_BOOT_TRACE] Appointments fetch error:", appRes.error);
+      } else if (appRes.data) {
+        setAppointments(appRes.data);
       }
 
-      console.log("[CALENDAR_BOOT_TRACE] Data fetched:", {
-        appointments: appRes.data?.length,
-        barbers: barbRes.data?.length,
-        customers: custRes.data?.length,
-        services: servRes.data?.length
-      });
-
-      if (appRes.data) setAppointments(appRes.data);
       if (barbRes.data) setBarbers(barbRes.data);
       if (custRes.data) setCustomers(custRes.data);
       if (servRes.data) setServices(servRes.data);
     } catch (err) {
       console.error("[CALENDAR_BOOT_TRACE] Crash in fetchData:", err);
     } finally {
-      setIsLoading(false);
+      if (fetchId === latestFetchIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  }
+  }, []);
 
   useEffect(() => {
     console.log("[CALENDAR_BOOT_TRACE] Starting fetchData", { 
@@ -276,7 +305,7 @@ const CalendarComponent = memo(() => {
       currentDate 
     });
     fetchData();
-  }, [user, currentDate, view, tenantId]);
+  }, [user, currentDate, view, tenantId, fetchData]);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -297,7 +326,7 @@ const CalendarComponent = memo(() => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [tenantId]);
+  }, [tenantId, fetchData, queryClient]);
 
   const isToday = isSameDay(currentDate, new Date());
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
