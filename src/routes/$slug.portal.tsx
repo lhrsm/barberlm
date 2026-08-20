@@ -244,7 +244,15 @@ function CustomerPortalPage() {
       setPortalState('CUSTOMER_RESOLVED');
       setCustomerName(customerData.name || "");
 
-      // 3. Parallel Data Fetch
+      // 3. Parallel Data Fetch com isolamento de falhas secundárias
+      const safeQuery = async <T,>(queryPromise: PromiseLike<T>): Promise<T | { data: null; error: any }> => {
+        try {
+          return await queryPromise;
+        } catch (error) {
+          return { data: null, error };
+        }
+      };
+
       const [
         shopRes,
         apptsRes,
@@ -258,20 +266,20 @@ function CustomerPortalPage() {
       ] = await Promise.all([
         supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers:barbers!appointments_barber_id_fkey(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
-        supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(() => ({ data: [] })),
-        supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false }).catch(() => ({ data: [] })),
-        supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true }).catch(() => ({ data: [] })),
-        supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true }).catch(() => ({ data: [] })),
-        supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id).catch(() => ({ data: [] })),
-        supabase.from("appointment_reviews").select("*").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).catch(() => ({ data: null, error: true })),
-        supabase.from("coupons").select("*").eq("tenant_id", effectiveTenantId).order("created_at", { ascending: false }).catch(() => ({ data: null, error: true }))
+        safeQuery(supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false })),
+        safeQuery(supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false })),
+        safeQuery(supabase.from("loyalty_levels").select("*").order("sort_order", { ascending: true })),
+        safeQuery(supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true })),
+        safeQuery(supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)),
+        safeQuery(supabase.from("appointment_reviews").select("*").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId)),
+        safeQuery(supabase.from("coupons").select("*").eq("tenant_id", effectiveTenantId).order("created_at", { ascending: false }))
       ]);
 
       if (apptsRes && 'error' in apptsRes && apptsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Appointments fetch error:", apptsRes.error);
 
       // Verificação estrita de integridade de reviews
-      const reviewsOk = Boolean(reviewsRes && !('error' in reviewsRes && reviewsRes.error) && Array.isArray((reviewsRes as any).data));
-      const couponsOk = Boolean(couponsRes && !('error' in couponsRes && couponsRes.error) && Array.isArray((couponsRes as any).data));
+      const reviewsOk = Boolean(reviewsRes && !(reviewsRes as any).error && Array.isArray((reviewsRes as any).data));
+      const couponsOk = Boolean(couponsRes && !(couponsRes as any).error && Array.isArray((couponsRes as any).data));
 
       // Mapeamento em lote de avaliações com resolução determinística de duplicatas históricas (mais recente prevalece)
       const reviewsByApptId = new Map<string, any>();
