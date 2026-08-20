@@ -191,6 +191,8 @@ const CalendarComponent = memo(() => {
   const [rescheduleAppt, setRescheduleAppt] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const hasLoadedOnceRef = useRef(false);
 
   const currentDateRef = useRef(currentDate);
   currentDateRef.current = currentDate;
@@ -244,8 +246,15 @@ const CalendarComponent = memo(() => {
     }
 
     const fetchId = ++latestFetchIdRef.current;
-    setIsLoading(true);
-    console.log("[CALENDAR_BOOT_TRACE] Executing queries", { fetchId, tenantId: curTenant, role: curRole, date: curDate });
+    const isInitial = !hasLoadedOnceRef.current;
+    if (isInitial) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    console.log("[CALENDAR_BOOT_TRACE] Executing queries", { fetchId, isInitial, tenantId: curTenant, role: curRole, date: curDate });
+
+    let fetchSuccess = false;
 
     try {
       const start = startOfDay(curView === "day" ? curDate : startOfWeek(curDate, { weekStartsOn: 0 }));
@@ -282,6 +291,7 @@ const CalendarComponent = memo(() => {
         console.error("[CALENDAR_BOOT_TRACE] Appointments fetch error:", appRes.error);
       } else if (appRes.data) {
         setAppointments(appRes.data);
+        fetchSuccess = true;
       }
 
       if (barbRes.data) setBarbers(barbRes.data);
@@ -292,6 +302,10 @@ const CalendarComponent = memo(() => {
     } finally {
       if (fetchId === latestFetchIdRef.current) {
         setIsLoading(false);
+        setIsRefreshing(false);
+        if (fetchSuccess) {
+          hasLoadedOnceRef.current = true;
+        }
       }
     }
   }, []);
@@ -366,7 +380,7 @@ const CalendarComponent = memo(() => {
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-gold">Agenda</h1>
-            {isLoading && <Loader2 className="h-5 w-5 animate-spin text-gold/40" />}
+            {(isLoading || isRefreshing) && <Loader2 className="h-5 w-5 animate-spin text-gold/40" />}
           </div>
           <HelpDrawer config={calendarHelpConfig} />
         </div>

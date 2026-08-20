@@ -45,6 +45,12 @@ function CentroDeComando() {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleAppt, setRescheduleAppt] = useState<any>(null);
+  const [now, setNow] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchData = async () => {
     if (!tenantId) return;
@@ -383,25 +389,81 @@ function CentroDeComando() {
               <h3 className="text-sm font-black uppercase italic tracking-[0.15em] text-white mb-6">Equipe Agora</h3>
               <div className="space-y-4">
                 {barbers.map(barber => {
-                  const currentAppt = appointments.find(a => a.barber_id === barber.id && a.status === 'in_progress');
-                  const status = currentAppt ? "Em Atendimento" : "Livre";
-                  
+                  const activeAppts = appointments.filter(a =>
+                    a.barber_id === barber.id &&
+                    ['confirmed', 'scheduled', 'pending', 'in_progress'].includes(a.status)
+                  );
+
+                  const currentAppt = activeAppts.find(a => {
+                    if (a.status === 'in_progress') return true;
+                    const start = parseISO(a.start_time);
+                    const end = parseISO(a.end_time);
+                    return now >= start && now < end;
+                  });
+
+                  const nextAppt = !currentAppt ? activeAppts
+                    .filter(a => parseISO(a.start_time) > now)
+                    .sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())[0] : null;
+
                   return (
-                    <div key={barber.id} className="flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-white/10 group-hover:border-gold/30 transition-colors">
+                    <div key={barber.id} className="flex items-center justify-between group p-2.5 rounded-2xl hover:bg-white/[0.02] transition-all">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar className="h-10 w-10 border border-white/10 group-hover:border-gold/30 transition-colors shrink-0">
                           <AvatarImage src={barber.avatar_url} />
                           <AvatarFallback className="bg-zinc-800 text-[10px] font-black">{barber.name?.substring(0,2).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="text-xs font-black text-white uppercase tracking-tight italic">{barber.name}</p>
-                          <div className="flex items-center gap-1.5">
-                            <span className={cn("h-1.5 w-1.5 rounded-full", currentAppt ? "bg-gold animate-pulse" : "bg-emerald-500")} />
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{status}</span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-white uppercase tracking-tight italic truncate">{barber.name}</p>
+                          <div className="flex flex-col gap-0.5 mt-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", currentAppt ? "bg-amber-400 animate-pulse" : "bg-emerald-500")} />
+                              <span className={cn("text-[10px] font-bold uppercase tracking-wider", currentAppt ? "text-amber-400" : "text-emerald-400")}>
+                                {currentAppt ? "Em Atendimento" : "Livre agora"}
+                              </span>
+                            </div>
+                            {currentAppt ? (
+                              <p className="text-[9px] text-zinc-400 font-medium truncate">
+                                {currentAppt.customers?.name || "Cliente"} • Até {format(parseISO(currentAppt.end_time), "HH:mm")}
+                              </p>
+                            ) : nextAppt ? (
+                              <p className="text-[9px] text-zinc-400 font-medium truncate">
+                                Próximo: {format(parseISO(nextAppt.start_time), "HH:mm")} — {nextAppt.customers?.name || "Cliente"}
+                              </p>
+                            ) : (
+                              <p className="text-[9px] text-zinc-500 font-medium truncate">
+                                Sem mais atendimentos hoje
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <ArrowRight size={14} className="text-zinc-700 group-hover:text-gold transition-colors" />
+                      {currentAppt ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[9px] text-gold hover:text-gold/80 font-bold uppercase tracking-wider shrink-0"
+                          onClick={() => {
+                            setSelectedAppointmentId(currentAppt.id);
+                            setDetailsModalOpen(true);
+                          }}
+                        >
+                          Ver
+                        </Button>
+                      ) : nextAppt ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[9px] text-zinc-400 hover:text-white font-bold uppercase tracking-wider shrink-0"
+                          onClick={() => {
+                            setSelectedAppointmentId(nextAppt.id);
+                            setDetailsModalOpen(true);
+                          }}
+                        >
+                          Ver
+                        </Button>
+                      ) : (
+                        <ArrowRight size={14} className="text-zinc-700 group-hover:text-gold transition-colors shrink-0" />
+                      )}
                     </div>
                   );
                 })}

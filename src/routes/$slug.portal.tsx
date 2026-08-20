@@ -93,7 +93,8 @@ function CustomerPortalPage() {
 
     trace("Starting loadPortalData", { isBackground });
     
-    if (isBackground) {
+    const isSilent = isBackground || (data && portalState === 'DATA_READY');
+    if (isSilent) {
       setIsRefreshing(true);
     } else {
       setLoading(true);
@@ -104,6 +105,7 @@ function CustomerPortalPage() {
       trace("No user, stopping");
       setPortalState('UNAUTHENTICATED' as any);
       setLoading(false);
+      setIsRefreshing(false);
       return;
     }
 
@@ -341,18 +343,21 @@ function CustomerPortalPage() {
         timestamp: new Date().toISOString()
       });
       
-      if (document.visibilityState === 'visible' && user && profile && timeSinceLastCheck > 5000) {
+      if (
+        document.visibilityState === 'visible' &&
+        user &&
+        data?.customer &&
+        portalState === 'DATA_READY' &&
+        timeSinceLastCheck > 5000
+      ) {
         setLastCheck(now);
         loadPortalData(true); // Background refresh on visibility change
       }
     };
 
-
-
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [user, profile, data, lastCheck, loadPortalData]);
+  }, [user, profile, data, portalState, lastCheck, loadPortalData]);
 
   useEffect(() => {
     console.log("[PORTAL_BOOT_TRACE] Effect trigger", { 
@@ -383,7 +388,7 @@ function CustomerPortalPage() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading && (!data || !data.customer)) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center" data-debug-portal={CANARY_ID}>
         <div className="flex flex-col items-center gap-4">
@@ -397,7 +402,7 @@ function CustomerPortalPage() {
     );
   }
 
-  if (user && loading) {
+  if (user && loading && (!data || !data.customer)) {
     return (
       <div className="min-h-screen bg-[#05070d] flex items-center justify-center" data-debug-portal={CANARY_ID}>
         <div className="flex flex-col items-center gap-4">

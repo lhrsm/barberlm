@@ -115,31 +115,23 @@ export function ClientLoginForm({ onMigrationRequired, barbershopSlug }: ClientL
 
   const handleSuccess = async (result?: any) => {
     console.log("[ClientLoginForm] Login process successful.");
-    
-    // Validamos a sessão imediatamente via getSession para garantir persistência
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      console.warn("[ClientLoginForm] Session not found in storage immediately. Retrying...");
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const { data: { session: retrySession } } = await supabase.auth.getSession();
-      if (!retrySession) {
-        toast.error("Erro ao persistir sessão. Tente novamente.");
-        return;
-      }
-    }
 
     toast.success("Login realizado com sucesso!");
-    
+
     // Gatilho para componentes que dependem do perfil
     window.dispatchEvent(new CustomEvent('profile-updated'));
 
     const targetPath = redirect || (barbershopSlug ? `/${barbershopSlug}/portal` : "/");
-    
-    console.log("[ClientLoginForm] Navigating via router to:", targetPath);
-    
-    // Usamos window.location.href para forçar uma recarga limpa e evitar estados residuais de auth
-    window.location.href = targetPath;
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+
+    // Se já estivermos no portal correspondente, o useAuth e o Portal reagem naturalmente ao evento de auth
+    if (currentPath === targetPath || (barbershopSlug && currentPath === `/${barbershopSlug}/portal`)) {
+      console.log("[ClientLoginForm] Already on target portal route. Reactive state transition will occur.");
+      return;
+    }
+
+    console.log("[ClientLoginForm] Navigating via SPA router to:", targetPath);
+    navigate({ to: targetPath as any });
   };
 
 
