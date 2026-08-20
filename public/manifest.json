@@ -4,8 +4,8 @@
   "description": "Plataforma Enterprise completa para barbearias de alto padrão.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#05070d",
-  "theme_color": "#D4AF37",
+  "background_color": "#15171B",
+  "theme_color": "#15171B",
   "icons": [
     {
       "src": "https://id-preview--8e95dc9e-ab64-44cf-956c-ecec6fefeb51.lovable.app/og-image.png",
