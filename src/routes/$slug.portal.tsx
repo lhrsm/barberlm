@@ -9,7 +9,8 @@ import {
   LogOut,
   User as UserIcon,
   ArrowLeft,
-  ShieldCheck
+  ShieldCheck,
+  Building2
 } from "lucide-react";
 import { toast } from "sonner";
 import { PortalNavigation } from "@/components/portal/premium/layout/PortalNavigation";
@@ -25,6 +26,16 @@ import { normalizePhone } from "@/utils/phone";
 import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { RescheduleWizard, type RescheduleWizardAppointment } from "@/components/reschedule/RescheduleWizard";
 import { ReviewModal } from "@/components/portal/ReviewModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: CustomerPortalPage,
@@ -32,19 +43,19 @@ export const Route = createFileRoute("/$slug/portal")({
 
 function CustomerPortalPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, profile, logout } = useAuth();
+  const { user, loading: authLoading, profile, logout, role } = useAuth();
   const { slug } = useParams({ from: "/$slug/portal" });
 
-  type PortalState = 'INITIALIZING' | 'AUTH_RESOLVED' | 'TENANT_RESOLVED' | 'CUSTOMER_RESOLVED' | 'DATA_READY' | 'ERROR' | 'NOT_FOUND';
+  type PortalState = 'INITIALIZING' | 'AUTH_RESOLVED' | 'TENANT_RESOLVED' | 'CUSTOMER_RESOLVED' | 'DATA_READY' | 'ERROR' | 'NOT_FOUND' | 'ADMIN_SESSION_ON_CUSTOMER_PORTAL';
   const [portalState, setPortalState] = useState<PortalState>('INITIALIZING');
   const [activeTab, setActiveTab] = useState("home");
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [confirmSwitchOpen, setConfirmSwitchOpen] = useState(false);
 
   // Canary Visual Temporário
   const CANARY_ID = "v2026-08-19-A";
   const [data, setData] = useState<{
-
     customer: any;
     shop: any;
     appointments: any[];
@@ -89,7 +100,6 @@ function CustomerPortalPage() {
       setPortalState('INITIALIZING');
     }
 
-
     if (!user) {
       trace("No user, stopping");
       setPortalState('UNAUTHENTICATED' as any);
@@ -99,10 +109,10 @@ function CustomerPortalPage() {
 
     setPortalState('AUTH_RESOLVED');
 
-    // 1. Resolve Tenant from profiles.slug (canonical tenant)
-    let effectiveTenantId = profile?.tenant_id;
-    if (!effectiveTenantId && slug) {
-      trace("Resolving tenant from slug via profiles");
+    // 1. Resolve Tenant canonically from profiles.slug (URL slug has absolute priority)
+    let effectiveTenantId: string | null = null;
+    if (slug) {
+      trace("Resolving tenant from slug via profiles", { slug });
       const { data: shopProfile, error: shopErr } = await supabase
         .from("profiles")
         .select("id")
@@ -111,10 +121,14 @@ function CustomerPortalPage() {
       
       if (shopProfile) {
         effectiveTenantId = shopProfile.id;
-        trace("Tenant resolved", { effectiveTenantId });
+        trace("Tenant resolved from slug", { effectiveTenantId });
       } else if (shopErr) {
         trace("Tenant resolution error", { shopErr });
       }
+    }
+
+    if (!effectiveTenantId && profile?.tenant_id) {
+      effectiveTenantId = profile.tenant_id;
     }
 
     if (!effectiveTenantId) {
@@ -189,6 +203,28 @@ function CustomerPortalPage() {
       }
 
       if (!customerData) {
+        // Verificar se a sessão autenticada pertence a um papel administrativo ou profissional do Barbex
+        const adminRoles = ['admin', 'tenant_admin', 'super_admin', 'manager', 'receptionist', 'financial', 'cashier', 'professional', 'barber', 'reception', 'finance'];
+        let isAdminOrStaff = adminRoles.includes(role || '') || adminRoles.includes(profile?.role || '');
+
+        if (!isAdminOrStaff && user?.id) {
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (userProfile && adminRoles.includes(userProfile.role)) {
+            isAdminOrStaff = true;
+          }
+        }
+
+        if (isAdminOrStaff) {
+          trace("Authenticated session is admin/staff on customer portal", { role, profileRole: profile?.role });
+          setPortalState('ADMIN_SESSION_ON_CUSTOMER_PORTAL');
+          setLoading(false);
+          return;
+        }
+
         trace("Customer NOT found");
         setPortalState('NOT_FOUND');
         setLoading(false);
@@ -398,6 +434,93 @@ function CustomerPortalPage() {
             <ClientLoginForm barbershopSlug={slug} />
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (portalState === 'ADMIN_SESSION_ON_CUSTOMER_PORTAL') {
+    let panelUrl = '/dashboard';
+    const effectiveRole = role || profile?.role;
+    if (effectiveRole === 'barber' || effectiveRole === 'professional') {
+      panelUrl = `/${slug}/profissional`;
+    } else if (effectiveRole === 'receptionist' || effectiveRole === 'reception') {
+      panelUrl = '/dashboard/centro-de-comando';
+    } else if (effectiveRole === 'financial' || effectiveRole === 'finance') {
+      panelUrl = '/finances';
+    } else if (effectiveRole === 'super_admin') {
+      panelUrl = '/admin/dashboard';
+    }
+
+    return (
+      <div className="min-h-screen bg-[#05070d] flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full space-y-8 animate-in fade-in duration-700 bg-[#0B1220] border border-[#F59E0B]/20 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="h-20 w-20 rounded-3xl bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto mb-2 shadow-[0_0_25px_rgba(212,175,55,0.15)]">
+            <Building2 className="h-10 w-10 text-gold" />
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">
+              Você está conectado ao painel da barbearia
+            </h1>
+            <p className="text-zinc-400 text-sm leading-relaxed">
+              Esta sessão pertence a uma conta administrativa ou profissional. Para acessar o Portal do Cliente, entre com uma conta de cliente.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-2">
+            <Button
+              onClick={() => setConfirmSwitchOpen(true)}
+              variant="default"
+              className="bg-gold hover:bg-gold/90 text-black font-black uppercase tracking-widest py-6 rounded-2xl shadow-lg active:scale-95 transition-all text-xs"
+            >
+              Entrar como cliente
+            </Button>
+
+            <a href={panelUrl} className="w-full">
+              <Button
+                variant="ghost"
+                className="w-full text-gold/80 hover:text-gold hover:bg-gold/10 font-bold uppercase tracking-widest text-[10px] py-4 rounded-xl"
+              >
+                Voltar ao painel
+              </Button>
+            </a>
+          </div>
+        </div>
+
+        <AlertDialog open={confirmSwitchOpen} onOpenChange={setConfirmSwitchOpen}>
+          <AlertDialogContent className="bg-[#0B1220] border border-white/10 text-white rounded-3xl p-6">
+            <AlertDialogHeader className="space-y-3">
+              <AlertDialogTitle className="text-lg font-black uppercase italic text-gold tracking-tight">
+                Trocar para conta de cliente?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-zinc-400 text-xs leading-relaxed">
+                Para entrar como cliente, será necessário sair da conta administrativa atual. Isso também encerrará essa sessão nas outras guias abertas.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+              <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl text-xs font-bold uppercase">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  setConfirmSwitchOpen(false);
+                  setLoading(true);
+                  try {
+                    await supabase.auth.signOut();
+                    setData(null);
+                    setPortalState('UNAUTHENTICATED' as any);
+                  } catch (err) {
+                    console.error("[PORTAL_SIGNOUT_ERROR]", err);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="bg-gold hover:bg-gold/90 text-black font-black uppercase rounded-xl text-xs"
+              >
+                Sair e entrar como cliente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }

@@ -58,6 +58,23 @@ export function useAppointmentStatus() {
           });
         }
       } else if (newStatus === 'completed') {
+        const isProvenZeroAmount =
+          (appt?.total_price !== null && appt?.total_price !== undefined && Number(appt?.total_price) === 0) ||
+          (appt?.final_amount !== null && appt?.final_amount !== undefined && Number(appt?.final_amount) === 0);
+
+        const isPaidOrSettled =
+          appt?.payment_status === 'paid' ||
+          appt?.payment_status === 'covered_by_subscription' ||
+          isProvenZeroAmount;
+
+        if (!isPaidOrSettled) {
+          toast.error("Pagamento pendente. Registre ou confirme o pagamento antes de concluir o atendimento.");
+          return {
+            success: false,
+            error: "Pagamento pendente. Registre ou confirme o pagamento antes de concluir o atendimento."
+          };
+        }
+
         const { data, error } = await supabase.rpc('complete_appointment', {
           p_appointment_id: appointmentId,
           p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
@@ -145,8 +162,12 @@ export function useAppointmentStatus() {
 
       toast.success(`Agendamento ${statusLabels[newStatus] || newStatus} com sucesso!`);
       
-      // Invalidação centralizada
-      queryClient.invalidateQueries();
+      // Invalidação centralizada com escopo operacional estrito (sem invalidar auth/tenant/plan-limits)
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['customer-appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['reception-queue'] });
       
       return { success: true, ...result };
     } catch (error: any) {

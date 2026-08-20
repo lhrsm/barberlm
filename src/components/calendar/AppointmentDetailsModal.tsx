@@ -223,6 +223,23 @@ export function AppointmentDetailsModal({
 
   const updateStatus = async (newStatus: string, metadata: any = {}) => {
     if (!appointment) return;
+
+    if (newStatus === 'completed') {
+      const isProvenZeroAmount =
+        (appointment.total_price !== null && appointment.total_price !== undefined && Number(appointment.total_price) === 0) ||
+        (appointment.final_amount !== null && appointment.final_amount !== undefined && Number(appointment.final_amount) === 0);
+
+      const isPaidOrSettled =
+        appointment.payment_status === 'paid' ||
+        appointment.payment_status === 'covered_by_subscription' ||
+        isProvenZeroAmount;
+
+      if (!isPaidOrSettled) {
+        toast.error("Pagamento pendente. Registre ou confirme o pagamento antes de concluir o atendimento.");
+        return;
+      }
+    }
+
     setActionLoading(true);
     
     const result = await centralUpdateStatus(
@@ -843,6 +860,7 @@ export function AppointmentDetailsModal({
                     toast.error(`Erro ao marcar como pago: ${error.message || 'Erro desconhecido'}`);
                   } else {
                     toast.success("Pagamento marcado como pago");
+                    setAppointment((prev: any) => prev ? ({ ...prev, payment_status: 'paid', paid_at: new Date().toISOString() }) : prev);
                     
                     const queryKeys = [
                       ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],

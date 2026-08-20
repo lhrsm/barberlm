@@ -288,7 +288,6 @@ const CalendarComponent = memo(() => {
         { event: '*', schema: 'public', table: 'appointments', filter: `tenant_id=eq.${tenantId}` },
         () => {
           fetchData();
-          refreshLimits();
           queryClient.invalidateQueries({ queryKey: ['appointments'] });
           queryClient.invalidateQueries({ queryKey: ['calendar'] });
         }
@@ -304,7 +303,22 @@ const CalendarComponent = memo(() => {
   const todayApps = useMemo(() => appointments.filter(a => isSameDay(new Date(a.start_time), currentDate)), [appointments, currentDate]);
   const todayRevenue = useMemo(() => todayApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0), [todayApps]);
 
-  if (loading || !user) return null;
+  if (loading && !user) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col h-full items-center justify-center min-h-[60vh] space-y-4 bg-[#05070d] p-8 text-white">
+          <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
+          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+            Carregando Agenda...
+          </p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!loading && !user) {
+    return null;
+  }
 
   const openNewAppointment = (date?: Date, hour?: number) => {
     setModalInitialData({

@@ -112,7 +112,10 @@ function ProfessionalDashboard() {
     setIsRefreshing(true);
     try {
       await fetchData();
-      await queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['professional-appointments'] });
       toast.success("Painel atualizado com sucesso");
     } catch (e) {
       console.error("[MANUAL_REFRESH_ERROR]", e);
@@ -1065,7 +1068,10 @@ function ProfessionalDashboard() {
         allowProfessionalChange={false}
         onSuccess={() => {
           fetchData();
-          queryClient.invalidateQueries();
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['professional-appointments'] });
         }}
       />
     </AppLayout>
