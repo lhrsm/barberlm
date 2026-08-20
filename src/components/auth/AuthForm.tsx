@@ -209,7 +209,7 @@ export function AuthForm() {
                 id="login-email"
                 type="email"
                 autoComplete="email"
-                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus:bg-[#15171B] focus:text-white focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
+                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus:bg-[#151D2C] focus:text-white focus-visible:bg-[#151D2C] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -228,7 +228,7 @@ export function AuthForm() {
                 id="login-phone"
                 type="tel"
                 autoComplete="tel"
-                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus:bg-[#15171B] focus:text-white focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
+                className="pl-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus:bg-[#151D2C] focus:text-white focus-visible:bg-[#151D2C] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -260,7 +260,7 @@ export function AuthForm() {
                 type={showPassword ? "text" : "password"}
                 style={{ ["WebkitTextSecurity" as any]: showPassword ? "none" : "disc" }}
                 autoComplete="current-password"
-                className="pl-14 pr-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus:bg-[#15171B] focus:text-white focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
+                className="pl-14 pr-14 h-[58px] md:h-[62px] rounded-[18px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 placeholder:italic placeholder:font-medium placeholder:opacity-50 focus:bg-[#151D2C] focus:text-white focus-visible:bg-[#151D2C] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -322,7 +322,7 @@ export function AuthForm() {
                 <Input
                   id="reset-email"
                   type="email"
-                  className="pl-12 h-[56px] rounded-[16px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 focus:bg-[#15171B] focus:text-white focus-visible:bg-[#15171B] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
+                  className="pl-12 h-[56px] rounded-[16px] bg-[#15171B] border-white/10 text-white placeholder:text-zinc-600 focus:bg-[#151D2C] focus:text-white focus-visible:bg-[#151D2C] focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/20 transition-all autofill:[-webkit-text-fill-color:#ffffff] autofill:[box-shadow:0_0_0_1000px_#15171B_inset]"
                   placeholder="exemplo@barbex.shop"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
