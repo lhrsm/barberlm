@@ -22,6 +22,9 @@ import { AchievementGrid } from "@/components/loyalty/AchievementGrid";
 import { Button } from "@/components/ui/button";
 import { ClientLoginForm } from "@/components/public/auth/ClientLoginForm";
 import { normalizePhone } from "@/utils/phone";
+import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
+import { RescheduleWizard, type RescheduleWizardAppointment } from "@/components/reschedule/RescheduleWizard";
+import { ReviewModal } from "@/components/portal/ReviewModal";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: CustomerPortalPage,
@@ -54,6 +57,13 @@ function CustomerPortalPage() {
   const [lastCheck, setLastCheck] = useState(Date.now());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Appointment Actions state
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [rescheduleAppointment, setRescheduleAppointment] = useState<RescheduleWizardAppointment | null>(null);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [reviewAppointment, setReviewAppointment] = useState<any>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   // ProfileTab state
   const [customerName, setCustomerName] = useState("");
@@ -463,14 +473,28 @@ function CustomerPortalPage() {
             subscriptionsEnabled={false}
             onNewAppointment={() => window.dispatchEvent(new CustomEvent("OPEN_BOOKING_MODAL"))}
             onNavigate={setActiveTab}
+            onViewDetails={(id) => {
+              setSelectedAppointmentId(id);
+              setDetailsOpen(true);
+            }}
+            onReview={(app) => {
+              setReviewAppointment(app);
+              setReviewOpen(true);
+            }}
           />
         );
       case "appointments":
         return (
           <AppointmentsTab 
             appointments={data.appointments}
-            onViewDetails={(id) => console.log("View details", id)}
-            onReview={(app) => console.log("Review", app)}
+            onViewDetails={(id) => {
+              setSelectedAppointmentId(id);
+              setDetailsOpen(true);
+            }}
+            onReview={(app) => {
+              setReviewAppointment(app);
+              setReviewOpen(true);
+            }}
           />
         );
       case "finances":
@@ -630,6 +654,38 @@ function CustomerPortalPage() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {renderTabContent()}
       </main>
+
+      <AppointmentDetailsModal
+        appointmentId={selectedAppointmentId}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        mode="customer"
+        onSuccess={() => loadPortalData(true)}
+        onReschedule={(app) => {
+          setRescheduleAppointment(app);
+          setRescheduleOpen(true);
+        }}
+      />
+
+      <RescheduleWizard
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        appointment={rescheduleAppointment}
+        actor="customer"
+        actorId={user?.id}
+        actorName={data?.customer?.name}
+        source="customer_portal"
+        allowProfessionalChange={true}
+        onSuccess={() => loadPortalData(true)}
+      />
+
+      <ReviewModal
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        appointment={reviewAppointment}
+        tenantId={data?.shop?.id || ""}
+        onSubmitted={() => loadPortalData(true)}
+      />
     </div>
   );
 }

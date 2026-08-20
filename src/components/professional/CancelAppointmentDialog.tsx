@@ -28,11 +28,15 @@ export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfir
       
       if (!result.success) throw result.error;
 
-      // Update cancel_reason separately as it's not a status but a detail
-      await supabase
-        .from("appointments")
-        .update({ cancel_reason: reason })
-        .eq("id", appointment.id);
+      // Update cancel_reason separately as an auxiliary detail if permitted
+      try {
+        await supabase
+          .from("appointments")
+          .update({ cancel_reason: reason })
+          .eq("id", appointment.id);
+      } catch (ignored) {
+        console.warn("[CancelAppointmentDialog] Direct cancel_reason update skipped", ignored);
+      }
 
       onConfirm();
       onClose();

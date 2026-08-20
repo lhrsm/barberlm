@@ -22,6 +22,7 @@ import { fetchBarberStats } from "@/hooks/use-barber-stats";
 import { EditProfileDialog } from "@/components/professional/EditProfileDialog";
 import { EditScheduleDialog } from "@/components/professional/EditScheduleDialog";
 import { CancelAppointmentDialog } from "@/components/professional/CancelAppointmentDialog";
+import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 import { ProfessionalNotifications } from "@/components/professional/ProfessionalNotifications";
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 import { ProfessionalHero } from "@/components/professional/panel/ProfessionalHero";
@@ -139,7 +140,9 @@ function ProfessionalDashboard() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditSchedule, setShowEditSchedule] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showRescheduleWizard, setShowRescheduleWizard] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [rescheduleAppointment, setRescheduleAppointment] = useState<any>(null);
 
   useEffect(() => {
     console.log("[PROFISSIONAL_PAGE_MOUNTED]");
@@ -592,13 +595,6 @@ function ProfessionalDashboard() {
                             <>
                               <Button
                                 size="sm"
-                                onClick={() => handleAction(app, 'completed')}
-                                className="bg-gold hover:bg-[#B8962E] text-black rounded-xl font-black h-10 w-full"
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-2" /> Concluir
-                              </Button>
-                              <Button
-                                size="sm"
                                 onClick={() => openWhatsapp(app, 'contact')}
                                 className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-black h-10 w-full"
                               >
@@ -608,7 +604,10 @@ function ProfessionalDashboard() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => openWhatsapp(app, 'reschedule')}
+                                  onClick={() => {
+                                    setRescheduleAppointment(app);
+                                    setShowRescheduleWizard(true);
+                                  }}
                                   className="bg-transparent text-gold border-gold/30 hover:bg-gold/10 rounded-xl font-black h-10 flex-1 text-[10px] uppercase tracking-wider"
                                 >
                                   Reagendar
@@ -1054,6 +1053,20 @@ function ProfessionalDashboard() {
         onClose={() => setShowCancelDialog(false)} 
         appointment={selectedAppointment} 
         onConfirm={fetchData} 
+      />
+      <RescheduleWizard
+        open={showRescheduleWizard}
+        onOpenChange={setShowRescheduleWizard}
+        appointment={rescheduleAppointment}
+        actor="barber"
+        actorId={session?.barber_id}
+        actorName={session?.name}
+        source="barber_panel"
+        allowProfessionalChange={false}
+        onSuccess={() => {
+          fetchData();
+          queryClient.invalidateQueries();
+        }}
       />
     </AppLayout>
   );

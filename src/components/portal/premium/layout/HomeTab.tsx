@@ -19,6 +19,8 @@ type Props = {
   subscriptionsEnabled: boolean;
   onNewAppointment: () => void;
   onNavigate: (tab: string) => void;
+  onViewDetails?: (id: string) => void;
+  onReview?: (app: any) => void;
 };
 
 /**
@@ -39,6 +41,8 @@ export function HomeTab({
   subscriptionsEnabled,
   onNewAppointment,
   onNavigate,
+  onViewDetails,
+  onReview,
 }: Props) {
   const hasCashback = Number(customerData?.cashback_balance || 0) > 0;
   const hasCredits = Number(customerData?.credits || 0) > 0;
@@ -109,8 +113,8 @@ export function HomeTab({
         <div className="opacity-90">
           <AppointmentsTab 
             appointments={appointments.slice(0, 3)} 
-            onViewDetails={() => onNavigate('appointments')}
-            onReview={() => onNavigate('appointments')}
+            onViewDetails={onViewDetails || (() => onNavigate('appointments'))}
+            onReview={onReview || (() => onNavigate('appointments'))}
           />
         </div>
       </div>

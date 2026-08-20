@@ -13,6 +13,8 @@ import {
 import { format, startOfDay, endOfDay, isSameDay, addMinutes, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
+import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
+import { RescheduleWizard } from "@/components/reschedule/RescheduleWizard";
 import { WalkinModal } from "@/components/calendar/WalkinModal";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/dashboard/MetricCard";
@@ -39,6 +41,10 @@ function CentroDeComando() {
   const [isWalkinOpen, setIsWalkinOpen] = useState(false);
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
   const [isRealtimeActive, setIsRealtimeActive] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleAppt, setRescheduleAppt] = useState<any>(null);
 
   const fetchData = async () => {
     if (!tenantId) return;
@@ -256,8 +262,12 @@ function CentroDeComando() {
                   appointments.map((a) => (
                     <div 
                       key={a.id} 
+                      onClick={() => {
+                        setSelectedAppointmentId(a.id);
+                        setDetailsModalOpen(true);
+                      }}
                       className={cn(
-                        "group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
+                        "group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer hover:border-gold/30 hover:scale-[1.005]",
                         a.status === 'completed' ? "bg-emerald-500/5 border-emerald-500/10 opacity-70" : 
                         a.status === 'in_progress' ? "bg-gold/5 border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.05)]" : 
                         "bg-white/[0.02] border-white/5 hover:border-white/10"
@@ -341,7 +351,7 @@ function CentroDeComando() {
                 ) : (
                   operationalAlerts.map(alert => (
                     <div key={alert.id} className={cn(
-                      "flex items-start gap-3 p-4 rounded-2xl border transition-all hover:bg-white/[0.02]",
+                       "flex items-start gap-3 p-4 rounded-2xl border transition-all hover:bg-white/[0.02]",
                       alert.type === 'critical' ? "bg-rose-500/5 border-rose-500/10" : "bg-amber-500/5 border-amber-500/10"
                     )}>
                       <AlertTriangle size={16} className={alert.type === 'critical' ? "text-rose-400 mt-0.5" : "text-amber-400 mt-0.5"} />
@@ -349,7 +359,18 @@ function CentroDeComando() {
                         <p className={cn("text-xs font-bold uppercase tracking-tight", alert.type === 'critical' ? "text-rose-400" : "text-amber-400")}>
                           {alert.text}
                         </p>
-                        <Button variant="link" className="p-0 h-auto text-[10px] font-black uppercase text-gold hover:no-underline opacity-80 hover:opacity-100">Ver Agendamento</Button>
+                        <Button
+                          variant="link"
+                          onClick={() => {
+                            if (alert.appointment?.id) {
+                              setSelectedAppointmentId(alert.appointment.id);
+                              setDetailsModalOpen(true);
+                            }
+                          }}
+                          className="p-0 h-auto text-[10px] font-black uppercase text-gold hover:no-underline opacity-80 hover:opacity-100"
+                        >
+                          Ver Agendamento
+                        </Button>
                       </div>
                     </div>
                   ))
@@ -390,6 +411,25 @@ function CentroDeComando() {
         </div>
       </div>
       <AppointmentModal open={isAppointmentOpen} onOpenChange={setIsAppointmentOpen} onSuccess={fetchData} />
+      <AppointmentDetailsModal
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
+        appointmentId={selectedAppointmentId}
+        onSuccess={fetchData}
+        onReschedule={(appt) => {
+          setRescheduleAppt(appt);
+          setRescheduleOpen(true);
+        }}
+      />
+      <RescheduleWizard
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        appointment={rescheduleAppt}
+        actor="admin"
+        actorId={user?.id}
+        source="centro_de_comando"
+        onSuccess={fetchData}
+      />
       <WalkinModal open={isWalkinOpen} onOpenChange={setIsWalkinOpen} onSuccess={fetchData} />
     </>
   );
