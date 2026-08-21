@@ -62,6 +62,8 @@ import { toast } from "sonner";
 
 import { useModules, type ModuleKey } from "@/hooks/use-modules";
 import { usePermissions, type PermissionKey } from "@/hooks/use-permissions";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { getDefaultRouteForRole } from "@/lib/permissions.matrix";
 
 interface NavItem {
   label: string;
@@ -219,10 +221,8 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
       console.log('[AUTH_REDIRECT_TRACE] User found on /dashboard, resolving role redirect:', role);
       if (role === 'super_admin' && !isImpersonating) {
         navigate({ to: "/admin/dashboard" });
-      } else if (role === 'receptionist') {
-        navigate({ to: "/dashboard/centro-de-comando" });
-      } else if (role === 'financial') {
-        navigate({ to: "/finances" as any });
+      } else if (role === 'reception' || role === 'receptionist') {
+        navigate({ to: "/reception" });
       } else if (role === 'professional' || role === 'barber') {
         navigate({ to: `/${slug}/profissional` as any });
       } else if (role === 'client') {
@@ -498,9 +498,10 @@ export const AppLayout = memo(({ children }: { children: React.ReactNode }) => {
           </nav>
 
           {/* Sidebar footer */}
-          <div className="p-4 border-t border-white/5 space-y-4">
+          <div className="p-4 border-t border-white/5 space-y-3">
+            <PwaInstallButton variant="compact" className="w-full justify-center" />
             <LogoutButton />
-            <div className="flex flex-col items-center gap-2 pb-6">
+            <div className="flex flex-col items-center gap-2 pb-4">
               <span className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                 Powered by BARBEX
               </span>

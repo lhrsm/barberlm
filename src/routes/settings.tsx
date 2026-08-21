@@ -62,10 +62,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export const Route = createFileRoute("/settings")({
-  component: SettingsComponent,
+  component: () => (
+    <PermissionGuard permission="settings:manage">
+      <SettingsComponent />
+    </PermissionGuard>
+  ),
 });
 
 function normalizeSocial(kind: "instagram" | "facebook" | "tiktok" | "youtube" | "whatsapp", raw: string): string {

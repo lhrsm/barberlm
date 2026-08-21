@@ -52,8 +52,14 @@ const WHATSAPP_COMERCIAL = "5571981708086";
 const personalizadoUrl = `https://wa.me/${WHATSAPP_COMERCIAL}?text=${encodeURIComponent("Olá! Tenho interesse em um Plano Personalizado do BarberX para minha barbearia.")}`;
 
 
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
+
 export const Route = createFileRoute("/subscription/")({
-  component: SubscriptionComponent,
+  component: () => (
+    <PermissionGuard permission="settings:manage">
+      <SubscriptionComponent />
+    </PermissionGuard>
+  ),
 });
 
 function SubscriptionComponent() {

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./use-auth";
+import { ROLE_PERMISSIONS_MATRIX, checkRolePermission } from "@/lib/permissions.matrix";
 
 export type PermissionKey = 
   | 'dashboard:view'
@@ -27,17 +28,10 @@ export function usePermissions() {
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: ['user-permissions', user?.id, role],
     queryFn: async () => {
-      console.log("[PERMISSIONS_TRACE] Fetching for role:", role, "userId:", user?.id);
       if (!user) return [];
 
-      // Se for super_admin, retorna todas
-      if (role === 'super_admin') {
-        return ['*'];
-      }
-
-      // Se for tenant_admin, retorna todas as permissões administrativas por padrão
-      // Isso resolve o problema do menu sumindo após F5 se o banco demorar ou a query falhar
-      if (role === 'tenant_admin') {
+      // Se for super_admin, admin ou tenant_admin, tem acesso total
+      if (role === 'super_admin' || role === 'admin' || role === 'tenant_admin') {
         return ['*'];
       }
 
@@ -46,9 +40,10 @@ export function usePermissions() {
         .select('permission_key')
         .eq('role', role as any);
 
-      if (error) {
-        console.error("Error fetching permissions:", error);
-        return [];
+      if (error || !data || data.length === 0) {
+        // Fallback canônico da matriz central
+        const staticPerms = role ? ROLE_PERMISSIONS_MATRIX[role] : [];
+        return staticPerms || [];
       }
 
       return data.map(p => p.permission_key);
@@ -58,13 +53,16 @@ export function usePermissions() {
   });
 
   const hasPermission = (key: PermissionKey): boolean => {
-    if (role === 'super_admin' || role === 'tenant_admin') return true;
+    if (role === 'super_admin' || role === 'admin' || role === 'tenant_admin') return true;
     
-    // Permissivo enquanto carrega para evitar flicker no sidebar/UI
-    if (authLoading || permissionsLoading) return true;
-    if (!permissions) return false;
-    if (permissions.includes('*')) return true;
-    return permissions.includes(key);
+    // Se temos permissões carregadas, verifica diretamente
+    if (permissions && permissions.length > 0) {
+      if (permissions.includes('*')) return true;
+      return permissions.includes(key);
+    }
+
+    // Enquanto carrega ou se não há dados remotos, usa a matriz estática canônica
+    return checkRolePermission(role, key);
   };
 
   const hasAnyPermission = (keys: PermissionKey[]): boolean => {
@@ -76,7 +74,7 @@ export function usePermissions() {
   };
 
   return {
-    permissions,
+    permissions: permissions || (role ? ROLE_PERMISSIONS_MATRIX[role] : []),
     loading: authLoading || permissionsLoading,
     hasPermission,
     hasAnyPermission,

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Phone, Mail, Lock, Eye, EyeOff, Send, ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
+import { StaffMigrationModal } from "./StaffMigrationModal";
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false);
@@ -26,6 +27,14 @@ export function AuthForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [migrationBarber, setMigrationBarber] = useState<{
+    id: string;
+    name: string;
+    phone: string;
+    tenant_id: string;
+    slug?: string;
+  } | null>(null);
+  const [isMigrationModalOpen, setIsMigrationModalOpen] = useState(false);
   
   const navigate = useNavigate();
   const { login } = useProfessionalAuth();
@@ -75,24 +84,51 @@ export function AuthForm() {
           throw error;
         }
 
-        console.log("[AUTH_LOGIN_SUCCESS] Session established for user:", data.user?.id);
-        
-        // Brief settling time for auth state
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Buscar perfil e papel para redirecionamento inteligente imediato
+        const [{ data: profile }, { data: userRole }, { data: membership }] = await Promise.all([
+          supabase.from("profiles").select("role, slug, tenant_id").eq("id", data.user.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", data.user.id).maybeSingle(),
+          supabase.from("tenant_memberships").select("role, tenant_id").eq("user_id", data.user.id).maybeSingle(),
+        ]);
 
-        // Let useAuth and router handle the rest, but we can trigger a manual check
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          throw new Error("Falha ao recuperar sessão após login.");
+        const effectiveRole = userRole?.role || membership?.role || profile?.role || "admin";
+        const effectiveSlug = profile?.slug || "general";
+
+        // Se for barbeiro/profissional, sincroniza também a sessão profissional
+        if (effectiveRole === "barber" || effectiveRole === "professional") {
+          const { data: barberRec } = await supabase
+            .from("barbers")
+            .select("id, name, user_id, tenant_id")
+            .or(`email.eq.${email},id.eq.${data.user.id}`)
+            .maybeSingle();
+
+          if (barberRec) {
+            login({
+              phone: data.user.phone || "",
+              barber_id: barberRec.id,
+              name: barberRec.name,
+              role: "barber",
+              tenant_id: barberRec.tenant_id || barberRec.user_id,
+            });
+          }
         }
 
         toast.success("Login realizado com sucesso!");
-        navigate({ to: "/dashboard" as any });
+
+        if (effectiveRole === "super_admin") {
+          navigate({ to: "/admin/dashboard" });
+        } else if (effectiveRole === "reception" || effectiveRole === "receptionist") {
+          navigate({ to: "/reception" });
+        } else if (effectiveRole === "barber" || effectiveRole === "professional") {
+          navigate({ to: `/${effectiveSlug}/profissional` as any });
+        } else {
+          navigate({ to: "/dashboard" as any });
+        }
       } else {
         const cleanPhone = phone.replace(/\D/g, '');
         const { data: barber, error: barberError } = await supabase
           .from("barbers")
-          .select("id, name, user_id")
+          .select("id, name, user_id, tenant_id, auth_migration_status, email")
           .eq("phone", phone)
           .maybeSingle();
 
@@ -101,7 +137,7 @@ export function AuthForm() {
         if (!targetBarber && cleanPhone) {
           const { data: barberByCleanPhone } = await supabase
             .from("barbers")
-            .select("id, name, user_id")
+            .select("id, name, user_id, tenant_id, auth_migration_status, email")
             .ilike("phone", `%${cleanPhone}%`)
             .maybeSingle();
           targetBarber = barberByCleanPhone;
@@ -113,28 +149,23 @@ export function AuthForm() {
           return;
         }
 
-        const sessionData: any = {
-          phone: phone,
-          barber_id: targetBarber.id,
-          name: targetBarber.name,
-          role: 'barber',
-          tenant_id: targetBarber.user_id
-        };
-
-        login(sessionData);
-        toast.success(`Bem-vindo, ${targetBarber.name}!`);
-        
         const { data: profile } = await supabase
           .from("profiles")
           .select("slug")
-          .eq("id", targetBarber.user_id)
-          .single();
+          .eq("id", targetBarber.tenant_id || targetBarber.user_id)
+          .maybeSingle();
 
         const slug = profile?.slug || "general";
 
-        setTimeout(() => {
-          navigate({ to: `/${slug}/profissional` });
-        }, 500);
+        // Disparar modal com as 5 etapas de migração por OTP para o barbeiro legado
+        setMigrationBarber({
+          id: targetBarber.id,
+          name: targetBarber.name,
+          phone: phone,
+          tenant_id: targetBarber.tenant_id || targetBarber.user_id,
+          slug,
+        });
+        setIsMigrationModalOpen(true);
       }
     } catch (error: any) {
       console.error("[AUTH_LOGIN_CRITICAL] Exception:", error);
@@ -358,6 +389,14 @@ export function AuthForm() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Staff / Barber OTP Migration Modal */}
+      <StaffMigrationModal
+        open={isMigrationModalOpen}
+        onOpenChange={setIsMigrationModalOpen}
+        barber={migrationBarber}
+        onSuccess={(targetRoute) => navigate({ to: targetRoute as any })}
+      />
     </div>
   );
 }
