@@ -21,6 +21,7 @@ import { ProfileTab } from "@/components/portal/premium/tabs/ProfileTab";
 import { CouponsTab } from "@/components/portal/premium/tabs/CouponsTab";
 import { SecurityTab } from "@/components/portal/premium/tabs/SecurityTab";
 import { LoyaltyTab } from "@/components/portal/premium/tabs/LoyaltyTab";
+import { PortalHeaderLogo } from "@/components/portal/premium/layout/PortalHeaderLogo";
 import { Button } from "@/components/ui/button";
 import { ClientLoginForm } from "@/components/public/auth/ClientLoginForm";
 import { normalizePhone } from "@/utils/phone";
@@ -980,40 +981,6 @@ function CustomerPortalPage() {
             loadPortalData(true);
           }}
         />
-      )}
-    </div>
-  );
-}
-
-function PortalHeaderLogo({ shop, slug }: { shop: any; slug: string }) {
-  const [imgError, setImgError] = useState(false);
-  const logoUrl = shop?.barbershop_logo_url || shop?.logo_url;
-  const name = shop?.business_name || (slug ? slug.toUpperCase() : "");
-  const initials = name
-    ? name
-        .split(" ")
-        .filter(Boolean)
-        .map((w: string) => w[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "";
-
-  return (
-    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
-      {logoUrl && !imgError ? (
-        <img
-          src={logoUrl}
-          alt={name || "Logo"}
-          className="h-full w-full object-cover"
-          onError={() => setImgError(true)}
-        />
-      ) : initials ? (
-        <span className="text-gold font-black text-xs sm:text-sm tracking-wider">
-          {initials}
-        </span>
-      ) : (
-        <Scissors className="h-5 w-5 text-gold" />
       )}
     </div>
   );
