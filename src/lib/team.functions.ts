@@ -18,6 +18,35 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
     const { email, phone, role, professionalId, tenantId } = data;
+    // 0. Authorization check: Caller must be owner, admin or manager of tenantId
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const { data: callerMembership } = await supabase
+      .from('tenant_memberships')
+      .select('role')
+      .eq('tenant_id', tenantId)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    const isOwner = userId === tenantId || callerProfile?.role === 'super_admin' || callerProfile?.role === 'admin' || callerProfile?.role === 'tenant_admin';
+    const callerRole = isOwner ? 'admin' : (callerMembership?.role || callerProfile?.role);
+
+    if (!isOwner && callerRole !== 'admin' && callerRole !== 'tenant_admin' && callerRole !== 'manager') {
+      throw new Error("Acesso negado: você não possui permissão para gerenciar a equipe deste estabelecimento.");
+    }
+
+    // Prevenção de escalação de privilégios:
+    if (role === 'super_admin' && callerProfile?.role !== 'super_admin') {
+      throw new Error("Não é permitido convidar administradores globais.");
+    }
+    if (callerRole === 'manager' && (role === 'admin' || role === 'tenant_admin' || role === 'super_admin')) {
+      throw new Error("Gerentes não podem convidar administradores.");
+    }
 
     // 1. Check if user already has membership
     const { data: existingUser } = await supabase
@@ -90,7 +119,30 @@ export const getTeamMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ tenantId: z.string() }))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as any;
+    const { supabase, userId } = context as any;
+
+    // Caller authorization: must be admin or manager of tenantId
+    const { data: callerMembership } = await supabase
+      .from('tenant_memberships')
+      .select('role')
+      .eq('tenant_id', data.tenantId)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const isOwner = userId === data.tenantId || callerProfile?.role === 'super_admin' || callerProfile?.role === 'admin' || callerProfile?.role === 'tenant_admin';
+    const callerRole = isOwner ? 'admin' : (callerMembership?.role || callerProfile?.role);
+
+    if (!isOwner && callerRole !== 'admin' && callerRole !== 'tenant_admin' && callerRole !== 'manager') {
+      throw new Error("Acesso negado: você não tem permissão para visualizar os membros da equipe.");
+    }
+
     const { data: members, error } = await supabase
       .from('tenant_memberships')
       .select(`
@@ -113,7 +165,30 @@ export const getPendingInvitations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ tenantId: z.string() }))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as any;
+    const { supabase, userId } = context as any;
+
+    // Caller authorization: must be admin or manager of tenantId
+    const { data: callerMembership } = await supabase
+      .from('tenant_memberships')
+      .select('role')
+      .eq('tenant_id', data.tenantId)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const isOwner = userId === data.tenantId || callerProfile?.role === 'super_admin' || callerProfile?.role === 'admin' || callerProfile?.role === 'tenant_admin';
+    const callerRole = isOwner ? 'admin' : (callerMembership?.role || callerProfile?.role);
+
+    if (!isOwner && callerRole !== 'admin' && callerRole !== 'tenant_admin' && callerRole !== 'manager') {
+      throw new Error("Acesso negado: você não tem permissão para visualizar convites pendentes.");
+    }
+
     const { data: invites, error } = await supabase
       .from('user_invitations')
       .select('*')
