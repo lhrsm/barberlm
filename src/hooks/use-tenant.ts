@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 
+let lastResolvedUserTenant: { userId: string; tenantId: string } | null = null;
+
 export function useTenant() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, initialized: authInitialized } = useAuth();
   const { session } = useProfessionalAuth();
   
   // Check for impersonation in sessionStorage
@@ -24,7 +26,8 @@ export function useTenant() {
       if (error) return null;
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   // The actual tenant ID being viewed/managed
@@ -33,24 +36,19 @@ export function useTenant() {
   // 2. Explicit Membership (V2 Architecture)
   // 3. Super Admin default (null)
   // 4. Role-based fallback (Legacy Architecture)
-  const tenantId = authLoading 
-    ? null 
-    : (impersonatedId || 
-       membership?.tenant_id || 
-       (profile?.tenant_id || 
-        (profile?.role === 'admin' || profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null))));
+  const candidateTenantId = impersonatedId ||
+       membership?.tenant_id ||
+       (profile?.tenant_id ||
+        (profile?.role === 'admin' || profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null)));
 
-    if (typeof window !== 'undefined') {
-      console.log("[useTenant] Debug:", { 
-        tenantId, 
-        role: profile?.role, 
-        impersonatedId, 
-        membershipTenantId: membership?.tenant_id,
-        profileId: profile?.id, 
-        professionalTenantId: session?.tenant_id 
-      });
-    }
+  if (user?.id && candidateTenantId) {
+    lastResolvedUserTenant = { userId: user.id, tenantId: candidateTenantId };
+  } else if (!user) {
+    lastResolvedUserTenant = null;
+  }
 
+  // Preserve last resolved tenant ID if auth is revalidating in background for the SAME authenticated user
+  const tenantId = candidateTenantId || (user?.id && lastResolvedUserTenant?.userId === user.id ? lastResolvedUserTenant.tenantId : null);
 
   const { data: tenantProfile, isLoading: queryLoading } = useQuery({
     queryKey: ["tenant-profile", tenantId],
@@ -65,7 +63,8 @@ export function useTenant() {
       if (error) throw error;
       return data;
     },
-    enabled: !!tenantId
+    enabled: !!tenantId,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: planDetails } = useQuery({
@@ -81,7 +80,8 @@ export function useTenant() {
       if (error) throw error;
       return data;
     },
-    enabled: !!tenantProfile?.plan
+    enabled: !!tenantProfile?.plan,
+    staleTime: 5 * 60 * 1000,
   });
 
   const isFeatureEnabled = (featureKey: string) => {
@@ -101,12 +101,14 @@ export function useTenant() {
     }
   };
 
+  const isInitialLoading = (!authInitialized && !tenantId) || (!!tenantId && !tenantProfile && queryLoading);
+
   return {
     tenantId,
     tenantProfile,
     planDetails,
     membership,
-    isLoading: authLoading || queryLoading,
+    isLoading: isInitialLoading,
     isFeatureEnabled,
     getLimit,
     isImpersonating: !!impersonatedId,

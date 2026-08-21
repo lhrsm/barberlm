@@ -17,21 +17,25 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function DashboardIndexComponent() {
-  const { user, profile: authProfile, role, loading: authLoading } = useAuth();
+  const { user, profile: authProfile, role, loading: authLoading, initialized: authInitialized } = useAuth();
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { refresh: refreshLimits, loading: planLoading } = usePlanLimits();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const isCriticalBoot = authLoading || tenantLoading;
-  const [isInitialBoot, setIsInitialBoot] = useState(true);
+  const [hasRenderedSuccessfully, setHasRenderedSuccessfully] = useState(false);
+
+  // Critical boot ONLY during cold initial boot before first render
+  const isCriticalBoot = !authInitialized || (authLoading && !user) || (!hasRenderedSuccessfully && tenantLoading);
 
   // Canary Visual Temporário
   const CANARY_ID = "v2026-08-19-A";
 
   useEffect(() => {
-    if (!isCriticalBoot) setIsInitialBoot(false);
-  }, [isCriticalBoot]);
+    if (user && tenantId) {
+      setHasRenderedSuccessfully(true);
+    }
+  }, [user, tenantId]);
 
   
   const [isWalkinOpen, setIsWalkinOpen] = useState(false);
@@ -73,7 +77,7 @@ function DashboardIndexComponent() {
     console.log("[DASHBOARD_LOADING_TRACE]", {
       timestamp: new Date().toISOString(),
       event: "Auth Check",
-      before: { authLoading, tenantLoading, planLoading, isInitialBoot, isRefreshing },
+      before: { authLoading, tenantLoading, planLoading, hasRenderedSuccessfully, isRefreshing },
       context: { hasUser: !!user, role, tenantId }
     });
 
@@ -97,7 +101,7 @@ function DashboardIndexComponent() {
         return;
       }
     }
-  }, [user, role, isCriticalBoot, navigate, authLoading, tenantLoading, planLoading, tenantId, isInitialBoot, isRefreshing]);
+  }, [user, role, isCriticalBoot, navigate, authLoading, tenantLoading, planLoading, tenantId, hasRenderedSuccessfully, isRefreshing]);
 
 
   useEffect(() => {
@@ -334,8 +338,8 @@ function DashboardIndexComponent() {
   }
 
 
-  // Show loading skeleton while initializing ONLY on first critical boot
-  if (isInitialBoot && isCriticalBoot && typeof window !== 'undefined') {
+  // Show loading skeleton while initializing ONLY on first critical boot before successful render
+  if (!hasRenderedSuccessfully && isCriticalBoot && typeof window !== 'undefined') {
     return (
       <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
         <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
@@ -349,23 +353,10 @@ function DashboardIndexComponent() {
 
 
   // SSR Safety & Hydration Fallback:
-  if ((!user || !tenantId) && typeof window !== 'undefined') {
-    if (!authLoading && !user) {
-       console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
-       navigate({ to: "/auth" as any, replace: true });
-       return null;
-    }
-    if (isCriticalBoot) {
-      return (
-        <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 min-h-[60vh] flex flex-col items-center justify-center" data-debug-dashboard={CANARY_ID}>
-          <Loader2 className="h-10 w-10 text-gold animate-spin mb-4" />
-          <p className="text-gold/60 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-            Sincronizando Dashboard Executivo...
-          </p>
-          <span className="text-[10px] text-zinc-800 opacity-30 uppercase tracking-widest font-mono mt-8">DEBUG DASHBOARD A ({CANARY_ID})</span>
-        </div>
-      );
-    }
+  if (!user && authInitialized && typeof window !== 'undefined') {
+    console.warn('[AUTH_REDIRECT_TRACE] Final fallback redirect to /auth');
+    navigate({ to: "/auth" as any, replace: true });
+    return null;
   }
 
   const renderSpecializedView = () => {

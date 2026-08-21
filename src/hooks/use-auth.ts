@@ -25,23 +25,49 @@ let globalUser: User | null = null;
 let globalSession: Session | null = null;
 let globalProfile: Profile | null = null;
 let globalLoading = false; 
-if (typeof window === 'undefined') globalLoading = false; // Never loading during SSR to avoid blocking render
+let globalAuthInitialized = false;
+let globalRefreshing = false;
+if (typeof window === 'undefined') {
+  globalLoading = false;
+  globalAuthInitialized = true;
+}
 let initialized = false;
 let initializationPromise: Promise<void> | null = null;
-const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
-
-
+const listeners = new Set<(state: {
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+  initialized: boolean;
+  refreshing: boolean;
+}) => void>();
 
 function emit() {
-  const state = { user: globalUser, session: globalSession, profile: globalProfile, loading: globalLoading };
+  const state = {
+    user: globalUser,
+    session: globalSession,
+    profile: globalProfile,
+    loading: globalLoading,
+    initialized: globalAuthInitialized,
+    refreshing: globalRefreshing
+  };
   listeners.forEach((l) => l(state));
 }
 
-function setState(partial: Partial<{ user: User | null; session: Session | null; profile: Profile | null; loading: boolean }>) {
+function setState(partial: Partial<{
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+  initialized: boolean;
+  refreshing: boolean;
+}>) {
   if (partial.user !== undefined) globalUser = partial.user;
   if (partial.session !== undefined) globalSession = partial.session;
   if (partial.profile !== undefined) globalProfile = partial.profile;
   if (partial.loading !== undefined) globalLoading = partial.loading;
+  if (partial.initialized !== undefined) globalAuthInitialized = partial.initialized;
+  if (partial.refreshing !== undefined) globalRefreshing = partial.refreshing;
   emit();
 }
 
@@ -104,45 +130,58 @@ async function initializeAuth() {
     initialized = true;
 
     // INICIO: Hydration logic with explicit locking and profile synchronization
-    setState({ loading: true });
+    if (!globalAuthInitialized) {
+      setState({ loading: true, initialized: false });
+    }
 
     // 1. Subscribe to auth events
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log(`[AUTH_TRACE] onAuthStateChange: ${event}`, { 
         hasSession: !!session,
-        userId: session?.user?.id 
+        userId: session?.user?.id,
+        authInitialized: globalAuthInitialized
       });
       
       if (event === 'SIGNED_OUT') {
-        setState({ session: null, user: null, profile: null, loading: false });
+        globalAuthInitialized = true;
+        setState({ session: null, user: null, profile: null, loading: false, refreshing: false, initialized: true });
       } else if (event === 'USER_UPDATED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
           const isSameUser = Boolean(globalProfile?.id === session.user.id && globalUser?.id === session.user.id && globalProfile !== null);
           
           if (!isSameUser || (!globalUser && event === 'SIGNED_IN')) {
-            setState({ session, user: session.user, profile: null, loading: true });
+            // New user login or first session hydration
+            if (!globalAuthInitialized) {
+              setState({ session, user: session.user, profile: null, loading: true, refreshing: false, initialized: false });
+            } else {
+              setState({ session, user: session.user, refreshing: true });
+            }
+
             const profile = await fetchProfileData(session.user.id);
             if (!profile && event === 'SIGNED_IN') {
               // Retry once if profile not found immediately after sign in
               await new Promise(r => setTimeout(r, 500));
               await fetchProfileData(session.user.id);
             }
-            setState({ loading: false });
+            globalAuthInitialized = true;
+            setState({ loading: false, refreshing: false, initialized: true });
           } else {
-            setState({ session, user: session.user });
+            // Same user background refresh (TOKEN_REFRESHED / window focus / reconnect)
+            // Stale-while-revalidate: keep existing profile and loading=false
+            setState({ session, user: session.user, refreshing: false });
             if (event === 'USER_UPDATED' || !globalProfile) {
               fetchProfileData(session.user.id);
             }
           }
         } else if (event !== 'INITIAL_SESSION') {
-          setState({ session: null, user: null, profile: null, loading: false });
+          globalAuthInitialized = true;
+          setState({ session: null, user: null, profile: null, loading: false, refreshing: false, initialized: true });
         }
       }
     });
 
     // 2. Initial hydration
     try {
-      // Small delay to allow session persistence to settle (especially on F5)
       if (typeof window !== 'undefined') {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
@@ -151,9 +190,12 @@ async function initializeAuth() {
       console.log("[AUTH_TRACE] Initial getSession:", { hasSession: !!session });
       
       if (session?.user) {
-        // Keep loading=true until profile is fetched
-        setState({ session, user: session.user, loading: true });
-        await fetchProfileData(session.user.id);
+        if (!globalProfile) {
+          setState({ session, user: session.user, loading: true, initialized: false });
+          await fetchProfileData(session.user.id);
+        } else {
+          setState({ session, user: session.user });
+        }
       } else {
         setState({ session: null, user: null, profile: null });
       }
@@ -161,11 +203,13 @@ async function initializeAuth() {
       console.error("[AUTH_TRACE] getSession error:", err);
       setState({ session: null, user: null, profile: null });
     } finally {
-      setState({ loading: false });
+      globalAuthInitialized = true;
+      setState({ loading: false, refreshing: false, initialized: true });
       console.log("[AUTH_TRACE] Initialization complete", { 
         loading: globalLoading, 
         user: !!globalUser, 
-        profile: !!globalProfile 
+        profile: !!globalProfile,
+        initialized: globalAuthInitialized
       });
     }
   })();
@@ -179,7 +223,9 @@ export function useAuth() {
     user: globalUser,
     session: globalSession,
     profile: globalProfile,
-    loading: typeof window === 'undefined' ? false : (initialized ? globalLoading : true),
+    loading: typeof window === 'undefined' ? false : (!globalAuthInitialized ? true : globalLoading),
+    initialized: globalAuthInitialized,
+    refreshing: globalRefreshing,
   });
 
   useEffect(() => {
@@ -190,6 +236,8 @@ export function useAuth() {
         session: globalSession,
         profile: globalProfile,
         loading: globalLoading,
+        initialized: globalAuthInitialized,
+        refreshing: globalRefreshing,
       });
     }
 
@@ -207,19 +255,10 @@ export function useAuth() {
     };
   }, []);
 
-
   const logout = async () => {
-    // Captura o slug antes de sair para permitir o redirecionamento dinâmico
     const currentSlug = globalProfile?.role === 'client' ? null : globalProfile?.slug;
     await supabase.auth.signOut();
-    setState({ session: null, user: null, profile: null, loading: false });
-    
-    // Se estivermos em um contexto de tenant, redirecionamos para a página da barbearia
-    if (currentSlug && typeof window !== 'undefined') {
-      // O AppLayout lidará com o redirecionamento se necessário, 
-      // mas podemos forçar um aqui se for disparado manualmente.
-      // navigate não está disponível no hook global, então deixamos para os componentes
-    }
+    setState({ session: null, user: null, profile: null, loading: false, refreshing: false, initialized: true });
   };
 
   return {
@@ -228,6 +267,8 @@ export function useAuth() {
     profile: state.profile,
     role: state.profile?.role,
     loading: state.loading,
+    initialized: state.initialized,
+    refreshing: state.refreshing,
     logout,
   };
 }
