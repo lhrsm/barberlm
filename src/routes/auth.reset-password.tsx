@@ -24,7 +24,7 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-export const Route = createFileRoute("/auth/reset-password" as any)({
+export const Route = createFileRoute("/auth/reset-password")({
   component: ResetPasswordPage,
   head: () => ({
     title: "Redefinir Senha — Barbex Premium",
@@ -61,14 +61,14 @@ function ResetPasswordPage() {
 
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         console.log("[RESET_PASSWORD_TRACE] Active session found.");
         if (mounted) setStatus('ready');
       } else {
         console.log("[RESET_PASSWORD_TRACE] No session. Waiting for Supabase event...");
         if (mounted) setStatus('validating');
-        
+
         setTimeout(async () => {
           if (!mounted) return;
           const { data: { session: retrySession } } = await supabase.auth.getSession();
@@ -132,14 +132,14 @@ function ResetPasswordPage() {
           </div>
         </div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-[#0d0f14]/80 backdrop-blur-xl border border-white/5 rounded-[32px] shadow-2xl overflow-hidden p-8 md:p-10"
         >
           <AnimatePresence mode="wait">
             {(status === 'initializing' || status === 'validating') && (
-              <motion.div 
+              <motion.div
                 key="loading"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -256,7 +256,7 @@ function ResetPasswordPage() {
                     <ShieldCheck size={48} />
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">Acesso <span className="text-emerald-500">Restaurado</span></h2>
                   <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed">Sua senha foi atualizada com sucesso. Agora você pode acessar o painel.</p>
@@ -275,7 +275,7 @@ function ResetPasswordPage() {
                       .select('role, slug, tenant_id')
                       .eq('id', user.id)
                       .maybeSingle();
-                    
+
                     if (profile?.role === 'client') {
                       // Se for cliente, precisamos do slug do tenant
                       if (profile.tenant_id) {
@@ -284,7 +284,7 @@ function ResetPasswordPage() {
                           .select('slug')
                           .eq('id', profile.tenant_id)
                           .maybeSingle();
-                        
+
                         if (shop?.slug) {
                           window.location.href = `/${shop.slug}/portal`;
                           return;
@@ -317,7 +317,7 @@ function ResetPasswordPage() {
                 <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto text-red-500">
                   <AlertCircle size={48} />
                 </div>
-                
+
                 <div className="space-y-3">
                   <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">Link <span className="text-red-500">Inválido</span></h2>
                   <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed">Este link de recuperação expirou ou já foi utilizado anteriormente.</p>
