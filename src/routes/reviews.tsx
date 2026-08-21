@@ -95,6 +95,7 @@ function ReviewsAdminPage() {
       .from("appointment_reviews")
       .select("*, customers(name, phone), barbers(name), appointments(start_time, services(name))")
       .eq("tenant_id", user.user.id)
+      .or("submitted_at.not.is.null,service_rating.not.is.null,barbershop_rating.not.is.null,barber_rating.not.is.null")
       .order("created_at", { ascending: false });
     if (error) toast.error("Erro ao carregar: " + error.message);
     setReviews(data || []);

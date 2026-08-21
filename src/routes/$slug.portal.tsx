@@ -69,6 +69,10 @@ function CustomerPortalPage() {
     unlockedAchievements: any[];
     reviews: any[];
     coupons: any[];
+    mySubscription: any;
+    subscriptionPlans: any[];
+    subPlanServices: any[];
+    subUsageLogs: any[];
     reviewsStatus: 'success' | 'error';
     couponsStatus: 'success' | 'error';
   } | null>(null);
@@ -264,9 +268,13 @@ function CustomerPortalPage() {
         achRes,
         unlockedRes,
         reviewsRes,
-        couponsRes
+        couponsRes,
+        subRes,
+        plansRes,
+        planSvcsRes,
+        usageLogsRes
       ] = await Promise.all([
-        supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family").eq("id", effectiveTenantId).maybeSingle(),
+        supabase.from("profiles").select("id, business_name, slug, whatsapp_number, primary_color, secondary_color, logo_url, barbershop_logo_url, address, font_family, subscriptions_enabled").eq("id", effectiveTenantId).maybeSingle(),
         supabase.from("appointments").select("*, services(*), barbers:barbers!appointments_barber_id_fkey(*), appointment_reviews(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("start_time", { ascending: false }),
         safeQuery(supabase.from("credit_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false })),
         safeQuery(supabase.from("cashback_transactions").select("*").eq("customer_id", customerData.id).order("created_at", { ascending: false })),
@@ -274,7 +282,11 @@ function CustomerPortalPage() {
         safeQuery(supabase.from("loyalty_achievements").select("*").order("xp_reward", { ascending: true })),
         safeQuery(supabase.from("customer_achievements").select("*").eq("customer_id", customerData.id)),
         safeQuery(supabase.from("appointment_reviews").select("*").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId)),
-        safeQuery(supabase.from("coupons").select("*").eq("tenant_id", effectiveTenantId).order("created_at", { ascending: false }))
+        safeQuery(supabase.from("coupons").select("*").eq("tenant_id", effectiveTenantId).order("created_at", { ascending: false })),
+        safeQuery(supabase.from("customer_subscriptions").select("*, plan:subscription_plans(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).in("status", ["active", "paused", "trialing"]).maybeSingle()),
+        safeQuery(supabase.from("subscription_plans").select("*, plan_services:subscription_plan_services(*, service:services(*))").eq("tenant_id", effectiveTenantId).eq("is_active", true).order("price", { ascending: true })),
+        safeQuery(supabase.from("subscription_plan_services").select("*, service:services(*)").eq("tenant_id", effectiveTenantId)),
+        safeQuery(supabase.from("subscription_usage_logs").select("*, service:services(name)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("used_at", { ascending: false }))
       ]);
 
       if (apptsRes && 'error' in apptsRes && apptsRes.error) console.error("[PORTAL_RESOLUTION_TRACE] Appointments fetch error:", apptsRes.error);
@@ -301,20 +313,30 @@ function CustomerPortalPage() {
       // Enriquecimento dos agendamentos com estado fail-closed e decisão canônica
       const enrichedAppointments = (((apptsRes as any)?.data || [])).map((a: any) => {
         const matchingReview: any = reviewsOk ? reviewsByApptId.get(a.id) : null;
+        const hasRealReview = Boolean(
+          matchingReview && (
+            matchingReview.submitted_at ||
+            (matchingReview.rating != null && Number(matchingReview.rating) > 0) ||
+            matchingReview.testimonial_status === "approved" ||
+            matchingReview.testimonial_status === "rejected" ||
+            matchingReview.testimonial_status === "submitted"
+          )
+        );
+
         const reviewStatus: 'reviewed' | 'not_reviewed' | 'unknown' =
           !reviewsOk
             ? 'unknown'
-            : matchingReview
+            : hasRealReview
             ? 'reviewed'
             : 'not_reviewed';
 
         // Preserva estritamente a decisão gravada no banco ou sincronizada
-        const review_decision = a.review_decision || (matchingReview ? 'submitted' : null);
+        const review_decision = a.review_decision || (hasRealReview ? 'submitted' : null);
 
         return {
           ...a,
           review_decision: a.review_decision || review_decision,
-          _review_id: matchingReview?.id || null,
+          _review_id: hasRealReview ? matchingReview?.id : null,
           review: matchingReview || null,
           reviewStatus
         };
@@ -324,6 +346,7 @@ function CustomerPortalPage() {
         apptsCount: enrichedAppointments.length,
         reviewsOk,
         couponsOk,
+        hasSubscription: Boolean((subRes as any)?.data),
         reviewedCount: reviewsOk ? (reviewsRes as any).data?.length : 'ERROR',
         couponsCount: couponsOk ? (couponsRes as any).data?.length : 'ERROR',
       });
@@ -339,6 +362,10 @@ function CustomerPortalPage() {
         unlockedAchievements: (unlockedRes as any)?.data || [],
         reviews: reviewsOk ? (reviewsRes as any)?.data || [] : [],
         coupons: couponsOk ? (couponsRes as any)?.data || [] : [],
+        mySubscription: (subRes as any)?.data || null,
+        subscriptionPlans: (plansRes as any)?.data || [],
+        subPlanServices: (planSvcsRes as any)?.data || [],
+        subUsageLogs: (usageLogsRes as any)?.data || [],
         reviewsStatus: reviewsOk ? 'success' : 'error',
         couponsStatus: couponsOk ? 'success' : 'error'
       });
@@ -651,14 +678,18 @@ function CustomerPortalPage() {
           <HomeTab
             client={data.customer}
             shop={data.shop}
+            slug={slug}
             customerData={data.customer}
-            mySubscription={null} // Will implement when subscription data is added
+            mySubscription={data.mySubscription}
+            subscriptionPlans={data.subscriptionPlans}
+            subPlanServices={data.subPlanServices}
+            subUsageLogs={data.subUsageLogs}
             appointments={data.appointments}
-            sales={[]} // To be implemented if needed
-            loyaltyRewards={[]} // To be implemented
-            barbers={[]} // Needed for ProfissionalFavorito
-            products={[]} // Needed for ProdutosRecomendados
-            subscriptionsEnabled={false}
+            sales={[]}
+            loyaltyRewards={[]}
+            barbers={[]}
+            products={[]}
+            subscriptionsEnabled={Boolean(data.shop?.subscriptions_enabled ?? true)}
             onNewAppointment={() => window.dispatchEvent(new CustomEvent("OPEN_BOOKING_MODAL"))}
             onNavigate={setActiveTab}
             onViewDetails={(id) => {
@@ -670,6 +701,7 @@ function CustomerPortalPage() {
               setReviewOpen(true);
             }}
             onSkipReview={(app) => setSkipAppointment(app)}
+            onRefresh={() => loadPortalData(true)}
           />
         );
       case "appointments":

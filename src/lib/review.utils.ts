@@ -54,12 +54,17 @@ export function resolveReviewState(app: any, reviewsStatus?: 'success' | 'error'
 
   // 3. Avaliação enviada (via relação appointment_reviews, flag ou reviewStatus)
   const review = app.appointment_reviews || app.review;
-  const hasSubmittedReview = !!(
-    (review && (review.submitted_at || review.id)) ||
-    app.review_decision === "submitted" ||
-    app._review_id ||
-    app.reviewStatus === "reviewed"
+  const isRealReview = Boolean(
+    review && (
+      review.submitted_at ||
+      (review.rating != null && Number(review.rating) > 0) ||
+      review.testimonial_status === "approved" ||
+      review.testimonial_status === "rejected" ||
+      review.testimonial_status === "submitted"
+    )
   );
+
+  const hasSubmittedReview = isRealReview || app.review_decision === "submitted";
 
   if (hasSubmittedReview) {
     const moderation = (review?.testimonial_status || (app._review_id ? "approved" : "pending")) as "pending" | "approved" | "rejected";

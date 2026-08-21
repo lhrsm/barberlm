@@ -44,7 +44,7 @@ export function MemberDashboard({
   const cashback = Number(customerData?.cashback_balance || 0);
   const loyaltyPoints = Number(customerData?.loyalty_points || 0);
   const reviewsGiven = appointments.filter(
-    (a) => (a.appointment_reviews && (a.appointment_reviews.submitted_at || a.appointment_reviews.id)) || a._review_id
+    (a) => a.reviewStatus === "reviewed" || (a.appointment_reviews && (a.appointment_reviews.submitted_at || a.appointment_reviews.barbershop_rating || a.appointment_reviews.service_rating)) || a.review?.submitted_at
   ).length;
   const unclaimed = (loyaltyRewards || []).filter((r: any) => !r.redeemed_at).length;
   const savings = appointments

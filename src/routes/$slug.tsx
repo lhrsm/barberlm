@@ -3756,48 +3756,69 @@ function ShopPageComponent() {
                               const max = subUsage?.total_uses_allowed || (plan?.max_uses_per_month ?? 8);
                               const used = subUsage?.total_uses_consumed ?? 4;
                               const available = Math.max(0, max - used);
+                              const percentUsed = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
+
                               return (
-                                <div className="mt-3.5 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-amber-500/15 via-amber-950/40 to-black p-4 shadow-[0_8px_30px_rgba(245,158,11,0.2)] text-left">
-                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                <div className="mt-3.5 rounded-2xl border border-gold/40 bg-zinc-950 p-4 shadow-xl text-left relative overflow-hidden">
+                                  {/* Top accent glow line */}
+                                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+
+                                  {/* Header */}
+                                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                                     <div className="flex items-center gap-2">
-                                      <div className="h-7 w-7 rounded-lg bg-amber-400 text-black flex items-center justify-center shadow-sm">
-                                        <Crown size={16} />
+                                      <div className="h-7 w-7 rounded-lg bg-gold/15 text-gold border border-gold/30 flex items-center justify-center shrink-0">
+                                        <Crown size={15} />
                                       </div>
-                                      <div>
-                                        <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                                          Você faz parte do Clube Barbex
-                                        </span>
-                                      </div>
+                                      <span className="text-xs font-black uppercase tracking-wider text-gold">
+                                        Você faz parte do Clube Barbex
+                                      </span>
                                     </div>
-                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-black">
-                                      Plano Ativo
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                      Plano ativo
                                     </span>
                                   </div>
 
-                                  <p className="text-xs text-zinc-300 leading-snug">
-                                    Seu plano está ativo. Serviços incluídos serão descontados da sua franquia mensal.
-                                  </p>
-
-                                  <div className="mt-3 pt-2.5 border-t border-amber-500/20 grid grid-cols-3 gap-2 text-left">
+                                  {/* Plan Details Grid */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 pb-3 border-t border-white/10">
                                     <div>
-                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold">Plano</span>
-                                      <span className="text-xs font-extrabold text-white truncate block">
-                                        {plan?.name || "Clube Barbex"}
+                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold tracking-wider">Plano</span>
+                                      <span className="text-[13px] font-extrabold text-white leading-tight block break-words">
+                                        {plan?.name || "Plano Barber Semanal"}
                                       </span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold">Uso no mês</span>
-                                      <span className="text-xs font-extrabold text-amber-300 block">
+                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold tracking-wider">Uso no ciclo</span>
+                                      <span className="text-[13px] font-extrabold text-gold block">
                                         {used} de {max}
                                       </span>
                                     </div>
                                     <div>
-                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold">Disponíveis</span>
-                                      <span className="text-xs font-extrabold text-emerald-400 block">
-                                        {available} serviços
+                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold tracking-wider">Disponíveis</span>
+                                      <span className="text-[13px] font-extrabold text-emerald-400 block">
+                                        {available} {available === 1 ? 'serviço' : 'serviços'}
                                       </span>
                                     </div>
                                   </div>
+
+                                  {/* Visual Progress Bar */}
+                                  <div className="space-y-1.5 py-1">
+                                    <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400">
+                                      <span>{used} utilizados</span>
+                                      <span className="text-zinc-500">{percentUsed}%</span>
+                                      <span className="text-emerald-400">{available} disponíveis</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden border border-white/5">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-gold via-amber-400 to-amber-500 rounded-full transition-all duration-500"
+                                        style={{ width: `${percentUsed}%` }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Auxiliary text */}
+                                  <p className="text-[11px] text-zinc-400 leading-snug mt-2 pt-2 border-t border-white/5">
+                                    Serviços incluídos serão descontados da sua franquia mensal.
+                                  </p>
                                 </div>
                               );
                             })()}
