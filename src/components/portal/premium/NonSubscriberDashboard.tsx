@@ -58,7 +58,7 @@ export function NonSubscriberDashboard({
 
   // Filtra planos ativos da barbearia
   const activePlans = subscriptionPlans?.length > 0
-    ? subscriptionPlans.filter((p) => p.is_active !== false)
+    ? subscriptionPlans.filter((p) => p.active !== false && p.is_active !== false)
     : [];
 
   const handleOpenSubscribe = (plan?: any) => {

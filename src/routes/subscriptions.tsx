@@ -64,10 +64,13 @@ import {
   Play,
   ArrowRightLeft,
   History,
+  BarChart3,
+  Settings2,
 } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { withModule } from "@/components/modules/withModule";
+import { MembershipDashboard } from "@/components/membership/MembershipDashboard";
 
 export const Route = createFileRoute("/subscriptions")({
   component: withModule("subscriptions", "Assinaturas", SubscriptionsPage),
@@ -1002,14 +1005,16 @@ function SubscriptionsPage() {
           </div>
 
           {/* TABS */}
-          <Tabs defaultValue="plans" className="w-full">
+          <Tabs defaultValue="overview" className="w-full">
             <div className="-mx-4 md:mx-0 px-4 md:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <TabsList className="bg-[#0b0f17] border border-zinc-800/80 p-1.5 h-auto rounded-2xl gap-1 inline-flex w-max md:w-auto md:flex md:flex-wrap whitespace-nowrap">
                 {[
+                  { v: "overview", label: "Visão Geral", icon: BarChart3 },
                   { v: "plans", label: "Planos", icon: Crown },
                   { v: "subscribers", label: "Assinantes", icon: Users },
                   { v: "invoices", label: "Cobranças", icon: Receipt },
-                  { v: "usage", label: "Uso", icon: Activity },
+                  { v: "benefits", label: "Benefícios", icon: Settings2 },
+                  { v: "usage", label: "Utilização", icon: Activity },
                   { v: "reports", label: "Relatórios", icon: TrendingUp },
                   { v: "settings", label: "Configurações", icon: Wallet },
                 ].map((t) => (
@@ -1023,6 +1028,80 @@ function SubscriptionsPage() {
                 ))}
               </TabsList>
             </div>
+
+            {/* === VISÃO GERAL / COCKPIT EXECUTIVO === */}
+            <TabsContent value="overview" className="mt-6 space-y-6">
+              <MembershipDashboard
+                stats={{
+                  activeCount: kpis.activeCount,
+                  churnCount: kpis.canceledThisMonth,
+                  totalRevenue: kpis.mrr,
+                  arr: kpis.arr,
+                  retentionRate: kpis.retention,
+                  plansCount: plans.length,
+                  usageCount: usageLogs.length,
+                }}
+              />
+            </TabsContent>
+
+            {/* === BENEFITS CONFIGURATION === */}
+            <TabsContent value="benefits" className="mt-6 space-y-6">
+              <div className="bg-[#0b0f17] border border-zinc-800/80 rounded-2xl p-6 space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-black text-white flex items-center gap-2">
+                      <Scissors className="h-5 w-5 text-emerald-400" />
+                      Configuração de Benefícios e Unidades
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Defina quantas unidades de franquia cada serviço consome na execução do agendamento (ex.: Corte = 1, Barba = 1, Combo = 2).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {plans.filter(p => p.active).map(plan => (
+                    <div key={plan.id} className="rounded-2xl border border-zinc-800 bg-[#05070d] p-5 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                        <div>
+                          <h4 className="text-base font-black text-white">{plan.name}</h4>
+                          <p className="text-xs text-emerald-400 font-bold">
+                            {formatBRL(Number(plan.monthly_price))}/mês · {plan.max_uses_per_month ? `${plan.max_uses_per_month} utilizações/mês` : "Ilimitado"}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditPlan(plan)}
+                          className="h-8 border-zinc-700 text-xs text-zinc-300 hover:text-emerald-400 hover:border-emerald-500/40"
+                        >
+                          <Pencil className="h-3.5 w-3.5 mr-1" /> Editar Regras
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 flex justify-between">
+                          <span>Serviço</span>
+                          <span>Consumo na Franquia</span>
+                        </div>
+                        {servicesList.map(srv => {
+                          const isCombo = srv.name.toLowerCase().includes("combo") || (srv.name.toLowerCase().includes("corte") && srv.name.toLowerCase().includes("barba"));
+                          const defaultUnits = isCombo ? 2 : 1;
+                          return (
+                            <div key={srv.id} className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/50 border border-white/5 text-xs">
+                              <span className="font-medium text-zinc-200">{srv.name}</span>
+                              <Badge className={cn("text-[10px] font-black uppercase px-2 py-0.5", isCombo ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30")}>
+                                {defaultUnits} {defaultUnits > 1 ? "unidades" : "unidade"}
+                              </Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
 
             {/* === PLANS === */}
             <TabsContent value="plans" className="mt-6 space-y-6">

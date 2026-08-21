@@ -284,7 +284,7 @@ function CustomerPortalPage() {
         safeQuery(supabase.from("appointment_reviews").select("*").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId)),
         safeQuery(supabase.from("coupons").select("*").eq("tenant_id", effectiveTenantId).order("created_at", { ascending: false })),
         safeQuery(supabase.from("customer_subscriptions").select("*, plan:subscription_plans(*)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).in("status", ["active", "paused", "trialing"]).maybeSingle()),
-        safeQuery(supabase.from("subscription_plans").select("*, plan_services:subscription_plan_services(*, service:services(*))").eq("tenant_id", effectiveTenantId).eq("is_active", true).order("price", { ascending: true })),
+        safeQuery(supabase.from("subscription_plans").select("*, plan_services:subscription_plan_services(*, service:services(*))").eq("tenant_id", effectiveTenantId).eq("active", true).order("monthly_price", { ascending: true })),
         safeQuery(supabase.from("subscription_plan_services").select("*, service:services(*)").eq("tenant_id", effectiveTenantId)),
         safeQuery(supabase.from("subscription_usage_logs").select("*, service:services(name)").eq("customer_id", customerData.id).eq("tenant_id", effectiveTenantId).order("used_at", { ascending: false }))
       ]);

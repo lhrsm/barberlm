@@ -327,7 +327,9 @@ export function SubscriberDashboard({
           <div className="divide-y divide-white/5">
             {recentLogs.map((log: any, idx: number) => {
               const isCancelled = log.status === "cancelled";
-              const isConsumed = log.status === "consumed" || !log.status;
+              const serviceName = log.service?.name || log.service_name || "Serviço do Clube";
+              const isCombo = serviceName.toLowerCase().includes("combo") || (serviceName.toLowerCase().includes("corte") && serviceName.toLowerCase().includes("barba"));
+              const qty = Number(log.consume_quantity || (isCombo ? 2 : 1));
               const dateStr = log.used_at || log.created_at;
 
               return (
@@ -340,10 +342,15 @@ export function SubscriberDashboard({
                       <Scissors size={16} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">
-                        {log.service?.name || log.service_name || "Serviço do Clube"}
-                      </p>
-                      <p className="text-[10px] text-zinc-400">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-white">
+                          {serviceName}
+                        </p>
+                        <span className="text-[10px] font-black uppercase text-gold bg-gold/10 border border-gold/20 px-1.5 py-0.5 rounded-md">
+                          {qty} {qty > 1 ? "utilizações" : "utilização"}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 mt-0.5">
                         {dateStr ? format(new Date(dateStr), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "-"}
                       </p>
                     </div>
@@ -352,11 +359,11 @@ export function SubscriberDashboard({
                   <div>
                     {isCancelled ? (
                       <Badge variant="destructive" className="text-[9px] uppercase font-bold px-2 py-0.5">
-                        Cancelado (Restituído)
+                        Restituído
                       </Badge>
                     ) : (
                       <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[9px] uppercase font-black px-2 py-0.5">
-                        Consumido (Franquia)
+                        Consumido
                       </Badge>
                     )}
                   </div>

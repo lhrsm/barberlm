@@ -44,8 +44,7 @@ import { PortalEvents } from "@/components/public/PortalEvents";
 import { PortalPartners } from "@/components/public/PortalPartners";
 import { PortalStickyCta } from "@/components/public/PortalStickyCta";
 import { PortalStructuredData } from "@/components/public/PortalStructuredData";
-
-
+import { InstallBarbexAppPrompt } from "@/components/pwa/InstallBarbexAppPrompt";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -6127,6 +6126,9 @@ function ShopPageComponent() {
       </Dialog>
 
       <BackToTopButton />
+
+      {/* PWA Install Prompt */}
+      <InstallBarbexAppPrompt barbershopName={shop.business_name} />
 
     </div>
   );

@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Mail, Calendar, Phone, Save } from "lucide-react";
+import { Camera, Mail, Calendar, Phone, Save, Download, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 type Props = {
   customerData: any;
@@ -216,8 +217,59 @@ export function ProfileTab({
             )}
             {submitting ? "Salvando..." : "Salvar Alterações"}
           </Button>
+
+          {/* PWA INSTALLATION OPTION */}
+          <div className="pt-6 border-t border-white/10">
+            <PwaProfileOption />
+          </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function PwaProfileOption() {
+  const { isInstalled, isInstallable, promptInstall, isIOS, showIOSGuide, setShowIOSGuide } = usePwaInstall();
+
+  if (isInstalled) {
+    return (
+      <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <Smartphone className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-bold text-white">Aplicativo instalado</p>
+            <p className="text-zinc-400 text-[11px]">Você já tem o Barbex na tela inicial do seu celular.</p>
+          </div>
+        </div>
+        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px] uppercase">
+          Instalado
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-white/5 border border-white/10 text-xs">
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 rounded-lg bg-gold/15 text-gold flex items-center justify-center shrink-0">
+          <Download className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="font-bold text-white">Instalar Aplicativo</p>
+          <p className="text-zinc-400 text-[11px]">Adicione à tela inicial para agendar com 1 toque.</p>
+        </div>
+      </div>
+      <Button
+        type="button"
+        onClick={promptInstall}
+        variant="outline"
+        className="w-full sm:w-auto h-9 px-4 rounded-xl border-gold/40 text-gold hover:bg-gold/10 font-bold text-xs uppercase tracking-wider"
+      >
+        <Download className="h-3.5 w-3.5 mr-1.5" />
+        Instalar App
+      </Button>
     </div>
   );
 }

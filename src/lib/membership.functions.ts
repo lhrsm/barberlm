@@ -16,13 +16,21 @@ export const getMembershipStats = createServerFn({ method: "GET" })
     const activeSubs = (subs.data || []).filter(s => s.status === 'active');
     const churned = (subs.data || []).filter(s => s.status === 'canceled');
     
-    // Basic calculation for summary
-    const totalRevenue = activeSubs.reduce((acc, s) => acc + Number(s.amount || 0), 0);
+    const plansMap = new Map((plans.data || []).map((p: any) => [p.id, Number(p.monthly_price || 0)]));
+    const totalRevenue = activeSubs.reduce((acc, s) => {
+      const planPrice = plansMap.get(s.plan_id) ?? Number(s.amount || 0);
+      return acc + planPrice;
+    }, 0);
+
+    const totalHistorical = activeSubs.length + churned.length;
+    const retentionRate = totalHistorical > 0 ? (activeSubs.length / totalHistorical) * 100 : 100;
 
     return {
       activeCount: activeSubs.length,
       churnCount: churned.length,
       totalRevenue,
+      arr: totalRevenue * 12,
+      retentionRate,
       plansCount: (plans.data || []).length,
       usageCount: (usage.data || []).length
     };

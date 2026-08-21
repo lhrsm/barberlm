@@ -99,7 +99,7 @@ const defaultNavItems: NavItem[] = [
   { label: "Academia", icon: GraduationCap, to: "/academy" },
   { label: "Tutoriais", icon: BookOpen, to: "/tutorials", module: "tutorials" },
   { label: "Suporte", icon: Headset, to: "/support", module: "support" },
-  { label: "Clube Barbex", icon: Crown, to: "/dashboard/membership", module: "subscriptions" },
+  { label: "Clube Barbex", icon: Crown, to: "/subscriptions", module: "subscriptions" },
   { label: "Fidelidade", icon: Gift, to: "/loyalty", permission: "marketing:view" },
   { label: "Avaliações", icon: MessageSquare, to: "/reviews", permission: "marketing:view" },
   { label: "Omnichannel", icon: MessageSquare, to: "/dashboard/communications", module: "communications", permission: "marketing:view" },
