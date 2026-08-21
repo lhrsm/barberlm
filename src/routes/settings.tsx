@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PortalContentEditor } from "@/components/settings/PortalContentEditor";
 import { CheckinQRCard } from "@/components/settings/CheckinQRCard";
@@ -87,6 +88,7 @@ function normalizeSocial(kind: "instagram" | "facebook" | "tiktok" | "youtube" |
 }
 
 function SettingsComponent() {
+  const queryClient = useQueryClient();
   const { user, loading, role } = useAuth();
   const { tenantId } = useTenant();
   const effectiveTenantId = tenantId || user?.id || null;
@@ -477,6 +479,16 @@ function SettingsComponent() {
     }
 
     toast.success("Configurações salvas com sucesso!");
+    // Invalidate tenant branding & profile queries specifically and globally
+    if (effectiveTenantId) {
+      queryClient.invalidateQueries({ queryKey: ["tenant-branding", effectiveTenantId] });
+      queryClient.invalidateQueries({ queryKey: ["tenant-profile", effectiveTenantId] });
+    }
+    if (formData?.slug) {
+      queryClient.invalidateQueries({ queryKey: ["tenant-branding", formData.slug] });
+    }
+    queryClient.invalidateQueries({ queryKey: ["tenant-branding"] });
+    queryClient.invalidateQueries({ queryKey: ["tenant-profile"] });
     // Invalidate auth and profile queries to reflect changes in the header immediately
     await supabase.auth.refreshSession();
     // Re-fetch local data to keep everything in sync
