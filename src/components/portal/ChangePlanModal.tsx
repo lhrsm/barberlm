@@ -68,12 +68,13 @@ export function ChangePlanModal({
   const [submitting, setSubmitting] = React.useState(false);
   const [carouselIdx, setCarouselIdx] = React.useState(0);
 
-  const { data: plans = [], isLoading } = useQuery({
+  const { data: plans = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["change-plan-options", tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
       const { data, error } = await supabase
         .from("subscription_plans")
-        .select("*")
+        .select("*, plan_services:subscription_plan_services(*, service:services(*))")
         .eq("tenant_id", tenantId)
         .eq("active", true)
         .order("monthly_price", { ascending: true });
@@ -84,6 +85,7 @@ export function ChangePlanModal({
   });
 
   const currentPlan = plans.find((p) => p.id === currentPlanId);
+  const alternativePlans = plans.filter((p) => p.id !== currentPlanId);
 
   const handlePick = (plan: Plan) => {
     if (plan.id === currentPlanId) return;
@@ -161,54 +163,105 @@ export function ChangePlanModal({
                 <div className="flex items-center justify-center py-20 text-gray-400">
                   <Loader2 className="h-6 w-6 animate-spin mr-2" /> Carregando planos...
                 </div>
+              ) : isError ? (
+                <div className="text-center py-16 space-y-4">
+                  <p className="text-red-400 text-sm font-semibold">Não foi possível carregar os planos no momento.</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => refetch()}
+                    className="border-gold/40 text-gold hover:bg-gold/10"
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
               ) : plans.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">Nenhum plano disponível.</div>
               ) : (
                 <>
-                  {/* PLAN CARDS */}
-                  <div className="hidden md:grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(plans.length, 4)}, minmax(0, 1fr))` }}>
-                    {plans.map((p) => (
-                      <PlanCard
-                        key={p.id}
-                        plan={p}
-                        isCurrent={p.id === currentPlanId}
-                        badge={badgeFor(p, plans)}
-                        onPick={() => handlePick(p)}
-                      />
-                    ))}
-                  </div>
-
-                  {/* MOBILE CAROUSEL */}
-                  <div className="md:hidden">
-                    <div className="overflow-x-auto snap-x snap-mandatory flex gap-4 pb-2 -mx-2 px-2 scrollbar-thin">
-                      {plans.map((p, i) => (
-                        <div key={p.id} className="snap-center shrink-0 w-[85%]" onScroll={() => setCarouselIdx(i)}>
-                          <PlanCard
-                            plan={p}
-                            isCurrent={p.id === currentPlanId}
-                            badge={badgeFor(p, plans)}
-                            onPick={() => handlePick(p)}
-                          />
+                  {/* CURRENT PLAN HIGHLIGHT */}
+                  {currentPlan && (
+                    <div className="rounded-2xl border border-gold/40 bg-gradient-to-r from-gold/10 via-amber-500/5 to-transparent p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gold/20 text-gold border border-gold/30 flex items-center justify-center shrink-0">
+                          <Crown className="h-5 w-5" />
                         </div>
-                      ))}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Seu Plano Atual</span>
+                            <Badge className="bg-gold/20 text-gold border border-gold/30 text-[9px] font-black uppercase tracking-widest px-2 py-0.5">
+                              Ativo
+                            </Badge>
+                          </div>
+                          <p className="text-base sm:text-lg font-black text-white">{currentPlan.name}</p>
+                        </div>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-lg font-black text-gold">R$ {Number(currentPlan.monthly_price).toFixed(2)}<span className="text-xs font-normal text-zinc-400">/mês</span></p>
+                        <p className="text-xs text-zinc-400">{currentPlan.max_uses_per_month ? `${currentPlan.max_uses_per_month} utilizações/mês` : "Ilimitado"}</p>
+                      </div>
                     </div>
-                    <div className="flex justify-center gap-1.5 mt-2">
-                      {plans.map((_, i) => (
-                        <span
-                          key={i}
-                          className={cn(
-                            "h-1.5 rounded-full transition-all",
-                            i === carouselIdx ? "w-6 bg-gold" : "w-1.5 bg-white/20",
-                          )}
-                        />
-                      ))}
-                    </div>
+                  )}
+
+                  {/* ALTERNATIVE PLANS SECTION */}
+                  <div>
+                    <h3 className="text-base font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-gold" />
+                      Planos Disponíveis para Troca ({alternativePlans.length})
+                    </h3>
+
+                    {alternativePlans.length === 0 ? (
+                      <div className="text-center py-10 text-zinc-400 text-sm">
+                        Nenhum outro plano disponível para troca no momento.
+                      </div>
+                    ) : (
+                      <>
+                        {/* DESKTOP GRID */}
+                        <div className="hidden md:grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(alternativePlans.length, 3)}, minmax(0, 1fr))` }}>
+                          {alternativePlans.map((p) => (
+                            <PlanCard
+                              key={p.id}
+                              plan={p}
+                              isCurrent={false}
+                              badge={badgeFor(p, plans)}
+                              onPick={() => handlePick(p)}
+                            />
+                          ))}
+                        </div>
+
+                        {/* MOBILE CAROUSEL */}
+                        <div className="md:hidden">
+                          <div className="overflow-x-auto snap-x snap-mandatory flex gap-4 pb-2 -mx-2 px-2 scrollbar-thin">
+                            {alternativePlans.map((p, i) => (
+                              <div key={p.id} className="snap-center shrink-0 w-[85%]" onScroll={() => setCarouselIdx(i)}>
+                                <PlanCard
+                                  plan={p}
+                                  isCurrent={false}
+                                  badge={badgeFor(p, plans)}
+                                  onPick={() => handlePick(p)}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-center gap-1.5 mt-2">
+                            {alternativePlans.map((_, i) => (
+                              <span
+                                key={i}
+                                className={cn(
+                                  "h-1.5 rounded-full transition-all",
+                                  i === carouselIdx ? "w-6 bg-gold" : "w-1.5 bg-white/20",
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* COMPARISON TABLE */}
                   <div>
                     <h3 className="text-base font-black uppercase tracking-widest text-white mb-3 flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-gold" /> Comparativo de planos
+                      <Sparkles className="h-4 w-4 text-gold" /> Comparativo completo de planos
                     </h3>
                     <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
                       <table className="w-full text-sm">
@@ -218,8 +271,9 @@ export function ChangePlanModal({
                               Benefício
                             </th>
                             {plans.map((p) => (
-                              <th key={p.id} className="p-3 text-center text-[11px] font-black uppercase tracking-wider text-gold">
+                              <th key={p.id} className={cn("p-3 text-center text-[11px] font-black uppercase tracking-wider", p.id === currentPlanId ? "text-emerald-400" : "text-gold")}>
                                 {p.name.replace(/^Plano\s+/i, "")}
+                                {p.id === currentPlanId && <span className="block text-[8px] text-zinc-400 font-normal mt-0.5">(Atual)</span>}
                               </th>
                             ))}
                           </tr>
@@ -229,7 +283,7 @@ export function ChangePlanModal({
                             <tr key={f.key} className="border-b border-white/5 last:border-0">
                               <td className="p-3 text-gray-300">{f.label}</td>
                               {plans.map((p) => (
-                                <td key={p.id} className="p-3 text-center">
+                                <td key={p.id} className={cn("p-3 text-center", p.id === currentPlanId ? "bg-white/[0.02]" : "")}>
                                   {f.map(p) ? (
                                     <Check className="h-4 w-4 text-emerald-400 inline" />
                                   ) : (

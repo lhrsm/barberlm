@@ -127,32 +127,54 @@ export function getSubscriptionUsage(
 
   // Filter logs to current cycle and completed status
   const inCycle = (log: any): boolean => {
-    if (!log.used_at) return false;
-    const d = new Date(log.used_at);
+    const timeVal = log.used_at || log.created_at || log.start_time;
+    if (!timeVal) return true; // If no date, associate with current cycle
+    const d = new Date(timeVal);
+    if (isNaN(d.getTime())) return true;
     if (cycle_start && d < cycle_start) return false;
     if (cycle_end && d > cycle_end) return false;
     return true;
   };
-  const isCompleted = (log: any): boolean => {
+
+  const CANCELLED_STATUSES = new Set([
+    "cancelled",
+    "canceled",
+    "refunded",
+    "restored",
+    "cancelado",
+    "restituido",
+  ]);
+
+  const isCancelled = (log: any): boolean => {
     const s = normalize(log.status);
-    return !s || COMPLETED_STATUSES.has(s);
+    return CANCELLED_STATUSES.has(s);
   };
+
+  const isCompleted = (log: any): boolean => {
+    if (isCancelled(log)) return false;
+    const s = normalize(log.status);
+    return !s || COMPLETED_STATUSES.has(s) || s === "consumed" || s === "paid" || s === "completed";
+  };
+
   const RESERVED_STATUSES = new Set(["scheduled", "confirmed", "agendado", "confirmado", "reserved", "reservado", "pending"]);
   const isReserved = (log: any): boolean => {
+    if (isCancelled(log) || isCompleted(log)) return false;
     const s = normalize(log.status);
     return RESERVED_STATUSES.has(s);
   };
 
   const buildEntry = (l: any): UsageEntry => {
-    const name = l.services?.name || l.service_name || "Serviço";
-    const category = categorizeService(name);
+    const name = l.services?.name || l.service?.name || l.service_name || "Serviço do Clube";
+    const matchedPlanService = planServices.find((ps: any) => ps.service_id === l.service_id || ps.service?.id === l.service_id);
+    const category = l.service?.category === "both" || matchedPlanService?.service?.category === "both" ? "both" : categorizeService(name);
     const isCombo = category === "both";
-    const haircut_consumed = category === "haircut" || isCombo ? 1 : 0;
+    const rawQty = Number(l.consume_quantity ?? matchedPlanService?.consume_quantity);
+    const total_consumed = !isNaN(rawQty) && rawQty > 0 ? rawQty : (isCombo ? 2 : 1);
+    const haircut_consumed = category === "haircut" || isCombo ? (isCombo ? 1 : total_consumed) : 0;
     const beard_consumed = category === "beard" || isCombo ? 1 : 0;
-    const total_consumed = haircut_consumed + beard_consumed || Number(l.consume_quantity || 1);
     return {
       id: l.id,
-      used_at: l.used_at,
+      used_at: l.used_at || l.created_at || l.start_time,
       service_name: name,
       category,
       haircut_consumed,
@@ -164,11 +186,22 @@ export function getSubscriptionUsage(
     };
   };
 
-  const usage_history: UsageEntry[] = (usageLogs || [])
+  // Deduplicate logs by unique appointment_id or id to prevent any double counting
+  const seenKeys = new Set<string>();
+  const deduplicatedLogs: any[] = [];
+  for (const l of (usageLogs || [])) {
+    const key = l.appointment_id ? `appt-${l.appointment_id}` : `log-${l.id || JSON.stringify(l)}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      deduplicatedLogs.push(l);
+    }
+  }
+
+  const usage_history: UsageEntry[] = deduplicatedLogs
     .filter((l) => isCompleted(l) && inCycle(l))
     .map(buildEntry);
 
-  const reservedEntries: UsageEntry[] = (usageLogs || [])
+  const reservedEntries: UsageEntry[] = deduplicatedLogs
     .filter((l) => isReserved(l) && inCycle(l))
     .map(buildEntry);
 

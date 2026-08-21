@@ -84,7 +84,7 @@ export function SubscriberDashboard({
     : ["Corte Tesoura", "Corte Máquina", "Barba", "Combo Cabelo + Barba"];
 
   // Logs de uso filtrados
-  const recentLogs = (subUsageLogs || []).slice(0, 5);
+  const recentLogs = (usage.usage_history?.length > 0 ? usage.usage_history : subUsageLogs || []).slice(0, 5);
 
   return (
     <div className="space-y-6 text-left">
@@ -326,11 +326,11 @@ export function SubscriberDashboard({
         ) : (
           <div className="divide-y divide-white/5">
             {recentLogs.map((log: any, idx: number) => {
-              const isCancelled = log.status === "cancelled";
-              const serviceName = log.service?.name || log.service_name || "Serviço do Clube";
+              const isCancelled = log.status === "cancelled" || log.status === "canceled" || log.status === "refunded" || log.status === "restored";
+              const serviceName = log.service?.name || log.service_name || log.name || "Serviço do Clube";
               const isCombo = serviceName.toLowerCase().includes("combo") || (serviceName.toLowerCase().includes("corte") && serviceName.toLowerCase().includes("barba"));
-              const qty = Number(log.consume_quantity || (isCombo ? 2 : 1));
-              const dateStr = log.used_at || log.created_at;
+              const qty = Number(log.total_consumed || log.consume_quantity || (isCombo ? 2 : 1));
+              const dateStr = log.used_at || log.created_at || log.start_time;
 
               return (
                 <div key={log.id || idx} className="py-3 flex items-center justify-between gap-4">
@@ -436,9 +436,9 @@ export function SubscriberDashboard({
         <ChangePlanModal
           open={changePlanModalOpen}
           onOpenChange={setChangePlanModalOpen}
-          tenantId={shop?.id}
+          tenantId={shop?.id || mySubscription?.tenant_id || customerData?.tenant_id}
           subscriptionId={mySubscription?.id}
-          currentPlanId={mySubscription?.plan_id}
+          currentPlanId={mySubscription?.plan_id || mySubscription?.plan?.id}
           onChanged={() => {
             setChangePlanModalOpen(false);
             if (onRefresh) onRefresh();

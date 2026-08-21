@@ -351,6 +351,43 @@ function CustomerPortalPage() {
         couponsCount: couponsOk ? (couponsRes as any).data?.length : 'ERROR',
       });
 
+      const rawUsageLogs: any[] = (usageLogsRes as any)?.data || [];
+      const planServicesList: any[] = (planSvcsRes as any)?.data || [];
+      const allLoggedAppointmentIds = new Set(
+        rawUsageLogs.map((l: any) => l.appointment_id).filter(Boolean)
+      );
+
+      // Legado: sintetizar consumo APENAS para appointments cobertos por assinatura que NÃO possuem registro em subscription_usage_logs
+      const legacyAppointments = enrichedAppointments.filter((a: any) => {
+        if (allLoggedAppointmentIds.has(a.id)) return false; // Proíbe estritamente dupla contagem mesmo para logs cancelados
+        const isCancelled = a.status === "cancelled" || a.status === "canceled" || a.status === "no_show";
+        if (isCancelled) return false; // Agendamento cancelado nunca é reintroduzido como consumo
+        const isSubCovered = a.payment_method === "subscription" || (a.subscription_id && a.subscription_id === (subRes as any)?.data?.id) || Number(a.subscription_covered_amount || 0) > 0;
+        return isSubCovered && (a.status === "completed" || a.status === "confirmed" || a.status === "scheduled");
+      });
+
+      const synthLogs = legacyAppointments.map((a: any) => {
+        const sName = a.services?.name || a.service?.name || "Serviço do Clube";
+        const matchedPlanService = planServicesList.find((ps: any) => ps.service_id === a.service_id || ps.service?.id === a.service_id);
+        const isCategoryBoth = a.service?.category === "both" || matchedPlanService?.service?.category === "both";
+        const resolvedConsumeQty = Number(matchedPlanService?.consume_quantity) || (isCategoryBoth ? 2 : 1);
+
+        return {
+          id: `synth-${a.id}`,
+          appointment_id: a.id,
+          customer_id: a.customer_id,
+          service_id: a.service_id,
+          service_name: sName,
+          services: { name: sName },
+          consume_quantity: resolvedConsumeQty,
+          status: a.status === "completed" ? "consumed" : "reserved",
+          used_at: a.start_time || a.created_at,
+          created_at: a.created_at,
+        };
+      });
+
+      const resolvedUsageLogs = [...rawUsageLogs, ...synthLogs];
+
       setData({
         customer: customerData,
         shop: shopRes?.data,
@@ -365,7 +402,7 @@ function CustomerPortalPage() {
         mySubscription: (subRes as any)?.data || null,
         subscriptionPlans: (plansRes as any)?.data || [],
         subPlanServices: (planSvcsRes as any)?.data || [],
-        subUsageLogs: (usageLogsRes as any)?.data || [],
+        subUsageLogs: resolvedUsageLogs,
         reviewsStatus: reviewsOk ? 'success' : 'error',
         couponsStatus: couponsOk ? 'success' : 'error'
       });
@@ -799,29 +836,14 @@ function CustomerPortalPage() {
 
       {/* Premium Header */}
       <header className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
-              {data.shop?.barbershop_logo_url || data.shop?.logo_url ? (
-                <img
-                  src={data.shop.barbershop_logo_url || data.shop.logo_url}
-                  alt={data.shop?.business_name || 'Barbearia'}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <span className="text-gold font-black text-sm">
-                  {data.shop?.business_name ? data.shop.business_name.substring(0, 2).toUpperCase() : <Scissors className="h-6 w-6 text-gold" />}
-                </span>
-              )}
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <PortalHeaderLogo shop={data.shop} slug={slug} />
             <div className="min-w-0">
-              <h2 className="text-base md:text-lg font-black text-white leading-tight truncate">
-                {data.shop?.business_name || 'Barbearia'}
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-white leading-tight truncate">
+                {data.shop?.business_name || (slug ? slug.toUpperCase() : "Barbex")}
               </h2>
-              <p className="text-[11px] font-bold text-zinc-400 truncate">
+              <p className="text-[10px] sm:text-[11px] font-bold text-zinc-400 truncate">
                 Olá, <span className="text-gold font-extrabold">{data.customer.name?.split(' ')[0] || 'Cliente'}</span>
               </p>
             </div>
@@ -958,6 +980,40 @@ function CustomerPortalPage() {
             loadPortalData(true);
           }}
         />
+      )}
+    </div>
+  );
+}
+
+function PortalHeaderLogo({ shop, slug }: { shop: any; slug: string }) {
+  const [imgError, setImgError] = useState(false);
+  const logoUrl = shop?.barbershop_logo_url || shop?.logo_url;
+  const name = shop?.business_name || (slug ? slug.toUpperCase() : "");
+  const initials = name
+    ? name
+        .split(" ")
+        .filter(Boolean)
+        .map((w: string) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "";
+
+  return (
+    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br from-gold/20 to-transparent border border-gold/30 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+      {logoUrl && !imgError ? (
+        <img
+          src={logoUrl}
+          alt={name || "Logo"}
+          className="h-full w-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : initials ? (
+        <span className="text-gold font-black text-xs sm:text-sm tracking-wider">
+          {initials}
+        </span>
+      ) : (
+        <Scissors className="h-5 w-5 text-gold" />
       )}
     </div>
   );
