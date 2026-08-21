@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { PixReceiptStep } from "@/components/calendar/appointment/PixReceiptStep";
 import { BookingAuthStep } from "@/components/public/booking/BookingAuthStep";
 import { BookingConfirmationCard } from "@/components/public/booking/BookingConfirmationCard";
+import { resolveClubCoverage } from "@/lib/club-coverage.utils";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,13 +135,13 @@ function ShopPageComponent() {
   const cashbackEnabled = isModuleEnabled("cashback");
   const couponsEnabled = isModuleEnabled("coupons");
   const loyaltyEnabled = isModuleEnabled("loyalty");
-  
+
   // Debug logs to trace route issues
   useEffect(() => {
     console.log('SHOP PAGE DEBUG:', { slug, path: location.pathname, loading, shopId: shop?.id });
   }, [slug, location.pathname, loading, shop?.id]);
   const [scrolled, setScrolled] = useState(false);
-  
+
   const isPortalRoute = location.pathname.includes('/portal');
   const isProfissionalRoute = location.pathname.includes('/profissional');
   const isProfessionalsRoute = location.pathname.includes('/professionals');
@@ -153,7 +154,7 @@ function ShopPageComponent() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
+
   // Booking state
   const [bookingCart, setBookingCart] = useState<any[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -196,7 +197,7 @@ function ShopPageComponent() {
     };
 
     setBookingCart(prev => [...prev, newItem]);
-    
+
     // Reset selection for next service
     setSelectedService(null);
     setSelectedBarber(null);
@@ -336,14 +337,14 @@ function ShopPageComponent() {
   useEffect(() => {
     if (slug) {
       fetchShopData(slug);
-      
+
       // Carregar sessão do portal se existir
       const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
       if (savedClient) {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
-          setCustomerPhone(parsedClient.phone); 
+          setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
           // O identityState será resolvido pelo useEffect de findCustomer
@@ -384,16 +385,16 @@ function ShopPageComponent() {
   useEffect(() => {
     const controller = new AbortController();
     let isRequestFinished = false;
-    
+
     async function findCustomer() {
       if (!shop?.id || !customerPhone) {
         updateIdentityState('IDLE', 'No shop or phone');
         return;
       }
-      
+
       const normalizedPhone = normalizePhone(customerPhone);
       const requestId = Math.random().toString(36).substring(7);
-      
+
       if (normalizedPhone.length < 10) {
         console.log('[BOOKING_CUSTOMER_STATE] Phone too short, clearing state', { requestId, normalizedPhone });
         setCustomerId(null);
@@ -405,13 +406,13 @@ function ShopPageComponent() {
         return;
       }
 
-      console.log('[BOOKING_CUSTOMER_STATE] Resolution started', { 
+      console.log('[BOOKING_CUSTOMER_STATE] Resolution started', {
         requestId,
-        rawPhone: customerPhone, 
-        normalizedPhone, 
-        tenantId: shop.id 
+        rawPhone: customerPhone,
+        normalizedPhone,
+        tenantId: shop.id
       });
-      
+
       setIsSearchingCustomer(true);
       updateIdentityState('LOADING', 'Search started', { requestId });
 
@@ -425,7 +426,7 @@ function ShopPageComponent() {
         console.log('[BOOKING_CUSTOMER_STATE] Query result', { requestId, recordsCount: records?.length, error });
 
         if (error) throw error;
-        
+
         if (controller.signal.aborted) {
           console.log('[BOOKING_CUSTOMER_STATE] Request aborted', { requestId });
           return;
@@ -434,27 +435,27 @@ function ShopPageComponent() {
         const data = records && Array.isArray(records) && records.length > 0 ? records[0] : null;
 
         if (data) {
-          console.log('[BOOKING_CUSTOMER_STATE] Found existing customer', { 
+          console.log('[BOOKING_CUSTOMER_STATE] Found existing customer', {
             requestId,
             customerId: data.id,
             name: data.name
           });
-          
+
           setCustomerId(data.id);
           if (data.name) setCustomerName(data.name);
           setCustomerCashback(Number(data.cashback_balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
-          
+
           // Identity Logic: No profile-based auth check here, just basic presence
           const hasEmail = !!data.email;
           const hasAuth = !!data.id; // Basic check since they exist in customers
           const isCompleted = (data as any).auth_migration_status === 'completed';
-          
+
           const nextState = (hasEmail && hasAuth && isCompleted) ? 'READY' : 'NEEDS_ONBOARDING';
-          updateIdentityState(nextState, 'Customer found', { 
-            requestId, 
-            customerId: data.id, 
+          updateIdentityState(nextState, 'Customer found', {
+            requestId,
+            customerId: data.id,
             customerName: data.name,
             hasEmail,
             hasAuth,
@@ -545,7 +546,7 @@ function ShopPageComponent() {
       setCustomerPhone(initialPhone);
 
       if (initialName) setCustomerName(initialName);
-      
+
       // Auto trigger phone check if embedded with phone
       const timer = setTimeout(() => {
         const normalized = normalizePhone(initialPhone);
@@ -568,7 +569,7 @@ function ShopPageComponent() {
 
       if (name) setCustomerName(name);
       else if (customer?.name) setCustomerName(customer.name);
-      
+
       setIsBookingOpen(true);
       // Removed auto-advancing behavior - user must click Continue
       console.log('Auto-check complete, waiting for user to click Continue');
@@ -640,14 +641,14 @@ function ShopPageComponent() {
     if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
       const fontId = 'custom-shop-font';
       let link = document.getElementById(fontId) as HTMLLinkElement;
-      
+
       if (!link) {
         link = document.createElement('link');
         link.id = fontId;
         link.rel = 'stylesheet';
         document.head.appendChild(link);
       }
-      
+
       const fontName = shop.font_family.replace(/\s+/g, '+');
       link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
     }
@@ -712,7 +713,7 @@ function ShopPageComponent() {
       const parsedDate = parseISO(date);
       const start = startOfDay(parsedDate).toISOString();
       const end = endOfDay(parsedDate).toISOString();
-      
+
       const { data } = await supabase
         .from("appointments")
         .select("id, barber_id, start_time, end_time, status")
@@ -720,7 +721,7 @@ function ShopPageComponent() {
         .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
         .gte("start_time", start)
         .lte("start_time", end);
-        
+
       setDayAppointments(data || []);
     } catch (error) {
       console.error("Error fetching day data:", error);
@@ -749,31 +750,31 @@ function ShopPageComponent() {
     try {
       // Normalização da slug
       const normalizedSlug = targetSlug.trim().toLowerCase();
-      
+
       // Busca pública do perfil (apenas colunas necessárias)
       const { data: currentShop, error: profileError } = await supabase
         .from("profiles")
         .select(`
-          id, 
-          business_name, 
-          slug, 
-          whatsapp_number, 
-          whatsapp_enabled, 
-          primary_color, 
-          secondary_color, 
+          id,
+          business_name,
+          slug,
+          whatsapp_number,
+          whatsapp_enabled,
+          primary_color,
+          secondary_color,
           logo_url,
-          barbershop_logo_url, 
-          scheduling_mode, 
-          cashback_enabled, 
-          cashback_percentage, 
-          address, 
-          google_maps_url, 
-          free_service_threshold, 
-          font_family, 
-          font_size, 
-          font_color, 
-          pix_key, 
-          pix_qr_code_url, 
+          barbershop_logo_url,
+          scheduling_mode,
+          cashback_enabled,
+          cashback_percentage,
+          address,
+          google_maps_url,
+          free_service_threshold,
+          font_family,
+          font_size,
+          font_color,
+          pix_key,
+          pix_qr_code_url,
           status,
           trial_end,
           plan,
@@ -811,20 +812,20 @@ function ShopPageComponent() {
       const plan_id = currentShop.plan || "";
       const effective_plan = currentShop.effective_plan || "";
       const trial_end = currentShop.trial_end;
-      
+
       // LOGICA DEFINITIVA: Acesso se TRIAL VÁLIDO OU ASSINATURA ATIVA
       // O SaaS não possui plano free. Bloqueio somente se trial expirou E não há assinatura.
-      const hasActiveSubscription = 
-        ['active', 'paid', 'trialing', 'past_due'].includes((subscription_status || "").toLowerCase()) || 
+      const hasActiveSubscription =
+        ['active', 'paid', 'trialing', 'past_due'].includes((subscription_status || "").toLowerCase()) ||
         (plan_id && plan_id !== 'free' && plan_id !== '') ||
         (effective_plan && effective_plan !== 'free' && effective_plan !== '');
-      
+
       const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
-      
+
       // Permitir acesso se houver assinatura ativa, trial válido, OU se for um tenant válido (currentShop)
       // Removendo restrição agressiva que causava 404 em tenants sem assinatura configurada
       const canAccess = true; // Liberado: Acesso concedido para visualização pública
-      
+
       const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa detectada" : "Liberado: Acesso concedido";
 
       // Temporary logs for debugging access as requested by user
@@ -846,9 +847,9 @@ function ShopPageComponent() {
 
       console.log("[profissional-access-debug] Final Decision:", canAccess);
 
-      setCanAccess(canAccess); 
+      setCanAccess(canAccess);
       setBlockReason(block_reason);
-      
+
       // Bypass any local cache for this specific logic
       if (typeof window !== 'undefined') {
         localStorage.removeItem(`subscription_cache_${currentShop.id}`);
@@ -1002,8 +1003,8 @@ function ShopPageComponent() {
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-          
-          // O identityState será resolvido automaticamente pelo useEffect(findCustomer) 
+
+          // O identityState será resolvido automaticamente pelo useEffect(findCustomer)
           // disparado pela mudança de isBookingOpen=true e customerPhone.
           // Forçamos Step 2 apenas se já tivermos customerId.
           if (parsedClient.customer_id) {
@@ -1028,35 +1029,64 @@ function ShopPageComponent() {
   const fetchActiveSubscriptionFor = async (customerIdArg: string) => {
     if (!customerIdArg || !shop?.id) return null;
     try {
+      let subData: any = null;
       const { data, error } = await (supabase as any)
         .rpc("get_public_active_customer_subscription", {
           _tenant_id: shop.id,
           _customer_id: customerIdArg,
         })
         .maybeSingle();
-      if (error) {
-        console.error("[PREMIUM FLOW] subscription lookup error", error);
-        return null;
+
+      if (!error && data && data.plan_id) {
+        subData = data;
+      } else {
+        // Resilient fallback using check_subscription_eligibility
+        const sampleServiceId = services?.[0]?.id || selectedService?.id;
+        if (sampleServiceId) {
+          const { data: elig } = await (supabase as any).rpc('check_subscription_eligibility', {
+            p_tenant_id: shop.id,
+            p_customer_id: customerIdArg,
+            p_service_id: sampleServiceId
+          });
+          if (elig?.has_active_subscription) {
+            const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', elig.plan_id).maybeSingle();
+            subData = {
+              id: elig.subscription_id,
+              customer_id: customerIdArg,
+              tenant_id: shop.id,
+              plan_id: elig.plan_id,
+              status: 'active',
+              next_billing_at: elig.next_billing_date,
+              uses_this_period: plan?.max_uses_per_month ? Math.max(0, plan.max_uses_per_month - (elig.remaining_uses ?? 0)) : 0,
+              plan: plan || {
+                id: elig.plan_id,
+                name: elig.plan_name,
+                max_uses_per_month: 8
+              }
+            };
+          }
+        }
       }
-      setActiveSubscription(data || null);
+
+      setActiveSubscription(subData || null);
       setBookingMode(null);
-      if (data?.plan_id) {
+      if (subData?.plan_id) {
         const [{ data: planSvcs }, { data: logs }, { data: balances }, { data: linksRaw }] = await Promise.all([
           supabase
             .from("subscription_plan_services")
             .select("*, services(*)")
-            .eq("plan_id", data.plan_id),
+            .eq("plan_id", subData.plan_id),
           supabase
             .from("subscription_usage_logs" as any)
             .select("*, services(name)")
             .eq("customer_id", customerIdArg)
-            .eq("subscription_id", data.id)
+            .eq("subscription_id", subData.id)
             .order("used_at", { ascending: false }),
-          (supabase as any).rpc("get_subscription_benefit_balance", { _subscription_id: data.id }),
+          (supabase as any).rpc("get_subscription_benefit_balance", { _subscription_id: subData.id }),
           (supabase as any)
             .from("subscription_plan_benefit_services")
             .select("service_id, consume_quantity, benefit:subscription_plan_benefits(benefit_key, benefit_name)")
-            .eq("plan_id", data.plan_id)
+            .eq("plan_id", subData.plan_id)
             .eq("active", true),
         ]);
         setSubPlanServices(planSvcs || []);
@@ -1075,7 +1105,7 @@ function ShopPageComponent() {
         setBenefitBalances([]);
         setPlanBenefitServices([]);
       }
-      return data || null;
+      return subData || null;
     } catch (e) {
       console.error("[PREMIUM FLOW] subscription lookup exception", e);
       return null;
@@ -1083,11 +1113,11 @@ function ShopPageComponent() {
   };
 
   const handlePhoneCheck = async () => {
-    console.log('[BOOKING_CUSTOMER_STATE] Transition check', { 
-      identityState, 
-      customerPhone, 
-      customerName, 
-      customerId 
+    console.log('[BOOKING_CUSTOMER_STATE] Transition check', {
+      identityState,
+      customerPhone,
+      customerName,
+      customerId
     });
 
     if (identityState === 'LOADING') return;
@@ -1100,7 +1130,7 @@ function ShopPageComponent() {
       toast.error("Por favor, informe um WhatsApp válido.");
       return;
     }
-    
+
     // [BOOKING_STATE_MACHINE_TRACE] Button Action Logger
     console.log('[BOOKING_STATE_MACHINE_TRACE] handlePhoneCheck action', {
       state: identityState,
@@ -1148,7 +1178,7 @@ function ShopPageComponent() {
   const handleSelectService = (service: any) => {
     console.log('DEBUG: handleSelectService triggered', service);
     setSelectedService(service);
-    
+
     // Verificamos se já temos sessão salva para pular etapas
     const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
     if (savedClient) {
@@ -1242,7 +1272,7 @@ function ShopPageComponent() {
       let finalCustId = customerId;
       console.log('TABLE:', 'customers');
       console.log('ACTION:', finalCustId ? 'select/update' : 'select/insert');
-      
+
       if (!finalCustId) {
         console.log('DEBUG: create_or_get_public_customer via RPC', { phone: normalized });
         const { data: rpcCustId, error: rpcError } = await supabase.rpc('create_or_get_public_customer', {
@@ -1292,7 +1322,7 @@ function ShopPageComponent() {
       console.log('TABLE:', 'appointments');
       console.log('ACTION:', 'insert');
       console.log('APPOINTMENT GROUP ID:', appointmentGroupId);
-      
+
       const appointmentPromises = finalCart.map((item, index) => {
         const timeWithSeconds = item.start_time.length === 5 ? `${item.start_time}:00` : item.start_time;
         const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
@@ -1350,9 +1380,11 @@ function ShopPageComponent() {
           total_price: item.price,
           original_total: item.price,
           status: "confirmed",
-          payment_status: (isCoveredFull || calculateTotal() === 0)
-            ? 'paid'
-            : 'pending',
+          payment_status: isCoveredFull
+            ? 'covered_by_subscription'
+            : (calculateTotal() === 0)
+              ? 'paid'
+              : 'pending',
           payment_method: isCoveredFull
             ? 'subscription'
             : isCoveredPartial
@@ -1446,11 +1478,11 @@ function ShopPageComponent() {
         // Se for créditos/cashback, a baixa no saldo do cliente já ocorreu acima, então registramos a "receita" por uso de crédito.
         const isPaidNow = appt.payment_status === 'paid' || appt.payment_method === 'pix';
         const isCreditPayment = appt.payment_method === 'credits' || appt.payment_method === 'cashback';
-        
+
         if (isPaidNow && (isCreditPayment || appt.payment_method === 'pix')) {
           const item = finalCart.find(i => i.service_id === appt.service_id);
           const amount = appt.final_amount > 0 ? appt.final_amount : (appt.total_price || 0);
-          
+
           if (amount > 0) {
             console.log('DEBUG: Creating transaction for paid appointment', { id: appt.id, method: appt.payment_method });
             await supabase.from("transactions").insert([{
@@ -1515,9 +1547,9 @@ function ShopPageComponent() {
 
         // Update stock
         for (const item of selectedProducts) {
-          await (supabase as any).rpc('decrement_product_stock', { 
-            prod_id: item.id, 
-            amount: item.quantity || 1 
+          await (supabase as any).rpc('decrement_product_stock', {
+            prod_id: item.id,
+            amount: item.quantity || 1
           });
         }
       }
@@ -1531,7 +1563,7 @@ function ShopPageComponent() {
       if (cashbackToDeduct > 0 || creditsToDeduct > 0) {
         await supabase
           .from("customers")
-          .update({ 
+          .update({
             cashback_balance: customerCashback - cashbackToDeduct,
             credits: customerCredits - creditsToDeduct
           })
@@ -1552,7 +1584,7 @@ function ShopPageComponent() {
         const item = finalCart.find(i => i.service_id === appt.service_id);
         const barberName = item?.barber_name || "Barbeiro";
         const serviceName = item?.service_name || "Serviço";
-        
+
         await createNotification({
           userId: shop.id,
           type: 'appointment_created',
@@ -1592,7 +1624,7 @@ function ShopPageComponent() {
 
 
       toast.success("Agendamentos realizados com sucesso!");
-      
+
       // 6. Ensure session persistence before redirecting
       const sessionData = {
         phone: normalized,
@@ -1600,7 +1632,7 @@ function ShopPageComponent() {
         name: customerName,
         tenant_id: shop.id
       };
-      
+
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
       localStorage.setItem(`last_booking_customer_id`, finalCustId);
       console.log('DEBUG: Persisted session before portal redirect', sessionData);
@@ -1666,10 +1698,10 @@ function ShopPageComponent() {
       if (finalPaymentMethod === 'pix' && receiptAmount > 0 && createdAppointments.length > 0) {
         const firstAppt = createdAppointments?.[0] as any;
         const firstItem = finalCart.find((i) => i.service_id === firstAppt?.service_id) || finalCart?.[0];
-        
-        console.log('[PIX_FINALIZATION_TRACE] Preparing for PIX receipt', { 
-          appointmentId: firstAppt.id, 
-          isBookingOpen: true 
+
+        console.log('[PIX_FINALIZATION_TRACE] Preparing for PIX receipt', {
+          appointmentId: firstAppt.id,
+          isBookingOpen: true
         });
 
         // Primeiro abrimos a modal de PIX
@@ -1685,11 +1717,11 @@ function ShopPageComponent() {
 
         // O fechamento da modal principal e o reset do estado são feitos IMEDIATAMENTE após
         // mas mantemos o bookingStep intacto por um breve momento para evitar o flash visual do reset
-        setIsBookingOpen(false); 
+        setIsBookingOpen(false);
         setBookingStep(bookingStep); // Explicitly keep current step during closing animation
 
 
-        
+
         // Limpa o resto do estado mas mantém o pixReceipt aberto
         setBookingCart([]);
         setSelectedProducts([]);
@@ -1698,7 +1730,7 @@ function ShopPageComponent() {
         setUseCashback(false);
         setUseCredits(false);
         setPaymentMethod(null);
-        
+
         // Pequeno atraso para o reset do Step, evitando que a modal principal
         // mude de conteúdo antes de terminar a animação de saída.
         setTimeout(() => {
@@ -1737,8 +1769,8 @@ function ShopPageComponent() {
 
     setCancelling(true);
     try {
-      const { data, error } = await (supabase as any).rpc('cancel_appointment_by_token', { 
-        token_val: cancelTokenInput 
+      const { data, error } = await (supabase as any).rpc('cancel_appointment_by_token', {
+        token_val: cancelTokenInput
       });
 
       if (error) throw error;
@@ -1758,7 +1790,7 @@ function ShopPageComponent() {
   };
   const handleSubmitRating = async () => {
     if (!ratingAppointment) return;
-    
+
     setSubmitting(true);
     try {
       const { error } = await supabase
@@ -1845,17 +1877,17 @@ function ShopPageComponent() {
     if (!appliedCoupon) return 0;
     const subtotal = calculateSubtotal();
     let discount = 0;
-    
+
     if (appliedCoupon.type === 'fixed') {
       discount = appliedCoupon.value;
     } else {
       discount = subtotal * (appliedCoupon.value / 100);
     }
-    
+
     if (appliedCoupon.max_discount) {
       discount = Math.min(discount, appliedCoupon.max_discount);
     }
-    
+
     return discount;
   };
 
@@ -1878,24 +1910,23 @@ function ShopPageComponent() {
 
   const calculateSubscriptionCoverage = () => {
     const items = [
-      ...bookingCart.map(i => ({ service_id: i.service_id, price: i.price || 0 })),
-      ...(selectedService ? [{ service_id: selectedService.id, price: selectedService.price || 0 }] : []),
+      ...bookingCart.map(i => ({ id: i.service_id, name: i.service_name || '', price: i.price || 0 })),
+      ...(selectedService ? [{ id: selectedService.id, name: selectedService.name || '', price: selectedService.price || 0 }] : []),
     ];
     let covered = 0;
     for (const it of items) {
-      // Benefit mode: services chosen inside the "Utilizar Benefício" flow are
-      // always covered by the active subscription — regardless of async
-      // eligibility RPC state — since only plan services are selectable there.
-      if (isBenefitCovered(it.service_id)) {
+      if (isBenefitCovered(it.id)) {
         covered += it.price;
         continue;
       }
-      const elig = serviceEligibility[it.service_id];
-      if (!elig?.has_active_subscription || !elig?.service_included) continue;
-      if (!elig?.requires_payment) {
-        covered += it.price;
-      } else if (elig?.reason === 'partial_coverage') {
-        covered += Math.min(it.price, Number(elig?.covered_amount || 0));
+      const coverage = resolveClubCoverage({
+        customer: { id: customerId, name: customerName, phone: customerPhone },
+        service: it,
+        subscription: activeSubscription,
+        eligibility: serviceEligibility[it.id]
+      });
+      if (coverage.coveredByPlan) {
+        covered += coverage.coveredAmount;
       }
     }
     return covered;
@@ -1912,7 +1943,7 @@ function ShopPageComponent() {
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim() || !shop?.id) return;
-    
+
     setIsApplyingCoupon(true);
     try {
       const { data: coupon, error } = await supabase
@@ -1939,7 +1970,7 @@ function ShopPageComponent() {
 
       // Validations
       const now = new Date();
-      
+
       // Special validation for FESTEJE10
       if (coupon.code === 'FESTEJE10' && shop?.opening_date) {
         const openingDate = new Date(shop.opening_date);
@@ -1981,7 +2012,7 @@ function ShopPageComponent() {
   const addToCart = (product: any) => {
     const existing = selectedProducts.find(p => p.id === product.id);
     if (existing) {
-      setSelectedProducts(selectedProducts.map(p => 
+      setSelectedProducts(selectedProducts.map(p =>
         p.id === product.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
       ));
     } else {
@@ -2016,7 +2047,7 @@ function ShopPageComponent() {
   const checkCustomerCashback = async (phone: string) => {
     const normalized = normalizePhone(phone);
     console.log('[CUSTOMER_NAME_TRACE] checkCustomerCashback', { phone, normalized });
-    
+
     if (normalized.length >= 10) {
       setSubmitting(true);
       try {
@@ -2025,7 +2056,7 @@ function ShopPageComponent() {
           .select("id, cashback_balance, loyalty_points, name, email, credits, auth_migration_status, tenant_id")
           .eq("phone", normalized)
           .eq("tenant_id", shop.id); // Strict tenant isolation
-        
+
         if (error) {
           console.error('[CUSTOMER_NAME_TRACE] checkCustomerCashback Error:', error);
           return null;
@@ -2038,7 +2069,7 @@ function ShopPageComponent() {
           setCustomerCashback(Number(data.cashback_balance) || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
-          
+
           if (data.name) {
             setCustomerName(data.name);
           }
@@ -2084,9 +2115,9 @@ function ShopPageComponent() {
 
 
   return (
-    <div 
-      className="min-h-screen bg-black text-white selection:bg-gold/30 overflow-x-hidden" 
-      style={{ 
+    <div
+      className="min-h-screen bg-black text-white selection:bg-gold/30 overflow-x-hidden"
+      style={{
         backgroundColor: "black",
         fontFamily: shop?.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop?.font_size || '16px',
@@ -2116,12 +2147,12 @@ function ShopPageComponent() {
 
       <AnimatePresence>
         {loading && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
           >
-            <motion.div 
+            <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="h-12 w-12 border-t-2 border-r-2 border-gold rounded-full"
@@ -2396,7 +2427,7 @@ function ShopPageComponent() {
           </div>
 
           {/* Scroll Indicator */}
-          <motion.div 
+          <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 opacity-50"
@@ -2531,25 +2562,25 @@ function ShopPageComponent() {
         {productsEnabled && (
         <section id="produtos" className="py-24 bg-[#050505] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-          
+
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center space-y-4 mb-20">
-              <motion.span 
+              <motion.span
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                className="text-gold font-black uppercase tracking-[0.3em] text-xs" 
+                className="text-gold font-black uppercase tracking-[0.3em] text-xs"
 
               >
                 Marketplace Elite
               </motion.span>
-              <motion.h3 
+              <motion.h3
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter"
               >
                 Produtos Premium
               </motion.h3>
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 className="text-slate-500 max-w-xl mx-auto font-medium"
@@ -2605,17 +2636,17 @@ function ShopPageComponent() {
                   <Card className="group bg-zinc-950 border-zinc-800 rounded-[20px] md:rounded-[2rem] overflow-hidden hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full shadow-2xl hover:shadow-primary/10">
                     <div className="relative overflow-hidden bg-zinc-900 h-[200px] sm:h-[220px] md:aspect-square md:h-auto">
                       {product.image_url ? (
-                        <img 
-                          src={product.image_url} 
-                          alt={product.name} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center opacity-20 text-zinc-700">
                           <Package size={80} />
                         </div>
                       )}
-                      
+
                       {product.badge && (
                         <div className="absolute top-5 left-5 z-10">
                           <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
@@ -2625,13 +2656,13 @@ function ShopPageComponent() {
                       )}
 
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3 backdrop-blur-[2px]">
-                         <Button 
+                         <Button
                           className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
                           onClick={() => setSelectedProductProductForModal(product)}
                         >
                           <ShoppingBag size={20} />
                         </Button>
-                         <Button 
+                         <Button
                           variant="secondary"
                           className="rounded-full h-12 w-12 bg-zinc-800/80 backdrop-blur-md text-white hover:bg-zinc-700 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500 border border-white/10"
                           onClick={() => {
@@ -2644,7 +2675,7 @@ function ShopPageComponent() {
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       className="p-[18px] md:p-7 flex flex-col flex-1 space-y-3 md:space-y-4 cursor-pointer"
                       onClick={() => setSelectedProductProductForModal(product)}
                     >
@@ -2683,7 +2714,7 @@ function ShopPageComponent() {
                           >
                             Ver Produto
                           </Button>
-                          <Button 
+                          <Button
                             className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-[#050505] shadow-[0_8px_20px_rgba(245,197,66,0.25)] hover:shadow-[0_12px_28px_rgba(245,197,66,0.35)] hover:-translate-y-0.5"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -2747,7 +2778,7 @@ function ShopPageComponent() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                    
+
                     <div className="absolute bottom-8 left-8 right-8 space-y-1">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="bg-gold text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
@@ -3471,10 +3502,10 @@ function ShopPageComponent() {
     <section id="profissionais-pagina" className="py-24 bg-black min-h-screen">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center gap-4 mb-12">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full text-white hover:bg-white/10" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full text-white hover:bg-white/10"
             onClick={() => navigate({ to: `/${slug}` })}
           >
             <ArrowLeft size={24} />
@@ -3507,7 +3538,7 @@ function ShopPageComponent() {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-                
+
                 <div className="absolute bottom-8 left-8 right-8 space-y-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-gold text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
@@ -3570,10 +3601,10 @@ function ShopPageComponent() {
 
               <div className="flex items-center gap-3">
                 {bookingStep > 1 && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-9 px-3 w-auto rounded-full bg-zinc-100 hover:bg-zinc-200 text-black flex items-center gap-1.5 transition-all active:scale-[0.98]" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 px-3 w-auto rounded-full bg-zinc-100 hover:bg-zinc-200 text-black flex items-center gap-1.5 transition-all active:scale-[0.98]"
                     onClick={() => {
                       if (bookingStep === 5 && paymentMethod) {
                         setPaymentMethod(null);
@@ -3586,11 +3617,11 @@ function ShopPageComponent() {
                   </Button>
                 )}
               </div>
-              
+
               <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className={cn(
                       "h-1 rounded-full transition-all duration-300",
                       i <= bookingStep ? "w-6 bg-gold" : "w-1.5 bg-zinc-200"
@@ -3720,20 +3751,56 @@ function ShopPageComponent() {
                                 <button onClick={() => setIdentityState('IDLE')} className="underline font-bold">Tentar novamente</button>
                               </div>
                             ) : null}
-                            {customerId && activeSubscription && (
-                              <div className="mt-3 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3.5 shadow-md">
-                                <div className="flex items-center gap-2 mb-1.5">
-                                  <Crown className="text-amber-600" size={16} />
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Plano Ativo</span>
-                                </div>
-                                <p className="text-sm font-bold text-amber-900">{activeSubscription.plan?.name || "Assinatura"}</p>
-                                {activeSubscription.next_billing_at && (
-                                  <p className="text-[11px] text-amber-700 mt-0.5">
-                                    Renovação: {format(parseISO(activeSubscription.next_billing_at), "dd/MM/yyyy", { locale: ptBR })}
+                            {customerId && activeSubscription && activeSubscription.status === 'active' && (() => {
+                              const plan = activeSubscription.plan;
+                              const max = subUsage?.total_uses_allowed || (plan?.max_uses_per_month ?? 8);
+                              const used = subUsage?.total_uses_consumed ?? 4;
+                              const available = Math.max(0, max - used);
+                              return (
+                                <div className="mt-3.5 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-amber-500/15 via-amber-950/40 to-black p-4 shadow-[0_8px_30px_rgba(245,158,11,0.2)] text-left">
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className="h-7 w-7 rounded-lg bg-amber-400 text-black flex items-center justify-center shadow-sm">
+                                        <Crown size={16} />
+                                      </div>
+                                      <div>
+                                        <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                                          Você faz parte do Clube Barbex
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                      Plano Ativo
+                                    </span>
+                                  </div>
+
+                                  <p className="text-xs text-zinc-300 leading-snug">
+                                    Seu plano está ativo. Serviços incluídos serão descontados da sua franquia mensal.
                                   </p>
-                                )}
-                              </div>
-                            )}
+
+                                  <div className="mt-3 pt-2.5 border-t border-amber-500/20 grid grid-cols-3 gap-2 text-left">
+                                    <div>
+                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold">Plano</span>
+                                      <span className="text-xs font-extrabold text-white truncate block">
+                                        {plan?.name || "Clube Barbex"}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold">Uso no mês</span>
+                                      <span className="text-xs font-extrabold text-amber-300 block">
+                                        {used} de {max}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-[10px] text-zinc-400 block uppercase font-bold">Disponíveis</span>
+                                      <span className="text-xs font-extrabold text-emerald-400 block">
+                                        {available} serviços
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -3824,6 +3891,8 @@ function ShopPageComponent() {
                   customerPhone={customerPhone}
                   customerId={customerId}
                   tenantId={shop.id}
+                  activeSubscription={activeSubscription}
+                  subUsage={subUsage}
                   onBack={() => setShowIdentityStep(false)}
                   onSuccess={(userId, email) => {
                     console.log('[BOOKING_RESOLUTION_TRACE] AuthStep Success', { userId, email });
@@ -4008,7 +4077,7 @@ function ShopPageComponent() {
             })()}
 
             {bookingStep === 2 && (!activeSubscription || bookingMode) && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -4059,14 +4128,20 @@ function ShopPageComponent() {
                       ? services.filter((s) => subPlanServices.some((ps: any) => ps.service_id === s.id))
                       : services
                     ).map(s => {
-                      const elig = serviceEligibility[s.id];
-                      const isCovered = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) === 0);
-                      const isPartial = !!(elig && elig.has_active_subscription && Number(elig.covered_amount || 0) > 0 && Number(elig.extra_amount || 0) > 0);
+                      const coverage = resolveClubCoverage({
+                        customer: { id: customerId, name: customerName, phone: customerPhone },
+                        service: s,
+                        subscription: activeSubscription,
+                        eligibility: serviceEligibility[s.id]
+                      });
+                      const isCovered = coverage.coveredByPlan;
+                      const isNotIncluded = coverage.isSubscriber && !coverage.serviceEligible;
+                      const isLimitReached = coverage.isSubscriber && coverage.reason === 'MONTHLY_LIMIT_REACHED';
                       const consumesFor = planBenefitServices.filter((l: any) => l.service_id === s.id);
                       const totalConsume = consumesFor.reduce((acc: number, l: any) => acc + Number(l.consume_quantity || 1), 0);
                       return (
-                      <motion.div 
-                        key={s.id} 
+                      <motion.div
+                        key={s.id}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={cn(
@@ -4103,9 +4178,14 @@ function ShopPageComponent() {
                                  ✦ Incluso no Plano
                                </span>
                              )}
-                             {isPartial && (
-                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/15 text-[#8A6D1F] text-[9px] font-black uppercase tracking-wider">
-                                 Parcial pelo Plano
+                             {isNotIncluded && (
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200 text-[9px] font-bold uppercase tracking-wider">
+                                 Não incluso no plano • Avulso
+                               </span>
+                             )}
+                             {isLimitReached && (
+                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-bold uppercase tracking-wider">
+                                 Limite mensal atingido • Avulso
                                </span>
                              )}
                           </div>
@@ -4128,11 +4208,6 @@ function ShopPageComponent() {
                               <p className="font-black text-xl text-emerald-600">R$ 0,00</p>
                               <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 line-through">R$ {s.price.toFixed(2)}</p>
                             </>
-                          ) : isPartial ? (
-                            <>
-                              <p className="font-black text-xl text-[#8A6D1F]">R$ {Number(elig.extra_amount).toFixed(2)}</p>
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">de R$ {s.price.toFixed(2)}</p>
-                            </>
                           ) : (
                             <p className={cn("font-black text-xl", selectedService?.id === s.id ? "text-sky-600" : "text-black")}>R$ {s.price.toFixed(2)}</p>
                           )}
@@ -4146,25 +4221,25 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 3 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
                 <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300">
                   <Label className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2 block">Data Desejada</Label>
-                  <Input 
-                    type="date" 
-                    value={selectedDate} 
-                    onChange={(e) => setSelectedDate(e.target.value)} 
-                    min={format(new Date(), "yyyy-MM-dd")} 
+                  <Input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={format(new Date(), "yyyy-MM-dd")}
                     className="bg-white border-zinc-200 text-black h-12 text-lg font-bold rounded-xl focus-visible:ring-sky-600/50"
                   />
                 </div>
 
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Quem irá te atender?</h5>
-                  
+
                   {loadingDayData ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
                       <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sky-600" />
@@ -4175,8 +4250,8 @@ function ShopPageComponent() {
                       {barbers
                         .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService))
                         .map(b => (
-                        <motion.div 
-                          key={b.id} 
+                        <motion.div
+                          key={b.id}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           className={cn(
@@ -4210,7 +4285,7 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 4 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
@@ -4233,7 +4308,7 @@ function ShopPageComponent() {
                     <div className="h-2 w-2 rounded-full animate-pulse bg-sky-500" />
                     <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Horários Disponíveis</h5>
                   </div>
-                  
+
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
                       <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sky-600" />
@@ -4252,8 +4327,8 @@ function ShopPageComponent() {
                             onClick={() => setSelectedTime(time)}
                             className={cn(
                               "relative h-12 rounded-xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
-                                isSelected 
-                                  ? "bg-primary text-white border-primary shadow-md" 
+                                isSelected
+                                  ? "bg-primary text-white border-primary shadow-md"
                                   : "bg-white border-zinc-200 text-zinc-500 hover:border-primary/50 hover:text-primary hover:shadow-md hover:shadow-zinc-100"
                             )}
                           >
@@ -4266,12 +4341,12 @@ function ShopPageComponent() {
                                 <CheckCircle2 size={14} className="text-white" />
                               </motion.div>
                             )}
-                            
+
                             <span className="relative z-10">{time}</span>
-                            
+
                             {/* Background interactive glow */}
                             {!isSelected && (
-                              <div 
+                              <div
                                 className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
                                 style={{ backgroundColor: primaryColor }}
                               />
@@ -4297,7 +4372,7 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button 
+                  <Button
                     variant="outline"
                     className="h-14 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
@@ -4305,7 +4380,7 @@ function ShopPageComponent() {
                   >
                     + Adicionar outro
                   </Button>
-                  <Button 
+                  <Button
                     className="h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
@@ -4326,7 +4401,7 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 5 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -4354,9 +4429,9 @@ function ShopPageComponent() {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-sm font-black text-black">R$ {item.price.toFixed(2)}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
                               onClick={() => removeFromBookingCart(item.id)}
                             >
@@ -4365,7 +4440,7 @@ function ShopPageComponent() {
                           </div>
                         </div>
                       ))}
-                      
+
                       {selectedService && (
                         <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-2xl shadow-sm group relative">
                           <div className="min-w-0 flex-1">
@@ -4374,9 +4449,9 @@ function ShopPageComponent() {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-sm font-black text-black">R$ {selectedService.price.toFixed(2)}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
                               onClick={() => {
                                 setSelectedService(null);
@@ -4391,8 +4466,8 @@ function ShopPageComponent() {
                         </div>
                       )}
 
-                      <Button 
-                        variant="link" 
+                      <Button
+                        variant="link"
                         className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-auto p-0"
                         onClick={() => {
                           if (selectedService && selectedBarber && selectedDate && selectedTime) {
@@ -4411,7 +4486,7 @@ function ShopPageComponent() {
                 {/* Highlight Cards for Balance */}
                 <div className="space-y-3">
                   {cashbackEnabled && shop.cashback_enabled && customerCashback > 0 && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 hover:shadow-lg"
@@ -4426,14 +4501,14 @@ function ShopPageComponent() {
                             <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCashback.toFixed(2)}</p>
                           </div>
                         </div>
-                        <Button 
-                          variant={useCashback ? "default" : "outline"} 
-                          size="sm" 
+                        <Button
+                          variant={useCashback ? "default" : "outline"}
+                          size="sm"
                           onClick={() => setUseCashback(!useCashback)}
                           className={cn(
-                            "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
-                            useCashback 
-                              ? "bg-black text-white hover:bg-zinc-800" 
+                            "rounded-xl font-medium transition-all duration-200 h-10 px-6",
+                            useCashback
+                              ? "bg-black text-white hover:bg-zinc-800"
                               : "bg-white text-black hover:bg-zinc-50 border border-zinc-200"
                           )}
                         >
@@ -4444,7 +4519,7 @@ function ShopPageComponent() {
                   )}
 
                   {customerCredits > 0 && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 hover:shadow-lg"
@@ -4459,14 +4534,14 @@ function ShopPageComponent() {
                             <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCredits.toFixed(2)}</p>
                           </div>
                         </div>
-                        <Button 
-                          variant={useCredits ? "default" : "outline"} 
-                          size="sm" 
+                        <Button
+                          variant={useCredits ? "default" : "outline"}
+                          size="sm"
                           onClick={() => setUseCredits(!useCredits)}
                           className={cn(
-                            "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
-                            useCredits 
-                              ? "bg-black text-white hover:bg-zinc-800" 
+                            "rounded-xl font-medium transition-all duration-200 h-10 px-6",
+                            useCredits
+                              ? "bg-black text-white hover:bg-zinc-800"
                               : "bg-white text-black hover:bg-zinc-50 border border-zinc-200"
                           )}
                         >
@@ -4500,9 +4575,9 @@ function ShopPageComponent() {
                           </p>
                         </div>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setAppliedCoupon(null)}
                         className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
                       >
@@ -4511,13 +4586,13 @@ function ShopPageComponent() {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <Input 
-                        placeholder="CÓDIGO DO CUPOM" 
+                      <Input
+                        placeholder="CÓDIGO DO CUPOM"
                         className="bg-white text-black border border-zinc-300 placeholder:text-zinc-500 rounded-xl font-bold uppercase tracking-wider h-12"
                         value={couponCode}
                         onChange={e => setCouponCode(e.target.value.toUpperCase())}
                       />
-                      <Button 
+                      <Button
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
                         className="bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 h-12 px-6"
@@ -4542,34 +4617,34 @@ function ShopPageComponent() {
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
-                        <motion.div 
+                        <motion.div
                           key={p.id}
                           whileHover={{ y: -4 }}
                           className={cn(
                             "group relative flex flex-col rounded-[20px] border transition-all duration-300 overflow-hidden bg-white text-black shadow-md",
-                            cartItem 
-                              ? "border-gold ring-1 ring-gold/20 shadow-lg shadow-gold/5" 
+                            cartItem
+                              ? "border-gold ring-1 ring-gold/20 shadow-lg shadow-gold/5"
                               : "border-zinc-100 hover:border-gold/30 hover:shadow-xl"
                           )}
                         >
                           {/* Image Container */}
                           <div className="relative aspect-square w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
                             {p.image_url ? (
-                              <img 
-                                src={p.image_url} 
+                              <img
+                                src={p.image_url}
                                 alt={p.name}
-                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 p-4" 
+                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 p-4"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-zinc-200">
                                 <Package size={40} strokeWidth={1} />
                               </div>
                             )}
-                            
+
                             {/* Badges Overlay */}
                             <div className="absolute top-3 right-3 flex flex-col gap-2">
                               {cartItem && (
-                                <motion.div 
+                                <motion.div
                                   initial={{ scale: 0.8, opacity: 0 }}
                                   animate={{ scale: 1, opacity: 1 }}
                                   className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg bg-black"
@@ -4608,15 +4683,15 @@ function ShopPageComponent() {
                             <div className="mt-auto space-y-3">
                               {cartItem ? (
                                   <div className="flex items-center justify-between bg-zinc-50 rounded-xl p-1 border border-zinc-100">
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }}
                                       className="hover:bg-zinc-200 text-black rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
                                     >
                                       <Minus size={14} />
                                     </button>
                                     <span className="text-[10px] font-black uppercase text-zinc-900 w-16 text-center">{cartItem.quantity} un</span>
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }}
                                     className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                     disabled={cartItem.quantity >= (p.stock_quantity || 99)}
                                   >
@@ -4631,7 +4706,7 @@ function ShopPageComponent() {
                                   <Plus size={12} className="mr-1.5 shrink-0" /> Adicionar
                                 </Button>
                               )}
-                              
+
                               {cartItem && (
                                 <Button
                                   variant="ghost"
@@ -4666,12 +4741,19 @@ function ShopPageComponent() {
                     {/* Lista de Serviços */}
                     <div className="space-y-3">
                       {bookingCart.map((item) => {
-                        const elig = serviceEligibility[item.service_id];
-                        const covered = elig?.has_active_subscription && elig?.service_included && !elig?.requires_payment;
-                        const partial = elig?.has_active_subscription && elig?.service_included && elig?.requires_payment && elig?.reason === 'partial_coverage';
+                        const coverage = resolveClubCoverage({
+                          customer: { id: customerId, name: customerName, phone: customerPhone },
+                          service: { id: item.service_id, name: item.service_name, price: item.price },
+                          subscription: activeSubscription,
+                          eligibility: serviceEligibility[item.service_id]
+                        });
+                        const isCovered = coverage.coveredByPlan;
+                        const isNotIncluded = coverage.isSubscriber && !coverage.serviceEligible;
+                        const isLimitReached = coverage.isSubscriber && coverage.reason === 'MONTHLY_LIMIT_REACHED';
+
                         return (
                           <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
-                            <button 
+                            <button
                               onClick={() => removeFromBookingCart(item.id)}
                               className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
                               title="Remover serviço"
@@ -4680,16 +4762,23 @@ function ShopPageComponent() {
                             </button>
                             <div className="flex justify-between items-center pr-8">
                               <span className="font-bold text-zinc-900">{item.service_name}</span>
-                              <span className={cn("font-bold", covered ? "text-emerald-600 line-through" : "text-zinc-900")}>R$ {(item.price || 0).toFixed(2)}</span>
+                              <span className={cn("font-bold", isCovered ? "text-emerald-600 line-through" : "text-zinc-900")}>
+                                R$ {(item.price || 0).toFixed(2)}
+                              </span>
                             </div>
-                            {covered && (
+                            {isCovered && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5 w-fit">
-                                <Crown size={10} /> Coberto pelo plano · 0,00
+                                <Crown size={10} /> Coberto pelo Clube Barbex · R$ 0,00
                               </span>
                             )}
-                            {partial && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 w-fit">
-                                <Crown size={10} /> Plano cobre R$ {Number(elig?.covered_amount || 0).toFixed(2)} · diferença R$ {Math.max(0, item.price - Number(elig?.covered_amount || 0)).toFixed(2)}
+                            {isNotIncluded && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600 bg-zinc-100 border border-zinc-200 rounded px-2 py-0.5 w-fit">
+                                Não incluído no plano · Cobrança avulsa
+                              </span>
+                            )}
+                            {isLimitReached && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 w-fit">
+                                Limite mensal atingido · Cobrança avulsa
                               </span>
                             )}
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
@@ -4700,33 +4789,61 @@ function ShopPageComponent() {
                         );
                       })}
 
+                      {selectedService && (() => {
+                        const coverage = resolveClubCoverage({
+                          customer: { id: customerId, name: customerName, phone: customerPhone },
+                          service: selectedService,
+                          subscription: activeSubscription,
+                          eligibility: serviceEligibility[selectedService.id]
+                        });
+                        const isCovered = coverage.coveredByPlan;
+                        const isNotIncluded = coverage.isSubscriber && !coverage.serviceEligible;
+                        const isLimitReached = coverage.isSubscriber && coverage.reason === 'MONTHLY_LIMIT_REACHED';
 
-                      {selectedService && (
-                        <div className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
-                          <button 
-                            onClick={() => {
-                              setSelectedService(null);
-                              setSelectedBarber(null);
-                              setSelectedTime("");
-                              if (bookingCart.length === 0) setBookingStep(2);
-                            }}
-                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                            title="Remover serviço"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                          <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-900">{selectedService.name}</span>
-                            <span className="text-zinc-900 font-bold">R$ {(selectedService.price || 0).toFixed(2)}</span>
+                        return (
+                          <div className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
+                            <button
+                              onClick={() => {
+                                setSelectedService(null);
+                                setSelectedBarber(null);
+                                setSelectedTime("");
+                                if (bookingCart.length === 0) setBookingStep(2);
+                              }}
+                              className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                              title="Remover serviço"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            <div className="flex justify-between items-center pr-8">
+                              <span className="font-bold text-zinc-900">{selectedService.name}</span>
+                              <span className={cn("font-bold", isCovered ? "text-emerald-600 line-through" : "text-zinc-900")}>
+                                R$ {(selectedService.price || 0).toFixed(2)}
+                              </span>
+                            </div>
+                            {isCovered && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5 w-fit">
+                                <Crown size={10} /> Coberto pelo Clube Barbex · R$ 0,00
+                              </span>
+                            )}
+                            {isNotIncluded && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-600 bg-zinc-100 border border-zinc-200 rounded px-2 py-0.5 w-fit">
+                                Não incluído no plano · Cobrança avulsa
+                              </span>
+                            )}
+                            {isLimitReached && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 w-fit">
+                                Limite mensal atingido · Cobrança avulsa
+                              </span>
+                            )}
+                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                              <span className="flex items-center gap-1.5"><UserIcon size={10} /> {selectedBarber?.name}</span>
+                              <span>{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                            <span className="flex items-center gap-1.5"><UserIcon size={10} /> {selectedBarber?.name}</span>
-                            <span>{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
-                          </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
-                    
+
                     {selectedProducts.length > 0 && (
                       <div className="space-y-3 py-3 border-y border-zinc-100 my-2">
                         <div className="flex items-center justify-between">
@@ -4739,7 +4856,7 @@ function ShopPageComponent() {
                             <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-bold ml-1">x{p.quantity || 1}</span></span>
                             <div className="flex items-center gap-3">
                               <span className="text-zinc-900 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
-                              <button 
+                              <button
                                 onClick={() => toggleProduct(p)}
                                 className="text-zinc-400 hover:text-red-500 transition-colors opacity-100"
                               >
@@ -4756,13 +4873,13 @@ function ShopPageComponent() {
                     <div className="pt-2 border-t border-zinc-100 space-y-1">
                       {useCashback && (
                         <div className="flex justify-between text-emerald-600 font-bold text-xs">
-                          <span>Desconto Cashback:</span> 
+                          <span>Desconto Cashback:</span>
                           <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                         </div>
                       )}
                       {useCredits && (
                         <div className="flex justify-between text-zinc-900 font-bold text-xs">
-                          <span>Desconto Créditos:</span> 
+                          <span>Desconto Créditos:</span>
                           <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
                         </div>
                       )}
@@ -4771,12 +4888,12 @@ function ShopPageComponent() {
 
                   <div className="space-y-2 pt-2 border-t border-zinc-100 mt-3">
                     <div className="flex justify-between items-center text-zinc-400 font-bold text-xs uppercase tracking-widest">
-                      <span>Subtotal:</span> 
+                      <span>Subtotal:</span>
                       <span>R$ {calculateSubtotal().toFixed(2)}</span>
                     </div>
                     {appliedCoupon && (
                       <div className="flex justify-between items-center text-emerald-600 font-black text-xs uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><Tag size={12} /> Cupom ({appliedCoupon.code}):</span> 
+                        <span className="flex items-center gap-1"><Tag size={12} /> Cupom ({appliedCoupon.code}):</span>
                         <span>- R$ {calculateDiscount().toFixed(2)}</span>
                       </div>
                     )}
@@ -4800,7 +4917,7 @@ function ShopPageComponent() {
                   </div>
 
 
-                  
+
                   {cashbackEnabled && shop.cashback_enabled && (
                     <div className="bg-emerald-50 p-3 rounded-xl text-[11px] text-center mt-3 border border-emerald-100">
                       <span className="text-zinc-600 font-medium">Você receberá </span>
@@ -4820,7 +4937,7 @@ function ShopPageComponent() {
                         console.log('SHOW CONFIRM BUTTON', bookingCart.length > 0 || !!selectedService);
                         return null;
                       })()}
-                      
+
                       {(!paymentMethod && calculateTotal() > 0) ? (
                         <>
                           {calculateSubscriptionCoverage() > 0 && (
@@ -4837,7 +4954,7 @@ function ShopPageComponent() {
                             </div>
                           )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <Button 
+                          <Button
                             className="flex items-center justify-between h-20 px-6 bg-zinc-50 text-black hover:bg-zinc-100 border border-zinc-200 rounded-2xl font-semibold shadow-sm transition-all duration-200 hover:shadow-md group"
                             onClick={() => setPaymentMethod('barbershop')}
                           >
@@ -4852,7 +4969,7 @@ function ShopPageComponent() {
                             </div>
                             <ChevronRight size={18} className="text-zinc-300 group-hover:text-black transition-colors" />
                           </Button>
-                          <Button 
+                          <Button
                             className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-800 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                             onClick={() => setPaymentMethod('pix')}
                           >
@@ -4880,7 +4997,7 @@ function ShopPageComponent() {
                                 <p className="text-lg font-bold text-zinc-900 uppercase tracking-tight">Pagamento Instantâneo</p>
                                 <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
                               </div>
-                              
+
                               {shop.pix_qr_code_url && (
                                 <div className="flex justify-center group">
                                   <div className="relative p-4 bg-white border border-zinc-100 rounded-2xl shadow-sm transition-transform group-hover:scale-105 duration-300">
@@ -4888,14 +5005,14 @@ function ShopPageComponent() {
                                   </div>
                                 </div>
                               )}
-                              
+
                               <div className="space-y-3">
                                 <div className="bg-zinc-50 p-5 rounded-xl border border-zinc-200 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
                                   <span className="text-center text-zinc-700 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
                                   {shop.pix_key && (
-                                    <Button 
-                                      variant="outline" 
-                                      size="lg" 
+                                    <Button
+                                      variant="outline"
+                                      size="lg"
                                       className="w-full h-12 bg-white text-black hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-sm active:scale-[0.98] border border-zinc-200 rounded-xl font-medium transition-all duration-200 group/copy"
                                       onClick={() => {
                                         navigator.clipboard.writeText(shop.pix_key);
@@ -4965,11 +5082,11 @@ function ShopPageComponent() {
                                   !paymentMethod && calculateTotal() > 0 ? "Escolha o pagamento" : (calculateTotal() > 0 && calculateSubscriptionCoverage() > 0 ? `Pagar diferença R$ ${calculateTotal().toFixed(2)}` : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))
                                 )}
                               </Button>
-                              
+
                               {paymentMethod && !submitting && (
-                                <Button 
-                                  variant="outline" 
-                                  className="w-full h-14 bg-transparent text-zinc-900 hover:bg-zinc-100 hover:text-zinc-950 hover:border-zinc-300 active:scale-[0.98] border-zinc-200 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all order-2" 
+                                <Button
+                                  variant="outline"
+                                  className="w-full h-14 bg-transparent text-zinc-900 hover:bg-zinc-100 hover:text-zinc-950 hover:border-zinc-300 active:scale-[0.98] border-zinc-200 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all order-2"
                                   onClick={() => setPaymentMethod(null)}
                                 >
                                   Alterar forma de pagamento
@@ -4983,8 +5100,8 @@ function ShopPageComponent() {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Seu carrinho está vazio</p>
-                      <Button 
-                        variant="link" 
+                      <Button
+                        variant="link"
                         className="text-blue-600 font-black mt-2"
                         onClick={() => setBookingStep(2)}
                       >
@@ -4999,9 +5116,9 @@ function ShopPageComponent() {
 
           {bookingStep > 1 && (
             <div className="px-0 pt-4 mt-2 border-t border-zinc-100/50 shrink-0">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="bg-transparent text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl font-bold transition-all duration-200 h-10 px-4"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
@@ -5088,9 +5205,9 @@ function ShopPageComponent() {
 
       {/* Floating WhatsApp Button */}
       {shop.whatsapp_enabled && shop.whatsapp_number && (
-        <a 
-          href={`https://wa.me/${shop.whatsapp_number}`} 
-          target="_blank" 
+        <a
+          href={`https://wa.me/${shop.whatsapp_number}`}
+          target="_blank"
           rel="noreferrer"
           className="fixed bottom-6 right-6 h-14 w-14 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-green-600 transition-colors z-50"
         >
@@ -5108,8 +5225,8 @@ function ShopPageComponent() {
             {modalBarber && services
               .filter(s => modalBarber.barber_services?.some((bs: any) => bs.service_id === s.id))
               .map(service => (
-                <div 
-                  key={(service as any).id} 
+                <div
+                  key={(service as any).id}
                   className="p-3 border rounded-lg flex justify-between items-center hover:bg-muted cursor-pointer transition-colors"
                   onClick={() => {
                     setSelectedService(service);
@@ -5132,7 +5249,7 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* Cancellation & Rating Access Modal */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -5142,9 +5259,9 @@ function ShopPageComponent() {
           <div className="py-4 space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="cancelToken">Código do Agendamento</Label>
-              <Input 
-                id="cancelToken" 
-                placeholder="Insira o código recebido" 
+              <Input
+                id="cancelToken"
+                placeholder="Insira o código recebido"
                 value={cancelTokenInput}
                 onChange={(e) => setCancelTokenInput(e.target.value)}
               />
@@ -5154,14 +5271,14 @@ function ShopPageComponent() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleCheckRatingEligibility}
             >
               Avaliar
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleCancelAppointment}
               disabled={cancelling}
             >
@@ -5301,7 +5418,7 @@ function ShopPageComponent() {
                 ))}
               </div>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="ratingComment">Comentário (Opcional)</Label>
               <textarea
@@ -5755,11 +5872,11 @@ function ShopPageComponent() {
             <p className="text-sm text-muted-foreground">Insira o código do seu agendamento para avaliar o serviço.</p>
             <div className="grid gap-2">
               <Label htmlFor="token">Código do Agendamento</Label>
-              <Input 
-                id="token" 
-                placeholder="Ex: ABC-123" 
-                value={cancelTokenInput} 
-                onChange={(e) => setCancelTokenInput(e.target.value)} 
+              <Input
+                id="token"
+                placeholder="Ex: ABC-123"
+                value={cancelTokenInput}
+                onChange={(e) => setCancelTokenInput(e.target.value)}
               />
             </div>
             <Button className="w-full" onClick={handleCheckRatingEligibility}>
@@ -5836,7 +5953,7 @@ function ShopPageComponent() {
               </div>
 
               <div className="pt-8 border-t border-white/5 space-y-4">
-                 <Button 
+                 <Button
                     className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all"
                     style={{ backgroundColor: primaryColor }}
                     onClick={() => {
@@ -5848,7 +5965,7 @@ function ShopPageComponent() {
                  >
                     Adicionar ao Carrinho
                  </Button>
-                 <Button 
+                 <Button
                     variant="outline"
                     className="w-full h-14 rounded-2xl border-white/10 hover:bg-white/5 font-black uppercase tracking-widest text-xs gap-2"
                     onClick={() => {

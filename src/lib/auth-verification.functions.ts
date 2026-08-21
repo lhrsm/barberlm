@@ -94,7 +94,7 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
     // 1. Check if verification was done
     const { data: challenge } = await supabaseAdmin
       .from("verification_challenges" as any)
-      .select("id")
+      .select("id, client_id, expires_at, verified_at")
       .eq("email", data.email)
       .not("verified_at", "is", null)
       .order("verified_at", { ascending: false })
@@ -102,7 +102,16 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!challenge) {
-      throw new Error("E-mail não verificado");
+      throw new Error("E-mail não verificado ou desafio expirado");
+    }
+
+    // Ownership check: if challenge had a client_id recorded, ensure data.clientId matches it
+    if ((challenge as any).client_id && data.clientId && (challenge as any).client_id !== data.clientId) {
+      console.error("[AuthVerification] CLIENT_ID_MISMATCH", {
+        challengeClientId: (challenge as any).client_id,
+        providedClientId: data.clientId
+      });
+      throw new Error("Conflito de identificação do cliente.");
     }
 
     // 2. Resolve or Create Auth User
@@ -266,6 +275,12 @@ export const finalizeAuthSetup = createServerFn({ method: "POST" })
         role: 'client',
         status: 'active'
       });
+
+    // 6. Prevent OTP replay: remove verified challenge once consumed
+    await supabaseAdmin
+      .from("verification_challenges" as any)
+      .delete()
+      .eq("id", (challenge as any).id);
 
     return { success: true, userId };
   });
