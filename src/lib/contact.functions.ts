@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { sendTransactionalEmail } from "./resend.functions";
@@ -46,21 +46,21 @@ export const submitPublicContactMessage = createServerFn({ method: "POST" })
     // 3. Resolve tenant server-side via slug
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    let { data: profile } = await supabaseAdmin
+    let { data: profile } = await (supabaseAdmin as any)
       .from("profiles")
       .select("id, business_name, contact_email, slug")
       .eq("slug", data.slug)
       .maybeSingle();
 
     if (!profile) {
-      const { data: shop } = await supabaseAdmin
+      const { data: shop } = await (supabaseAdmin as any)
         .from("barbershops")
         .select("id, name, slug, owner_id")
         .eq("slug", data.slug)
         .maybeSingle();
 
       if (shop?.owner_id) {
-        const { data: ownerProfile } = await supabaseAdmin
+        const { data: ownerProfile } = await (supabaseAdmin as any)
           .from("profiles")
           .select("id, business_name, contact_email, slug")
           .eq("id", shop.owner_id)

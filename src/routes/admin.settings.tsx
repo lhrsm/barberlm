@@ -1,13 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Settings, 
-  Globe, 
-  CreditCard, 
-  Shield, 
-  Share2, 
-  Save, 
+import {
+  Settings,
+  Globe,
+  CreditCard,
+  Shield,
+  Share2,
+  Save,
   Upload,
   Power,
   Lock,
@@ -51,7 +51,7 @@ function AdminSettings() {
         .from("system_settings")
         .select("*")
         .limit(1);
-      
+
       if (error) {
         console.error("Supabase error fetching settings:", error);
         throw error;
@@ -75,7 +75,7 @@ function AdminSettings() {
         .from("system_settings")
         .update(newData)
         .eq("id", settings.id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -102,7 +102,7 @@ function AdminSettings() {
         <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
         <h3 className="text-xl font-bold text-white uppercase italic">Erro de Conexão</h3>
         <p className="text-gray-400">Não foi possível carregar as configurações do banco.</p>
-        <Button 
+        <Button
           onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-system-settings"] })}
           className="bg-white/5 border border-white/10"
         >
@@ -173,7 +173,7 @@ function AdminSettings() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Nome do SaaS</Label>
-                  <Input 
+                  <Input
                     value={formData.saas_name}
                     onChange={(e) => setFormData({...formData, saas_name: e.target.value})}
                     className="h-12 bg-white/5 border-white/10 rounded-xl focus:ring-purple-500/50"
@@ -181,7 +181,7 @@ function AdminSettings() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">URL Principal</Label>
-                  <Input 
+                  <Input
                     value={formData.main_url}
                     onChange={(e) => setFormData({...formData, main_url: e.target.value})}
                     className="h-12 bg-white/5 border-white/10 rounded-xl"
@@ -196,7 +196,7 @@ function AdminSettings() {
                       </div>
                     )}
                     <div className="flex gap-4">
-                      <Input 
+                      <Input
                         type="file"
                         accept="image/*"
                         className="hidden"
@@ -204,22 +204,22 @@ function AdminSettings() {
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          
+
                           const fileExt = file.name.split('.').pop();
                           const filePath = `saas-logo-${Math.random()}.${fileExt}`;
-                          
+
                           toast.promise(
                             (async () => {
                               const { data, error } = await supabase.storage
                                 .from('system-assets')
                                 .upload(filePath, file);
-                              
+
                               if (error) throw error;
-                              
+
                               const { data: { publicUrl } } = supabase.storage
                                 .from('system-assets')
                                 .getPublicUrl(filePath);
-                                
+
                               setFormData({ ...formData, saas_logo: publicUrl });
                               return publicUrl;
                             })(),
@@ -231,9 +231,9 @@ function AdminSettings() {
                           );
                         }}
                       />
-                      <Button 
+                      <Button
                         asChild
-                        variant="outline" 
+                        variant="outline"
                         className="h-12 flex-1 rounded-xl bg-white/5 border-white/10 gap-2 font-bold uppercase tracking-widest text-[10px]"
                       >
                         <label htmlFor="logo-upload" className="cursor-pointer">
@@ -242,8 +242,8 @@ function AdminSettings() {
                         </label>
                       </Button>
                       {formData.saas_logo && (
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           onClick={() => setFormData({...formData, saas_logo: null})}
                           className="h-12 px-4 rounded-xl text-rose-500 hover:bg-rose-500/10"
                         >
@@ -269,18 +269,208 @@ function AdminSettings() {
                     <p className="text-white font-bold uppercase tracking-tight text-sm">Manutenção Global</p>
                     <p className="text-xs text-gray-500 leading-relaxed max-w-[280px]">Ative para bloquear o acesso de todos os usuários enquanto realiza atualizações críticas.</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={formData.maintenance_mode}
                     onCheckedChange={(val) => setFormData({...formData, maintenance_mode: val})}
                     className="data-[state=checked]:bg-rose-500"
                   />
                 </div>
-                
+
                 <div className="p-6 rounded-3xl bg-amber-500/5 border border-amber-500/10 space-y-4">
                   <p className="text-amber-400 text-[10px] uppercase font-black tracking-widest">Aviso Importante</p>
                   <p className="text-xs text-gray-400 leading-relaxed">
                     A URL principal define o domínio de redirecionamento para checkouts e e-mails transacionais. Certifique-se de que o SSL está ativo no domínio configurado.
                   </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Subseção: Landing Institucional & Contato Público (Hotfix 18) */}
+            <Card className="glass border-white/5 rounded-[2.5rem] p-8 lg:col-span-2 border-gold/20">
+              <CardHeader className="p-0 mb-8">
+                <CardTitle className="text-xl font-bold text-white italic tracking-tight uppercase flex items-center gap-2">
+                  <Globe className="text-gold w-5 h-5" />
+                  Landing Institucional & Contato Público
+                </CardTitle>
+                <CardDescription className="text-gray-400 text-xs">
+                  Configure as informações públicas, canais de atendimento e redes sociais exibidos na página principal (barbex.shop). Campos não preenchidos não serão exibidos na landing.
+                </CardDescription>
+              </CardHeader>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Informações Institucionais & Canais */}
+                <div className="space-y-6">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5" />
+                    Dados Institucionais Públicos
+                  </h4>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      E-mail Institucional Público
+                    </Label>
+                    <Input
+                      type="email"
+                      placeholder="Ex: contato@barbex.shop"
+                      value={formData.public_email || ""}
+                      onChange={(e) => setFormData({...formData, public_email: e.target.value})}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                    <p className="text-[11px] text-gray-500 px-1">
+                      Exibido publicamente no rodapé e na seção de contato da landing.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      Telefone Institucional
+                    </Label>
+                    <Input
+                      placeholder="Ex: (11) 3000-0000"
+                      value={formData.phone || ""}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      WhatsApp Oficial do Barbex
+                    </Label>
+                    <Input
+                      placeholder="Ex: 5511999999999 ou (11) 99999-9999"
+                      value={formData.whatsapp_number || ""}
+                      onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value})}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      Endereço / Sede
+                    </Label>
+                    <Input
+                      placeholder="Ex: Av. Paulista, 1000 - São Paulo/SP"
+                      value={formData.address || ""}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5 space-y-2">
+                    <Label className="text-gold text-[10px] uppercase font-black tracking-widest px-1 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5" />
+                      E-mail para receber mensagens da landing
+                    </Label>
+                    <Input
+                      type="email"
+                      placeholder="Ex: leads@barbex.shop ou atendimento@barbex.shop"
+                      value={formData.contact_email || ""}
+                      onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
+                      className="h-12 bg-white/5 border-gold/30 rounded-xl focus:ring-gold/20"
+                    />
+                    <p className="text-[11px] text-gray-400 px-1 leading-relaxed">
+                      Este endereço receberá as mensagens enviadas pelo formulário de contato da landing institucional do Barbex. Este e-mail <strong>não será exibido publicamente</strong>; será utilizado somente para receber mensagens do formulário. Enquanto estiver vazio, o formulário de envio por e-mail permanecerá oculto na landing.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Redes Sociais da Plataforma */}
+                <div className="space-y-6">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gold flex items-center gap-2">
+                    <Share2 className="w-3.5 h-3.5" />
+                    Redes Sociais Oficiais
+                  </h4>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      Instagram
+                    </Label>
+                    <Input
+                      placeholder="@barbex.shop ou URL completa"
+                      value={formData.social_links?.instagram || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        social_links: { ...(formData.social_links || {}), instagram: e.target.value }
+                      })}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      Facebook
+                    </Label>
+                    <Input
+                      placeholder="barbex.shop ou URL completa"
+                      value={formData.social_links?.facebook || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        social_links: { ...(formData.social_links || {}), facebook: e.target.value }
+                      })}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      TikTok
+                    </Label>
+                    <Input
+                      placeholder="@barbex.shop ou URL completa"
+                      value={formData.social_links?.tiktok || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        social_links: { ...(formData.social_links || {}), tiktok: e.target.value }
+                      })}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      LinkedIn
+                    </Label>
+                    <Input
+                      placeholder="https://linkedin.com/company/barbex ou barbex"
+                      value={formData.social_links?.linkedin || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        social_links: { ...(formData.social_links || {}), linkedin: e.target.value }
+                      })}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      YouTube
+                    </Label>
+                    <Input
+                      placeholder="@barbex ou URL completa"
+                      value={formData.social_links?.youtube || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        social_links: { ...(formData.social_links || {}), youtube: e.target.value }
+                      })}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">
+                      X / Twitter
+                    </Label>
+                    <Input
+                      placeholder="@barbex ou URL completa"
+                      value={formData.social_links?.twitter || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        social_links: { ...(formData.social_links || {}), twitter: e.target.value }
+                      })}
+                      className="h-12 bg-white/5 border-white/10 rounded-xl"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -302,7 +492,7 @@ function AdminSettings() {
                   <p className="text-white font-bold uppercase tracking-tight text-sm italic">Modo Teste (Stripe Sandbox)</p>
                   <p className="text-xs text-gray-500 leading-relaxed max-w-[280px]">Força o sistema a usar chaves e preços de teste, ignorando o ambiente de produção.</p>
                 </div>
-                <Switch 
+                <Switch
                   checked={formData.payments_test_mode}
                   onCheckedChange={(val) => setFormData({...formData, payments_test_mode: val})}
                   className="data-[state=checked]:bg-blue-500"
@@ -312,7 +502,7 @@ function AdminSettings() {
               <div className="space-y-2">
                 <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Stripe Secret Key</Label>
                 <div className="relative">
-                  <Input 
+                  <Input
                     type="password"
                     value={formData.stripe_secret_key || ""}
                     onChange={(e) => setFormData({...formData, stripe_secret_key: e.target.value})}
@@ -325,7 +515,7 @@ function AdminSettings() {
               <div className="space-y-2">
                 <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Stripe Webhook Secret</Label>
                 <div className="relative">
-                  <Input 
+                  <Input
                     type="password"
                     value={formData.stripe_webhook_secret || ""}
                     onChange={(e) => setFormData({...formData, stripe_webhook_secret: e.target.value})}
@@ -358,7 +548,7 @@ function AdminSettings() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Slack Webhook URL</Label>
-                  <Input 
+                  <Input
                     placeholder="https://hooks.slack.com/services/..."
                     className="h-12 bg-white/5 border-white/10 rounded-xl"
                   />
@@ -366,7 +556,7 @@ function AdminSettings() {
                 <div className="space-y-2">
                   <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">E-mails de Destinatários (Vírgula)</Label>
                   <div className="relative">
-                    <Input 
+                    <Input
                       placeholder="admin@exemplo.com, suporte@exemplo.com"
                       className="h-12 bg-white/5 border-white/10 rounded-xl pl-12"
                     />
@@ -387,7 +577,7 @@ function AdminSettings() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Janela de Silêncio (Minutos)</Label>
-                  <Input 
+                  <Input
                     type="number"
                     defaultValue={60}
                     className="h-12 bg-white/5 border-white/10 rounded-xl"
@@ -423,7 +613,7 @@ function AdminSettings() {
                     <p className="text-white font-bold text-sm uppercase italic">2FA Administrativo</p>
                     <p className="text-xs text-gray-500">Exigir código via App para logins Super Admin.</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={formData.two_factor_auth_enabled}
                     onCheckedChange={(val) => setFormData({...formData, two_factor_auth_enabled: val})}
                     className="data-[state=checked]:bg-purple-600"
@@ -431,7 +621,7 @@ function AdminSettings() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Restrição de Acesso</Label>
-                  <select 
+                  <select
                     className="w-full h-12 bg-white/5 border-white/10 rounded-xl px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     value={formData.admin_access_level}
                     onChange={(e) => setFormData({...formData, admin_access_level: e.target.value})}
@@ -457,7 +647,7 @@ function AdminSettings() {
                     <p className="text-white font-bold text-sm uppercase italic">Logs de Atividade</p>
                     <p className="text-xs text-gray-500">Registrar todas as ações de Super Admins no banco.</p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={formData.audit_logs_enabled}
                     onCheckedChange={(val) => setFormData({...formData, audit_logs_enabled: val})}
                     className="data-[state=checked]:bg-blue-600"

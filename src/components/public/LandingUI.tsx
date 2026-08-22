@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { BarbexLogo } from "@/components/ui/barbex-logo";
@@ -77,7 +77,7 @@ export function LandingImage({
           )}
         />
       )}
-      
+
       {!isError && (
         <div className={cn(
           "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent",
@@ -116,22 +116,24 @@ export function CTASection({
       {backgroundImage && (
         <>
           <div className="absolute inset-0 z-0">
-            <img 
-              src={backgroundImage} 
-              alt="" 
+            <img
+              src={backgroundImage}
+              alt=""
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover opacity-85 mix-blend-normal"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.15),transparent_70%)]" />
           </div>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             className="absolute inset-0 z-[1] bg-black/60 backdrop-blur-[1px]"
           />
         </>
       )}
-      
+
       <div className={cn(
         "relative z-10 w-full max-w-7xl mx-auto",
         align === "center" ? "text-center" : "text-left"

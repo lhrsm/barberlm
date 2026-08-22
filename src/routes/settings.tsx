@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PortalContentEditor } from "@/components/settings/PortalContentEditor";
@@ -38,6 +38,7 @@ import {
   ExternalLink,
   UserRound,
   History,
+  Mail,
   Info,
   Layout,
   ShieldCheck,

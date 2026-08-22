@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 /**
@@ -36,6 +36,10 @@ export const EMAIL_TEMPLATES = {
   contact_form_message: {
     subject: "Nova mensagem recebida pelo site",
     title: "Nova Mensagem de Contato",
+  },
+  platform_contact_form_message: {
+    subject: "Novo contato pela landing institucional",
+    title: "Novo Contato Barbex",
   },
   mfa_enabled: {
     subject: "MFA Ativado com sucesso",
@@ -98,7 +102,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
   }).parse(data))
   .handler(async ({ data }) => {
     const adminClient = await getAdmin();
-    
+
     // Fetch global settings from database
     const { data: settings } = await adminClient
       .from("resend_settings" as any)
@@ -118,7 +122,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
     if (!template) {
       throw new Error(`Template ${data.templateKey} not found`);
     }
-    
+
     // Create initial log
     const { data: logEntry } = await adminClient
       .from("email_logs" as any)
@@ -207,7 +211,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
       }
 
       const resendData = await response.json();
-      
+
       if (logId) {
         await adminClient
           .from("email_logs" as any)
@@ -222,7 +226,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
       return { success: true, messageId: resendData.id };
     } catch (error: any) {
       console.error("[Resend] Send failed:", error);
-      
+
       if (logId) {
         await adminClient
           .from("email_logs" as any)
@@ -233,7 +237,7 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
           } as any)
           .eq("id", logId);
       }
-      
+
       throw error;
     }
   });
@@ -261,6 +265,23 @@ function renderTemplateContent(key: TemplateKey, data: any = {}) {
         <h4 style="margin: 20px 0 8px; color: #111;">Mensagem:</h4>
         <div class="message-box">${data.message || ''}</div>
         <p style="font-size: 13px; color: #666; margin-top: 24px;">Para responder ao cliente, basta responder diretamente a este e-mail.</p>
+      `;
+    case 'platform_contact_form_message':
+      return `
+        <p>Você recebeu um novo contato corporativo através da <strong>Landing Institucional do Barbex</strong> (barbex.shop).</p>
+        <table class="info-table">
+          <tr><td class="label">Plataforma:</td><td><strong>Barbex Enterprise</strong></td></tr>
+          <tr><td class="label">Nome:</td><td>${data.visitorName || 'Não informado'}</td></tr>
+          <tr><td class="label">E-mail:</td><td>${data.visitorEmail ? `<a href="mailto:${data.visitorEmail}">${data.visitorEmail}</a>` : 'Não informado'}</td></tr>
+          <tr><td class="label">Telefone / WhatsApp:</td><td>${data.visitorPhone || 'Não informado'}</td></tr>
+          <tr><td class="label">Empresa / Barbearia:</td><td>${data.company || 'Não informado'}</td></tr>
+          <tr><td class="label">Assunto:</td><td><strong>${data.subject || 'Contato Institucional'}</strong></td></tr>
+          <tr><td class="label">Origem:</td><td>https://barbex.shop/#contato</td></tr>
+          <tr><td class="label">Data/Hora:</td><td>${data.timestamp || new Date().toLocaleString('pt-BR')}</td></tr>
+        </table>
+        <h4 style="margin: 20px 0 8px; color: #111;">Mensagem:</h4>
+        <div class="message-box">${data.message || ''}</div>
+        <p style="font-size: 13px; color: #666; margin-top: 24px;">Para responder diretamente ao interessado, basta responder a este e-mail.</p>
       `;
     case 'internal_user_invitation':
     case 'professional_invitation':
