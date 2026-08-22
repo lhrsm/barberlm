@@ -45,6 +45,7 @@ import { PortalPartners } from "@/components/public/PortalPartners";
 import { PortalStickyCta } from "@/components/public/PortalStickyCta";
 import { PortalStructuredData } from "@/components/public/PortalStructuredData";
 import { InstallBarbexAppPrompt } from "@/components/pwa/InstallBarbexAppPrompt";
+import { PublicContactSection } from "@/components/public/PublicContactSection";
 
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
@@ -126,6 +127,7 @@ function ShopPageComponent() {
   const [canAccess, setCanAccess] = useState(true);
   const [blockReason, setBlockReason] = useState("");
   const [subscribeModal, setSubscribeModal] = useState<{ open: boolean; plan: any | null }>({ open: false, plan: null });
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Public modules — hide sections disabled by the barbershop owner in Settings > Modules
   const { isEnabled: isModuleEnabled } = usePublicModules(shop?.id);
@@ -2168,167 +2170,209 @@ function ShopPageComponent() {
       {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute && !isEquipeRoute) ? (
         <>
           {/* Header */}
-          {!isEmbedded && (
-            <header
-              className={cn(
-                "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-                "backdrop-blur-xl border-b",
-                scrolled
-                  ? "bg-[rgba(5,11,24,0.94)] border-[rgba(212,175,55,0.22)] shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
-                  : "bg-[rgba(5,11,24,0.78)] border-[rgba(212,175,55,0.18)] shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
-              )}
-            >
-              <motion.div
-                initial={{ y: -40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+          {!isEmbedded && (() => {
+            const primaryNav = [
+              { href: "#inicio", label: "Início" },
+              { href: "#servicos", label: "Serviços" },
+              { href: "#profissionais", label: "Profissionais" },
+              ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
+              { href: "#contato", label: "Contato" },
+            ];
+
+            const overflowItems = [
+              { href: "#sobre", label: "Sobre a Barbearia" },
+              ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+              ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+              ...(cashbackEnabled && shop?.cashback_enabled ? [{ href: "#cashback", label: "Cashback" }] : []),
+              ...(couponsEnabled && publicActiveCoupons.length > 0 ? [{ href: "#campanhas", label: "Campanhas" }] : []),
+              ...(Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 ? [{ href: "#galeria", label: "Galeria" }] : []),
+              ...(Array.isArray((shop as any)?.portal_before_after) && (shop as any).portal_before_after.length > 0 ? [{ href: "#antes-depois", label: "Antes & Depois" }] : []),
+              ...(Array.isArray((shop as any)?.portal_events) && (shop as any).portal_events.length > 0 ? [{ href: "#eventos", label: "Eventos" }] : []),
+              ...(Array.isArray((shop as any)?.portal_partners) && (shop as any).portal_partners.length > 0 ? [{ href: "#parceiros", label: "Parceiros" }] : []),
+              { href: `/${shop.slug}/portal`, label: "Portal do Cliente", isExternal: true },
+            ];
+
+            const mobileItems = [
+              { href: "#inicio", label: "Início" },
+              { href: "#sobre", label: "Sobre" },
+              { href: "#servicos", label: "Serviços" },
+              { href: "#profissionais", label: "Profissionais" },
+              ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
+              ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
+              ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
+              ...(cashbackEnabled && shop?.cashback_enabled ? [{ href: "#cashback", label: "Cashback" }] : []),
+              ...(couponsEnabled && publicActiveCoupons.length > 0 ? [{ href: "#campanhas", label: "Campanhas" }] : []),
+              ...(Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 ? [{ href: "#galeria", label: "Galeria" }] : []),
+              ...(Array.isArray((shop as any)?.portal_before_after) && (shop as any).portal_before_after.length > 0 ? [{ href: "#antes-depois", label: "Antes & Depois" }] : []),
+              ...(Array.isArray((shop as any)?.portal_events) && (shop as any).portal_events.length > 0 ? [{ href: "#eventos", label: "Eventos" }] : []),
+              ...(Array.isArray((shop as any)?.portal_partners) && (shop as any).portal_partners.length > 0 ? [{ href: "#parceiros", label: "Parceiros" }] : []),
+              { href: "#contato", label: "Contato" },
+              { href: `/${shop.slug}/portal`, label: "Portal do Cliente" },
+            ];
+
+            return (
+              <header
                 className={cn(
-                  "mx-auto max-w-7xl flex items-center justify-between gap-4 px-4 sm:px-6 transition-all duration-500",
-                  scrolled ? "h-[76px]" : "h-[92px]"
+                  "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+                  "backdrop-blur-xl border-b",
+                  scrolled
+                    ? "bg-[rgba(5,11,24,0.95)] border-[rgba(212,175,55,0.22)] shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+                    : "bg-[rgba(5,11,24,0.82)] border-[rgba(212,175,55,0.18)] shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
                 )}
               >
-                {/* Logo destacada */}
-                <a href="#inicio" className="flex items-center shrink-0 group" aria-label={shop.business_name}>
-                  <div
-                    className={cn(
-                      "relative rounded-full bg-[#0B1324] border-2 border-gold/60 overflow-hidden transition-all duration-500",
-                      "shadow-[0_0_24px_rgba(212,175,55,0.25)] group-hover:shadow-[0_0_32px_rgba(212,175,55,0.45)] group-hover:border-gold",
-                      scrolled ? "h-[60px] w-[60px] md:h-16 md:w-16" : "h-[60px] w-[60px] md:h-[72px] md:w-[72px]"
-                    )}
-                  >
-                    {shop.barbershop_logo_url ? (
-                      <img
-                        src={shop.barbershop_logo_url}
-                        alt={shop.business_name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-full w-full grid place-items-center">
-                        <Scissors className={cn("text-gold transition-all", scrolled ? "h-6 w-6" : "h-7 w-7")} />
-                      </div>
-                    )}
-                  </div>
-                </a>
-
-                {/* Nav desktop centralizado */}
-                <nav className="hidden md:flex items-center gap-7 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 absolute left-1/2 -translate-x-1/2">
-                  {[
-                    { href: "#inicio", label: "Início" },
-                    { href: "#servicos", label: "Serviços" },
-                    { href: "#profissionais", label: "Profissionais" },
-                    ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
-                    ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
-                    ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
-                    ...(Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 ? [{ href: "#galeria", label: "Galeria" }] : []),
-                    ...(Array.isArray((shop as any)?.portal_events) && (shop as any).portal_events.length > 0 ? [{ href: "#eventos", label: "Eventos" }] : []),
-                    { href: "#contato", label: "Contato" },
-                  ].map((it) => (
-                    <a
-                      key={it.href}
-                      href={it.href}
-                      className="relative py-1 transition-colors hover:text-gold after:absolute after:left-1/2 after:-bottom-1 after:h-px after:w-0 after:-translate-x-1/2 after:bg-gold after:transition-all hover:after:w-full"
-                    >
-                      {it.label}
-                    </a>
-                  ))}
-                  {(cashbackEnabled || couponsEnabled) && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="relative py-1 inline-flex items-center gap-1 transition-colors hover:text-gold outline-none">
-                        Mais <ChevronDown className="h-3 w-3" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-[#05070d] border-gold/20 text-white min-w-[180px]">
-                        {cashbackEnabled && shop?.cashback_enabled && (
-                          <DropdownMenuItem asChild>
-                            <a href="#cashback" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Cashback</a>
-                          </DropdownMenuItem>
-                        )}
-                        {couponsEnabled && publicActiveCoupons.length > 0 && (
-                          <DropdownMenuItem asChild>
-                            <a href="#campanhas" className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Campanhas</a>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem asChild>
-                          <a href={`/${shop.slug}/portal`} className="cursor-pointer text-xs font-bold uppercase tracking-[0.15em]">Portal do Cliente</a>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                <motion.div
+                  initial={{ y: -40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className={cn(
+                    "mx-auto max-w-7xl flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 transition-all duration-500",
+                    scrolled ? "h-[76px]" : "h-[90px]"
                   )}
-                </nav>
-
-                {/* Ações direita */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    onClick={handleBookingAction}
-                    className={cn(
-                      "rounded-full font-extrabold tracking-wide text-black transition-all",
-                      "bg-gradient-to-br from-[#F5C542] to-[#D4A017] hover:from-[#F8D265] hover:to-[#D4A017]",
-                      "shadow-[0_10px_28px_rgba(245,197,66,0.28)] hover:-translate-y-0.5",
-                      "h-[42px] px-[18px] text-xs md:h-12 md:px-7 md:text-sm"
-                    )}
-                  >
-                    {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar Agora'}
-                  </Button>
-
-                  {/* Hambúrguer mobile */}
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="md:hidden h-11 w-11 rounded-full bg-[#0B1324] border border-gold/30 text-white hover:bg-[#0B1324] hover:border-gold/70 hover:text-gold"
-                        aria-label="Abrir menu"
+                >
+                  {/* 1. LEFT: Logo + Identidade */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <a href="#inicio" className="flex items-center gap-3 group" aria-label={shop.business_name}>
+                      <div
+                        className={cn(
+                          "relative rounded-full bg-[#0B1324] border-2 border-gold/60 overflow-hidden transition-all duration-500 shrink-0",
+                          "shadow-[0_0_24px_rgba(212,175,55,0.25)] group-hover:shadow-[0_0_32px_rgba(212,175,55,0.45)] group-hover:border-gold",
+                          scrolled ? "h-12 w-12 sm:h-14 sm:w-14" : "h-14 w-14 sm:h-16 sm:w-16"
+                        )}
                       >
-                        <Menu className="h-5 w-5" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="bg-[#05070d] border-l border-gold/15 text-white w-[280px] p-0">
-                      <div className="flex items-center gap-3 p-6 border-b border-white/10">
-                        <div className="h-12 w-12 rounded-full overflow-hidden bg-[#0B1324] border-2 border-gold/60 shadow-[0_0_18px_rgba(212,175,55,0.3)]">
-                          {shop.barbershop_logo_url ? (
-                            <img src={shop.barbershop_logo_url} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full grid place-items-center"><Scissors className="h-5 w-5 text-gold" /></div>
-                          )}
-                        </div>
-                        <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Menu</span>
+                        {shop.barbershop_logo_url ? (
+                          <img
+                            src={shop.barbershop_logo_url}
+                            alt={shop.business_name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full grid place-items-center">
+                            <Scissors className={cn("text-gold transition-all", scrolled ? "h-5 w-5" : "h-6 w-6")} />
+                          </div>
+                        )}
                       </div>
-                      <nav className="flex flex-col p-2">
-                        {[
-                          { href: "#inicio", label: "Início" },
-                          { href: "#servicos", label: "Serviços" },
-                          { href: "#profissionais", label: "Profissionais" },
-                          ...(subscriptionsEnabled && publicSubscriptionPlans.length > 0 ? [{ href: "#clube", label: "Planos" }] : []),
-                          ...(productsEnabled ? [{ href: "#produtos", label: "Produtos" }] : []),
-                          ...(loyaltyEnabled && publicLoyaltySettings?.enabled ? [{ href: "#fidelidade", label: "Fidelidade" }] : []),
-                          ...(cashbackEnabled && shop?.cashback_enabled ? [{ href: "#cashback", label: "Cashback" }] : []),
-                          ...(couponsEnabled && publicActiveCoupons.length > 0 ? [{ href: "#campanhas", label: "Campanhas" }] : []),
-                          ...(Array.isArray((shop as any)?.gallery_images) && (shop as any).gallery_images.length > 0 ? [{ href: "#galeria", label: "Galeria" }] : []),
-                          ...(Array.isArray((shop as any)?.portal_before_after) && (shop as any).portal_before_after.length > 0 ? [{ href: "#antes-depois", label: "Antes & Depois" }] : []),
-                          ...(Array.isArray((shop as any)?.portal_events) && (shop as any).portal_events.length > 0 ? [{ href: "#eventos", label: "Eventos" }] : []),
-                          ...(Array.isArray((shop as any)?.portal_partners) && (shop as any).portal_partners.length > 0 ? [{ href: "#parceiros", label: "Parceiros" }] : []),
-                          { href: "#contato", label: "Contato" },
-                          { href: `/${shop.slug}/portal`, label: "Portal do Cliente" },
-                        ].map((it) => (
-                          <a
-                            key={it.href}
-                            href={it.href}
-                            className="px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-[0.15em] text-white/80 hover:bg-white/5 hover:text-gold transition-colors"
-                          >
-                            {it.label}
-                          </a>
-                        ))}
-                        <Button
-                          onClick={handleBookingAction}
-                          className="mt-4 mx-2 rounded-full bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-black font-extrabold h-12 shadow-[0_10px_28px_rgba(245,197,66,0.25)]"
+                      <div className="hidden sm:block">
+                        <span className="font-extrabold text-sm md:text-base text-white tracking-tight group-hover:text-gold transition-colors line-clamp-1">
+                          {shop.business_name}
+                        </span>
+                        <span className="block text-[10px] uppercase tracking-widest text-gold/70 font-semibold">
+                          Barbearia Premium
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+
+                  {/* 2. CENTER: Nav Desktop Centralizado e Seguro */}
+                  <nav className="hidden lg:flex items-center justify-center gap-6 xl:gap-8 text-[11px] font-black uppercase tracking-[0.16em] text-white/70 flex-1 px-4 min-w-0">
+                    {primaryNav.map((it) => (
+                      <a
+                        key={it.href}
+                        href={it.href}
+                        className="relative py-1.5 transition-colors hover:text-gold whitespace-nowrap after:absolute after:left-1/2 after:-bottom-1 after:h-px after:w-0 after:-translate-x-1/2 after:bg-gold after:transition-all hover:after:w-full"
+                      >
+                        {it.label}
+                      </a>
+                    ))}
+
+                    {overflowItems.length > 0 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="relative py-1.5 px-3 rounded-lg inline-flex items-center gap-1.5 transition-all text-white/80 hover:text-gold hover:bg-white/5 outline-none font-black text-[11px] uppercase tracking-[0.16em]">
+                          <span>Mais</span>
+                          <ChevronDown className="h-3.5 w-3.5 text-gold shrink-0 transition-transform duration-200" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          sideOffset={8}
+                          className="bg-[#05070d]/95 backdrop-blur-2xl border border-gold/25 text-white min-w-[210px] p-2 shadow-[0_15px_35px_rgba(0,0,0,0.8)] z-[60] rounded-xl"
                         >
-                          Agendar Agora
+                          {overflowItems.map((item) => (
+                            <DropdownMenuItem key={item.href} asChild>
+                              <a
+                                href={item.href}
+                                className="cursor-pointer text-xs font-bold uppercase tracking-[0.14em] px-3.5 py-2.5 rounded-lg text-white/85 hover:bg-gold/10 hover:text-gold transition-colors flex items-center justify-between"
+                              >
+                                <span>{item.label}</span>
+                                {item.isExternal && <ExternalLink size={12} className="text-gold/60 ml-2" />}
+                              </a>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </nav>
+
+                  {/* 3. RIGHT: CTA + Mobile Hamburger */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Button
+                      onClick={handleBookingAction}
+                      className={cn(
+                        "rounded-full font-extrabold tracking-wide text-black transition-all shrink-0 whitespace-nowrap",
+                        "bg-gradient-to-br from-[#F5C542] to-[#D4A017] hover:from-[#F8D265] hover:to-[#D4A017]",
+                        "shadow-[0_10px_28px_rgba(245,197,66,0.28)] hover:-translate-y-0.5",
+                        "h-[42px] px-5 text-xs sm:h-11 sm:px-6 sm:text-sm min-w-[130px] sm:min-w-[150px]"
+                      )}
+                    >
+                      {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar Agora'}
+                    </Button>
+
+                    {/* Hambúrguer Mobile / Tablet */}
+                    <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+                      <SheetTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="lg:hidden h-11 w-11 rounded-full bg-[#0B1324] border border-gold/30 text-white hover:bg-[#0B1324] hover:border-gold/70 hover:text-gold"
+                          aria-label="Abrir menu"
+                        >
+                          <Menu className="h-5 w-5" />
                         </Button>
-                      </nav>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-              </motion.div>
-            </header>
-          )}
+                      </SheetTrigger>
+                      <SheetContent side="right" className="bg-[#05070d]/98 backdrop-blur-2xl border-l border-gold/20 text-white w-[300px] sm:w-[340px] p-0 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-3 p-6 border-b border-white/10 bg-white/[0.02]">
+                            <div className="h-12 w-12 rounded-full overflow-hidden bg-[#0B1324] border-2 border-gold/60 shadow-[0_0_18px_rgba(212,175,55,0.3)] shrink-0">
+                              {shop.barbershop_logo_url ? (
+                                <img src={shop.barbershop_logo_url} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="h-full w-full grid place-items-center"><Scissors className="h-5 w-5 text-gold" /></div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-sm font-bold text-white truncate">{shop.business_name}</h4>
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/70">Menu</span>
+                            </div>
+                          </div>
+                          <nav className="flex flex-col p-3 space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto">
+                            {mobileItems.map((it) => (
+                              <a
+                                key={it.href}
+                                href={it.href}
+                                onClick={() => setMobileNavOpen(false)}
+                                className="px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-[0.15em] text-white/80 hover:bg-gold/10 hover:text-gold transition-colors flex items-center justify-between"
+                              >
+                                <span>{it.label}</span>
+                                <ChevronRight size={14} className="text-slate-600" />
+                              </a>
+                            ))}
+                          </nav>
+                        </div>
+                        <div className="p-4 border-t border-white/10 bg-black/40">
+                          <Button
+                            onClick={() => {
+                              setMobileNavOpen(false);
+                              handleBookingAction();
+                            }}
+                            className="w-full rounded-full bg-gradient-to-br from-[#F5C542] to-[#D4A017] text-black font-extrabold h-12 shadow-[0_10px_28px_rgba(245,197,66,0.25)] uppercase tracking-wider text-xs"
+                          >
+                            {shop.scheduling_mode === 'manual' ? 'Falar no WhatsApp' : 'Agendar Agora'}
+                          </Button>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                </motion.div>
+              </header>
+            );
+          })()}
 
 
 
@@ -3305,7 +3349,10 @@ function ShopPageComponent() {
         </section>
 
 
-        {/* Footer */}
+        {/* Seção de Contato Público */}
+        <PublicContactSection shop={shop} slug={slug} />
+
+        {/* Footer Reestruturado */}
         {(() => {
           const social = (shop as any)?.social_links || {};
           const socials = [
@@ -3313,15 +3360,26 @@ function ShopPageComponent() {
             { key: "facebook", url: social.facebook, label: "Facebook", path: "M13 22v-8h3l1-4h-4V7.5C13 6.4 13.4 5.5 15 5.5h2V2.2C16.5 2.1 15.3 2 14 2c-3 0-5 1.8-5 5v3H6v4h3v8h4z" },
             { key: "tiktok", url: social.tiktok, label: "TikTok", path: "M16 2c.3 1.7 1.3 3 2.8 3.8 1 .5 2 .7 3.2.7v3.6c-2 .1-3.8-.4-5.5-1.5v6.6c0 4-3.3 7.3-7.3 7.3S2 18.7 2 14.7s3.3-7.3 7.3-7.3c.4 0 .8 0 1.2.1v3.8c-.4-.1-.8-.2-1.2-.2-2 0-3.7 1.7-3.7 3.7s1.7 3.7 3.7 3.7 3.7-1.7 3.7-3.7V2h3z" },
             { key: "youtube", url: social.youtube, label: "YouTube", path: "M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8C22 15.2 22 12 22 12s0-3.2-.4-4.8zM10 15V9l5 3-5 3z" },
-            { key: "whatsapp", url: social.whatsapp, label: "WhatsApp", path: "M20 4A11.9 11.9 0 0 0 3 18l-1 4 4-1a11.9 11.9 0 0 0 14-17zm-8 18a9.9 9.9 0 0 1-5-1.4l-.4-.2-2.4.6.7-2.3-.2-.4A9.9 9.9 0 1 1 12 22zm5.5-7c-.3-.2-1.8-.9-2-1s-.5-.2-.7.1-.8 1-1 1.2-.4.2-.6.1c-1.6-.7-2.8-2-3.4-3.4-.2-.4 0-.4.2-.6l.5-.6c.1-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-.9-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4S6 8.3 6 9.7s1 2.8 1.1 3 2 3.1 5 4.3c2.5 1 2.5.7 3 .6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.2-.6-.4z" },
-          ].filter((s) => s.url);
+          ].filter((s) => s.url && s.url.trim().length > 0);
+
+          const rawWhatsapp = shop?.whatsapp_number || (shop?.social_links as any)?.whatsapp;
+          const cleanWhatsapp = rawWhatsapp ? rawWhatsapp.replace(/\D/g, "") : "";
+          const formattedWhatsapp = cleanWhatsapp
+            ? cleanWhatsapp.startsWith("55")
+              ? cleanWhatsapp
+              : `55${cleanWhatsapp}`
+            : "";
+          const whatsappUrl = formattedWhatsapp
+            ? `https://wa.me/${formattedWhatsapp}?text=${encodeURIComponent(`Olá! Vim pelo site da ${shop?.business_name || 'barbearia'}.`)}`
+            : "";
+
           const hasAddress = !!shop?.address;
           const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop?.address || shop?.business_name || "")}`;
           const mapsEmbed = hasAddress ? `https://www.google.com/maps?q=${encodeURIComponent(shop.address)}&output=embed` : "";
 
           return (
             <footer
-              id="contato"
+              id="rodape"
               className="relative border-t border-[#F5C542]/10"
               style={{
                 background: "radial-gradient(circle at top, rgba(245,197,66,0.08), transparent 40%), #02040A",
@@ -3330,55 +3388,82 @@ function ShopPageComponent() {
             >
               <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-                  {/* Col 1: brand */}
+                  {/* Col 1: Brand & Siga-nos */}
                   <div className="space-y-5">
                     <div className="flex items-center gap-3">
                       {shop.barbershop_logo_url ? (
-                        <img src={shop.barbershop_logo_url} alt={shop.business_name} className="h-12 w-12 object-contain rounded-xl bg-white/5 p-1" />
+                        <img src={shop.barbershop_logo_url} alt={shop.business_name} className="h-12 w-12 object-contain rounded-xl bg-white/5 p-1 border border-gold/30" />
                       ) : (
-                        <div className="h-12 w-12 rounded-xl bg-gold/15 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-gold/15 flex items-center justify-center border border-gold/30">
                           <Scissors className="h-6 w-6 text-gold" />
                         </div>
                       )}
-                      <h4 className="font-bold text-xl tracking-tight text-white truncate">{shop.business_name}</h4>
+                      <div>
+                        <h4 className="font-bold text-xl tracking-tight text-white truncate">{shop.business_name}</h4>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gold/70">Barbearia Premium</span>
+                      </div>
                     </div>
                     <p className="text-slate-400 text-sm leading-relaxed">
-                      Tradição, estilo e cuidado masculino em um só lugar.
+                      Tradição, estilo e cuidado masculino em um só lugar. Excelência em cada corte e atendimento.
                     </p>
                     {socials.length > 0 && (
-                      <div className="flex flex-wrap gap-3">
-                        {socials.map((s) => (
-                          <a
-                            key={s.key}
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={s.label}
-                            className="h-10 w-10 rounded-full bg-white/5 border border-[#F5C542]/25 flex items-center justify-center text-white/85 hover:text-[#F5C542] hover:border-[#F5C542] hover:shadow-[0_0_20px_rgba(245,197,66,0.45)] transition-all"
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path} /></svg>
-                          </a>
-                        ))}
+                      <div className="space-y-2 pt-1">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 block">Siga-nos</span>
+                        <div className="flex flex-wrap gap-2.5">
+                          {socials.map((s) => (
+                            <a
+                              key={s.key}
+                              href={s.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`${s.label} da ${shop.business_name}`}
+                              className="h-10 w-10 rounded-xl bg-white/5 border border-[#F5C542]/25 flex items-center justify-center text-white/85 hover:text-[#F5C542] hover:border-[#F5C542] hover:shadow-[0_0_20px_rgba(245,197,66,0.45)] transition-all"
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path} /></svg>
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Col 2: location + map */}
+                  {/* Col 2: Contato & Localização */}
                   <div className="space-y-4">
-                    <h5 className="font-black uppercase tracking-widest text-xs text-gold">Localização</h5>
+                    <h5 className="font-black uppercase tracking-widest text-xs text-gold">Contato & Localização</h5>
+                    {hasAddress && (
+                      <div className="flex items-start gap-3">
+                        <MapPin size={18} className="text-gold shrink-0 mt-0.5" />
+                        <p className="text-slate-300 text-sm leading-relaxed">{shop.address}</p>
+                      </div>
+                    )}
+                    <div className="space-y-2 pt-1">
+                      {whatsappUrl && (
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`WhatsApp da ${shop.business_name}`}
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black font-bold text-xs uppercase tracking-wider transition-all w-full justify-center"
+                        >
+                          <MessageSquare size={15} /> Falar no WhatsApp
+                        </a>
+                      )}
+                      <a
+                        href="#contato"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-gold hover:border-gold/40 hover:bg-gold/5 font-bold text-xs uppercase tracking-wider transition-all w-full justify-center"
+                      >
+                        <Phone size={15} /> Enviar Mensagem pelo Site
+                      </a>
+                    </div>
                     {hasAddress ? (
-                      <>
-                        <div className="flex items-start gap-3">
-                          <MapPin size={18} className="text-gold shrink-0 mt-0.5" />
-                          <p className="text-slate-300 text-sm leading-relaxed">{shop.address}</p>
-                        </div>
+                      <div className="pt-2">
                         <div
-                          className="w-full overflow-hidden rounded-[20px] border border-[#F5C542]/20 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.7)]"
-                          style={{ height: "min(220px, 40vw)", minHeight: 180 }}
+                          className="w-full overflow-hidden rounded-[16px] border border-[#F5C542]/20 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.7)]"
+                          style={{ height: 140 }}
                         >
                           <iframe
                             src={mapsEmbed}
-                            title="Mapa"
+                            title="Mapa da barbearia"
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
                             className="w-full h-full"
@@ -3389,40 +3474,44 @@ function ShopPageComponent() {
                           href={mapsLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-xs font-bold text-gold hover:text-[#F5C542] transition-colors"
+                          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-gold hover:text-[#F5C542] transition-colors mt-2"
                         >
-                          <ExternalLink size={14} /> Abrir no Google Maps
+                          <ExternalLink size={13} /> Abrir no Google Maps
                         </a>
-                      </>
+                      </div>
                     ) : (
-                      <div className="rounded-[20px] border border-dashed border-[#F5C542]/20 bg-white/[0.02] p-6 text-center">
-                        <MapPin size={20} className="text-gold/60 mx-auto mb-2" />
-                        <p className="text-sm font-bold text-white">Localização não informada</p>
-                        <p className="text-xs text-slate-500 mt-1">Esta barbearia ainda não cadastrou o endereço.</p>
+                      <div className="rounded-[16px] border border-dashed border-[#F5C542]/20 bg-white/[0.02] p-4 text-center">
+                        <MapPin size={18} className="text-gold/60 mx-auto mb-1.5" />
+                        <p className="text-xs font-bold text-white">Localização</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Consulte nosso atendimento para informações de endereço.</p>
                       </div>
                     )}
                   </div>
 
-                  {/* Col 3: quick links */}
+                  {/* Col 3: Navegação Rápida */}
                   <div className="space-y-4">
-                    <h5 className="font-black uppercase tracking-widest text-xs text-gold">Links Rápidos</h5>
+                    <h5 className="font-black uppercase tracking-widest text-xs text-gold">Navegação</h5>
                     <nav className="flex flex-col gap-2.5 text-sm font-medium text-slate-400">
-                      <a href="#inicio" className="hover:text-white transition-colors">Início</a>
-                      <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
-                      <a href="#profissionais" className="hover:text-white transition-colors">Profissionais</a>
+                      <a href="#inicio" className="hover:text-gold transition-colors">Início</a>
+                      <a href="#servicos" className="hover:text-gold transition-colors">Serviços</a>
+                      <a href="#profissionais" className="hover:text-gold transition-colors">Profissionais</a>
                       {isModuleEnabled("subscriptions") && (
-                        <a href="#planos" className="hover:text-white transition-colors">Planos</a>
+                        <a href="#clube" className="hover:text-gold transition-colors">Planos & Assinaturas</a>
                       )}
                       {isModuleEnabled("products") && (
-                        <a href="#produtos" className="hover:text-white transition-colors">Produtos</a>
+                        <a href="#produtos" className="hover:text-gold transition-colors">Produtos</a>
                       )}
-                      <a href={`/${slug}/portal`} className="hover:text-white transition-colors">Portal do Cliente</a>
-                      <a href="/privacy" className="hover:text-white transition-colors">Política de Privacidade</a>
-                      <a href="/terms" className="hover:text-white transition-colors">Termos de Uso</a>
+                      {loyaltyEnabled && publicLoyaltySettings?.enabled && (
+                        <a href="#fidelidade" className="hover:text-gold transition-colors">Programa Fidelidade</a>
+                      )}
+                      <a href="#contato" className="hover:text-gold transition-colors">Fale Conosco</a>
+                      <a href={`/${slug}/portal`} className="hover:text-gold transition-colors">Portal do Cliente</a>
+                      <a href="/privacy" className="hover:text-white transition-colors text-xs pt-2">Política de Privacidade</a>
+                      <a href="/terms" className="hover:text-white transition-colors text-xs">Termos de Uso</a>
                     </nav>
                   </div>
 
-                  {/* Col 4: hours */}
+                  {/* Col 4: Horários de Funcionamento */}
                   <div className="space-y-4">
                     <h5 className="font-black uppercase tracking-widest text-xs text-gold flex items-center gap-2">
                       <Clock size={14} className="text-gold" />
@@ -3434,7 +3523,7 @@ function ShopPageComponent() {
                           <CalendarDays size={14} className="text-gold/70 group-hover:text-gold transition-colors" />
                           Seg - Sex
                         </span>
-                        <span className="text-white font-semibold flex items-center gap-1.5">
+                        <span className="text-white font-semibold flex items-center gap-1.5 text-xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                           09:00 - 20:00
                         </span>
@@ -3444,17 +3533,17 @@ function ShopPageComponent() {
                           <CalendarDays size={14} className="text-gold/70 group-hover:text-gold transition-colors" />
                           Sábado
                         </span>
-                        <span className="text-white font-semibold flex items-center gap-1.5">
+                        <span className="text-white font-semibold flex items-center gap-1.5 text-xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                           08:00 - 18:00
                         </span>
                       </div>
-                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-red-400/30 transition-all">
+                      <div className="flex items-center justify-between gap-3 group rounded-lg px-3 py-2 bg-white/[0.02] border border-red-400/30 transition-all">
                         <span className="flex items-center gap-2">
                           <Ban size={14} className="text-red-400/70 group-hover:text-red-400 transition-colors" />
                           Domingo
                         </span>
-                        <span className="text-slate-500 font-semibold flex items-center gap-1.5">
+                        <span className="text-slate-500 font-semibold flex items-center gap-1.5 text-xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-red-400/70" />
                           Fechado
                         </span>
@@ -3463,9 +3552,15 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-[#F5C542]/10 flex flex-col md:flex-row justify-between items-center gap-3 text-center md:text-left">
+                <div className="pt-8 border-t border-[#F5C542]/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
                   <p className="text-xs text-slate-500">© 2026 {shop?.business_name}. Todos os direitos reservados.</p>
-                  <p className="text-xs text-slate-600">Powered by <span className="text-gold font-bold">Barbex</span></p>
+                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                    <a href="/terms" className="hover:text-slate-300 transition-colors">Termos</a>
+                    <span>•</span>
+                    <a href="/privacy" className="hover:text-slate-300 transition-colors">Privacidade</a>
+                    <span>•</span>
+                    <span className="text-slate-600">Powered by <span className="text-gold font-bold">Barbex</span></span>
+                  </div>
                 </div>
               </div>
             </footer>

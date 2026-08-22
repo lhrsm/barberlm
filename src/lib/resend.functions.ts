@@ -33,6 +33,10 @@ export const EMAIL_TEMPLATES = {
     subject: "Alerta de Segurança - Barbex",
     title: "Alerta de Segurança",
   },
+  contact_form_message: {
+    subject: "Nova mensagem recebida pelo site",
+    title: "Nova Mensagem de Contato",
+  },
   mfa_enabled: {
     subject: "MFA Ativado com sucesso",
     title: "Segurança Reforçada",
@@ -89,6 +93,8 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
     tenantId: z.string().optional(),
     userId: z.string().optional(),
     correlationId: z.string().optional(),
+    replyTo: z.string().email().optional(),
+    customSubject: z.string().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
     const adminClient = await getAdmin();
@@ -147,6 +153,10 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
             .button { display: inline-block; padding: 14px 28px; background-color: #D4AF37; color: #000 !important; text-decoration: none; border-radius: 8px; font-weight: 700; text-transform: uppercase; font-size: 14px; letter-spacing: 0.05em; margin: 24px 0; }
             .footer { padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #f3f4f6; }
             .code-box { background: #f3f4f6; padding: 24px; text-align: center; font-size: 32px; font-weight: 800; letter-spacing: 6px; margin: 24px 0; border-radius: 12px; color: #000; }
+            .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            .info-table td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+            .info-table td.label { font-weight: 700; color: #555; width: 30%; }
+            .message-box { background: #f8fafc; border-left: 4px solid #D4AF37; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
           </style>
         </head>
         <body>
@@ -167,22 +177,28 @@ export const sendTransactionalEmail = createServerFn({ method: "POST" })
         </html>
       `;
 
+      const emailPayload: any = {
+        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        to: [data.recipient],
+        subject: data.customSubject || template.subject,
+        html: html,
+        tags: [
+          { name: 'template_key', value: data.templateKey },
+          { name: 'log_id', value: String(logId || '') }
+        ]
+      };
+
+      if (data.replyTo) {
+        emailPayload.reply_to = data.replyTo;
+      }
+
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${RESEND_API_KEY}`,
         },
-        body: JSON.stringify({
-          from: `${FROM_NAME} <${FROM_EMAIL}>`,
-          to: [data.recipient],
-          subject: template.subject,
-          html: html,
-          tags: [
-            { name: 'template_key', value: data.templateKey },
-            { name: 'log_id', value: String(logId || '') }
-          ]
-        }),
+        body: JSON.stringify(emailPayload),
       });
 
       if (!response.ok) {
@@ -229,6 +245,22 @@ function renderTemplateContent(key: TemplateKey, data: any = {}) {
         <p>Olá, utilize o código abaixo para confirmar sua identidade no Barbex:</p>
         <div class="code-box">${data.code}</div>
         <p style="text-align: center; color: #666; font-size: 14px;">Este código expira em 10 minutos.</p>
+      `;
+    case 'contact_form_message':
+      return `
+        <p>Você recebeu uma nova mensagem enviada através da sua página pública no Barbex.</p>
+        <table class="info-table">
+          <tr><td class="label">Barbearia:</td><td><strong>${data.businessName || 'Barbearia'}</strong></td></tr>
+          <tr><td class="label">Nome:</td><td>${data.visitorName || 'Não informado'}</td></tr>
+          <tr><td class="label">E-mail:</td><td>${data.visitorEmail ? `<a href="mailto:${data.visitorEmail}">${data.visitorEmail}</a>` : 'Não informado'}</td></tr>
+          <tr><td class="label">Telefone / WhatsApp:</td><td>${data.visitorPhone || 'Não informado'}</td></tr>
+          <tr><td class="label">Assunto:</td><td><strong>${data.subject || 'Contato'}</strong></td></tr>
+          <tr><td class="label">Origem:</td><td>barbex.shop/${data.slug || ''}</td></tr>
+          <tr><td class="label">Data/Hora:</td><td>${data.timestamp || new Date().toLocaleString('pt-BR')}</td></tr>
+        </table>
+        <h4 style="margin: 20px 0 8px; color: #111;">Mensagem:</h4>
+        <div class="message-box">${data.message || ''}</div>
+        <p style="font-size: 13px; color: #666; margin-top: 24px;">Para responder ao cliente, basta responder diretamente a este e-mail.</p>
       `;
     case 'internal_user_invitation':
     case 'professional_invitation':

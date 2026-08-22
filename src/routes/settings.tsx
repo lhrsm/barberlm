@@ -144,6 +144,7 @@ function SettingsComponent() {
     pix_key: "",
     pix_qr_code_url: "",
     whatsapp_number: "",
+    contact_email: "",
     // Z-API settings
     instance_id: "",
     instance_token: "",
@@ -310,6 +311,7 @@ function SettingsComponent() {
           pix_key: profile.pix_key || "",
           pix_qr_code_url: profile.pix_qr_code_url || "",
           whatsapp_number: settingsData?.whatsapp_number || profile.whatsapp_number || "",
+          contact_email: (profile as any).contact_email || profile.email || "",
           instance_id: settingsData?.instance_id || "",
           instance_token: settingsData?.instance_token || "",
           client_token: settingsData?.client_token || "",
@@ -414,6 +416,7 @@ function SettingsComponent() {
         pix_key: profileUpdateData.pix_key,
         pix_qr_code_url: profileUpdateData.pix_qr_code_url,
         whatsapp_number: profileUpdateData.whatsapp_number,
+        contact_email: profileUpdateData.contact_email?.trim() || null,
         opening_date: profileUpdateData.opening_date || null,
         cancellation_window_hours: parseInt(profileUpdateData.cancellation_window_hours) || 2,
         barber_can_cancel: !!profileUpdateData.barber_can_cancel,
@@ -818,31 +821,58 @@ function SettingsComponent() {
                 <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
                     <Globe className="text-[#ea580c] h-5 w-5" />
-                    Redes Sociais
+                    Contato e Redes Sociais
                   </CardTitle>
                   <CardDescription className="text-slate-400 font-medium">
-                    Cole a URL completa ou o @usuário. Campos vazios não aparecem no site público.
+                    Configure os canais públicos de atendimento e o e-mail de recebimento de mensagens do site.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 grid gap-5 md:grid-cols-2">
-                  {[
-                    { key: "social_instagram", label: "Instagram", ph: "@suabarbearia ou https://instagram.com/..." },
-                    { key: "social_facebook", label: "Facebook", ph: "suabarbearia ou https://facebook.com/..." },
-                    { key: "social_tiktok", label: "TikTok", ph: "@suabarbearia ou https://tiktok.com/@..." },
-                    { key: "social_youtube", label: "YouTube", ph: "@suabarbearia ou https://youtube.com/@..." },
-                    { key: "social_whatsapp", label: "WhatsApp", ph: "5571999999999 ou https://wa.me/..." },
-                  ].map((f) => (
-                    <div key={f.key} className="grid gap-2">
-                      <Label htmlFor={f.key} className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{f.label}</Label>
-                      <Input
-                        id={f.key}
-                        value={(formData as any)[f.key]}
-                        onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
-                        placeholder={f.ph}
-                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
-                      />
+                <CardContent className="p-6 space-y-6">
+                  {/* E-mail de Contato Público */}
+                  <div className="bg-[#05070d]/60 border border-gold/15 rounded-2xl p-5 space-y-2">
+                    <Label htmlFor="contact_email" className="text-gold font-bold uppercase text-[11px] tracking-widest flex items-center gap-2">
+                      <Mail size={14} /> E-mail para receber mensagens do site
+                    </Label>
+                    <Input
+                      id="contact_email"
+                      type="email"
+                      value={formData.contact_email || ""}
+                      onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                      placeholder="contato@suaempresa.com.br"
+                      className="bg-[#05070d] border-[#1f2937] text-white focus:border-gold transition-all rounded-xl h-12"
+                    />
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      Este endereço receberá as mensagens enviadas pelo formulário de contato da sua página pública. Enquanto este campo estiver vazio, o formulário de contato por e-mail não será exibido na sua página pública.
+                    </p>
+                  </div>
+
+                  {/* Redes Sociais */}
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-300">Redes Sociais Públicas</h4>
+                      <p className="text-[11px] text-slate-500">Cole a URL completa ou o @usuário. Campos vazios não aparecem no site público.</p>
                     </div>
-                  ))}
+                    <div className="grid gap-5 md:grid-cols-2">
+                      {[
+                        { key: "social_instagram", label: "Instagram", ph: "@suabarbearia ou https://instagram.com/..." },
+                        { key: "social_facebook", label: "Facebook", ph: "suabarbearia ou https://facebook.com/..." },
+                        { key: "social_tiktok", label: "TikTok", ph: "@suabarbearia ou https://tiktok.com/@..." },
+                        { key: "social_youtube", label: "YouTube", ph: "@suabarbearia ou https://youtube.com/@..." },
+                        { key: "social_whatsapp", label: "WhatsApp", ph: "5571999999999 ou https://wa.me/..." },
+                      ].map((f) => (
+                        <div key={f.key} className="grid gap-2">
+                          <Label htmlFor={f.key} className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{f.label}</Label>
+                          <Input
+                            id={f.key}
+                            value={(formData as any)[f.key]}
+                            onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                            placeholder={f.ph}
+                            className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
